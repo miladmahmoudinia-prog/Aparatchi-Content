@@ -1,0 +1,70 @@
+name: Sync Upera Free Catalog
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+    inputs:
+      movie_pages:
+        description: 'تعداد صفحات فیلم برای تکمیل آرشیو در این اجرا'
+        required: false
+        default: '3'
+      series_pages:
+        description: 'تعداد صفحات سریال برای تکمیل آرشیو در این اجرا'
+        required: false
+        default: '1'
+      new_hours:
+        description: 'بررسی تغییرات چند ساعت اخیر'
+        required: false
+        default: '72'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: upera-catalog-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+
+    steps:
+      - name: Checkout content repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Resolve sync settings
+        shell: bash
+        run: |
+          MOVIE_PAGES='${{ github.event.inputs.movie_pages }}'
+          SERIES_PAGES='${{ github.event.inputs.series_pages }}'
+          NEW_HOURS='${{ github.event.inputs.new_hours }}'
+          echo "MOVIE_PAGES_PER_RUN=${MOVIE_PAGES:-3}" >> "$GITHUB_ENV"
+          echo "SERIES_PAGES_PER_RUN=${SERIES_PAGES:-1}" >> "$GITHUB_ENV"
+          echo "NEW_TITLES_HOURS=${NEW_HOURS:-72}" >> "$GITHUB_ENV"
+
+      - name: Sync free movies and series
+        env:
+          UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
+          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
+          SYNC_CONCURRENCY: '5'
+        run: node scripts/sync-upera.mjs
+
+      - name: Commit updated catalog
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add catalog.json sync-state.json sync-report.json
+          if git diff --cached --quiet; then
+            echo "No catalog changes."
+            exit 0
+          fi
+          git commit -m "chore: sync free Upera catalog"
+          git push
