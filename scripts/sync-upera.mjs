@@ -12,7 +12,9 @@ const token = String(process.env.UPERA_TOKEN || '').trim();
 const moviePagesPerRun = positiveInt(process.env.MOVIE_PAGES_PER_RUN, 3);
 const seriesPagesPerRun = positiveInt(process.env.SERIES_PAGES_PER_RUN, 1);
 const newTitlesHours = positiveInt(process.env.NEW_TITLES_HOURS, 72);
-const concurrency = Math.min(10, positiveInt(process.env.SYNC_CONCURRENCY, 5));
+const concurrency = 1;
+const affiliateRequestDelay = positiveInt(process.env.UPERA_REQUEST_DELAY_MS, 2500);
+let lastAffiliateRequestAt = 0;
 
 if (!refId) {
   throw new Error('GitHub Secret با نام UPERA_REF_ID تنظیم نشده است.');
@@ -166,9 +168,8 @@ async function processMovie(candidate, source) {
 
   const links = await fetchAffiliateLinks(id, 'movie');
   const media = parseMediaLinks(links);
-  if (!media.downloads.length && !media.streamUrl) {
-    removeExisting(movie, 'movie');
-    stats.removedWithoutFreeLinks += 1;
+   if (!media.downloads.length && !media.streamUrl) {
+    console.log(`فیلم ${id} فعلاً لینک رایگان قابل استفاده ندارد؛ مورد قبلی حذف نشد.`);
     return;
   }
 
@@ -205,8 +206,7 @@ async function processSeries(candidate, source) {
   })).filter(Boolean);
 
   if (!groups.length) {
-    removeExisting(series, 'series');
-    stats.removedWithoutFreeLinks += 1;
+    console.log(`سریال ${id} فعلاً لینک قابل استفاده دریافت نکرد؛ مورد قبلی حذف نشد.`);
     return;
   }
 
@@ -281,8 +281,14 @@ async function fetchSeriesDetail(id) {
   return { series, episodes };
 }
 
-async function fetchAffiliateLinks(id, type) {
-  const url = new URL(`${API_BASE}/ghost/get/getaffiliatelinks`);
+  const elapsed = Date.now() - lastAffiliateRequestAt;
+  const remainingDelay = affiliateRequestDelay - elapsed;
+
+  if (remainingDelay > 0) {
+    await sleep(remainingDelay);
+  }
+
+  lastAffiliateRequestAt = Date.now();  const url = new URL(`${API_BASE}/ghost/get/getaffiliatelinks`);
   setQuery(url, {
     id,
     type,
