@@ -133,11 +133,11 @@ console.log(
 await syncIncrementalTitles();
 
 if (!affiliateBudgetExhausted) {
-  await syncMovieArchive();
+  await syncSeriesArchive();
 }
 
 if (!affiliateBudgetExhausted) {
-  await syncSeriesArchive();
+  await syncMovieArchive();
 }
 
 items.sort((a, b) => {
