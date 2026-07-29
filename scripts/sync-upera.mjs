@@ -58,7 +58,7 @@ if (!refId) {
 }
 
 const defaultCatalog = {
-  version: '0.6.0-safe-sync',
+  version: '0.7.0-operator-access',
   updatedAt: new Date(0).toISOString(),
   items: [],
   iranianSchedule: [],
@@ -120,6 +120,7 @@ const stats = {
   rateLimitHits: 0,
   rateLimitWaitMs: 0,
   skippedByBudget: 0,
+  operatorLinksDetected: 0,
 
   removedWithoutFreeLinks: 0,
   errors: [],
@@ -186,7 +187,7 @@ const now = new Date().toISOString();
 
 const output = {
   ...catalog,
-  version: '0.6.0-safe-sync',
+  version: '0.7.0-operator-access',
   updatedAt: now,
   items,
   iranianSchedule,
@@ -211,10 +212,16 @@ async function syncIncrementalTitles() {
   try {
     const fresh = await fetchNewTitles(newTitlesHours);
 
-    const unique = dedupeCandidates(fresh).slice(
-      0,
-      maxIncrementalCandidates,
-    );
+    const unique = dedupeCandidates(fresh)
+      .sort(
+        (a, b) =>
+          candidateSyncPriority(a) -
+          candidateSyncPriority(b),
+      )
+      .slice(
+        0,
+        maxIncrementalCandidates,
+      );
 
     stats.incrementalCandidates = unique.length;
 
@@ -486,7 +493,8 @@ async function processMovie(candidate, source) {
 
   if (
     !media.downloads.length &&
-    !media.streamUrl
+    !media.streamUrl &&
+    !media.operatorFiles.length
   ) {
     console.log(
       `فیلم ${id} لینک رایگان مستقیم نداشت؛ مورد قبلی حذف نشد.`,
@@ -661,7 +669,8 @@ async function processSeries(
 
       if (
         !media.downloads.length &&
-        !media.streamUrl
+        !media.streamUrl &&
+        !media.operatorFiles.length
       ) {
         continue;
       }
@@ -1000,6 +1009,22 @@ function parseMediaLinks(links) {
     ),
   );
 
+  const operatorLinks = uniqueByUrl(
+    freeLinks.filter(
+      (link) => operatorLinkMode(link),
+    ),
+  );
+
+  const operatorFiles = operatorLinks.map(
+    (link) => toOperatorFile(
+      link,
+      operatorLinkMode(link),
+    ),
+  );
+
+  stats.operatorLinksDetected +=
+    operatorFiles.length;
+
   const sortedMp4 = [...mp4].sort(
     (a, b) =>
       qualityRank(a.title) -
@@ -1038,6 +1063,17 @@ function parseMediaLinks(links) {
     files,
   }));
 
+  if (operatorFiles.length) {
+    downloads.push({
+      id: 'operator-mobile-access',
+      title: 'ویژه اینترنت همراه',
+      subtitle:
+        'تماشا یا دریافت با اینترنت سیم‌کارت',
+      badge: 'همراه',
+      files: operatorFiles,
+    });
+  }
+
   const streamUrl =
     hls[0]?.link ||
     highestQuality(sortedMp4)?.link ||
@@ -1048,6 +1084,7 @@ function parseMediaLinks(links) {
     streamUrl,
     hls: hls[0]?.link || null,
     mp4: sortedMp4,
+    operatorFiles,
   };
 }
 
@@ -1086,6 +1123,13 @@ function episodeGroup(episode, media) {
         `s${season}-e${number}`,
       ),
     );
+  }
+
+  for (const file of media.operatorFiles) {
+    files.push({
+      ...file,
+      id: `s${season}-e${number}-${file.id}`,
+    });
   }
 
   const sourceUpdatedAt = dateString(
@@ -1212,7 +1256,33 @@ function normalizeMovie(
       ? { rate: Number(movie.rate) }
       : {}),
 
-    access: 'free',
+    access:
+      media.operatorFiles.length &&
+      !media.downloads.some((group) =>
+        group.files.some((file) =>
+          file.mode === 'download' ||
+          file.mode === 'play',
+        ),
+      ) &&
+      !media.streamUrl
+        ? 'operator'
+        : 'free',
+
+    operatorOnly: Boolean(
+      media.operatorFiles.length &&
+      !media.mp4.length &&
+      !media.hls,
+    ),
+
+    operatorAccess:
+      operatorAccessKind(
+        media.operatorFiles,
+      ),
+
+    supportedOperators:
+      media.operatorFiles.length
+        ? defaultSupportedOperators()
+        : [],
 
     ...(media.streamUrl
       ? {
@@ -1237,10 +1307,16 @@ function normalizeMovie(
       new Date().toISOString(),
 
     categoryKeys:
-      classification.categoryKeys,
+      withOperatorCategory(
+        classification.categoryKeys,
+        media.operatorFiles.length > 0,
+      ),
 
     categoryLabels:
-      classification.categoryLabels,
+      withOperatorLabel(
+        classification.categoryLabels,
+        media.operatorFiles.length > 0,
+      ),
 
     contentKind:
       classification.contentKind,
@@ -1327,6 +1403,21 @@ function normalizeSeries(
       .filter((value) => value > 0),
   );
 
+  const seriesFiles = groups.flatMap(
+    (group) =>
+      Array.isArray(group.files)
+        ? group.files
+        : [],
+  );
+
+  const operatorFiles = seriesFiles.filter(
+    (file) => isOperatorMode(file?.mode),
+  );
+
+  const directFiles = seriesFiles.filter(
+    (file) => !isOperatorMode(file?.mode),
+  );
+
   return {
     ...(existing || {}),
 
@@ -1367,7 +1458,26 @@ function normalizeSeries(
       ? { rate: Number(series.rate) }
       : {}),
 
-    access: 'free',
+    access:
+      operatorFiles.length &&
+      !directFiles.length
+        ? 'operator'
+        : 'free',
+
+    operatorOnly: Boolean(
+      operatorFiles.length &&
+      !directFiles.length,
+    ),
+
+    operatorAccess:
+      operatorAccessKind(
+        operatorFiles,
+      ),
+
+    supportedOperators:
+      operatorFiles.length
+        ? defaultSupportedOperators()
+        : [],
     downloads: groups,
 
     episodeCount: groups.length,
@@ -1409,10 +1519,16 @@ function normalizeSeries(
       new Date().toISOString(),
 
     categoryKeys:
-      classification.categoryKeys,
+      withOperatorCategory(
+        classification.categoryKeys,
+        operatorFiles.length > 0,
+      ),
 
     categoryLabels:
-      classification.categoryLabels,
+      withOperatorLabel(
+        classification.categoryLabels,
+        operatorFiles.length > 0,
+      ),
 
     contentKind:
       classification.contentKind,
@@ -2041,6 +2157,23 @@ function dedupeCandidates(candidates) {
   return result;
 }
 
+function candidateSyncPriority(candidate) {
+  const type = detectType(candidate);
+
+  if (
+    type === 'series' ||
+    type === 'episode'
+  ) {
+    return 0;
+  }
+
+  if (type === 'movie') {
+    return 1;
+  }
+
+  return 2;
+}
+
 function detectType(candidate) {
   const raw = String(
     candidate?.type ||
@@ -2178,7 +2311,7 @@ async function fetchJson(
         headers: {
           Accept: 'application/json',
           'User-Agent':
-            'Aparatchi-Catalog-Sync/0.6',
+            'Aparatchi-Catalog-Sync/0.7',
 
           ...(options.headers || {}),
         },
@@ -2322,6 +2455,159 @@ function rewriteAffiliateRef(value) {
   } catch {
     return value;
   }
+}
+
+
+function operatorLinkMode(link) {
+  if (!link || !isHttp(link.link)) {
+    return null;
+  }
+
+  if (/\.(?:mp4|m3u8|vtt)(?:$|[?#])/i.test(link.link)) {
+    return null;
+  }
+
+  let parsed;
+
+  try {
+    parsed = new URL(link.link);
+  } catch {
+    return null;
+  }
+
+  const metadata = cleanText(
+    Object.values(link)
+      .filter(
+        (value) =>
+          typeof value === 'string' ||
+          typeof value === 'number',
+      )
+      .join(' '),
+  );
+
+  const explicitOperator =
+    /اپراتور|اینترنت\s*همراه|همراه\s*اول|ایرانسل|رایتل|شاتل\s*موبایل|mobile\s*operator|operator/i.test(
+      metadata,
+    );
+
+  const trustedOperatorPortal =
+    /(^|\.)upera\.tv$/i.test(
+      parsed.hostname,
+    ) &&
+    /^\/(?:stream|download)\/(?:movie|series|episode)\//i.test(
+      parsed.pathname,
+    );
+
+  if (
+    !explicitOperator &&
+    !trustedOperatorPortal
+  ) {
+    return null;
+  }
+
+  return /download|دانلود|دریافت/i.test(
+    `${parsed.pathname} ${metadata}`,
+  )
+    ? 'operator-download'
+    : 'operator-play';
+}
+
+function toOperatorFile(link, mode) {
+  const label = cleanText(
+    link?.title ||
+    link?.label ||
+    (
+      mode === 'operator-download'
+        ? 'دریافت با اینترنت همراه'
+        : 'پخش آنلاین با اینترنت همراه'
+    ),
+  );
+
+  return {
+    id: [
+      'operator',
+      mode === 'operator-download'
+        ? 'download'
+        : 'play',
+      simpleHash(link.link),
+    ].join('-'),
+
+    quality:
+      mode === 'operator-download'
+        ? 'دریافت'
+        : 'پخش آنلاین',
+
+    label,
+    url: link.link,
+    mode,
+    operatorOnly: true,
+    supportedOperators:
+      defaultSupportedOperators(),
+  };
+}
+
+function isOperatorMode(mode) {
+  return (
+    mode === 'operator-play' ||
+    mode === 'operator-download'
+  );
+}
+
+function operatorAccessKind(files) {
+  const hasStream = files.some(
+    (file) =>
+      file?.mode === 'operator-play',
+  );
+
+  const hasDownload = files.some(
+    (file) =>
+      file?.mode === 'operator-download',
+  );
+
+  if (hasStream && hasDownload) {
+    return 'both';
+  }
+
+  if (hasStream) return 'stream';
+  if (hasDownload) return 'download';
+  return null;
+}
+
+function defaultSupportedOperators() {
+  return [
+    'همراه اول',
+    'ایرانسل',
+    'رایتل',
+    'شاتل موبایل',
+  ];
+}
+
+function withOperatorCategory(
+  categoryKeys,
+  enabled,
+) {
+  if (!enabled) return categoryKeys;
+
+  return [
+    ...new Set([
+      ...categoryKeys,
+      'mobile-operator',
+    ]),
+  ];
+}
+
+function withOperatorLabel(
+  categoryLabels,
+  enabled,
+) {
+  if (!enabled) return categoryLabels;
+
+  return [
+    ...new Set([
+      ...categoryLabels,
+      'ویژه اینترنت همراه',
+    ]),
+  ];
 }
 
 function toDownloadFile(
