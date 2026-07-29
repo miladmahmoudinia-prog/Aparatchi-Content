@@ -59,7 +59,7 @@ if (!refId) {
 }
 
 const defaultCatalog = {
-  version: '0.9.0-countries',
+  version: '0.11.0-auto-collections',
   updatedAt: new Date(0).toISOString(),
   items: [],
   iranianSchedule: [],
@@ -135,6 +135,9 @@ const stats = {
   skippedByBudget: 0,
   operatorLinksDetected: 0,
   collectionAssignments: 0,
+  sourceCollectionAssignments: 0,
+  manualCollectionAssignments: 0,
+  preservedCollectionAssignments: 0,
   countryAssignments: 0,
   peopleAssignments: 0,
 
@@ -203,7 +206,7 @@ const now = new Date().toISOString();
 
 const output = {
   ...catalog,
-  version: '0.9.0-countries',
+  version: '0.11.0-auto-collections',
   updatedAt: now,
   items,
   iranianSchedule,
@@ -1241,6 +1244,14 @@ function normalizeMovie(
 
   if (collection) {
     stats.collectionAssignments += 1;
+
+    if (collection.resolution === 'source') {
+      stats.sourceCollectionAssignments += 1;
+    } else if (collection.resolution === 'manual') {
+      stats.manualCollectionAssignments += 1;
+    } else if (collection.resolution === 'existing') {
+      stats.preservedCollectionAssignments += 1;
+    }
   }
 
   const people = normalizePeople(movie, existing);
@@ -1712,6 +1723,16 @@ function normalizeImdbId(value) {
 }
 
 function resolveMovieCollection(movie, existing) {
+  // اطلاعات رسمی منبع همیشه اولویت دارد؛ فایل دستی فقط
+  // برای عناوینی استفاده می‌شود که API شناسهٔ مجموعه ندارد.
+  const sourceCollection = sourceCollectionMetadata(movie);
+  if (sourceCollection) {
+    return {
+      ...sourceCollection,
+      resolution: 'source',
+    };
+  }
+
   const sourceId = cleanText(
     movie?.id ||
     movie?.t_id,
@@ -1725,11 +1746,14 @@ function resolveMovieCollection(movie, existing) {
     collectionIndex.bySourceId.get(sourceId) ||
     collectionIndex.byImdb.get(imdb);
 
-  if (manual) return manual;
+  if (manual) {
+    return {
+      ...manual,
+      resolution: 'manual',
+    };
+  }
 
-  const sourceCollection = sourceCollectionMetadata(movie);
-  if (sourceCollection) return sourceCollection;
-
+  // اگر پاسخ جدید API ناقص بود، عضویت معتبر قبلی پاک نشود.
   if (existing?.collectionId) {
     return {
       collectionId: cleanText(existing.collectionId),
@@ -1744,6 +1768,7 @@ function resolveMovieCollection(movie, existing) {
       collectionOrder: collectionOrderNumber(
         existing.collectionOrder,
       ),
+      resolution: 'existing',
     };
   }
 
@@ -1753,79 +1778,158 @@ function resolveMovieCollection(movie, existing) {
 function sourceCollectionMetadata(movie) {
   if (!movie || typeof movie !== 'object') return null;
 
-  const objectCandidates = [
-    movie.belongs_to_collection,
-    movie.belongsToCollection,
-    movie.collection,
-    movie.franchise,
+  const candidates = sourceCollectionCandidates(movie);
+
+  for (const candidate of candidates) {
+    const metadata = normalizeSourceCollectionCandidate(
+      candidate,
+      movie,
+    );
+
+    if (metadata) return metadata;
+  }
+
+  // بعضی پاسخ‌ها شناسه و نام مجموعه را به‌صورت فیلدهای
+  // جدا در خود فیلم می‌فرستند.
+  return normalizeSourceCollectionCandidate(
+    {
+      id:
+        movie.collection_id ||
+        movie.collectionId ||
+        movie.franchise_id ||
+        movie.franchiseId ||
+        movie.tmdb_collection_id ||
+        movie.tmdbCollectionId ||
+        movie.set_id ||
+        movie.setId,
+      name_fa:
+        movie.collection_name_fa ||
+        movie.collectionNameFa ||
+        movie.franchise_name_fa ||
+        movie.franchiseNameFa,
+      name:
+        movie.collection_name ||
+        movie.collectionName ||
+        movie.franchise_name ||
+        movie.franchiseName,
+      order:
+        movie.collection_order ||
+        movie.collectionOrder ||
+        movie.franchise_order ||
+        movie.franchiseOrder ||
+        movie.part ||
+        movie.sequence ||
+        movie.installment,
+    },
+    movie,
+  );
+}
+
+function sourceCollectionCandidates(movie) {
+  const candidates = [];
+
+  const add = (value) => {
+    if (Array.isArray(value)) {
+      for (const item of value) add(item);
+      return;
+    }
+
+    if (
+      value &&
+      typeof value === 'object'
+    ) {
+      candidates.push(value);
+    }
+  };
+
+  add(movie.belongs_to_collection);
+  add(movie.belongsToCollection);
+  add(movie.collection);
+  add(movie.collections);
+  add(movie.franchise);
+  add(movie.franchises);
+  add(movie.movie_collection);
+  add(movie.movieCollection);
+
+  const nestedRoots = [
+    movie.tmdb,
+    movie.metadata,
+    movie.meta,
+    movie.details,
+    movie.extra,
+    movie.relationships,
   ];
 
-  for (const candidate of objectCandidates) {
-    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
-      continue;
-    }
+  for (const root of nestedRoots) {
+    if (!root || typeof root !== 'object') continue;
 
-    const rawId = cleanText(
-      candidate.id ||
-      candidate.collection_id ||
-      candidate.collectionId ||
-      candidate.tmdb_id ||
-      candidate.tmdbId,
-    );
-    const nameFa = cleanText(
-      candidate.name_fa ||
-      candidate.nameFa ||
-      candidate.title_fa ||
-      candidate.titleFa ||
-      candidate.name ||
-      candidate.title,
-    );
-    const name = cleanText(
-      candidate.name ||
-      candidate.title ||
-      candidate.name_fa ||
-      candidate.nameFa,
-    );
+    add(root.belongs_to_collection);
+    add(root.belongsToCollection);
+    add(root.collection);
+    add(root.collections);
+    add(root.franchise);
+    add(root.franchises);
+    add(root.movie_collection);
+    add(root.movieCollection);
+  }
 
-    if (rawId && nameFa) {
-      return {
-        collectionId: `source-${slugify(rawId)}`,
-        collectionNameFa: nameFa,
-        collectionName: name || nameFa,
-        collectionOrder: collectionOrderNumber(
-          movie.collection_order ||
-          movie.collectionOrder ||
-          movie.part ||
-          movie.sequence,
-        ),
-      };
-    }
+  return candidates;
+}
+
+function normalizeSourceCollectionCandidate(
+  candidate,
+  movie,
+) {
+  if (
+    !candidate ||
+    typeof candidate !== 'object' ||
+    Array.isArray(candidate)
+  ) {
+    return null;
   }
 
   const rawId = cleanText(
-    movie.collection_id ||
-    movie.collectionId ||
-    movie.franchise_id ||
-    movie.franchiseId,
+    candidate.id ||
+    candidate.collection_id ||
+    candidate.collectionId ||
+    candidate.franchise_id ||
+    candidate.franchiseId ||
+    candidate.tmdb_collection_id ||
+    candidate.tmdbCollectionId ||
+    candidate.tmdb_id ||
+    candidate.tmdbId ||
+    candidate.set_id ||
+    candidate.setId ||
+    candidate.external_id ||
+    candidate.externalId,
   );
+
   const nameFa = cleanText(
-    movie.collection_name_fa ||
-    movie.collectionNameFa ||
-    movie.franchise_name_fa ||
-    movie.franchiseNameFa ||
-    movie.collection_name ||
-    movie.collectionName ||
-    movie.franchise_name ||
-    movie.franchiseName,
+    candidate.name_fa ||
+    candidate.nameFa ||
+    candidate.title_fa ||
+    candidate.titleFa ||
+    candidate.collection_name_fa ||
+    candidate.collectionNameFa ||
+    candidate.franchise_name_fa ||
+    candidate.franchiseNameFa ||
+    candidate.name ||
+    candidate.title,
   );
+
   const name = cleanText(
-    movie.collection_name ||
-    movie.collectionName ||
-    movie.franchise_name ||
-    movie.franchiseName ||
+    candidate.name ||
+    candidate.title ||
+    candidate.collection_name ||
+    candidate.collectionName ||
+    candidate.franchise_name ||
+    candidate.franchiseName ||
+    candidate.name_fa ||
+    candidate.nameFa ||
     nameFa,
   );
 
+  // بدون شناسهٔ پایدار، از روی نام مجموعه حدس نمی‌زنیم.
   if (!rawId || !nameFa) return null;
 
   return {
@@ -1833,10 +1937,22 @@ function sourceCollectionMetadata(movie) {
     collectionNameFa: nameFa,
     collectionName: name || nameFa,
     collectionOrder: collectionOrderNumber(
+      candidate.order ||
+      candidate.collection_order ||
+      candidate.collectionOrder ||
+      candidate.franchise_order ||
+      candidate.franchiseOrder ||
+      candidate.part ||
+      candidate.sequence ||
+      candidate.number ||
+      candidate.installment ||
       movie.collection_order ||
       movie.collectionOrder ||
+      movie.franchise_order ||
+      movie.franchiseOrder ||
       movie.part ||
-      movie.sequence,
+      movie.sequence ||
+      movie.installment,
     ),
   };
 }
