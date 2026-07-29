@@ -7,6 +7,7 @@ const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
 const statePath = path.join(root, 'sync-state.json');
 const reportPath = path.join(root, 'sync-report.json');
+const collectionsPath = path.join(root, 'collections.json');
 
 const refId = String(process.env.UPERA_REF_ID || '').trim();
 const token = String(process.env.UPERA_TOKEN || '').trim();
@@ -58,11 +59,16 @@ if (!refId) {
 }
 
 const defaultCatalog = {
-  version: '0.7.0-operator-access',
+  version: '0.8.0-collections',
   updatedAt: new Date(0).toISOString(),
   items: [],
   iranianSchedule: [],
   weeklySchedule: [],
+};
+
+const defaultCollections = {
+  version: '1.0.0',
+  collections: [],
 };
 
 const defaultState = {
@@ -76,6 +82,13 @@ const defaultState = {
 
 const catalog = await readJson(catalogPath, defaultCatalog);
 const state = await readJson(statePath, defaultState);
+const collectionConfig = await readJson(
+  collectionsPath,
+  defaultCollections,
+);
+const collectionIndex = buildCollectionIndex(
+  collectionConfig,
+);
 
 state.moviePage = positiveInt(state.moviePage, 1);
 state.movieOffset = nonNegativeInt(state.movieOffset, 0);
@@ -121,6 +134,7 @@ const stats = {
   rateLimitWaitMs: 0,
   skippedByBudget: 0,
   operatorLinksDetected: 0,
+  collectionAssignments: 0,
 
   removedWithoutFreeLinks: 0,
   errors: [],
@@ -187,7 +201,7 @@ const now = new Date().toISOString();
 
 const output = {
   ...catalog,
-  version: '0.7.0-operator-access',
+  version: '0.8.0-collections',
   updatedAt: now,
   items,
   iranianSchedule,
@@ -1216,6 +1230,15 @@ function normalizeMovie(
       genres,
     );
 
+  const collection = resolveMovieCollection(
+    movie,
+    existing,
+  );
+
+  if (collection) {
+    stats.collectionAssignments += 1;
+  }
+
   return {
     ...(existing || {}),
 
@@ -1239,6 +1262,17 @@ function normalizeMovie(
 
     ...(movie.imdb
       ? { imdb: String(movie.imdb) }
+      : {}),
+
+    ...(collection
+      ? {
+          collectionId: collection.collectionId,
+          collectionNameFa: collection.collectionNameFa,
+          collectionName: collection.collectionName,
+          ...(collection.collectionOrder > 0
+            ? { collectionOrder: collection.collectionOrder }
+            : {}),
+        }
       : {}),
 
     poster,
@@ -1548,6 +1582,213 @@ function normalizeSeries(
       '',
 
     source: `upera-${source}`,
+  };
+}
+
+function buildCollectionIndex(config) {
+  const byImdb = new Map();
+  const bySourceId = new Map();
+  const definitions = Array.isArray(config?.collections)
+    ? config.collections
+    : [];
+
+  for (const definition of definitions) {
+    if (!definition || typeof definition !== 'object') continue;
+
+    const collectionId = cleanText(definition.id);
+    const collectionNameFa = cleanText(
+      definition.nameFa ||
+      definition.name_fa ||
+      definition.name,
+    );
+    const collectionName = cleanText(
+      definition.name ||
+      definition.nameFa ||
+      definition.name_fa,
+    );
+
+    if (!collectionId || !collectionNameFa) continue;
+
+    const members = Array.isArray(definition.items)
+      ? definition.items
+      : [];
+
+    for (const member of members) {
+      if (!member || typeof member !== 'object') continue;
+
+      const metadata = {
+        collectionId,
+        collectionNameFa,
+        collectionName: collectionName || collectionNameFa,
+        collectionOrder: collectionOrderNumber(
+          member.order ??
+          member.part ??
+          member.sequence,
+        ),
+      };
+
+      const imdb = normalizeImdbId(member.imdb);
+      const sourceId = cleanText(
+        member.sourceId ||
+        member.source_id ||
+        member.id,
+      );
+
+      if (imdb && !byImdb.has(imdb)) {
+        byImdb.set(imdb, metadata);
+      }
+
+      if (sourceId && !bySourceId.has(sourceId)) {
+        bySourceId.set(sourceId, metadata);
+      }
+    }
+  }
+
+  return {
+    byImdb,
+    bySourceId,
+  };
+}
+
+function collectionOrderNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0
+    ? Math.floor(number)
+    : 0;
+}
+
+function normalizeImdbId(value) {
+  const match = cleanText(value).match(/tt\d+/i);
+  return match ? match[0].toLowerCase() : '';
+}
+
+function resolveMovieCollection(movie, existing) {
+  const sourceId = cleanText(
+    movie?.id ||
+    movie?.t_id,
+  );
+  const imdb = normalizeImdbId(
+    movie?.imdb ||
+    existing?.imdb,
+  );
+
+  const manual =
+    collectionIndex.bySourceId.get(sourceId) ||
+    collectionIndex.byImdb.get(imdb);
+
+  if (manual) return manual;
+
+  const sourceCollection = sourceCollectionMetadata(movie);
+  if (sourceCollection) return sourceCollection;
+
+  if (existing?.collectionId) {
+    return {
+      collectionId: cleanText(existing.collectionId),
+      collectionNameFa: cleanText(
+        existing.collectionNameFa ||
+        existing.collectionName,
+      ),
+      collectionName: cleanText(
+        existing.collectionName ||
+        existing.collectionNameFa,
+      ),
+      collectionOrder: collectionOrderNumber(
+        existing.collectionOrder,
+      ),
+    };
+  }
+
+  return null;
+}
+
+function sourceCollectionMetadata(movie) {
+  if (!movie || typeof movie !== 'object') return null;
+
+  const objectCandidates = [
+    movie.belongs_to_collection,
+    movie.belongsToCollection,
+    movie.collection,
+    movie.franchise,
+  ];
+
+  for (const candidate of objectCandidates) {
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
+      continue;
+    }
+
+    const rawId = cleanText(
+      candidate.id ||
+      candidate.collection_id ||
+      candidate.collectionId ||
+      candidate.tmdb_id ||
+      candidate.tmdbId,
+    );
+    const nameFa = cleanText(
+      candidate.name_fa ||
+      candidate.nameFa ||
+      candidate.title_fa ||
+      candidate.titleFa ||
+      candidate.name ||
+      candidate.title,
+    );
+    const name = cleanText(
+      candidate.name ||
+      candidate.title ||
+      candidate.name_fa ||
+      candidate.nameFa,
+    );
+
+    if (rawId && nameFa) {
+      return {
+        collectionId: `source-${slugify(rawId)}`,
+        collectionNameFa: nameFa,
+        collectionName: name || nameFa,
+        collectionOrder: collectionOrderNumber(
+          movie.collection_order ||
+          movie.collectionOrder ||
+          movie.part ||
+          movie.sequence,
+        ),
+      };
+    }
+  }
+
+  const rawId = cleanText(
+    movie.collection_id ||
+    movie.collectionId ||
+    movie.franchise_id ||
+    movie.franchiseId,
+  );
+  const nameFa = cleanText(
+    movie.collection_name_fa ||
+    movie.collectionNameFa ||
+    movie.franchise_name_fa ||
+    movie.franchiseNameFa ||
+    movie.collection_name ||
+    movie.collectionName ||
+    movie.franchise_name ||
+    movie.franchiseName,
+  );
+  const name = cleanText(
+    movie.collection_name ||
+    movie.collectionName ||
+    movie.franchise_name ||
+    movie.franchiseName ||
+    nameFa,
+  );
+
+  if (!rawId || !nameFa) return null;
+
+  return {
+    collectionId: `source-${slugify(rawId)}`,
+    collectionNameFa: nameFa,
+    collectionName: name || nameFa,
+    collectionOrder: collectionOrderNumber(
+      movie.collection_order ||
+      movie.collectionOrder ||
+      movie.part ||
+      movie.sequence,
+    ),
   };
 }
 
