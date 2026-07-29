@@ -59,7 +59,7 @@ if (!refId) {
 }
 
 const defaultCatalog = {
-  version: '0.8.0-collections',
+  version: '0.9.0-countries',
   updatedAt: new Date(0).toISOString(),
   items: [],
   iranianSchedule: [],
@@ -135,6 +135,7 @@ const stats = {
   skippedByBudget: 0,
   operatorLinksDetected: 0,
   collectionAssignments: 0,
+  countryAssignments: 0,
 
   removedWithoutFreeLinks: 0,
   errors: [],
@@ -201,7 +202,7 @@ const now = new Date().toISOString();
 
 const output = {
   ...catalog,
-  version: '0.8.0-collections',
+  version: '0.9.0-countries',
   updatedAt: now,
   items,
   iranianSchedule,
@@ -1200,7 +1201,9 @@ function normalizeMovie(
       'backdrops',
     ) || poster;
 
-  const ir = inferIranian(movie);
+  const countries = normalizeCountries(movie, existing);
+  const ir = countries.countryCodes.includes('IR') || inferIranian(movie);
+  ensureIranCountry(countries, ir);
 
   const genres = translateGenres(
     movie.new_genres ||
@@ -1228,7 +1231,12 @@ function normalizeMovie(
       'movie',
       ir,
       genres,
+      countries,
     );
+
+  if (countries.countryCodes.length) {
+    stats.countryAssignments += 1;
+  }
 
   const collection = resolveMovieCollection(
     movie,
@@ -1262,6 +1270,18 @@ function normalizeMovie(
 
     ...(movie.imdb
       ? { imdb: String(movie.imdb) }
+      : {}),
+
+    ...(countries.countryCodes.length
+      ? { countryCodes: countries.countryCodes }
+      : {}),
+
+    ...(countries.countryLabels.length
+      ? { countryLabels: countries.countryLabels }
+      : {}),
+
+    ...(countries.countryNames.length
+      ? { countryNames: countries.countryNames }
       : {}),
 
     ...(collection
@@ -1395,7 +1415,9 @@ function normalizeSeries(
       'backdrops',
     ) || poster;
 
-  const ir = inferIranian(series);
+  const countries = normalizeCountries(series, existing);
+  const ir = countries.countryCodes.includes('IR') || inferIranian(series);
+  ensureIranCountry(countries, ir);
 
   const genres = translateGenres(
     series.new_genres ||
@@ -1427,7 +1449,12 @@ function normalizeSeries(
       'series',
       ir,
       genres,
+      countries,
     );
+
+  if (countries.countryCodes.length) {
+    stats.countryAssignments += 1;
+  }
 
   const seasonNumbers = new Set(
     groups
@@ -1475,6 +1502,18 @@ function normalizeSeries(
 
     ...(series.imdb
       ? { imdb: String(series.imdb) }
+      : {}),
+
+    ...(countries.countryCodes.length
+      ? { countryCodes: countries.countryCodes }
+      : {}),
+
+    ...(countries.countryLabels.length
+      ? { countryLabels: countries.countryLabels }
+      : {}),
+
+    ...(countries.countryNames.length
+      ? { countryNames: countries.countryNames }
       : {}),
 
     poster,
@@ -1796,6 +1835,7 @@ function classifyContent(
   type,
   ir,
   genres,
+  countries = {},
 ) {
   const normalizedGenres = genres.map(
     (genre) =>
@@ -1880,6 +1920,21 @@ function classifyContent(
     categoryKeys.push('documentaries');
     categoryLabels.push('مستند');
   }
+
+  const countryCodes = Array.isArray(countries.countryCodes)
+    ? countries.countryCodes
+    : [];
+  const countryLabels = Array.isArray(countries.countryLabels)
+    ? countries.countryLabels
+    : [];
+
+  countryCodes.forEach((code, index) => {
+    const normalizedCode = cleanText(code).toLowerCase();
+    if (!/^[a-z]{2}$/.test(normalizedCode)) return;
+    categoryKeys.push(`country-${normalizedCode}`);
+    const label = cleanText(countryLabels[index]);
+    if (label) categoryLabels.push(label);
+  });
 
   let contentKind = type;
 
@@ -2287,6 +2342,153 @@ function translateGenres(value) {
         : ['سایر'],
     ),
   ];
+}
+
+const COUNTRY_DEFINITIONS = [
+  ['IR', 'ایران', 'Iran', ['iran', 'iranian', 'ایران', 'ایرانی']],
+  ['KR', 'کره جنوبی', 'South Korea', ['south korea', 'korea', 'republic of korea', 'کره جنوبی', 'کره']],
+  ['IN', 'هند', 'India', ['india', 'indian', 'هند', 'هندی']],
+  ['US', 'آمریکا', 'United States', ['united states', 'united states of america', 'usa', 'u.s.a', 'america', 'آمریکا', 'ایالات متحده']],
+  ['GB', 'بریتانیا', 'United Kingdom', ['united kingdom', 'uk', 'great britain', 'britain', 'england', 'بریتانیا', 'انگلستان']],
+  ['TR', 'ترکیه', 'Turkey', ['turkey', 'türkiye', 'turkiye', 'ترکیه']],
+  ['JP', 'ژاپن', 'Japan', ['japan', 'ژاپن']],
+  ['CN', 'چین', 'China', ['china', 'mainland china', 'چین']],
+  ['HK', 'هنگ‌کنگ', 'Hong Kong', ['hong kong', 'hongkong', 'هنگ کنگ', 'هنگ‌کنگ']],
+  ['TW', 'تایوان', 'Taiwan', ['taiwan', 'تایوان']],
+  ['TH', 'تایلند', 'Thailand', ['thailand', 'تایلند']],
+  ['ID', 'اندونزی', 'Indonesia', ['indonesia', 'اندونزی']],
+  ['PH', 'فیلیپین', 'Philippines', ['philippines', 'فیلیپین']],
+  ['FR', 'فرانسه', 'France', ['france', 'فرانسه']],
+  ['DE', 'آلمان', 'Germany', ['germany', 'آلمان']],
+  ['ES', 'اسپانیا', 'Spain', ['spain', 'اسپانیا']],
+  ['IT', 'ایتالیا', 'Italy', ['italy', 'ایتالیا']],
+  ['CA', 'کانادا', 'Canada', ['canada', 'کانادا']],
+  ['AU', 'استرالیا', 'Australia', ['australia', 'استرالیا']],
+  ['RU', 'روسیه', 'Russia', ['russia', 'russian federation', 'روسیه']],
+  ['BR', 'برزیل', 'Brazil', ['brazil', 'برزیل']],
+  ['MX', 'مکزیک', 'Mexico', ['mexico', 'مکزیک']],
+  ['AR', 'آرژانتین', 'Argentina', ['argentina', 'آرژانتین']],
+  ['SE', 'سوئد', 'Sweden', ['sweden', 'سوئد']],
+  ['NO', 'نروژ', 'Norway', ['norway', 'نروژ']],
+  ['DK', 'دانمارک', 'Denmark', ['denmark', 'دانمارک']],
+  ['FI', 'فنلاند', 'Finland', ['finland', 'فنلاند']],
+  ['NL', 'هلند', 'Netherlands', ['netherlands', 'holland', 'هلند']],
+  ['BE', 'بلژیک', 'Belgium', ['belgium', 'بلژیک']],
+  ['CH', 'سوئیس', 'Switzerland', ['switzerland', 'سوئیس']],
+  ['AT', 'اتریش', 'Austria', ['austria', 'اتریش']],
+  ['PL', 'لهستان', 'Poland', ['poland', 'لهستان']],
+  ['CZ', 'جمهوری چک', 'Czech Republic', ['czech republic', 'czechia', 'جمهوری چک', 'چک']],
+  ['GR', 'یونان', 'Greece', ['greece', 'یونان']],
+  ['PT', 'پرتغال', 'Portugal', ['portugal', 'پرتغال']],
+  ['IE', 'ایرلند', 'Ireland', ['ireland', 'ایرلند']],
+  ['NZ', 'نیوزیلند', 'New Zealand', ['new zealand', 'نیوزیلند']],
+  ['ZA', 'آفریقای جنوبی', 'South Africa', ['south africa', 'آفریقای جنوبی']],
+  ['AE', 'امارات', 'United Arab Emirates', ['united arab emirates', 'uae', 'امارات']],
+  ['SA', 'عربستان سعودی', 'Saudi Arabia', ['saudi arabia', 'عربستان سعودی', 'عربستان']],
+  ['EG', 'مصر', 'Egypt', ['egypt', 'مصر']],
+  ['LB', 'لبنان', 'Lebanon', ['lebanon', 'لبنان']],
+  ['IQ', 'عراق', 'Iraq', ['iraq', 'عراق']],
+  ['PK', 'پاکستان', 'Pakistan', ['pakistan', 'پاکستان']],
+  ['AF', 'افغانستان', 'Afghanistan', ['afghanistan', 'افغانستان']],
+];
+
+const COUNTRY_BY_ALIAS = new Map();
+const COUNTRY_BY_CODE = new Map();
+
+for (const [code, labelFa, name, aliases] of COUNTRY_DEFINITIONS) {
+  const definition = { code, labelFa, name };
+  COUNTRY_BY_CODE.set(code, definition);
+  for (const alias of [code, labelFa, name, ...aliases]) {
+    COUNTRY_BY_ALIAS.set(normalizeCountryAlias(alias), definition);
+  }
+}
+
+function normalizeCountryAlias(value) {
+  return cleanText(value)
+    .toLowerCase()
+    .replace(/[._-]+/g, ' ')
+    .replace(/[()\[\]{}]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function countryTokens(value, depth = 0) {
+  if (value == null || depth > 5) return [];
+
+  if (Array.isArray(value)) {
+    return value.flatMap((entry) => countryTokens(entry, depth + 1));
+  }
+
+  if (typeof value === 'object') {
+    const keys = [
+      'code', 'iso_3166_1', 'iso2', 'country_code', 'countryCode',
+      'name_fa', 'nameFa', 'title_fa', 'titleFa', 'name', 'title',
+    ];
+    return keys.flatMap((key) => countryTokens(value[key], depth + 1));
+  }
+
+  const text = cleanText(value);
+  if (!text || /^0$/.test(text)) return [];
+
+  return text
+    .split(/[,،|;/]+/)
+    .map((entry) => cleanText(entry))
+    .filter(Boolean);
+}
+
+function countryDefinition(value) {
+  const raw = cleanText(value);
+  if (!raw) return null;
+
+  const upper = raw.toUpperCase();
+  if (/^[A-Z]{2}$/.test(upper) && COUNTRY_BY_CODE.has(upper)) {
+    return COUNTRY_BY_CODE.get(upper);
+  }
+
+  return COUNTRY_BY_ALIAS.get(normalizeCountryAlias(raw)) || null;
+}
+
+function normalizeCountries(item, existing = {}) {
+  const candidates = [
+    item?.countryCodes,
+    item?.country_codes,
+    item?.countries,
+    item?.country,
+    item?.country_fa,
+    item?.production_countries,
+    item?.productionCountries,
+    item?.origin_country,
+    item?.originCountry,
+    item?.country_code,
+    item?.countryCode,
+    existing?.countryCodes,
+    existing?.countryLabels,
+    existing?.countryNames,
+  ];
+
+  const result = [];
+  const seen = new Set();
+
+  for (const token of candidates.flatMap((value) => countryTokens(value))) {
+    const definition = countryDefinition(token);
+    if (!definition || seen.has(definition.code)) continue;
+    seen.add(definition.code);
+    result.push(definition);
+  }
+
+  return {
+    countryCodes: result.map((entry) => entry.code),
+    countryLabels: result.map((entry) => entry.labelFa),
+    countryNames: result.map((entry) => entry.name),
+  };
+}
+
+function ensureIranCountry(countries, ir) {
+  if (!ir || countries.countryCodes.includes('IR')) return;
+  const iran = COUNTRY_BY_CODE.get('IR');
+  countries.countryCodes.unshift(iran.code);
+  countries.countryLabels.unshift(iran.labelFa);
+  countries.countryNames.unshift(iran.name);
 }
 
 function inferIranian(item) {
