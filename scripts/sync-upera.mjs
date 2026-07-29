@@ -1041,8 +1041,8 @@ function parseMediaLinks(links) {
 
   const sortedMp4 = [...mp4].sort(
     (a, b) =>
-      qualityRank(a.title) -
-      qualityRank(b.title),
+      downloadSortRank(a.title) -
+      downloadSortRank(b.title),
   );
 
   const groups = new Map();
@@ -3414,7 +3414,7 @@ function qualityLabel(title = '') {
     : `${value}p`;
 }
 
-function qualityRank(title = '') {
+function resolutionRank(title = '') {
   const quality = qualityLabel(title);
 
   if (/360/.test(quality)) return 360;
@@ -3428,11 +3428,26 @@ function qualityRank(title = '') {
   return 0;
 }
 
+function downloadSortRank(title = '') {
+  const text = String(title);
+  let rank = resolutionRank(text);
+
+  if (/blu[\s._-]*ray|bluray/i.test(text)) {
+    rank += 100000;
+  }
+
+  if (/remux/i.test(text)) {
+    rank += 110000;
+  }
+
+  return rank;
+}
+
 function highestQuality(links) {
   return [...links].sort(
     (a, b) =>
-      qualityRank(b.title) -
-      qualityRank(a.title),
+      resolutionRank(b.title) -
+      resolutionRank(a.title),
   )[0] || null;
 }
 
