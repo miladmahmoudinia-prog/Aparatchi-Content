@@ -136,6 +136,7 @@ const stats = {
   operatorLinksDetected: 0,
   collectionAssignments: 0,
   countryAssignments: 0,
+  peopleAssignments: 0,
 
   removedWithoutFreeLinks: 0,
   errors: [],
@@ -481,7 +482,7 @@ async function processMovie(candidate, source) {
 
   let movie = candidate;
 
-  if (!hasBasicMetadata(movie)) {
+  if (!hasBasicMetadata(movie) || !hasPeopleMetadata(movie)) {
     movie = await fetchMovieDetail(id);
   }
 
@@ -862,27 +863,22 @@ async function fetchMovieDetail(id) {
   );
 
   const data = json?.data ?? json;
+  let movie = null;
 
   if (
     data?.movie &&
     typeof data.movie === 'object'
   ) {
-    return data.movie;
+    movie = data.movie;
+  } else if (Array.isArray(data?.movies)) {
+    movie = data.movies[0] || null;
+  } else if (Array.isArray(data?.movies?.data)) {
+    movie = data.movies.data[0] || null;
+  } else if (data?.type === 'movie') {
+    movie = data;
   }
 
-  if (Array.isArray(data?.movies)) {
-    return data.movies[0] || null;
-  }
-
-  if (Array.isArray(data?.movies?.data)) {
-    return data.movies.data[0] || null;
-  }
-
-  if (data?.type === 'movie') {
-    return data;
-  }
-
-  return null;
+  return mergePeopleContainers(movie, data);
 }
 
 async function fetchSeriesDetail(id) {
@@ -920,7 +916,7 @@ async function fetchSeriesDetail(id) {
     collectEpisodes(seasonData);
 
   return {
-    series,
+    series: mergePeopleContainers(series, data),
     episodes,
   };
 }
@@ -1247,6 +1243,11 @@ function normalizeMovie(
     stats.collectionAssignments += 1;
   }
 
+  const people = normalizePeople(movie, existing);
+  if (people.length) {
+    stats.peopleAssignments += 1;
+  }
+
   return {
     ...(existing || {}),
 
@@ -1294,6 +1295,8 @@ function normalizeMovie(
             : {}),
         }
       : {}),
+
+    ...(people.length ? { people } : {}),
 
     poster,
     backdrop,
@@ -1456,6 +1459,11 @@ function normalizeSeries(
     stats.countryAssignments += 1;
   }
 
+  const people = normalizePeople(series, existing);
+  if (people.length) {
+    stats.peopleAssignments += 1;
+  }
+
   const seasonNumbers = new Set(
     groups
       .map((group) =>
@@ -1515,6 +1523,8 @@ function normalizeSeries(
     ...(countries.countryNames.length
       ? { countryNames: countries.countryNames }
       : {}),
+
+    ...(people.length ? { people } : {}),
 
     poster,
     backdrop,
@@ -2646,6 +2656,166 @@ function detectType(candidate) {
   }
 
   return null;
+}
+
+function mergePeopleContainers(primary, container) {
+  if (!primary || typeof primary !== 'object') return primary || null;
+  if (!container || typeof container !== 'object' || container === primary) {
+    return primary;
+  }
+
+  const keys = [
+    'people', 'credits', 'cast', 'casts', 'actors', 'actor',
+    'crew', 'directors', 'director', 'writers', 'writer', 'staff',
+  ];
+
+  const merged = { ...primary };
+  for (const key of keys) {
+    if (merged[key] == null && container[key] != null) {
+      merged[key] = container[key];
+    }
+  }
+  return merged;
+}
+
+function hasPeopleMetadata(item) {
+  if (!item || typeof item !== 'object') return false;
+  return [
+    'people', 'credits', 'cast', 'casts', 'actors', 'actor',
+    'crew', 'directors', 'director', 'writers', 'writer', 'staff',
+  ].some((key) => {
+    const value = item[key];
+    return Array.isArray(value)
+      ? value.length > 0
+      : Boolean(value && typeof value === 'object');
+  });
+}
+
+function personRole(value, fallback = '') {
+  const text = cleanText(value).toLowerCase();
+  if (/director|کارگردان|directing/.test(text)) return 'director';
+  if (/actor|actress|cast|بازیگر|هنرپیشه/.test(text)) return 'actor';
+  return fallback;
+}
+
+function personImageUrl(value) {
+  const raw = cleanText(value);
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('/')) {
+    return `https://image.tmdb.org/t/p/w342${raw}`;
+  }
+  return `https://thumb.upera.tv/s3/actors/${raw.replace(/^\/+/, '')}`;
+}
+
+function personEntries(value, fallbackRole = '', depth = 0) {
+  if (value == null || depth > 4) return [];
+  if (Array.isArray(value)) {
+    return value.flatMap((entry) => personEntries(entry, fallbackRole, depth + 1));
+  }
+  if (typeof value === 'string' || typeof value === 'number') {
+    const name = cleanText(value);
+    return name ? [{ name, role: fallbackRole }] : [];
+  }
+  if (typeof value !== 'object') return [];
+
+  const nestedKeys = ['data', 'items', 'results', 'cast', 'crew', 'actors', 'directors'];
+  const hasName = Boolean(
+    value.name || value.name_fa || value.nameFa || value.full_name ||
+    value.full_name_fa || value.title || value.title_fa,
+  );
+
+  if (!hasName) {
+    return nestedKeys.flatMap((key) => {
+      const role = key === 'cast' || key === 'actors'
+        ? 'actor'
+        : key === 'directors'
+          ? 'director'
+          : fallbackRole;
+      return personEntries(value[key], role, depth + 1);
+    });
+  }
+
+  return [{ ...value, role: personRole(
+    value.role || value.job || value.department || value.known_for_department || value.type,
+    fallbackRole,
+  ) }];
+}
+
+function normalizePeople(item, existing = {}) {
+  const sources = [
+    ['directors', 'director'], ['director', 'director'],
+    ['actors', 'actor'], ['actor', 'actor'], ['cast', 'actor'], ['casts', 'actor'],
+    ['crew', ''], ['people', ''], ['credits', ''], ['staff', ''],
+  ];
+
+  const raw = sources.flatMap(([key, role]) => personEntries(item?.[key], role));
+  const ownerId = cleanText(item?.id || item?.t_id || item?.series_id || 'item');
+  const normalized = [];
+  const seen = new Set();
+
+  for (const entry of raw) {
+    const role = personRole(
+      entry?.role || entry?.job || entry?.department || entry?.known_for_department,
+      '',
+    );
+    if (role !== 'actor' && role !== 'director') continue;
+
+    const nameFa = cleanText(
+      entry?.name_fa || entry?.nameFa || entry?.full_name_fa ||
+      entry?.title_fa || entry?.titleFa || entry?.name || entry?.title,
+    );
+    const name = cleanText(
+      entry?.name || entry?.full_name || entry?.title || nameFa,
+    );
+    if (!nameFa && !name) continue;
+
+    const externalId = cleanText(
+      entry?.person_id || entry?.personId || entry?.tmdb_id || entry?.tmdbId ||
+      entry?.imdb || entry?.id || entry?.slug,
+    );
+    const image = personImageUrl(
+      entry?.profile_path || entry?.profile || entry?.image || entry?.photo ||
+      entry?.avatar || entry?.poster,
+    );
+    const character = cleanText(
+      entry?.character || entry?.character_name || entry?.characterName ||
+      entry?.role_name || entry?.as,
+    );
+    const key = externalId
+      ? `${role}:${externalId}`
+      : `${role}:${ownerId}:${normalizeName(nameFa || name)}:${simpleHash(image || name || nameFa)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    normalized.push({
+      id: externalId
+        ? `${role}-${externalId}`
+        : `${role}-local-${slugify(ownerId)}-${simpleHash(`${nameFa || name}:${image}`)}`,
+      nameFa: nameFa || name,
+      name: name || nameFa,
+      role,
+      roleLabel: role === 'director' ? 'کارگردان' : 'بازیگر',
+      ...(character ? { character } : {}),
+      ...(image ? { image } : {}),
+      order: nonNegativeInt(entry?.order ?? entry?.cast_order ?? entry?.castOrder, normalized.length),
+    });
+  }
+
+  const previous = Array.isArray(existing?.people) ? existing.people : [];
+  const knownIds = new Set(normalized.map((person) => String(person.id)));
+  for (const person of previous) {
+    if (!person?.id || knownIds.has(String(person.id))) continue;
+    knownIds.add(String(person.id));
+    normalized.push(person);
+  }
+
+  return normalized
+    .sort((a, b) => {
+      const roleDiff = (a.role === 'director' ? 0 : 1) - (b.role === 'director' ? 0 : 1);
+      return roleDiff || Number(a.order || 0) - Number(b.order || 0);
+    })
+    .slice(0, 30);
 }
 
 function hasBasicMetadata(item) {
