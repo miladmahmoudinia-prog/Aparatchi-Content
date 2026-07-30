@@ -140,6 +140,11 @@ for (const [code, labelFa, name, aliases] of COUNTRY_DEFINITIONS) {
   }
 }
 
+const LIVE_ACTION_ANIMATION_OVERRIDES = new Set([
+  'masters of the universe',
+  'اربابان جهان',
+]);
+
 const catalog = await readJson(catalogPath, defaultCatalog);
 const state = await readJson(statePath, defaultState);
 const collectionConfig = await readJson(
@@ -3566,11 +3571,6 @@ function meaningfulDownloadUpdate(previous, next) {
   if (added.some((key) => key.startsWith('subtitled:'))) return 'نسخه زیرنویس فارسی اضافه شد';
   return 'کیفیت تازه اضافه شد';
 }
-
-const LIVE_ACTION_ANIMATION_OVERRIDES = new Set([
-  'masters of the universe',
-  'اربابان جهان',
-]);
 
 function strictAnimationFromGenres(genres = []) {
   return genres.some((genre) => {
