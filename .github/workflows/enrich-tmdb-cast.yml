@@ -21,7 +21,7 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
 
     steps:
       - name: Checkout content repository
@@ -44,11 +44,11 @@ jobs:
             exit 1
           fi
 
-      - name: Enrich cast and crew portraits
+      - name: Enrich cast, crew names and portraits
         env:
           TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
-          TMDB_MAX_TITLES_PER_RUN: '300'
-          TMDB_REQUEST_DELAY_MS: '280'
+          TMDB_MAX_TITLES_PER_RUN: '700'
+          TMDB_REQUEST_DELAY_MS: '300'
           TMDB_REFRESH_DAYS: '30'
         run: node scripts/enrich-tmdb.mjs
 
@@ -61,6 +61,6 @@ jobs:
             echo "No TMDB enrichment changes to commit."
             exit 0
           fi
-          git commit -m "Enrich cast images from TMDB"
+          git commit -m "Enrich cast names and images from TMDB"
           git pull --rebase origin main
           git push origin HEAD:main
