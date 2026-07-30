@@ -24,7 +24,7 @@ if (!catalog || !Array.isArray(catalog.items)) {
 }
 
 const cache = await readJson(cachePath, {
-  version: 1,
+  version: 2,
   updatedAt: null,
   items: {},
 });
@@ -41,6 +41,8 @@ const report = {
   enrichedTitles: 0,
   enrichedPeople: 0,
   skippedAlreadyComplete: 0,
+  iranianMatched: 0,
+  titleSearchMatched: 0,
   skippedNoMatch: 0,
   skippedLimit: 0,
   errors: [],
@@ -72,7 +74,7 @@ for (const item of catalog.items) {
     if (!isCacheStale(cached.fetchedAt, refreshDays)) continue;
   }
 
-  if (hasEnoughPortraits(item.people)) {
+  if (hasCompleteTmdbPeople(item.people)) {
     report.skippedAlreadyComplete += 1;
     continue;
   }
@@ -97,6 +99,9 @@ for (const item of catalog.items) {
       };
       continue;
     }
+
+    if (item.ir === true) report.iranianMatched += 1;
+    if (match.source.startsWith('title-search')) report.titleSearchMatched += 1;
 
     const details = await fetchTitleDetails(match.mediaType, match.id);
     const tmdbPeople = buildTmdbPeople(details, match.mediaType);
@@ -179,23 +184,41 @@ async function resolveTmdbTitle(item) {
     }
   }
 
-  const title = cleanText(item.name || item.originalName || item.nameFa);
-  if (!title) return null;
   const year = positiveInt(item.year, 0);
-  const params = {
-    query: title,
-    include_adult: 'false',
-    language: 'en-US',
-    page: '1',
-    ...(year
-      ? expectedType === 'tv'
-        ? { first_air_date_year: String(year) }
-        : { year: String(year) }
-      : {}),
-  };
-  const search = await tmdbGet(`/search/${expectedType}`, params);
-  const best = chooseSearchResult(search?.results, title, year, expectedType);
-  return best ? { id: best.id, mediaType: expectedType, source: 'title-search' } : null;
+  const titleCandidates = uniqueTexts([
+    item.name,
+    item.originalName,
+    item.original_name,
+    item.nameFa,
+    item.title,
+    item.titleFa,
+  ]);
+
+  for (const title of titleCandidates) {
+    const searches = [
+      year ? { withYear: true, source: 'title-search-year' } : null,
+      { withYear: false, source: 'title-search' },
+    ].filter(Boolean);
+
+    for (const searchPlan of searches) {
+      const params = {
+        query: title,
+        include_adult: 'false',
+        language: 'en-US',
+        page: '1',
+        ...(searchPlan.withYear && year
+          ? expectedType === 'tv'
+            ? { first_air_date_year: String(year) }
+            : { year: String(year) }
+          : {}),
+      };
+      const search = await tmdbGet(`/search/${expectedType}`, params);
+      const best = chooseSearchResult(search?.results, title, year, expectedType, item);
+      if (best) return { id: best.id, mediaType: expectedType, source: searchPlan.source };
+    }
+  }
+
+  return null;
 }
 
 async function fetchTitleDetails(mediaType, id) {
@@ -283,68 +306,37 @@ function tmdbPerson(entry, role, roleLabel, fallbackOrder) {
 function mergeTmdbPeople(existingValue, tmdbValue) {
   const existing = Array.isArray(existingValue) ? existingValue.filter(Boolean) : [];
   const tmdb = Array.isArray(tmdbValue) ? tmdbValue.filter(Boolean) : [];
-  if (!tmdb.length) return existing;
+  if (!tmdb.length) return existing.map(compactPerson);
 
-  const existingByTmdb = new Map();
-  const existingByName = new Map();
-  const existingByRole = { director: [], actor: [] };
+  // TMDB is the source of truth whenever a title is matched. Use the original
+  // English person names for foreign and Iranian works alike, and keep local
+  // people only as a role-level fallback when TMDB has no cast or no director.
+  const normalizedTmdb = tmdb.map((person) => compactPerson({
+    ...person,
+    nameFa: cleanText(person?.name || person?.nameFa),
+    name: cleanText(person?.name || person?.nameFa),
+    source: 'tmdb',
+  }));
 
-  for (const person of existing) {
-    const tmdbId = positiveInt(person?.tmdbId, 0) || tmdbIdFromPersonId(person?.id);
-    if (tmdbId) existingByTmdb.set(`${person?.role}:${tmdbId}`, person);
-    const nameKey = normalizeName(person?.name || person?.nameFa);
-    if (nameKey) existingByName.set(`${person?.role}:${nameKey}`, person);
-    if (person?.role === 'director' || person?.role === 'actor') existingByRole[person.role].push(person);
-  }
+  const hasTmdbActors = normalizedTmdb.some((person) => person.role === 'actor');
+  const hasTmdbDirectors = normalizedTmdb.some((person) => person.role === 'director');
+  const fallback = existing
+    .filter((person) =>
+      (person?.role === 'actor' && !hasTmdbActors) ||
+      (person?.role === 'director' && !hasTmdbDirectors),
+    )
+    .map(compactPerson);
 
-  const merged = [];
-  const usedExisting = new Set();
-  const roleIndex = { director: 0, actor: 0 };
-
-  for (const tmdbPersonEntry of tmdb) {
-    const role = tmdbPersonEntry.role === 'director' ? 'director' : 'actor';
-    const tmdbId = positiveInt(tmdbPersonEntry.tmdbId, 0) || tmdbIdFromPersonId(tmdbPersonEntry.id);
-    const nameKey = normalizeName(tmdbPersonEntry.name || tmdbPersonEntry.nameFa);
-    let old = existingByTmdb.get(`${role}:${tmdbId}`) || existingByName.get(`${role}:${nameKey}`);
-
-    // Upera usually returns the same credit order as TMDB/IMDb. Use the same-role
-    // position only as a fallback so Persian display names are preserved.
-    if (!old) {
-      const candidates = existingByRole[role];
-      while (roleIndex[role] < candidates.length && usedExisting.has(candidates[roleIndex[role]])) {
-        roleIndex[role] += 1;
-      }
-      old = candidates[roleIndex[role]] || null;
-      roleIndex[role] += 1;
-    }
-
-    if (old) usedExisting.add(old);
-    merged.push({
-      ...old,
-      ...tmdbPersonEntry,
-      nameFa: cleanText(old?.nameFa || old?.name || tmdbPersonEntry.nameFa || tmdbPersonEntry.name),
-      name: cleanText(tmdbPersonEntry.name || old?.name || old?.nameFa),
-      role,
-      roleLabel: old?.roleLabel || tmdbPersonEntry.roleLabel,
-      character: cleanText(old?.character || tmdbPersonEntry.character) || undefined,
-      image: cleanText(tmdbPersonEntry.image || old?.image) || undefined,
-    });
-  }
-
-  for (const old of existing) {
-    if (usedExisting.has(old)) continue;
-    const duplicate = merged.some((person) => {
-      if (person.role !== old.role) return false;
-      const oldTmdb = positiveInt(old?.tmdbId, 0) || tmdbIdFromPersonId(old?.id);
-      const newTmdb = positiveInt(person?.tmdbId, 0) || tmdbIdFromPersonId(person?.id);
-      if (oldTmdb && newTmdb && oldTmdb === newTmdb) return true;
-      return normalizeName(person.name || person.nameFa) === normalizeName(old.name || old.nameFa);
-    });
-    if (!duplicate) merged.push(old);
-  }
-
-  return merged
-    .map(compactPerson)
+  const seen = new Set();
+  return [...normalizedTmdb, ...fallback]
+    .filter((person) => {
+      const key = person.tmdbId
+        ? `${person.role}:tmdb:${person.tmdbId}`
+        : `${person.role}:name:${normalizeName(person.name || person.nameFa)}`;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
     .sort((a, b) => {
       const roleDiff = (a.role === 'director' ? 0 : 1) - (b.role === 'director' ? 0 : 1);
       return roleDiff || nonNegativeInt(a.order, 0) - nonNegativeInt(b.order, 0);
@@ -353,10 +345,12 @@ function mergeTmdbPeople(existingValue, tmdbValue) {
 }
 
 function compactPerson(person) {
+  const source = cleanText(person?.source || '');
+  const englishName = cleanText(person?.name || person?.nameFa);
   const result = {
     id: cleanText(person?.id),
-    nameFa: cleanText(person?.nameFa || person?.name),
-    name: cleanText(person?.name || person?.nameFa),
+    nameFa: source === 'tmdb' ? englishName : cleanText(person?.nameFa || englishName),
+    name: englishName,
     role: person?.role === 'director' ? 'director' : 'actor',
     roleLabel: cleanText(person?.roleLabel || (person?.role === 'director' ? 'کارگردان' : 'بازیگر')),
   };
@@ -367,35 +361,52 @@ function compactPerson(person) {
   const character = cleanText(person?.character);
   if (character) result.character = character;
   result.order = nonNegativeInt(person?.order, 0);
-  result.source = cleanText(person?.source || (tmdbId ? 'tmdb' : 'upera'));
+  result.source = source || (tmdbId ? 'tmdb' : 'upera');
   return result;
 }
 
-function chooseSearchResult(resultsValue, queryTitle, year, mediaType) {
+function chooseSearchResult(resultsValue, queryTitle, year, mediaType, item) {
   const results = Array.isArray(resultsValue) ? resultsValue : [];
   const query = normalizeTitle(queryTitle);
+  const iranian = item?.ir === true || hasIranCountry(item);
   const scored = results
     .filter((entry) => positiveInt(entry?.id, 0))
-    .map((entry) => {
+    .map((entry, index) => {
       const title = normalizeTitle(entry?.title || entry?.name);
       const original = normalizeTitle(entry?.original_title || entry?.original_name);
       const date = cleanText(entry?.release_date || entry?.first_air_date);
       const resultYear = positiveInt(date.slice(0, 4), 0);
-      let score = 0;
+      const originCountries = Array.isArray(entry?.origin_country) ? entry.origin_country.map(cleanText) : [];
+      const originalLanguage = cleanText(entry?.original_language).toLowerCase();
+      let score = Math.max(0, 22 - index * 3);
+
       if (title === query || original === query) score += 100;
-      else if (title.includes(query) || query.includes(title) || original.includes(query) || query.includes(original)) score += 35;
+      else if (
+        (title && query && (title.includes(query) || query.includes(title))) ||
+        (original && query && (original.includes(query) || query.includes(original)))
+      ) score += 38;
+
       if (year && resultYear) {
         const difference = Math.abs(year - resultYear);
-        if (difference === 0) score += 45;
-        else if (difference === 1) score += 20;
-        else score -= 30;
+        if (difference === 0) score += 48;
+        else if (difference === 1) score += 22;
+        else if (difference === 2) score += 6;
+        else score -= 35;
       }
+
+      const looksIranian = originalLanguage === 'fa' || originCountries.includes('IR');
+      if (iranian && looksIranian) score += 65;
+      if (iranian && !looksIranian) score -= 30;
+      if (!iranian && looksIranian) score -= 8;
+
       score += Math.min(10, Number(entry?.popularity || 0) / 10);
       return { ...entry, score, resultYear, mediaType };
     })
     .sort((a, b) => b.score - a.score);
+
   const best = scored[0];
-  return best && best.score >= 95 ? best : null;
+  const threshold = iranian ? 75 : 92;
+  return best && best.score >= threshold ? best : null;
 }
 
 async function tmdbGet(endpoint, params = {}) {
@@ -431,14 +442,42 @@ async function waitForRequestSlot() {
   lastRequestAt = Date.now();
 }
 
-function hasEnoughPortraits(peopleValue) {
-  const people = Array.isArray(peopleValue) ? peopleValue : [];
+function hasCompleteTmdbPeople(peopleValue) {
+  const people = Array.isArray(peopleValue) ? peopleValue.filter(Boolean) : [];
+  if (!people.length) return false;
   const actors = people.filter((person) => person?.role === 'actor');
   const directors = people.filter((person) => person?.role === 'director');
+  const tmdbPeople = people.filter((person) => cleanText(person?.source) === 'tmdb');
+  const namesAreEnglish = tmdbPeople.every((person) =>
+    cleanText(person?.name) && cleanText(person?.nameFa) === cleanText(person?.name),
+  );
   const actorPortraits = actors.filter((person) => isHttpUrl(person?.image)).length;
   const directorPortraits = directors.filter((person) => isHttpUrl(person?.image)).length;
-  return actorPortraits >= Math.min(6, Math.max(1, actors.length)) &&
+  return tmdbPeople.length === people.length &&
+    namesAreEnglish &&
+    actorPortraits >= Math.min(6, Math.max(1, actors.length)) &&
     (directors.length === 0 || directorPortraits >= 1);
+}
+
+function uniqueTexts(values) {
+  const seen = new Set();
+  return values
+    .map(cleanText)
+    .filter((value) => {
+      const key = normalizeTitle(value);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+function hasIranCountry(item) {
+  const codes = [
+    ...(Array.isArray(item?.countryCodes) ? item.countryCodes : []),
+    ...(Array.isArray(item?.countries) ? item.countries : []),
+    item?.country,
+  ].map((value) => cleanText(value).toUpperCase());
+  return codes.some((value) => value === 'IR' || value.includes('IRAN') || value.includes('ایران'));
 }
 
 function firstValidResult(value) {
@@ -456,6 +495,7 @@ function compactTmdbRef(value) {
 
 function itemSignature(item) {
   return [
+    'tmdb-v2-english-all',
     cleanText(item.id || item.slug),
     item.type === 'series' ? 'series' : 'movie',
     normalizeImdbId(item.imdb || item.imdbId || item.imdb_id),
