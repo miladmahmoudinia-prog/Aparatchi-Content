@@ -80,6 +80,66 @@ const defaultState = {
   lastSyncAt: null,
 };
 
+// Country lookup tables must be initialized before the sync starts.
+const COUNTRY_DEFINITIONS = [
+  ['IR', 'ایران', 'Iran', ['iran', 'iranian', 'ایران', 'ایرانی']],
+  ['KR', 'کره جنوبی', 'South Korea', ['south korea', 'korea', 'republic of korea', 'کره جنوبی', 'کره']],
+  ['IN', 'هند', 'India', ['india', 'indian', 'هند', 'هندی']],
+  ['US', 'آمریکا', 'United States', ['united states', 'united states of america', 'usa', 'u.s.a', 'america', 'آمریکا', 'ایالات متحده']],
+  ['GB', 'بریتانیا', 'United Kingdom', ['united kingdom', 'uk', 'great britain', 'britain', 'england', 'بریتانیا', 'انگلستان']],
+  ['TR', 'ترکیه', 'Turkey', ['turkey', 'türkiye', 'turkiye', 'ترکیه']],
+  ['JP', 'ژاپن', 'Japan', ['japan', 'ژاپن']],
+  ['CN', 'چین', 'China', ['china', 'mainland china', 'چین']],
+  ['HK', 'هنگ‌کنگ', 'Hong Kong', ['hong kong', 'hongkong', 'هنگ کنگ', 'هنگ‌کنگ']],
+  ['TW', 'تایوان', 'Taiwan', ['taiwan', 'تایوان']],
+  ['TH', 'تایلند', 'Thailand', ['thailand', 'تایلند']],
+  ['ID', 'اندونزی', 'Indonesia', ['indonesia', 'اندونزی']],
+  ['PH', 'فیلیپین', 'Philippines', ['philippines', 'فیلیپین']],
+  ['FR', 'فرانسه', 'France', ['france', 'فرانسه']],
+  ['DE', 'آلمان', 'Germany', ['germany', 'آلمان']],
+  ['ES', 'اسپانیا', 'Spain', ['spain', 'اسپانیا']],
+  ['IT', 'ایتالیا', 'Italy', ['italy', 'ایتالیا']],
+  ['CA', 'کانادا', 'Canada', ['canada', 'کانادا']],
+  ['AU', 'استرالیا', 'Australia', ['australia', 'استرالیا']],
+  ['RU', 'روسیه', 'Russia', ['russia', 'russian federation', 'روسیه']],
+  ['BR', 'برزیل', 'Brazil', ['brazil', 'برزیل']],
+  ['MX', 'مکزیک', 'Mexico', ['mexico', 'مکزیک']],
+  ['AR', 'آرژانتین', 'Argentina', ['argentina', 'آرژانتین']],
+  ['SE', 'سوئد', 'Sweden', ['sweden', 'سوئد']],
+  ['NO', 'نروژ', 'Norway', ['norway', 'نروژ']],
+  ['DK', 'دانمارک', 'Denmark', ['denmark', 'دانمارک']],
+  ['FI', 'فنلاند', 'Finland', ['finland', 'فنلاند']],
+  ['NL', 'هلند', 'Netherlands', ['netherlands', 'holland', 'هلند']],
+  ['BE', 'بلژیک', 'Belgium', ['belgium', 'بلژیک']],
+  ['CH', 'سوئیس', 'Switzerland', ['switzerland', 'سوئیس']],
+  ['AT', 'اتریش', 'Austria', ['austria', 'اتریش']],
+  ['PL', 'لهستان', 'Poland', ['poland', 'لهستان']],
+  ['CZ', 'جمهوری چک', 'Czech Republic', ['czech republic', 'czechia', 'جمهوری چک', 'چک']],
+  ['GR', 'یونان', 'Greece', ['greece', 'یونان']],
+  ['PT', 'پرتغال', 'Portugal', ['portugal', 'پرتغال']],
+  ['IE', 'ایرلند', 'Ireland', ['ireland', 'ایرلند']],
+  ['NZ', 'نیوزیلند', 'New Zealand', ['new zealand', 'نیوزیلند']],
+  ['ZA', 'آفریقای جنوبی', 'South Africa', ['south africa', 'آفریقای جنوبی']],
+  ['AE', 'امارات', 'United Arab Emirates', ['united arab emirates', 'uae', 'امارات']],
+  ['SA', 'عربستان سعودی', 'Saudi Arabia', ['saudi arabia', 'عربستان سعودی', 'عربستان']],
+  ['EG', 'مصر', 'Egypt', ['egypt', 'مصر']],
+  ['LB', 'لبنان', 'Lebanon', ['lebanon', 'لبنان']],
+  ['IQ', 'عراق', 'Iraq', ['iraq', 'عراق']],
+  ['PK', 'پاکستان', 'Pakistan', ['pakistan', 'پاکستان']],
+  ['AF', 'افغانستان', 'Afghanistan', ['afghanistan', 'افغانستان']],
+];
+
+const COUNTRY_BY_ALIAS = new Map();
+const COUNTRY_BY_CODE = new Map();
+
+for (const [code, labelFa, name, aliases] of COUNTRY_DEFINITIONS) {
+  const definition = { code, labelFa, name };
+  COUNTRY_BY_CODE.set(code, definition);
+  for (const alias of [code, labelFa, name, ...aliases]) {
+    COUNTRY_BY_ALIAS.set(normalizeCountryAlias(alias), definition);
+  }
+}
+
 const catalog = await readJson(catalogPath, defaultCatalog);
 const state = await readJson(statePath, defaultState);
 const collectionConfig = await readJson(
@@ -2434,64 +2494,7 @@ function translateGenres(value) {
   ];
 }
 
-const COUNTRY_DEFINITIONS = [
-  ['IR', 'ایران', 'Iran', ['iran', 'iranian', 'ایران', 'ایرانی']],
-  ['KR', 'کره جنوبی', 'South Korea', ['south korea', 'korea', 'republic of korea', 'کره جنوبی', 'کره']],
-  ['IN', 'هند', 'India', ['india', 'indian', 'هند', 'هندی']],
-  ['US', 'آمریکا', 'United States', ['united states', 'united states of america', 'usa', 'u.s.a', 'america', 'آمریکا', 'ایالات متحده']],
-  ['GB', 'بریتانیا', 'United Kingdom', ['united kingdom', 'uk', 'great britain', 'britain', 'england', 'بریتانیا', 'انگلستان']],
-  ['TR', 'ترکیه', 'Turkey', ['turkey', 'türkiye', 'turkiye', 'ترکیه']],
-  ['JP', 'ژاپن', 'Japan', ['japan', 'ژاپن']],
-  ['CN', 'چین', 'China', ['china', 'mainland china', 'چین']],
-  ['HK', 'هنگ‌کنگ', 'Hong Kong', ['hong kong', 'hongkong', 'هنگ کنگ', 'هنگ‌کنگ']],
-  ['TW', 'تایوان', 'Taiwan', ['taiwan', 'تایوان']],
-  ['TH', 'تایلند', 'Thailand', ['thailand', 'تایلند']],
-  ['ID', 'اندونزی', 'Indonesia', ['indonesia', 'اندونزی']],
-  ['PH', 'فیلیپین', 'Philippines', ['philippines', 'فیلیپین']],
-  ['FR', 'فرانسه', 'France', ['france', 'فرانسه']],
-  ['DE', 'آلمان', 'Germany', ['germany', 'آلمان']],
-  ['ES', 'اسپانیا', 'Spain', ['spain', 'اسپانیا']],
-  ['IT', 'ایتالیا', 'Italy', ['italy', 'ایتالیا']],
-  ['CA', 'کانادا', 'Canada', ['canada', 'کانادا']],
-  ['AU', 'استرالیا', 'Australia', ['australia', 'استرالیا']],
-  ['RU', 'روسیه', 'Russia', ['russia', 'russian federation', 'روسیه']],
-  ['BR', 'برزیل', 'Brazil', ['brazil', 'برزیل']],
-  ['MX', 'مکزیک', 'Mexico', ['mexico', 'مکزیک']],
-  ['AR', 'آرژانتین', 'Argentina', ['argentina', 'آرژانتین']],
-  ['SE', 'سوئد', 'Sweden', ['sweden', 'سوئد']],
-  ['NO', 'نروژ', 'Norway', ['norway', 'نروژ']],
-  ['DK', 'دانمارک', 'Denmark', ['denmark', 'دانمارک']],
-  ['FI', 'فنلاند', 'Finland', ['finland', 'فنلاند']],
-  ['NL', 'هلند', 'Netherlands', ['netherlands', 'holland', 'هلند']],
-  ['BE', 'بلژیک', 'Belgium', ['belgium', 'بلژیک']],
-  ['CH', 'سوئیس', 'Switzerland', ['switzerland', 'سوئیس']],
-  ['AT', 'اتریش', 'Austria', ['austria', 'اتریش']],
-  ['PL', 'لهستان', 'Poland', ['poland', 'لهستان']],
-  ['CZ', 'جمهوری چک', 'Czech Republic', ['czech republic', 'czechia', 'جمهوری چک', 'چک']],
-  ['GR', 'یونان', 'Greece', ['greece', 'یونان']],
-  ['PT', 'پرتغال', 'Portugal', ['portugal', 'پرتغال']],
-  ['IE', 'ایرلند', 'Ireland', ['ireland', 'ایرلند']],
-  ['NZ', 'نیوزیلند', 'New Zealand', ['new zealand', 'نیوزیلند']],
-  ['ZA', 'آفریقای جنوبی', 'South Africa', ['south africa', 'آفریقای جنوبی']],
-  ['AE', 'امارات', 'United Arab Emirates', ['united arab emirates', 'uae', 'امارات']],
-  ['SA', 'عربستان سعودی', 'Saudi Arabia', ['saudi arabia', 'عربستان سعودی', 'عربستان']],
-  ['EG', 'مصر', 'Egypt', ['egypt', 'مصر']],
-  ['LB', 'لبنان', 'Lebanon', ['lebanon', 'لبنان']],
-  ['IQ', 'عراق', 'Iraq', ['iraq', 'عراق']],
-  ['PK', 'پاکستان', 'Pakistan', ['pakistan', 'پاکستان']],
-  ['AF', 'افغانستان', 'Afghanistan', ['afghanistan', 'افغانستان']],
-];
 
-const COUNTRY_BY_ALIAS = new Map();
-const COUNTRY_BY_CODE = new Map();
-
-for (const [code, labelFa, name, aliases] of COUNTRY_DEFINITIONS) {
-  const definition = { code, labelFa, name };
-  COUNTRY_BY_CODE.set(code, definition);
-  for (const alias of [code, labelFa, name, ...aliases]) {
-    COUNTRY_BY_ALIAS.set(normalizeCountryAlias(alias), definition);
-  }
-}
 
 function normalizeCountryAlias(value) {
   return cleanText(value)
