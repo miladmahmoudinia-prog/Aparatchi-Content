@@ -1,0 +1,66 @@
+name: Enrich cast images from TMDB
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Sync free movies and series
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-tmdb-cast-enrichment
+  cancel-in-progress: false
+
+jobs:
+  enrich:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout content repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify TMDB secret
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$TMDB_READ_ACCESS_TOKEN" ]; then
+            echo "TMDB_READ_ACCESS_TOKEN is missing." >&2
+            exit 1
+          fi
+
+      - name: Enrich cast and crew portraits
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          TMDB_MAX_TITLES_PER_RUN: '300'
+          TMDB_REQUEST_DELAY_MS: '280'
+          TMDB_REFRESH_DAYS: '30'
+        run: node scripts/enrich-tmdb.mjs
+
+      - name: Commit enriched catalog
+        run: |
+          git config user.name "aparatchi-content-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add catalog.json tmdb-cache.json tmdb-enrichment-report.json
+          if git diff --cached --quiet; then
+            echo "No TMDB enrichment changes to commit."
+            exit 0
+          fi
+          git commit -m "Enrich cast images from TMDB"
+          git pull --rebase origin main
+          git push origin HEAD:main
