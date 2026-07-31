@@ -7,7 +7,6 @@ const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
 const statePath = path.join(root, 'sync-state.json');
 const reportPath = path.join(root, 'sync-report.json');
-const collectionsPath = path.join(root, 'collections.json');
 
 const refId = String(process.env.UPERA_REF_ID || '').trim();
 const token = String(process.env.UPERA_TOKEN || '').trim();
@@ -59,16 +58,11 @@ if (!refId) {
 }
 
 const defaultCatalog = {
-  version: '0.13.0-test3-fixes',
+  version: '0.6.0-safe-sync',
   updatedAt: new Date(0).toISOString(),
   items: [],
   iranianSchedule: [],
   weeklySchedule: [],
-};
-
-const defaultCollections = {
-  version: '1.0.0',
-  collections: [],
 };
 
 const defaultState = {
@@ -80,80 +74,8 @@ const defaultState = {
   lastSyncAt: null,
 };
 
-// Country lookup tables must be initialized before the sync starts.
-const COUNTRY_DEFINITIONS = [
-  ['IR', 'ایران', 'Iran', ['iran', 'iranian', 'ایران', 'ایرانی']],
-  ['KR', 'کره جنوبی', 'South Korea', ['south korea', 'korea', 'republic of korea', 'کره جنوبی', 'کره']],
-  ['IN', 'هند', 'India', ['india', 'indian', 'هند', 'هندی']],
-  ['US', 'آمریکا', 'United States', ['united states', 'united states of america', 'usa', 'u.s.a', 'america', 'آمریکا', 'ایالات متحده']],
-  ['GB', 'بریتانیا', 'United Kingdom', ['united kingdom', 'uk', 'great britain', 'britain', 'england', 'بریتانیا', 'انگلستان']],
-  ['TR', 'ترکیه', 'Turkey', ['turkey', 'türkiye', 'turkiye', 'ترکیه']],
-  ['JP', 'ژاپن', 'Japan', ['japan', 'ژاپن']],
-  ['CN', 'چین', 'China', ['china', 'mainland china', 'چین']],
-  ['HK', 'هنگ‌کنگ', 'Hong Kong', ['hong kong', 'hongkong', 'هنگ کنگ', 'هنگ‌کنگ']],
-  ['TW', 'تایوان', 'Taiwan', ['taiwan', 'تایوان']],
-  ['TH', 'تایلند', 'Thailand', ['thailand', 'تایلند']],
-  ['ID', 'اندونزی', 'Indonesia', ['indonesia', 'اندونزی']],
-  ['PH', 'فیلیپین', 'Philippines', ['philippines', 'فیلیپین']],
-  ['FR', 'فرانسه', 'France', ['france', 'فرانسه']],
-  ['DE', 'آلمان', 'Germany', ['germany', 'آلمان']],
-  ['ES', 'اسپانیا', 'Spain', ['spain', 'اسپانیا']],
-  ['IT', 'ایتالیا', 'Italy', ['italy', 'ایتالیا']],
-  ['CA', 'کانادا', 'Canada', ['canada', 'کانادا']],
-  ['AU', 'استرالیا', 'Australia', ['australia', 'استرالیا']],
-  ['RU', 'روسیه', 'Russia', ['russia', 'russian federation', 'روسیه']],
-  ['BR', 'برزیل', 'Brazil', ['brazil', 'برزیل']],
-  ['MX', 'مکزیک', 'Mexico', ['mexico', 'مکزیک']],
-  ['AR', 'آرژانتین', 'Argentina', ['argentina', 'آرژانتین']],
-  ['SE', 'سوئد', 'Sweden', ['sweden', 'سوئد']],
-  ['NO', 'نروژ', 'Norway', ['norway', 'نروژ']],
-  ['DK', 'دانمارک', 'Denmark', ['denmark', 'دانمارک']],
-  ['FI', 'فنلاند', 'Finland', ['finland', 'فنلاند']],
-  ['NL', 'هلند', 'Netherlands', ['netherlands', 'holland', 'هلند']],
-  ['BE', 'بلژیک', 'Belgium', ['belgium', 'بلژیک']],
-  ['CH', 'سوئیس', 'Switzerland', ['switzerland', 'سوئیس']],
-  ['AT', 'اتریش', 'Austria', ['austria', 'اتریش']],
-  ['PL', 'لهستان', 'Poland', ['poland', 'لهستان']],
-  ['CZ', 'جمهوری چک', 'Czech Republic', ['czech republic', 'czechia', 'جمهوری چک', 'چک']],
-  ['GR', 'یونان', 'Greece', ['greece', 'یونان']],
-  ['PT', 'پرتغال', 'Portugal', ['portugal', 'پرتغال']],
-  ['IE', 'ایرلند', 'Ireland', ['ireland', 'ایرلند']],
-  ['NZ', 'نیوزیلند', 'New Zealand', ['new zealand', 'نیوزیلند']],
-  ['ZA', 'آفریقای جنوبی', 'South Africa', ['south africa', 'آفریقای جنوبی']],
-  ['AE', 'امارات', 'United Arab Emirates', ['united arab emirates', 'uae', 'امارات']],
-  ['SA', 'عربستان سعودی', 'Saudi Arabia', ['saudi arabia', 'عربستان سعودی', 'عربستان']],
-  ['EG', 'مصر', 'Egypt', ['egypt', 'مصر']],
-  ['LB', 'لبنان', 'Lebanon', ['lebanon', 'لبنان']],
-  ['IQ', 'عراق', 'Iraq', ['iraq', 'عراق']],
-  ['PK', 'پاکستان', 'Pakistan', ['pakistan', 'پاکستان']],
-  ['AF', 'افغانستان', 'Afghanistan', ['afghanistan', 'افغانستان']],
-];
-
-const COUNTRY_BY_ALIAS = new Map();
-const COUNTRY_BY_CODE = new Map();
-
-for (const [code, labelFa, name, aliases] of COUNTRY_DEFINITIONS) {
-  const definition = { code, labelFa, name };
-  COUNTRY_BY_CODE.set(code, definition);
-  for (const alias of [code, labelFa, name, ...aliases]) {
-    COUNTRY_BY_ALIAS.set(normalizeCountryAlias(alias), definition);
-  }
-}
-
-const LIVE_ACTION_ANIMATION_OVERRIDES = new Set([
-  'masters of the universe',
-  'اربابان جهان',
-]);
-
 const catalog = await readJson(catalogPath, defaultCatalog);
 const state = await readJson(statePath, defaultState);
-const collectionConfig = await readJson(
-  collectionsPath,
-  defaultCollections,
-);
-const collectionIndex = buildCollectionIndex(
-  collectionConfig,
-);
 
 state.moviePage = positiveInt(state.moviePage, 1);
 state.movieOffset = nonNegativeInt(state.movieOffset, 0);
@@ -198,13 +120,6 @@ const stats = {
   rateLimitHits: 0,
   rateLimitWaitMs: 0,
   skippedByBudget: 0,
-  operatorLinksDetected: 0,
-  collectionAssignments: 0,
-  sourceCollectionAssignments: 0,
-  manualCollectionAssignments: 0,
-  preservedCollectionAssignments: 0,
-  countryAssignments: 0,
-  peopleAssignments: 0,
 
   removedWithoutFreeLinks: 0,
   errors: [],
@@ -224,8 +139,6 @@ if (!affiliateBudgetExhausted) {
 if (!affiliateBudgetExhausted) {
   await syncMovieArchive();
 }
-
-items = items.map(repairCatalogItem).filter(Boolean);
 
 items.sort((a, b) => {
   const aDate = String(
@@ -248,41 +161,32 @@ items.sort((a, b) => {
 const activeIds = new Set(
   items.map((item) => String(item.id)),
 );
-const seriesById = new Map(
-  items
-    .filter((item) => item.type === 'series')
-    .map((item) => [String(item.id), item]),
-);
-const seriesByName = new Map();
-for (const item of items.filter((entry) => entry.type === 'series')) {
-  for (const name of [item.nameFa, item.name].map(normalizeName).filter(Boolean)) {
-    seriesByName.set(name, item);
-  }
-}
 
-const repairScheduleEntries = (entries) => (Array.isArray(entries) ? entries : [])
-  .filter(Boolean)
-  .map((entry) => {
-    const matched = seriesById.get(String(entry?.itemId || '')) ||
-      seriesByName.get(normalizeName(entry?.nameFa || entry?.name || ''));
-    if (!matched) return entry;
-    return {
-      ...entry,
-      itemId: String(matched.id),
-      nameFa: matched.nameFa || entry.nameFa,
-      poster: matched.poster || entry.poster,
-      region: matched.ir || matched.countryCodes?.includes('IR') ? 'iranian' : 'foreign',
-    };
-  });
+const iranianSchedule = Array.isArray(
+  catalog.iranianSchedule,
+)
+  ? catalog.iranianSchedule.filter(
+      (entry) =>
+        !entry?.itemId ||
+        activeIds.has(String(entry.itemId)),
+    )
+  : [];
 
-const iranianSchedule = repairScheduleEntries(catalog.iranianSchedule);
-const weeklySchedule = repairScheduleEntries(catalog.weeklySchedule);
+const weeklySchedule = Array.isArray(
+  catalog.weeklySchedule,
+)
+  ? catalog.weeklySchedule.filter(
+      (entry) =>
+        !entry?.itemId ||
+        activeIds.has(String(entry.itemId)),
+    )
+  : [];
 
 const now = new Date().toISOString();
 
 const output = {
   ...catalog,
-  version: '0.13.0-test3-fixes',
+  version: '0.6.0-safe-sync',
   updatedAt: now,
   items,
   iranianSchedule,
@@ -561,7 +465,7 @@ async function processMovie(candidate, source) {
 
   let movie = candidate;
 
-  if (!hasBasicMetadata(movie) || !hasPeopleMetadata(movie)) {
+  if (!hasBasicMetadata(movie)) {
     movie = await fetchMovieDetail(id);
   }
 
@@ -570,11 +474,6 @@ async function processMovie(candidate, source) {
       retryLater: false,
     };
   }
-
-  const existing = findExistingItem(
-    movie,
-    'movie',
-  );
 
   const linkResult = await fetchAffiliateLinks(
     id,
@@ -589,22 +488,25 @@ async function processMovie(candidate, source) {
 
   const media = parseMediaLinks(
     linkResult.links,
-    { iranian: isIranianSource(movie), item: movie },
   );
 
-  const hasClassifiedDirectMedia = media.iranian
-    ? Boolean(media.downloads.length || media.streamUrl)
-    : Boolean(media.downloads.length || media.streamLanguage);
-
-  if (!hasClassifiedDirectMedia && !media.operatorFiles.length) {
+  if (
+    !media.downloads.length &&
+    !media.streamUrl
+  ) {
     console.log(
-      `فیلم ${id} لینک قابل تشخیص دوبله/زیرنویس نداشت؛ مورد قبلی حذف نشد.`,
+      `فیلم ${id} لینک رایگان مستقیم نداشت؛ مورد قبلی حذف نشد.`,
     );
 
     return {
       retryLater: false,
     };
   }
+
+  const existing = findExistingItem(
+    movie,
+    'movie',
+  );
 
   const normalized = normalizeMovie(
     movie,
@@ -759,26 +661,22 @@ async function processSeries(
         break;
       }
 
+      const media = parseMediaLinks(
+        linkResult.links,
+      );
+
+      if (
+        !media.downloads.length &&
+        !media.streamUrl
+      ) {
+        continue;
+      }
+
       const previousGroup =
         findEpisodeGroup(
           mergedGroups,
           episode,
         );
-
-      const media = parseMediaLinks(
-        linkResult.links,
-        { iranian: isIranianSource(series), item: series },
-      );
-
-      const hasClassifiedDirectMedia = media.iranian
-        ? Boolean(media.downloads.length || media.streamUrl)
-        : Boolean(media.downloads.length || media.streamLanguage);
-
-      if (!hasClassifiedDirectMedia && !media.operatorFiles.length) {
-        // Keep the previous episode links when the current API response cannot
-        // confidently identify dubbed/subtitled language.
-        continue;
-      }
 
       const nextGroup = episodeGroup(
         episode,
@@ -830,19 +728,25 @@ async function processSeries(
     };
   }
 
-  let updateLabel = existing?.updateLabel || '';
-  let meaningfulChanged = false;
+  let updateLabel =
+    existing?.updateLabel ||
+    '';
 
-  if (addedEpisodes > 0 && latestAddedEpisode) {
-    const episodeNumber = Number(latestAddedEpisode.episode_number || 0);
-    updateLabel = `قسمت ${toPersianDigits(episodeNumber)} اضافه شد`;
-    meaningfulChanged = true;
-  } else {
-    const downloadUpdate = meaningfulDownloadUpdate(existing?.downloads, mergedGroups);
-    if (downloadUpdate) {
-      updateLabel = downloadUpdate;
-      meaningfulChanged = true;
-    }
+  if (
+    addedEpisodes > 0 &&
+    latestAddedEpisode
+  ) {
+    const episodeNumber = Number(
+      latestAddedEpisode.episode_number || 0,
+    );
+
+    updateLabel =
+      `قسمت ${toPersianDigits(episodeNumber)} اضافه شد`;
+  } else if (
+    source === 'incremental' &&
+    existing
+  ) {
+    updateLabel = 'بروزرسانی شد';
   }
 
   const normalized = normalizeSeries(
@@ -851,7 +755,6 @@ async function processSeries(
     source,
     existing,
     updateLabel,
-    meaningfulChanged,
   );
 
   replaceItem(normalized);
@@ -941,22 +844,27 @@ async function fetchMovieDetail(id) {
   );
 
   const data = json?.data ?? json;
-  let movie = null;
 
   if (
     data?.movie &&
     typeof data.movie === 'object'
   ) {
-    movie = data.movie;
-  } else if (Array.isArray(data?.movies)) {
-    movie = data.movies[0] || null;
-  } else if (Array.isArray(data?.movies?.data)) {
-    movie = data.movies.data[0] || null;
-  } else if (data?.type === 'movie') {
-    movie = data;
+    return data.movie;
   }
 
-  return mergePeopleContainers(movie, data);
+  if (Array.isArray(data?.movies)) {
+    return data.movies[0] || null;
+  }
+
+  if (Array.isArray(data?.movies?.data)) {
+    return data.movies.data[0] || null;
+  }
+
+  if (data?.type === 'movie') {
+    return data;
+  }
+
+  return null;
 }
 
 async function fetchSeriesDetail(id) {
@@ -993,14 +901,8 @@ async function fetchSeriesDetail(id) {
   const episodes =
     collectEpisodes(seasonData);
 
-  let enrichedSeries = mergePeopleContainers(series, data);
-  enrichedSeries = mergePeopleContainers(enrichedSeries, seasonData);
-  for (const episode of episodes) {
-    enrichedSeries = mergePeopleContainers(enrichedSeries, episode);
-  }
-
   return {
-    series: enrichedSeries,
+    series,
     episodes,
   };
 }
@@ -1072,9 +974,7 @@ async function throttleAffiliateRequest() {
   lastAffiliateRequestAt = Date.now();
 }
 
-function parseMediaLinks(links, options = {}) {
-  const iranian = Boolean(options.iranian);
-  const itemLanguage = normalizeLanguageForCountry(explicitItemLanguage(options.item), iranian);
+function parseMediaLinks(links) {
   const freeLinks = links
     .filter(
       (link) =>
@@ -1083,142 +983,147 @@ function parseMediaLinks(links, options = {}) {
     )
     .map((link) => ({
       ...link,
-      link: rewriteAffiliateRef(link.link),
+      link: rewriteAffiliateRef(
+        link.link,
+      ),
     }));
 
   const mp4 = uniqueByUrl(
-    freeLinks.filter((link) => /\.mp4(?:$|[?#])/i.test(link.link)),
+    freeLinks.filter(
+      (link) =>
+        /\.mp4(?:$|[?#])/i.test(
+          link.link,
+        ),
+    ),
   );
+
   const hls = uniqueByUrl(
-    freeLinks.filter((link) => /\.m3u8(?:$|[?#])/i.test(link.link)),
-  ).map((link) => ({
-    ...link,
-    __language: normalizeLanguageForCountry(explicitLinkLanguage(link), iranian) || itemLanguage,
-  }));
-
-  const operatorLinks = uniqueByUrl(
-    freeLinks.filter((link) => operatorLinkMode(link)),
-  );
-  const operatorFiles = operatorLinks.map((link) =>
-    toOperatorFile(link, operatorLinkMode(link)),
-  );
-  stats.operatorLinksDetected += operatorFiles.length;
-
-  const sortedMp4 = inferPairedLinkLanguages(
-    [...mp4]
-      .sort((a, b) => downloadSortRank(a.title) - downloadSortRank(b.title))
-      .map((link) => ({
-        ...link,
-        __language: normalizeLanguageForCountry(explicitLinkLanguage(link), iranian) || itemLanguage,
-      })),
-    iranian,
+    freeLinks.filter(
+      (link) =>
+        /\.m3u8(?:$|[?#])/i.test(
+          link.link,
+        ),
+    ),
   );
 
-  // Foreign links with no confirmed dubbed/subtitled language stay out of the
-  // app instead of being mislabeled as an "original" version. Iranian titles
-  // may keep plain Persian links because dubbing/subtitle labels do not apply.
-  const usableMp4 = iranian
-    ? sortedMp4
-    : sortedMp4.filter((link) => link.__language === 'dubbed' || link.__language === 'subtitled');
-  const usableHls = iranian
-    ? hls
-    : hls.filter((link) => link.__language === 'dubbed' || link.__language === 'subtitled');
+  const sortedMp4 = [...mp4].sort(
+    (a, b) =>
+      qualityRank(a.title) -
+      qualityRank(b.title),
+  );
 
   const groups = new Map();
-  for (const link of usableMp4) {
-    const language = link.__language || 'plain';
-    if (!groups.has(language)) groups.set(language, []);
-    groups.get(language).push(toDownloadFile(link, 'download', '', link.__language));
+
+  for (const link of sortedMp4) {
+    const language = linkLanguage(
+      link.title,
+    );
+
+    if (!groups.has(language)) {
+      groups.set(language, []);
+    }
+
+    groups
+      .get(language)
+      .push(
+        toDownloadFile(
+          link,
+          'download',
+        ),
+      );
   }
 
-  const downloads = [...groups.entries()]
-    .filter(([language]) => iranian || language === 'dubbed' || language === 'subtitled')
-    .map(([language, files]) => ({
-      id: `download-${slugify(language)}`,
-      title:
-        language === 'dubbed'
-          ? 'دوبله فارسی'
-          : language === 'subtitled'
-            ? 'زیرنویس فارسی'
-            : 'لینک‌های دریافت',
-      subtitle: `${files.length} کیفیت دانلود مستقیم`,
-      ...(language === 'dubbed'
-        ? { badge: 'دوبله' }
-        : language === 'subtitled'
-          ? { badge: 'زیرنویس' }
-          : {}),
-      ...(language === 'dubbed' || language === 'subtitled' ? { language } : {}),
-      files,
-    }));
+  const downloads = [
+    ...groups.entries(),
+  ].map(([language, files]) => ({
+    id: `download-${slugify(language)}`,
+    title: language,
+    subtitle:
+      `${files.length} کیفیت دانلود مستقیم`,
+    badge: 'DL',
+    files,
+  }));
 
-  if (operatorFiles.length) {
-    downloads.push({
-      id: 'operator-mobile-access',
-      title: 'ویژه اینترنت همراه',
-      subtitle: 'تماشا یا دریافت با اینترنت سیم‌کارت',
-      badge: 'همراه',
-      files: operatorFiles,
-    });
-  }
-
-  const streamLink = usableHls[0] || highestQuality(usableMp4) || null;
-  const streamUrl = streamLink?.link || null;
+  const streamUrl =
+    hls[0]?.link ||
+    highestQuality(sortedMp4)?.link ||
+    null;
 
   return {
     downloads,
     streamUrl,
-    streamLanguage: streamLink?.__language || null,
-    hls: usableHls[0]?.link || null,
-    mp4: usableMp4,
-    operatorFiles,
-    iranian,
+    hls: hls[0]?.link || null,
+    mp4: sortedMp4,
   };
 }
 
 function episodeGroup(episode, media) {
-  const season = Number(episode.season_number || 1);
-  const number = Number(episode.episode_number || 0);
+  const season = Number(
+    episode.season_number || 1,
+  );
+
+  const number = Number(
+    episode.episode_number || 0,
+  );
+
   const files = [];
-  const playUrl = media.hls || highestQuality(media.mp4)?.link;
+
+  const playUrl =
+    media.hls ||
+    highestQuality(media.mp4)?.link;
 
   if (playUrl) {
     files.push({
       id: `play-s${season}-e${number}`,
       quality: 'پخش آنلاین',
-      label: media.hls ? 'HLS' : 'پخش مستقیم',
+      label: media.hls
+        ? 'HLS'
+        : 'پخش مستقیم',
       url: playUrl,
       mode: 'play',
-      ...(media.streamLanguage ? { language: media.streamLanguage } : {}),
     });
   }
 
   for (const link of media.mp4) {
     files.push(
-      toDownloadFile(link, 'download', `s${season}-e${number}`, link.__language),
+      toDownloadFile(
+        link,
+        'download',
+        `s${season}-e${number}`,
+      ),
     );
   }
 
-  for (const file of media.operatorFiles) {
-    files.push({ ...file, id: `s${season}-e${number}-${file.id}` });
-  }
-
   const sourceUpdatedAt = dateString(
-    episode.updated_at || episode.created_at,
+    episode.updated_at ||
+    episode.created_at,
     new Date().toISOString(),
   );
 
   return {
-    id: `season-${season}-episode-${number}-${episode.id}`,
-    sourceEpisodeId: String(episode.id),
+    id:
+      `season-${season}-episode-${number}-${episode.id}`,
+
+    sourceEpisodeId:
+      String(episode.id),
+
     seasonNumber: season,
     episodeNumber: number,
-    title: `فصل ${toPersianDigits(season)} • قسمت ${toPersianDigits(number)}`,
-    subtitle: cleanText(
-      episode.name_fa || episode.overview_fa || episode.name || `قسمت ${number}`,
-    ),
+
+    title:
+      `فصل ${toPersianDigits(season)} • قسمت ${toPersianDigits(number)}`,
+
+    subtitle:
+      cleanText(
+        episode.name_fa ||
+        episode.overview_fa ||
+        episode.name ||
+        `قسمت ${number}`,
+      ),
+
     badge: `E${number}`,
     sourceUpdatedAt,
-    files: repairFilesLanguages(files, Boolean(media.iranian)),
+    files,
   };
 }
 
@@ -1243,9 +1148,9 @@ function normalizeMovie(
       'backdrops',
     ) || poster;
 
-  const countries = normalizeCountries(movie, existing);
-  const ir = countries.countryCodes.includes('IR') || inferIranian(movie);
-  ensureIranCountry(countries, ir);
+  const countryMetadata = mergeCountryMetadata(movie, existing);
+
+  const ir = inferIranian(movie) || existing?.ir === true || countryMetadata.countryCodes.includes('IR');
 
   const genres = translateGenres(
     movie.new_genres ||
@@ -1273,40 +1178,10 @@ function normalizeMovie(
       'movie',
       ir,
       genres,
-      countries,
-      movie,
+      countryMetadata,
+      existing?.isAnime === true,
+      existing?.isAnimation === true,
     );
-
-  if (countries.countryCodes.length) {
-    stats.countryAssignments += 1;
-  }
-
-  const collection = resolveMovieCollection(
-    movie,
-    existing,
-  );
-
-  if (collection) {
-    stats.collectionAssignments += 1;
-
-    if (collection.resolution === 'source') {
-      stats.sourceCollectionAssignments += 1;
-    } else if (collection.resolution === 'manual') {
-      stats.manualCollectionAssignments += 1;
-    } else if (collection.resolution === 'existing') {
-      stats.preservedCollectionAssignments += 1;
-    }
-  }
-
-  const people = normalizePeople(movie, existing);
-  if (people.length) {
-    stats.peopleAssignments += 1;
-  }
-  const meaningfulLabel = meaningfulDownloadUpdate(existing?.downloads, media.downloads);
-  const availableLanguages = ['dubbed', 'subtitled'].filter((language) =>
-    media.streamLanguage === language ||
-    media.downloads.some((group) => group.files?.some((file) => file.language === language)),
-  );
 
   return {
     ...(existing || {}),
@@ -1333,30 +1208,10 @@ function normalizeMovie(
       ? { imdb: String(movie.imdb) }
       : {}),
 
-    ...(countries.countryCodes.length
-      ? { countryCodes: countries.countryCodes }
-      : {}),
-
-    ...(countries.countryLabels.length
-      ? { countryLabels: countries.countryLabels }
-      : {}),
-
-    ...(countries.countryNames.length
-      ? { countryNames: countries.countryNames }
-      : {}),
-
-    ...(collection
-      ? {
-          collectionId: collection.collectionId,
-          collectionNameFa: collection.collectionNameFa,
-          collectionName: collection.collectionName,
-          ...(collection.collectionOrder > 0
-            ? { collectionOrder: collection.collectionOrder }
-            : {}),
-        }
-      : {}),
-
-    ...(people.length ? { people } : {}),
+    ...(countryMetadata.countryCodes.length ? { countryCodes: countryMetadata.countryCodes } : {}),
+    ...(countryMetadata.countryLabels.length ? { countryLabels: countryMetadata.countryLabels } : {}),
+    ...(countryMetadata.countryNames.length ? { countryNames: countryMetadata.countryNames } : {}),
+    ...(countryMetadata.originalLanguage ? { originalLanguage: countryMetadata.originalLanguage } : {}),
 
     poster,
     backdrop,
@@ -1373,33 +1228,7 @@ function normalizeMovie(
       ? { rate: Number(movie.rate) }
       : {}),
 
-    access:
-      media.operatorFiles.length &&
-      !media.downloads.some((group) =>
-        group.files.some((file) =>
-          file.mode === 'download' ||
-          file.mode === 'play',
-        ),
-      ) &&
-      !media.streamUrl
-        ? 'operator'
-        : 'free',
-
-    operatorOnly: Boolean(
-      media.operatorFiles.length &&
-      !media.mp4.length &&
-      !media.hls,
-    ),
-
-    operatorAccess:
-      operatorAccessKind(
-        media.operatorFiles,
-      ),
-
-    supportedOperators:
-      media.operatorFiles.length
-        ? defaultSupportedOperators()
-        : [],
+    access: 'free',
 
     ...(media.streamUrl
       ? {
@@ -1424,16 +1253,10 @@ function normalizeMovie(
       new Date().toISOString(),
 
     categoryKeys:
-      withOperatorCategory(
-        classification.categoryKeys,
-        media.operatorFiles.length > 0,
-      ),
+      classification.categoryKeys,
 
     categoryLabels:
-      withOperatorLabel(
-        classification.categoryLabels,
-        media.operatorFiles.length > 0,
-      ),
+      classification.categoryLabels,
 
     contentKind:
       classification.contentKind,
@@ -1441,17 +1264,19 @@ function normalizeMovie(
     isAnimation:
       classification.isAnimation,
 
+    isAnime:
+      classification.isAnime,
+
     isTalkShow:
       classification.isTalkShow,
 
     isDocumentary:
       classification.isDocumentary,
 
-    updateLabel: meaningfulLabel || existing?.updateLabel || '',
-    meaningfulUpdatedAt: meaningfulLabel
-      ? new Date().toISOString()
-      : existing?.meaningfulUpdatedAt || '',
-    availableLanguages,
+    updateLabel:
+      source === 'incremental'
+        ? 'بروزرسانی شد'
+        : existing?.updateLabel || '',
 
     source: `upera-${source}`,
   };
@@ -1463,7 +1288,6 @@ function normalizeSeries(
   source,
   existing,
   updateLabel,
-  meaningfulChanged = false,
 ) {
   const id = String(
     series.id || series.t_id,
@@ -1480,9 +1304,9 @@ function normalizeSeries(
       'backdrops',
     ) || poster;
 
-  const countries = normalizeCountries(series, existing);
-  const ir = countries.countryCodes.includes('IR') || inferIranian(series);
-  ensureIranCountry(countries, ir);
+  const countryMetadata = mergeCountryMetadata(series, existing);
+
+  const ir = inferIranian(series) || existing?.ir === true || countryMetadata.countryCodes.includes('IR');
 
   const genres = translateGenres(
     series.new_genres ||
@@ -1514,18 +1338,10 @@ function normalizeSeries(
       'series',
       ir,
       genres,
-      countries,
-      series,
+      countryMetadata,
+      existing?.isAnime === true,
+      existing?.isAnimation === true,
     );
-
-  if (countries.countryCodes.length) {
-    stats.countryAssignments += 1;
-  }
-
-  const people = normalizePeople(series, existing);
-  if (people.length) {
-    stats.peopleAssignments += 1;
-  }
 
   const seasonNumbers = new Set(
     groups
@@ -1533,24 +1349,6 @@ function normalizeSeries(
         Number(group.seasonNumber || 0),
       )
       .filter((value) => value > 0),
-  );
-
-  const seriesFiles = groups.flatMap(
-    (group) =>
-      Array.isArray(group.files)
-        ? group.files
-        : [],
-  );
-
-  const operatorFiles = seriesFiles.filter(
-    (file) => isOperatorMode(file?.mode),
-  );
-
-  const directFiles = seriesFiles.filter(
-    (file) => !isOperatorMode(file?.mode),
-  );
-  const availableLanguages = ['dubbed', 'subtitled'].filter((language) =>
-    directFiles.some((file) => file.language === language),
   );
 
   return {
@@ -1578,19 +1376,10 @@ function normalizeSeries(
       ? { imdb: String(series.imdb) }
       : {}),
 
-    ...(countries.countryCodes.length
-      ? { countryCodes: countries.countryCodes }
-      : {}),
-
-    ...(countries.countryLabels.length
-      ? { countryLabels: countries.countryLabels }
-      : {}),
-
-    ...(countries.countryNames.length
-      ? { countryNames: countries.countryNames }
-      : {}),
-
-    ...(people.length ? { people } : {}),
+    ...(countryMetadata.countryCodes.length ? { countryCodes: countryMetadata.countryCodes } : {}),
+    ...(countryMetadata.countryLabels.length ? { countryLabels: countryMetadata.countryLabels } : {}),
+    ...(countryMetadata.countryNames.length ? { countryNames: countryMetadata.countryNames } : {}),
+    ...(countryMetadata.originalLanguage ? { originalLanguage: countryMetadata.originalLanguage } : {}),
 
     poster,
     backdrop,
@@ -1607,26 +1396,7 @@ function normalizeSeries(
       ? { rate: Number(series.rate) }
       : {}),
 
-    access:
-      operatorFiles.length &&
-      !directFiles.length
-        ? 'operator'
-        : 'free',
-
-    operatorOnly: Boolean(
-      operatorFiles.length &&
-      !directFiles.length,
-    ),
-
-    operatorAccess:
-      operatorAccessKind(
-        operatorFiles,
-      ),
-
-    supportedOperators:
-      operatorFiles.length
-        ? defaultSupportedOperators()
-        : [],
+    access: 'free',
     downloads: groups,
 
     episodeCount: groups.length,
@@ -1668,16 +1438,10 @@ function normalizeSeries(
       new Date().toISOString(),
 
     categoryKeys:
-      withOperatorCategory(
-        classification.categoryKeys,
-        operatorFiles.length > 0,
-      ),
+      classification.categoryKeys,
 
     categoryLabels:
-      withOperatorLabel(
-        classification.categoryLabels,
-        operatorFiles.length > 0,
-      ),
+      classification.categoryLabels,
 
     contentKind:
       classification.contentKind,
@@ -1685,331 +1449,21 @@ function normalizeSeries(
     isAnimation:
       classification.isAnimation,
 
+    isAnime:
+      classification.isAnime,
+
     isTalkShow:
       classification.isTalkShow,
 
     isDocumentary:
       classification.isDocumentary,
 
-    updateLabel: updateLabel || existing?.updateLabel || '',
-    meaningfulUpdatedAt: meaningfulChanged
-      ? new Date().toISOString()
-      : existing?.meaningfulUpdatedAt || '',
-    availableLanguages,
+    updateLabel:
+      updateLabel ||
+      existing?.updateLabel ||
+      '',
 
     source: `upera-${source}`,
-  };
-}
-
-function buildCollectionIndex(config) {
-  const byImdb = new Map();
-  const bySourceId = new Map();
-  const definitions = Array.isArray(config?.collections)
-    ? config.collections
-    : [];
-
-  for (const definition of definitions) {
-    if (!definition || typeof definition !== 'object') continue;
-
-    const collectionId = cleanText(definition.id);
-    const collectionNameFa = cleanText(
-      definition.nameFa ||
-      definition.name_fa ||
-      definition.name,
-    );
-    const collectionName = cleanText(
-      definition.name ||
-      definition.nameFa ||
-      definition.name_fa,
-    );
-
-    if (!collectionId || !collectionNameFa) continue;
-
-    const members = Array.isArray(definition.items)
-      ? definition.items
-      : [];
-
-    for (const member of members) {
-      if (!member || typeof member !== 'object') continue;
-
-      const metadata = {
-        collectionId,
-        collectionNameFa,
-        collectionName: collectionName || collectionNameFa,
-        collectionOrder: collectionOrderNumber(
-          member.order ??
-          member.part ??
-          member.sequence,
-        ),
-      };
-
-      const imdb = normalizeImdbId(member.imdb);
-      const sourceId = cleanText(
-        member.sourceId ||
-        member.source_id ||
-        member.id,
-      );
-
-      if (imdb && !byImdb.has(imdb)) {
-        byImdb.set(imdb, metadata);
-      }
-
-      if (sourceId && !bySourceId.has(sourceId)) {
-        bySourceId.set(sourceId, metadata);
-      }
-    }
-  }
-
-  return {
-    byImdb,
-    bySourceId,
-  };
-}
-
-function collectionOrderNumber(value) {
-  const number = Number(value);
-  return Number.isFinite(number) && number > 0
-    ? Math.floor(number)
-    : 0;
-}
-
-function normalizeImdbId(value) {
-  const match = cleanText(value).match(/tt\d+/i);
-  return match ? match[0].toLowerCase() : '';
-}
-
-function resolveMovieCollection(movie, existing) {
-  // اطلاعات رسمی منبع همیشه اولویت دارد؛ فایل دستی فقط
-  // برای عناوینی استفاده می‌شود که API شناسهٔ مجموعه ندارد.
-  const sourceCollection = sourceCollectionMetadata(movie);
-  if (sourceCollection) {
-    return {
-      ...sourceCollection,
-      resolution: 'source',
-    };
-  }
-
-  const sourceId = cleanText(
-    movie?.id ||
-    movie?.t_id,
-  );
-  const imdb = normalizeImdbId(
-    movie?.imdb ||
-    existing?.imdb,
-  );
-
-  const manual =
-    collectionIndex.bySourceId.get(sourceId) ||
-    collectionIndex.byImdb.get(imdb);
-
-  if (manual) {
-    return {
-      ...manual,
-      resolution: 'manual',
-    };
-  }
-
-  // اگر پاسخ جدید API ناقص بود، عضویت معتبر قبلی پاک نشود.
-  if (existing?.collectionId) {
-    return {
-      collectionId: cleanText(existing.collectionId),
-      collectionNameFa: cleanText(
-        existing.collectionNameFa ||
-        existing.collectionName,
-      ),
-      collectionName: cleanText(
-        existing.collectionName ||
-        existing.collectionNameFa,
-      ),
-      collectionOrder: collectionOrderNumber(
-        existing.collectionOrder,
-      ),
-      resolution: 'existing',
-    };
-  }
-
-  return null;
-}
-
-function sourceCollectionMetadata(movie) {
-  if (!movie || typeof movie !== 'object') return null;
-
-  const candidates = sourceCollectionCandidates(movie);
-
-  for (const candidate of candidates) {
-    const metadata = normalizeSourceCollectionCandidate(
-      candidate,
-      movie,
-    );
-
-    if (metadata) return metadata;
-  }
-
-  // بعضی پاسخ‌ها شناسه و نام مجموعه را به‌صورت فیلدهای
-  // جدا در خود فیلم می‌فرستند.
-  return normalizeSourceCollectionCandidate(
-    {
-      id:
-        movie.collection_id ||
-        movie.collectionId ||
-        movie.franchise_id ||
-        movie.franchiseId ||
-        movie.tmdb_collection_id ||
-        movie.tmdbCollectionId ||
-        movie.set_id ||
-        movie.setId,
-      name_fa:
-        movie.collection_name_fa ||
-        movie.collectionNameFa ||
-        movie.franchise_name_fa ||
-        movie.franchiseNameFa,
-      name:
-        movie.collection_name ||
-        movie.collectionName ||
-        movie.franchise_name ||
-        movie.franchiseName,
-      order:
-        movie.collection_order ||
-        movie.collectionOrder ||
-        movie.franchise_order ||
-        movie.franchiseOrder ||
-        movie.part ||
-        movie.sequence ||
-        movie.installment,
-    },
-    movie,
-  );
-}
-
-function sourceCollectionCandidates(movie) {
-  const candidates = [];
-
-  const add = (value) => {
-    if (Array.isArray(value)) {
-      for (const item of value) add(item);
-      return;
-    }
-
-    if (
-      value &&
-      typeof value === 'object'
-    ) {
-      candidates.push(value);
-    }
-  };
-
-  add(movie.belongs_to_collection);
-  add(movie.belongsToCollection);
-  add(movie.collection);
-  add(movie.collections);
-  add(movie.franchise);
-  add(movie.franchises);
-  add(movie.movie_collection);
-  add(movie.movieCollection);
-
-  const nestedRoots = [
-    movie.tmdb,
-    movie.metadata,
-    movie.meta,
-    movie.details,
-    movie.extra,
-    movie.relationships,
-  ];
-
-  for (const root of nestedRoots) {
-    if (!root || typeof root !== 'object') continue;
-
-    add(root.belongs_to_collection);
-    add(root.belongsToCollection);
-    add(root.collection);
-    add(root.collections);
-    add(root.franchise);
-    add(root.franchises);
-    add(root.movie_collection);
-    add(root.movieCollection);
-  }
-
-  return candidates;
-}
-
-function normalizeSourceCollectionCandidate(
-  candidate,
-  movie,
-) {
-  if (
-    !candidate ||
-    typeof candidate !== 'object' ||
-    Array.isArray(candidate)
-  ) {
-    return null;
-  }
-
-  const rawId = cleanText(
-    candidate.id ||
-    candidate.collection_id ||
-    candidate.collectionId ||
-    candidate.franchise_id ||
-    candidate.franchiseId ||
-    candidate.tmdb_collection_id ||
-    candidate.tmdbCollectionId ||
-    candidate.tmdb_id ||
-    candidate.tmdbId ||
-    candidate.set_id ||
-    candidate.setId ||
-    candidate.external_id ||
-    candidate.externalId,
-  );
-
-  const nameFa = cleanText(
-    candidate.name_fa ||
-    candidate.nameFa ||
-    candidate.title_fa ||
-    candidate.titleFa ||
-    candidate.collection_name_fa ||
-    candidate.collectionNameFa ||
-    candidate.franchise_name_fa ||
-    candidate.franchiseNameFa ||
-    candidate.name ||
-    candidate.title,
-  );
-
-  const name = cleanText(
-    candidate.name ||
-    candidate.title ||
-    candidate.collection_name ||
-    candidate.collectionName ||
-    candidate.franchise_name ||
-    candidate.franchiseName ||
-    candidate.name_fa ||
-    candidate.nameFa ||
-    nameFa,
-  );
-
-  // بدون شناسهٔ پایدار، از روی نام مجموعه حدس نمی‌زنیم.
-  if (!rawId || !nameFa) return null;
-
-  return {
-    collectionId: `source-${slugify(rawId)}`,
-    collectionNameFa: nameFa,
-    collectionName: name || nameFa,
-    collectionOrder: collectionOrderNumber(
-      candidate.order ||
-      candidate.collection_order ||
-      candidate.collectionOrder ||
-      candidate.franchise_order ||
-      candidate.franchiseOrder ||
-      candidate.part ||
-      candidate.sequence ||
-      candidate.number ||
-      candidate.installment ||
-      movie.collection_order ||
-      movie.collectionOrder ||
-      movie.franchise_order ||
-      movie.franchiseOrder ||
-      movie.part ||
-      movie.sequence ||
-      movie.installment,
-    ),
   };
 }
 
@@ -2017,15 +1471,32 @@ function classifyContent(
   type,
   ir,
   genres,
-  countries = {},
-  sourceItem = {},
+  countryMetadata = {},
+  existingIsAnime = false,
+  existingIsAnimation = false,
 ) {
   const normalizedGenres = genres.map(
     (genre) =>
       cleanText(genre).toLowerCase(),
   );
 
-  const isAnimation = strictAnimationFromItem(sourceItem, normalizedGenres);
+  const isAnimation =
+    existingIsAnimation || existingIsAnime ||
+    normalizedGenres.some(
+      (genre) =>
+        genre.includes('انیمیشن') ||
+        genre.includes('animation') ||
+        genre.includes('anime'),
+    );
+
+  const countryCodes = Array.isArray(countryMetadata.countryCodes)
+    ? countryMetadata.countryCodes.map((code) => cleanText(code).toUpperCase()).filter(Boolean)
+    : [];
+  const originalLanguage = cleanText(countryMetadata.originalLanguage).toLowerCase();
+  const isAnime = Boolean(
+    isAnimation &&
+    (existingIsAnime || countryCodes.includes('JP') || originalLanguage === 'ja'),
+  );
 
   const isTalkShow =
     normalizedGenres.some(
@@ -2049,47 +1520,48 @@ function classifyContent(
     categoryKeys.push('movies');
     categoryLabels.push('فیلم‌ها');
 
-    if (!isAnimation) {
-      if (ir) {
-        categoryKeys.push('iranian-movies');
-        categoryLabels.push('فیلم ایرانی');
-      } else {
-        categoryKeys.push('foreign-movies');
-        categoryLabels.push('فیلم خارجی');
-      }
+    if (ir) {
+      categoryKeys.push('iranian-movies');
+      categoryLabels.push('فیلم ایرانی');
+    } else {
+      categoryKeys.push('foreign-movies');
+      categoryLabels.push('فیلم خارجی');
     }
   } else {
     categoryKeys.push('series');
     categoryLabels.push('سریال‌ها');
 
-    if (!isAnimation) {
-      if (ir) {
-        categoryKeys.push('iranian-series');
-        categoryLabels.push('سریال ایرانی');
-      } else {
-        categoryKeys.push('foreign-series');
-        categoryLabels.push('سریال خارجی');
-      }
+    if (ir) {
+      categoryKeys.push('iranian-series');
+      categoryLabels.push('سریال ایرانی');
+    } else {
+      categoryKeys.push('foreign-series');
+      categoryLabels.push('سریال خارجی');
+    }
+  }
+
+  if (type === 'movie') {
+    if (countryCodes.includes('KR')) {
+      categoryKeys.push('korean-movies');
+      categoryLabels.push('فیلم کره‌ای');
+    }
+    if (countryCodes.includes('IN')) {
+      categoryKeys.push('indian-movies');
+      categoryLabels.push('فیلم هندی');
+    }
+    if (countryCodes.includes('JP')) {
+      categoryKeys.push('japanese-movies');
+      categoryLabels.push('فیلم ژاپنی');
     }
   }
 
   if (isAnimation) {
-    if (type === 'movie') {
-      categoryKeys.push(
-        'animation-movies',
-      );
-
-      categoryLabels.push(
-        'انیمیشن سینمایی',
-      );
+    if (isAnime) {
+      categoryKeys.push(type === 'movie' ? 'anime-movies' : 'anime-series');
+      categoryLabels.push(type === 'movie' ? 'انیمه سینمایی' : 'انیمه سریالی');
     } else {
-      categoryKeys.push(
-        'animation-series',
-      );
-
-      categoryLabels.push(
-        'انیمیشن سریالی',
-      );
+      categoryKeys.push(type === 'movie' ? 'animation-movies' : 'animation-series');
+      categoryLabels.push(type === 'movie' ? 'انیمیشن سینمایی' : 'انیمیشن سریالی');
     }
   }
 
@@ -2103,28 +1575,12 @@ function classifyContent(
     categoryLabels.push('مستند');
   }
 
-  const countryCodes = Array.isArray(countries.countryCodes)
-    ? countries.countryCodes
-    : [];
-  const countryLabels = Array.isArray(countries.countryLabels)
-    ? countries.countryLabels
-    : [];
-
-  countryCodes.forEach((code, index) => {
-    const normalizedCode = cleanText(code).toLowerCase();
-    if (!/^[a-z]{2}$/.test(normalizedCode)) return;
-    categoryKeys.push(`country-${normalizedCode}`);
-    const label = cleanText(countryLabels[index]);
-    if (label) categoryLabels.push(label);
-  });
-
   let contentKind = type;
 
-  if (isAnimation) {
-    contentKind =
-      type === 'movie'
-        ? 'animation-movie'
-        : 'animation-series';
+  if (isAnime) {
+    contentKind = type === 'movie' ? 'anime-movie' : 'anime-series';
+  } else if (isAnimation) {
+    contentKind = type === 'movie' ? 'animation-movie' : 'animation-series';
   } else if (isTalkShow) {
     contentKind = 'talk-show';
   } else if (isDocumentary) {
@@ -2142,6 +1598,7 @@ function classifyContent(
 
     contentKind,
     isAnimation,
+    isAnime,
     isTalkShow,
     isDocumentary,
   };
@@ -2526,100 +1983,97 @@ function translateGenres(value) {
   ];
 }
 
+const COUNTRY_LABELS_FA = {
+  IR: 'ایران',
+  KR: 'کره جنوبی',
+  IN: 'هند',
+  JP: 'ژاپن',
+  TR: 'ترکیه',
+  US: 'آمریکا',
+  GB: 'بریتانیا',
+  CN: 'چین',
+  HK: 'هنگ‌کنگ',
+  FR: 'فرانسه',
+  DE: 'آلمان',
+  ES: 'اسپانیا',
+  IT: 'ایتالیا',
+  CA: 'کانادا',
+  AU: 'استرالیا',
+  RU: 'روسیه',
+};
 
+const COUNTRY_NAME_TO_CODE = [
+  [/ایران|\biran\b/i, 'IR'],
+  [/کره(?:\s*جنوبی)?|south\s*korea|korea,?\s*republic|republic\s*of\s*korea/i, 'KR'],
+  [/هند|\bindia\b/i, 'IN'],
+  [/ژاپن|\bjapan\b/i, 'JP'],
+  [/ترکیه|türkiye|\bturkey\b/i, 'TR'],
+  [/آمریکا|united\s*states|\busa\b/i, 'US'],
+  [/بریتانیا|united\s*kingdom|\buk\b/i, 'GB'],
+  [/چین|\bchina\b/i, 'CN'],
+  [/هنگ.?کنگ|hong\s*kong/i, 'HK'],
+];
 
-function normalizeCountryAlias(value) {
-  return cleanText(value)
-    .toLowerCase()
-    .replace(/[._-]+/g, ' ')
-    .replace(/[()\[\]{}]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function countryTokens(value, depth = 0) {
-  if (value == null || depth > 5) return [];
-
-  if (Array.isArray(value)) {
-    return value.flatMap((entry) => countryTokens(entry, depth + 1));
+function countryCodeFromValue(value) {
+  if (value && typeof value === 'object') {
+    const direct = cleanText(value.iso_3166_1 || value.code || value.country_code).toUpperCase();
+    if (/^[A-Z]{2}$/.test(direct)) return direct;
+    value = value.name_fa || value.name || value.title || '';
   }
-
-  if (typeof value === 'object') {
-    const keys = [
-      'code', 'iso_3166_1', 'iso2', 'country_code', 'countryCode',
-      'name_fa', 'nameFa', 'title_fa', 'titleFa', 'name', 'title',
-    ];
-    return keys.flatMap((key) => countryTokens(value[key], depth + 1));
-  }
-
   const text = cleanText(value);
-  if (!text || /^0$/.test(text)) return [];
-
-  return text
-    .split(/[,،|;/]+/)
-    .map((entry) => cleanText(entry))
-    .filter(Boolean);
+  const direct = text.toUpperCase();
+  if (/^[A-Z]{2}$/.test(direct)) return direct;
+  return COUNTRY_NAME_TO_CODE.find(([pattern]) => pattern.test(text))?.[1] || '';
 }
 
-function countryDefinition(value) {
-  const raw = cleanText(value);
-  if (!raw) return null;
-
-  const upper = raw.toUpperCase();
-  if (/^[A-Z]{2}$/.test(upper) && COUNTRY_BY_CODE.has(upper)) {
-    return COUNTRY_BY_CODE.get(upper);
-  }
-
-  return COUNTRY_BY_ALIAS.get(normalizeCountryAlias(raw)) || null;
+function countryValues(value) {
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === 'object') return [value];
+  return String(value || '').split(/[,،|/]+/).map(cleanText).filter(Boolean);
 }
 
-function normalizeCountries(item, existing = {}) {
-  const candidates = [
-    item?.countryCodes,
-    item?.country_codes,
-    item?.countries,
-    item?.country,
-    item?.country_fa,
-    item?.country_name,
-    item?.countryName,
-    item?.nationality,
-    item?.origin,
-    item?.production_country,
-    item?.productionCountry,
-    item?.production_countries,
-    item?.productionCountries,
-    item?.origin_country,
-    item?.originCountry,
-    item?.country_code,
-    item?.countryCode,
+function mergeCountryMetadata(source, existing) {
+  const rawCountries = [
+    source?.countryCodes,
+    source?.country_codes,
+    source?.origin_country,
+    source?.production_countries,
+    source?.countries,
+    source?.country,
+    source?.country_fa,
     existing?.countryCodes,
-    existing?.countryLabels,
+  ].flatMap(countryValues);
+
+  const countryCodes = [...new Set(rawCountries.map(countryCodeFromValue).filter(Boolean))];
+  const sourceNames = [
+    source?.countryNames,
+    source?.country_names,
+    source?.countries,
+    source?.country,
     existing?.countryNames,
-  ];
+  ].flatMap(countryValues).map((value) => cleanText(value?.name || value?.title || value)).filter((value) => value && !/^[A-Z]{2}$/.test(value));
+  const sourceLabels = [
+    source?.countryLabels,
+    source?.country_labels,
+    source?.country_fa,
+    existing?.countryLabels,
+  ].flatMap(countryValues).map((value) => cleanText(value?.name_fa || value?.nameFa || value)).filter(Boolean);
 
-  const result = [];
-  const seen = new Set();
-
-  for (const token of candidates.flatMap((value) => countryTokens(value))) {
-    const definition = countryDefinition(token);
-    if (!definition || seen.has(definition.code)) continue;
-    seen.add(definition.code);
-    result.push(definition);
-  }
+  const originalLanguage = cleanText(
+    source?.originalLanguage ||
+    source?.original_language ||
+    source?.language_code ||
+    source?.language ||
+    existing?.originalLanguage ||
+    '',
+  ).toLowerCase().slice(0, 8);
 
   return {
-    countryCodes: result.map((entry) => entry.code),
-    countryLabels: result.map((entry) => entry.labelFa),
-    countryNames: result.map((entry) => entry.name),
+    countryCodes,
+    countryLabels: [...new Set([...sourceLabels, ...countryCodes.map((code) => COUNTRY_LABELS_FA[code]).filter(Boolean)])],
+    countryNames: [...new Set(sourceNames)],
+    originalLanguage,
   };
-}
-
-function ensureIranCountry(countries, ir) {
-  if (!ir || countries.countryCodes.includes('IR')) return;
-  const iran = COUNTRY_BY_CODE.get('IR');
-  countries.countryCodes.unshift(iran.code);
-  countries.countryLabels.unshift(iran.labelFa);
-  countries.countryNames.unshift(iran.name);
 }
 
 function inferIranian(item) {
@@ -2635,12 +2089,6 @@ function inferIranian(item) {
   );
 
   return /ایران|iran/i.test(country);
-}
-
-
-function isIranianSource(item) {
-  const countries = normalizeCountries(item || {}, {});
-  return countries.countryCodes.includes('IR') || inferIranian(item || {});
 }
 
 function extractCandidates(
@@ -2785,215 +2233,6 @@ function detectType(candidate) {
   return null;
 }
 
-function mergePeopleContainers(primary, container) {
-  if (!primary || typeof primary !== 'object') return primary || null;
-  if (!container || typeof container !== 'object' || container === primary) {
-    return primary;
-  }
-
-  const keys = [
-    'people', 'credits', 'cast', 'casts', 'actors', 'actor',
-    'crew', 'directors', 'director', 'writers', 'writer', 'staff',
-  ];
-
-  const merged = { ...primary };
-  for (const key of keys) {
-    const primaryValue = merged[key];
-    const containerValue = container[key];
-    if (containerValue == null) continue;
-    if (primaryValue == null) {
-      merged[key] = containerValue;
-      continue;
-    }
-    if (Array.isArray(primaryValue) && Array.isArray(containerValue)) {
-      merged[key] = [...primaryValue, ...containerValue];
-    }
-  }
-  return merged;
-}
-
-function hasPeopleMetadata(item) {
-  if (!item || typeof item !== 'object') return false;
-  const sources = [
-    ['people', ''], ['credits', ''], ['cast', 'actor'], ['casts', 'actor'],
-    ['actors', 'actor'], ['actor', 'actor'], ['crew', ''],
-    ['directors', 'director'], ['director', 'director'], ['staff', ''],
-  ];
-  const entries = sources.flatMap(([key, role]) => personEntries(item[key], role));
-  if (!entries.length) return false;
-
-  const actors = entries.filter((entry) => personRole(
-    entry?.role || entry?.job || entry?.department || entry?.known_for_department,
-    '',
-  ) === 'actor');
-  const directors = entries.filter((entry) => personRole(
-    entry?.role || entry?.job || entry?.department || entry?.known_for_department,
-    '',
-  ) === 'director');
-  const hasPortrait = entries.some((entry) => Boolean(personImageCandidate(entry)));
-
-  // Archive list responses often contain only a partial cast. Fetch the detail
-  // endpoint unless we have at least an actor, a director and a usable portrait.
-  return actors.length > 0 && directors.length > 0 && hasPortrait;
-}
-
-function personRole(value, fallback = '') {
-  const text = cleanText(value).toLowerCase();
-  if (/director|کارگردان|directing/.test(text)) return 'director';
-  if (/actor|actress|cast|بازیگر|هنرپیشه/.test(text)) return 'actor';
-  return fallback;
-}
-
-function personImageUrl(value, source = '') {
-  const raw = cleanText(value);
-  if (!raw || /default|placeholder|no[-_ ]?image/i.test(raw)) return '';
-  if (/^https?:\/\//i.test(raw)) return raw.replace(/^http:\/\//i, 'https://');
-  if (/^\/\//.test(raw)) return `https:${raw}`;
-  if (raw.startsWith('/')) {
-    if (source === 'tmdb') return `https://image.tmdb.org/t/p/w342${raw}`;
-    if (/^\/(?:s3|uploads?|images?|storage|media)\//i.test(raw)) return `https://thumb.upera.tv${raw}`;
-    return `https://thumb.upera.tv/s3/actors/${raw.replace(/^\/+/, '')}`;
-  }
-  if (/\.(?:jpe?g|png|webp)(?:$|[?#])/i.test(raw)) {
-    return `https://thumb.upera.tv/s3/actors/${raw.replace(/^\/+/, '')}`;
-  }
-  return '';
-}
-
-function personImageCandidate(entry = {}) {
-  return (
-    entry?.profile_path || entry?.profile || entry?.profile_image || entry?.profileImage ||
-    entry?.image || entry?.image_url || entry?.imageUrl || entry?.photo || entry?.photo_url ||
-    entry?.photoUrl || entry?.avatar || entry?.avatar_url || entry?.avatarUrl ||
-    entry?.thumb || entry?.thumbnail || entry?.thumbnail_url || entry?.thumbnailUrl ||
-    entry?.poster || entry?.poster_path || entry?.images?.profile || entry?.images?.original ||
-    entry?.images?.medium || entry?.media?.profile || entry?.media?.image || ''
-  );
-}
-
-function personEntries(value, fallbackRole = '', depth = 0) {
-  if (value == null || depth > 4) return [];
-  if (Array.isArray(value)) {
-    return value.flatMap((entry) => personEntries(entry, fallbackRole, depth + 1));
-  }
-  if (typeof value === 'string' || typeof value === 'number') {
-    const name = cleanText(value);
-    return name ? [{ name, role: fallbackRole }] : [];
-  }
-  if (typeof value !== 'object') return [];
-
-  const nestedKeys = ['data', 'items', 'results', 'cast', 'casts', 'crew', 'actors', 'actor', 'directors', 'director', 'people', 'persons', 'artists', 'staff'];
-  const hasName = Boolean(
-    value.name || value.name_fa || value.nameFa || value.full_name ||
-    value.full_name_fa || value.title || value.title_fa,
-  );
-
-  if (!hasName) {
-    return nestedKeys.flatMap((key) => {
-      const role = ['cast', 'casts', 'actors', 'actor'].includes(key)
-        ? 'actor'
-        : ['directors', 'director'].includes(key)
-          ? 'director'
-          : fallbackRole;
-      return personEntries(value[key], role, depth + 1);
-    });
-  }
-
-  return [{ ...value, role: personRole(
-    value.role || value.job || value.department || value.known_for_department || value.type,
-    fallbackRole,
-  ) }];
-}
-
-function normalizePeople(item, existing = {}) {
-  const sources = [
-    ['directors', 'director'], ['director', 'director'],
-    ['actors', 'actor'], ['actor', 'actor'], ['cast', 'actor'], ['casts', 'actor'],
-    ['crew', ''], ['people', ''], ['credits', ''], ['staff', ''],
-  ];
-
-  const raw = sources.flatMap(([key, role]) => personEntries(item?.[key], role));
-  const ownerId = cleanText(item?.id || item?.t_id || item?.series_id || 'item');
-  const normalized = [];
-  const seen = new Map();
-
-  for (const entry of raw) {
-    const role = personRole(
-      entry?.role || entry?.job || entry?.department || entry?.known_for_department,
-      '',
-    );
-    if (role !== 'actor' && role !== 'director') continue;
-
-    const nameFa = cleanText(
-      entry?.name_fa || entry?.nameFa || entry?.full_name_fa ||
-      entry?.title_fa || entry?.titleFa || entry?.name || entry?.title,
-    );
-    const name = cleanText(
-      entry?.name || entry?.full_name || entry?.title || nameFa,
-    );
-    if (!nameFa && !name) continue;
-
-    const externalId = cleanText(
-      entry?.person_id || entry?.personId || entry?.tmdb_id || entry?.tmdbId ||
-      entry?.imdb || entry?.id || entry?.slug,
-    );
-    const imageCandidate = personImageCandidate(entry);
-    const image = entry?.profile_path
-      ? personImageUrl(entry.profile_path, 'tmdb')
-      : personImageUrl(imageCandidate);
-    const character = cleanText(
-      entry?.character || entry?.character_name || entry?.characterName ||
-      entry?.role_name || entry?.as,
-    );
-    const key = externalId
-      ? `${role}:${externalId}`
-      : `${role}:${ownerId}:${normalizeName(nameFa || name)}:${simpleHash(image || name || nameFa)}`;
-    if (seen.has(key)) {
-      const existingIndex = seen.get(key);
-      const previousPerson = normalized[existingIndex];
-      if (!previousPerson.image && image) previousPerson.image = image;
-      if (!previousPerson.character && character) previousPerson.character = character;
-      if (!previousPerson.nameFa && nameFa) previousPerson.nameFa = nameFa;
-      if (!previousPerson.name && name) previousPerson.name = name;
-      continue;
-    }
-
-    seen.set(key, normalized.length);
-    normalized.push({
-      id: externalId
-        ? `${role}-${externalId}`
-        : `${role}-local-${slugify(ownerId)}-${simpleHash(`${nameFa || name}:${image}`)}`,
-      nameFa: nameFa || name,
-      name: name || nameFa,
-      role,
-      roleLabel: role === 'director' ? 'کارگردان' : 'بازیگر',
-      ...(character ? { character } : {}),
-      ...(image ? { image } : {}),
-      order: nonNegativeInt(entry?.order ?? entry?.cast_order ?? entry?.castOrder, normalized.length),
-    });
-  }
-
-  const previous = Array.isArray(existing?.people) ? existing.people : [];
-  const previousById = new Map(previous.filter((person) => person?.id).map((person) => [String(person.id), person]));
-  for (const person of normalized) {
-    const oldPerson = previousById.get(String(person.id));
-    if (!person.image && oldPerson?.image) person.image = oldPerson.image;
-  }
-  const knownIds = new Set(normalized.map((person) => String(person.id)));
-  for (const person of previous) {
-    if (!person?.id || knownIds.has(String(person.id))) continue;
-    knownIds.add(String(person.id));
-    normalized.push(person);
-  }
-
-  return normalized
-    .sort((a, b) => {
-      const roleDiff = (a.role === 'director' ? 0 : 1) - (b.role === 'director' ? 0 : 1);
-      return roleDiff || Number(a.order || 0) - Number(b.order || 0);
-    })
-    .slice(0, 30);
-}
-
 function hasBasicMetadata(item) {
   return Boolean(
     item &&
@@ -3100,7 +2339,7 @@ async function fetchJson(
         headers: {
           Accept: 'application/json',
           'User-Agent':
-            'Aparatchi-Catalog-Sync/0.7',
+            'Aparatchi-Catalog-Sync/0.6',
 
           ...(options.headers || {}),
         },
@@ -3246,390 +2485,53 @@ function rewriteAffiliateRef(value) {
   }
 }
 
-
-function operatorLinkMode(link) {
-  if (!link || !isHttp(link.link)) {
-    return null;
-  }
-
-  if (/\.(?:mp4|m3u8|vtt)(?:$|[?#])/i.test(link.link)) {
-    return null;
-  }
-
-  let parsed;
-
-  try {
-    parsed = new URL(link.link);
-  } catch {
-    return null;
-  }
-
-  const metadata = cleanText(
-    Object.values(link)
-      .filter(
-        (value) =>
-          typeof value === 'string' ||
-          typeof value === 'number',
-      )
-      .join(' '),
-  );
-
-  const explicitOperator =
-    /اپراتور|اینترنت\s*همراه|همراه\s*اول|ایرانسل|رایتل|شاتل\s*موبایل|mobile\s*operator|operator/i.test(
-      metadata,
-    );
-
-  const trustedOperatorPortal =
-    /(^|\.)upera\.tv$/i.test(
-      parsed.hostname,
-    ) &&
-    /^\/(?:stream|download)\/(?:movie|series|episode)\//i.test(
-      parsed.pathname,
-    );
-
-  if (
-    !explicitOperator &&
-    !trustedOperatorPortal
-  ) {
-    return null;
-  }
-
-  return /download|دانلود|دریافت/i.test(
-    `${parsed.pathname} ${metadata}`,
-  )
-    ? 'operator-download'
-    : 'operator-play';
-}
-
-function toOperatorFile(link, mode) {
-  const label = cleanText(
-    link?.title ||
-    link?.label ||
-    (
-      mode === 'operator-download'
-        ? 'دریافت با اینترنت همراه'
-        : 'پخش آنلاین با اینترنت همراه'
-    ),
-  );
-
-  return {
-    id: [
-      'operator',
-      mode === 'operator-download'
-        ? 'download'
-        : 'play',
-      simpleHash(link.link),
-    ].join('-'),
-
-    quality:
-      mode === 'operator-download'
-        ? 'دریافت'
-        : 'پخش آنلاین',
-
-    label,
-    url: link.link,
-    mode,
-    operatorOnly: true,
-    supportedOperators:
-      defaultSupportedOperators(),
-  };
-}
-
-function isOperatorMode(mode) {
-  return (
-    mode === 'operator-play' ||
-    mode === 'operator-download'
-  );
-}
-
-function operatorAccessKind(files) {
-  const hasStream = files.some(
-    (file) =>
-      file?.mode === 'operator-play',
-  );
-
-  const hasDownload = files.some(
-    (file) =>
-      file?.mode === 'operator-download',
-  );
-
-  if (hasStream && hasDownload) {
-    return 'both';
-  }
-
-  if (hasStream) return 'stream';
-  if (hasDownload) return 'download';
-  return null;
-}
-
-function defaultSupportedOperators() {
-  return [
-    'همراه اول',
-    'ایرانسل',
-    'رایتل',
-    'شاتل موبایل',
-  ];
-}
-
-function withOperatorCategory(
-  categoryKeys,
-  enabled,
-) {
-  if (!enabled) return categoryKeys;
-
-  return [
-    ...new Set([
-      ...categoryKeys,
-      'mobile-operator',
-    ]),
-  ];
-}
-
-function withOperatorLabel(
-  categoryLabels,
-  enabled,
-) {
-  if (!enabled) return categoryLabels;
-
-  return [
-    ...new Set([
-      ...categoryLabels,
-      'ویژه اینترنت همراه',
-    ]),
-  ];
-}
-
 function toDownloadFile(
   link,
   mode,
   prefix = '',
-  language = link?.__language || explicitLinkLanguage(link),
 ) {
-  const quality = qualityLabel(link.title);
+  const quality = qualityLabel(
+    link.title,
+  );
+
   return {
-    id: [prefix, slugify(quality), simpleHash(link.link)].filter(Boolean).join('-'),
+    id: [
+      prefix,
+      slugify(quality),
+      simpleHash(link.link),
+    ]
+      .filter(Boolean)
+      .join('-'),
+
     quality,
-    label: cleanText(link.title || 'لینک مستقیم'),
-    ...(link.size && Number(link.size) !== 0 ? { size: String(link.size) } : {}),
+
+    label: cleanText(
+      link.title ||
+      'لینک مستقیم',
+    ),
+
+    ...(
+      link.size &&
+      Number(link.size) !== 0
+        ? { size: String(link.size) }
+        : {}
+    ),
+
     url: link.link,
     mode,
-    ...(language === 'dubbed' || language === 'subtitled' ? { language } : {}),
   };
 }
 
-function explicitLinkLanguage(value = '') {
-  const link = value && typeof value === 'object' ? value : { title: value };
-  const text = [
-    link.title,
-    link.name,
-    link.label,
-    link.description,
-    link.language,
-    link.lang,
-    link.audio,
-    link.audio_language,
-    link.audioLanguage,
-    link.version,
-    link.version_name,
-    link.versionName,
-    link.type,
-    link.link_type,
-    link.linkType,
-    link.link,
-  ].map(cleanText).filter(Boolean).join(' ');
-
-  if (
-    link.subtitled === true || link.is_subtitled === true || link.isSubtitled === true ||
-    link.has_subtitle === true || link.hasSubtitle === true ||
-    /زیر\s*نویس|subtitle|subbed|soft\s*sub|hard\s*sub|\bsub\b|\.vtt\b|\.srt\b/i.test(text)
-  ) {
-    return 'subtitled';
+function linkLanguage(title = '') {
+  if (/دوبله/i.test(title)) {
+    return 'دوبله فارسی';
   }
-  if (
-    link.dubbed === true || link.is_dubbed === true || link.isDubbed === true ||
-    /دوبله|dubbed|\bdub\b|persian(?:\s*audio)?|farsi(?:\s*audio)?|فارسی|دو\s*زبانه|dual\s*audio/i.test(text)
-  ) {
-    return 'dubbed';
+
+  if (/زیرنویس/i.test(title)) {
+    return 'زیرنویس فارسی';
   }
-  return null;
-}
 
-
-function explicitItemLanguage(item = {}) {
-  if (!item || typeof item !== 'object') return null;
-  const direct = explicitLinkLanguage({
-    title: [
-      item.language_label, item.languageLabel, item.audio_label, item.audioLabel,
-      item.version_label, item.versionLabel, item.category_label, item.categoryLabel,
-    ].filter(Boolean).join(' '),
-    name: item.name_fa || item.nameFa || item.name || item.title_fa || item.title,
-    language: item.language || item.lang || item.audio_language || item.audioLanguage,
-    version: item.version || item.release_type || item.releaseType,
-    dubbed: item.dubbed || item.is_dubbed || item.isDubbed,
-    subtitled: item.subtitled || item.is_subtitled || item.isSubtitled || item.has_subtitle || item.hasSubtitle,
-  });
-  return direct;
-}
-
-function normalizeLanguageForCountry(language, iranian) {
-  if (iranian && language === 'dubbed') return null;
-  return language === 'dubbed' || language === 'subtitled' ? language : null;
-}
-
-function mediaQualityKey(value) {
-  return cleanText(qualityLabel(value)).toLowerCase().replace(/[^a-z0-9]+/g, '');
-}
-
-function inferPairedLinkLanguages(links, iranian = false) {
-  const result = links.map((link) => ({
-    ...link,
-    __language:
-      normalizeLanguageForCountry(explicitLinkLanguage(link), iranian) ||
-      normalizeLanguageForCountry(link?.__language, iranian),
-  }));
-  const groups = new Map();
-  for (const link of result) {
-    const key = mediaQualityKey(link.title);
-    groups.set(key, [...(groups.get(key) || []), link]);
-  }
-  for (const group of groups.values()) {
-    if (iranian || group.length !== 2) continue;
-    const known = group.find((link) => link.__language);
-    const unknown = group.find((link) => !link.__language);
-    if (known && unknown) {
-      unknown.__language = known.__language === 'dubbed' ? 'subtitled' : 'dubbed';
-    }
-  }
-  return result;
-}
-
-function repairFilesLanguages(files, iranian = false, section = {}) {
-  const prepared = (Array.isArray(files) ? files : []).map((file) => {
-    const { language: storedLanguage, ...languageEvidence } = file || {};
-    return {
-      ...file,
-      language:
-        normalizeLanguageForCountry(explicitLinkLanguage(languageEvidence), iranian) ||
-        normalizeLanguageForCountry(storedLanguage, iranian) ||
-        undefined,
-    };
-  });
-  const byQuality = new Map();
-  for (const file of prepared.filter((entry) => !isOperatorMode(entry?.mode))) {
-    const key = `${file.mode || 'download'}:${mediaQualityKey(file.quality || file.label)}`;
-    byQuality.set(key, [...(byQuality.get(key) || []), file]);
-  }
-  for (const group of byQuality.values()) {
-    if (iranian || group.length !== 2) continue;
-    const known = group.find((file) => file.language);
-    const unknown = group.find((file) => !file.language);
-    if (known && unknown) unknown.language = known.language === 'dubbed' ? 'subtitled' : 'dubbed';
-  }
-  const hasDuplicateQualities = [...byQuality.values()].some((group) => group.length > 1);
-  const { language: storedSectionLanguage, ...sectionEvidence } = section || {};
-  const sectionLanguage =
-    normalizeLanguageForCountry(explicitLinkLanguage(sectionEvidence), iranian) ||
-    normalizeLanguageForCountry(storedSectionLanguage, iranian);
-  if (sectionLanguage && !hasDuplicateQualities && !prepared.some((file) => file.language)) {
-    for (const file of prepared) {
-      if (!isOperatorMode(file?.mode)) file.language = sectionLanguage;
-    }
-  }
-  return prepared.map((file) => {
-    if (file.language === 'dubbed' || file.language === 'subtitled') return file;
-    const { language, ...rest } = file;
-    return rest;
-  });
-}
-
-function repairDownloadSections(downloads, iranian = false) {
-  return (Array.isArray(downloads) ? downloads : []).map((section) => ({
-    ...section,
-    files: repairFilesLanguages(section?.files, iranian, section),
-  }));
-}
-
-function downloadFeatureSet(downloads) {
-  const set = new Set();
-  for (const section of Array.isArray(downloads) ? downloads : []) {
-    for (const file of Array.isArray(section?.files) ? section.files : []) {
-      if (isOperatorMode(file?.mode) || file?.mode === 'play') continue;
-      const language = file?.language || 'plain';
-      set.add(`${language}:${mediaQualityKey(file?.quality || file?.label)}`);
-    }
-  }
-  return set;
-}
-
-function meaningfulDownloadUpdate(previous, next) {
-  if (!Array.isArray(previous) || !previous.length) return null;
-  const before = downloadFeatureSet(previous);
-  const after = downloadFeatureSet(next);
-  const added = [...after].filter((key) => !before.has(key));
-  if (!added.length) return null;
-  if (added.some((key) => key.startsWith('dubbed:'))) return 'نسخه دوبله فارسی اضافه شد';
-  if (added.some((key) => key.startsWith('subtitled:'))) return 'نسخه زیرنویس فارسی اضافه شد';
-  return 'کیفیت تازه اضافه شد';
-}
-
-function strictAnimationFromGenres(genres = []) {
-  return genres.some((genre) => {
-    const normalized = cleanText(genre).toLowerCase().replace(/[‌\s_-]+/g, ' ').trim();
-    return normalized === 'انیمیشن' || normalized === 'animation' || normalized === 'anime' || normalized === 'انیمه';
-  });
-}
-
-function strictAnimationFromItem(item = {}, genres = []) {
-  const names = [item?.name, item?.name_fa, item?.nameFa, item?.title, item?.title_fa]
-    .map((value) => cleanText(value).toLowerCase())
-    .filter(Boolean);
-  if (names.some((name) => LIVE_ACTION_ANIMATION_OVERRIDES.has(name))) return false;
-
-  const explicitText = [
-    item?.contentKind, item?.content_kind, item?.media_type, item?.mediaType,
-    item?.kind, item?.format, item?.category, item?.category_name, item?.categoryName,
-  ].map(cleanText).join(' ').toLowerCase();
-  if (/live[\s_-]*action|لایو[‌\s-]*اکشن/.test(explicitText)) return false;
-  if (/animation|anime|انیمیشن|انیمه/.test(explicitText)) return true;
-  if (item?.isAnimation === false || item?.is_animation === false || item?.animation === false) return false;
-  if (item?.isAnimation === true || item?.is_animation === true || item?.animation === true) return true;
-  return strictAnimationFromGenres(genres);
-}
-
-function repairCatalogItem(item) {
-  if (!item || typeof item !== 'object') return item;
-  const countries = normalizeCountries(item, item);
-  const ir = Boolean(item.ir || countries.countryCodes.includes('IR') || inferIranian(item));
-  ensureIranCountry(countries, ir);
-  const genres = Array.isArray(item.genres) ? item.genres.map(cleanText).filter(Boolean) : [];
-  const classification = classifyContent(item.type === 'series' ? 'series' : 'movie', ir, genres, countries, item);
-  const coreKeys = new Set([
-    'movies', 'series', 'iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series',
-    'animation-movies', 'animation-series',
-  ]);
-  const preservedKeys = (Array.isArray(item.categoryKeys) ? item.categoryKeys : []).filter((key) => !coreKeys.has(key));
-  const downloads = repairDownloadSections(item.downloads, ir);
-  const storedLanguages = Array.isArray(item.availableLanguages) ? item.availableLanguages : [];
-  const availableLanguages = ['dubbed', 'subtitled'].filter((language) =>
-    storedLanguages.includes(language) ||
-    downloads.some((section) => section.files?.some((file) => file.language === language)),
-  );
-  return {
-    ...item,
-    ir,
-    ...(countries.countryCodes.length ? { countryCodes: countries.countryCodes } : {}),
-    ...(countries.countryLabels.length ? { countryLabels: countries.countryLabels } : {}),
-    ...(countries.countryNames.length ? { countryNames: countries.countryNames } : {}),
-    genres,
-    downloads,
-    availableLanguages,
-    contentKind: classification.contentKind,
-    isAnimation: classification.isAnimation,
-    isTalkShow: classification.isTalkShow,
-    isDocumentary: classification.isDocumentary,
-    categoryKeys: [...new Set([...classification.categoryKeys, ...preservedKeys])],
-    categoryLabels: classification.categoryLabels,
-  };
+  return 'نسخه اصلی';
 }
 
 function qualityLabel(title = '') {
@@ -3642,7 +2544,7 @@ function qualityLabel(title = '') {
   if (!match) {
     return cleanText(
       text ||
-      'کیفیت فایل',
+      'کیفیت اصلی',
     );
   }
 
@@ -3658,40 +2560,25 @@ function qualityLabel(title = '') {
     : `${value}p`;
 }
 
-function resolutionRank(title = '') {
+function qualityRank(title = '') {
   const quality = qualityLabel(title);
 
   if (/360/.test(quality)) return 360;
   if (/480/.test(quality)) return 480;
   if (/720/.test(quality)) return 720;
-  if (/HQ/.test(quality)) return 1180;
   if (/1080/.test(quality)) return 1080;
+  if (/HQ/.test(quality)) return 1180;
   if (/1440/.test(quality)) return 1440;
   if (/2160/.test(quality)) return 2160;
 
   return 0;
 }
 
-function downloadSortRank(title = '') {
-  const text = String(title);
-  let rank = resolutionRank(text);
-
-  if (/blu[\s._-]*ray|bluray/i.test(text)) {
-    rank += 100000;
-  }
-
-  if (/remux/i.test(text)) {
-    rank += 110000;
-  }
-
-  return rank;
-}
-
 function highestQuality(links) {
   return [...links].sort(
     (a, b) =>
-      resolutionRank(b.title) -
-      resolutionRank(a.title),
+      qualityRank(b.title) -
+      qualityRank(a.title),
   )[0] || null;
 }
 

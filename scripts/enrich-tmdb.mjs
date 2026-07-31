@@ -24,13 +24,14 @@ if (!catalog || !Array.isArray(catalog.items)) {
 }
 
 const cache = await readJson(cachePath, {
-  version: 2,
+  version: 4,
   updatedAt: null,
   items: {},
 });
 if (!cache.items || typeof cache.items !== 'object' || Array.isArray(cache.items)) {
   cache.items = {};
 }
+cache.version = 4;
 
 const report = {
   startedAt: new Date().toISOString(),
@@ -40,6 +41,7 @@ const report = {
   cacheApplied: 0,
   enrichedTitles: 0,
   enrichedPeople: 0,
+  classificationUpdated: 0,
   skippedAlreadyComplete: 0,
   iranianMatched: 0,
   titleSearchMatched: 0,
@@ -62,19 +64,22 @@ for (const item of catalog.items) {
 
   if (cached && cached.signature === signature && Array.isArray(cached.people)) {
     const merged = mergeTmdbPeople(item.people, cached.people);
-    if (!deepEqualPeople(item.people, merged)) {
-      item.people = merged;
+    const peopleChanged = !deepEqualPeople(item.people, merged);
+    const metadataChanged = cached.metadata ? applyTmdbMetadata(item, cached.metadata) : false;
+    if (peopleChanged || metadataChanged) {
+      if (peopleChanged) item.people = merged;
       item.tmdb = compactTmdbRef(cached.tmdb);
       item.tmdbEnrichedAt = cached.fetchedAt;
       catalogChanged = true;
       report.enrichedTitles += 1;
-      report.enrichedPeople += merged.filter((person) => person?.image).length;
+      if (peopleChanged) report.enrichedPeople += merged.filter((person) => person?.image).length;
+      if (metadataChanged) report.classificationUpdated += 1;
     }
     report.cacheApplied += 1;
-    if (!isCacheStale(cached.fetchedAt, refreshDays)) continue;
+    if (!isCacheStale(cached.fetchedAt, refreshDays) && cached.metadata && hasCompleteTmdbMetadata(item)) continue;
   }
 
-  if (hasCompleteTmdbPeople(item.people)) {
+  if (hasCompleteTmdbPeople(item.people) && hasCompleteTmdbMetadata(item)) {
     report.skippedAlreadyComplete += 1;
     continue;
   }
@@ -96,6 +101,7 @@ for (const item of catalog.items) {
         fetchedAt: new Date().toISOString(),
         tmdb: null,
         people: [],
+        metadata: null,
       };
       continue;
     }
@@ -105,7 +111,10 @@ for (const item of catalog.items) {
 
     const details = await fetchTitleDetails(match.mediaType, match.id);
     const tmdbPeople = buildTmdbPeople(details, match.mediaType);
+    const metadata = buildTmdbMetadata(details, match.mediaType, item);
     const merged = mergeTmdbPeople(item.people, tmdbPeople);
+    const peopleChanged = !deepEqualPeople(item.people, merged);
+    const metadataChanged = applyTmdbMetadata(item, metadata);
 
     cache.items[cacheKey] = {
       signature,
@@ -116,15 +125,17 @@ for (const item of catalog.items) {
         source: match.source,
       },
       people: tmdbPeople,
+      metadata,
     };
 
-    if (!deepEqualPeople(item.people, merged)) {
-      item.people = merged;
+    if (peopleChanged || metadataChanged) {
+      if (peopleChanged) item.people = merged;
       item.tmdb = compactTmdbRef(cache.items[cacheKey].tmdb);
       item.tmdbEnrichedAt = cache.items[cacheKey].fetchedAt;
       catalogChanged = true;
       report.enrichedTitles += 1;
-      report.enrichedPeople += merged.filter((person) => person?.image).length;
+      if (peopleChanged) report.enrichedPeople += merged.filter((person) => person?.image).length;
+      if (metadataChanged) report.classificationUpdated += 1;
     }
   } catch (error) {
     report.errors.push({
@@ -150,7 +161,7 @@ await writeJson(cachePath, cache);
 await writeJson(reportPath, report);
 if (catalogChanged) await writeJson(catalogPath, catalog);
 
-console.log(`TMDB: ${report.enrichedTitles} عنوان و ${report.enrichedPeople} تصویر بازیگر/عامل به‌روزرسانی شد.`);
+console.log(`TMDB: ${report.enrichedTitles} عنوان، ${report.enrichedPeople} تصویر و ${report.classificationUpdated} دسته‌بندی کشور/انیمه به‌روزرسانی شد.`);
 console.log(`TMDB: ${report.cacheApplied} مورد از کش، ${report.apiProcessed} مورد از API، ${report.skippedNoMatch} مورد بدون تطبیق.`);
 if (report.errors.length) {
   console.warn(`TMDB: ${report.errors.length} خطا ثبت شد؛ جزئیات در tmdb-enrichment-report.json است.`);
@@ -232,6 +243,151 @@ async function fetchTitleDetails(mediaType, id) {
     language: 'en-US',
     append_to_response: 'credits',
   });
+}
+
+const COUNTRY_LABELS_FA = {
+  IR: 'ایران', KR: 'کره جنوبی', IN: 'هند', JP: 'ژاپن', TR: 'ترکیه',
+  US: 'آمریکا', GB: 'بریتانیا', CN: 'چین', HK: 'هنگ‌کنگ', FR: 'فرانسه',
+  DE: 'آلمان', ES: 'اسپانیا', IT: 'ایتالیا', CA: 'کانادا', AU: 'استرالیا', RU: 'روسیه',
+};
+
+const COUNTRY_NAMES_EN = {
+  IR: 'Iran', KR: 'South Korea', IN: 'India', JP: 'Japan', TR: 'Turkey',
+  US: 'United States', GB: 'United Kingdom', CN: 'China', HK: 'Hong Kong', FR: 'France',
+  DE: 'Germany', ES: 'Spain', IT: 'Italy', CA: 'Canada', AU: 'Australia', RU: 'Russia',
+};
+
+function normalizeCountryCode(value) {
+  const code = cleanText(value).toUpperCase();
+  return /^[A-Z]{2}$/.test(code) ? code : '';
+}
+
+function buildTmdbMetadata(details, mediaType, item) {
+  const productionCountries = Array.isArray(details?.production_countries)
+    ? details.production_countries
+    : [];
+  const originCountry = mediaType === 'tv' && Array.isArray(details?.origin_country)
+    ? details.origin_country
+    : [];
+  const countryCodes = [...new Set([
+    ...productionCountries.map((country) => normalizeCountryCode(country?.iso_3166_1)),
+    ...originCountry.map(normalizeCountryCode),
+  ].filter(Boolean))];
+  const namesByCode = new Map(
+    productionCountries
+      .map((country) => [normalizeCountryCode(country?.iso_3166_1), cleanText(country?.name)])
+      .filter(([code]) => Boolean(code)),
+  );
+  const originalLanguage = cleanText(details?.original_language || item?.originalLanguage).toLowerCase();
+  const tmdbGenres = Array.isArray(details?.genres) ? details.genres : [];
+  const isAnimation = Boolean(
+    item?.isAnimation ||
+    tmdbGenres.some((genre) => Number(genre?.id) === 16 || /animation|anime/i.test(cleanText(genre?.name))),
+  );
+  const isAnime = Boolean(
+    isAnimation && (countryCodes.includes('JP') || originalLanguage === 'ja'),
+  );
+
+  return {
+    countryCodes,
+    countryLabels: countryCodes.map((code) => COUNTRY_LABELS_FA[code] || namesByCode.get(code) || code),
+    countryNames: countryCodes.map((code) => namesByCode.get(code) || COUNTRY_NAMES_EN[code] || code),
+    originalLanguage,
+    isAnimation,
+    isAnime,
+  };
+}
+
+function applyTmdbMetadata(item, metadataValue) {
+  const metadata = metadataValue && typeof metadataValue === 'object' ? metadataValue : {};
+  const countryCodes = Array.isArray(metadata.countryCodes)
+    ? [...new Set(metadata.countryCodes.map(normalizeCountryCode).filter(Boolean))]
+    : [];
+  const effectiveCodes = countryCodes.length
+    ? countryCodes
+    : Array.isArray(item.countryCodes) ? item.countryCodes.map(normalizeCountryCode).filter(Boolean) : [];
+  const originalLanguage = cleanText(metadata.originalLanguage || item.originalLanguage).toLowerCase();
+  const isAnimation = Boolean(metadata.isAnimation || item.isAnimation);
+  const isAnime = Boolean(isAnimation && (metadata.isAnime || effectiveCodes.includes('JP') || originalLanguage === 'ja'));
+  const before = JSON.stringify({
+    countryCodes: item.countryCodes,
+    countryLabels: item.countryLabels,
+    countryNames: item.countryNames,
+    originalLanguage: item.originalLanguage,
+    isAnimation: item.isAnimation,
+    isAnime: item.isAnime,
+    categoryKeys: item.categoryKeys,
+    categoryLabels: item.categoryLabels,
+    contentKind: item.contentKind,
+    ir: item.ir,
+  });
+
+  if (effectiveCodes.length) {
+    item.countryCodes = effectiveCodes;
+    item.countryLabels = effectiveCodes.map((code, index) =>
+      cleanText(metadata.countryLabels?.[index]) || COUNTRY_LABELS_FA[code] || code,
+    );
+    item.countryNames = effectiveCodes.map((code, index) =>
+      cleanText(metadata.countryNames?.[index]) || COUNTRY_NAMES_EN[code] || code,
+    );
+  }
+  if (originalLanguage) item.originalLanguage = originalLanguage;
+  item.ir = effectiveCodes.includes('IR') || item.ir === true;
+  item.isAnimation = isAnimation;
+  item.isAnime = isAnime;
+
+  const type = item.type === 'series' ? 'series' : 'movie';
+  const removedKeys = new Set([
+    'korean-movies', 'indian-movies', 'japanese-movies',
+    'anime-movies', 'anime-series', 'animation-movies', 'animation-series',
+  ]);
+  const categoryKeys = (Array.isArray(item.categoryKeys) ? item.categoryKeys : [])
+    .map(cleanText)
+    .filter((key) => key && !removedKeys.has(key));
+  if (type === 'movie' && effectiveCodes.includes('KR')) categoryKeys.push('korean-movies');
+  if (type === 'movie' && effectiveCodes.includes('IN')) categoryKeys.push('indian-movies');
+  if (type === 'movie' && effectiveCodes.includes('JP')) categoryKeys.push('japanese-movies');
+  if (isAnimation) categoryKeys.push(isAnime
+    ? type === 'movie' ? 'anime-movies' : 'anime-series'
+    : type === 'movie' ? 'animation-movies' : 'animation-series');
+  item.categoryKeys = [...new Set(categoryKeys)];
+
+  const classificationLabels = /^(فیلم (کره‌ای|هندی|ژاپنی)|انیمه (سینمایی|سریالی)|انیمیشن (سینمایی|سریالی))$/;
+  const categoryLabels = (Array.isArray(item.categoryLabels) ? item.categoryLabels : [])
+    .map(cleanText)
+    .filter((label) => label && !classificationLabels.test(label));
+  if (type === 'movie' && effectiveCodes.includes('KR')) categoryLabels.push('فیلم کره‌ای');
+  if (type === 'movie' && effectiveCodes.includes('IN')) categoryLabels.push('فیلم هندی');
+  if (type === 'movie' && effectiveCodes.includes('JP')) categoryLabels.push('فیلم ژاپنی');
+  if (isAnimation) categoryLabels.push(isAnime
+    ? type === 'movie' ? 'انیمه سینمایی' : 'انیمه سریالی'
+    : type === 'movie' ? 'انیمیشن سینمایی' : 'انیمیشن سریالی');
+  item.categoryLabels = [...new Set(categoryLabels)];
+
+  if (isAnime) item.contentKind = type === 'movie' ? 'anime-movie' : 'anime-series';
+  else if (isAnimation) item.contentKind = type === 'movie' ? 'animation-movie' : 'animation-series';
+
+  const after = JSON.stringify({
+    countryCodes: item.countryCodes,
+    countryLabels: item.countryLabels,
+    countryNames: item.countryNames,
+    originalLanguage: item.originalLanguage,
+    isAnimation: item.isAnimation,
+    isAnime: item.isAnime,
+    categoryKeys: item.categoryKeys,
+    categoryLabels: item.categoryLabels,
+    contentKind: item.contentKind,
+    ir: item.ir,
+  });
+  return before !== after;
+}
+
+function hasCompleteTmdbMetadata(item) {
+  const codes = Array.isArray(item?.countryCodes) ? item.countryCodes.filter(Boolean) : [];
+  const originalLanguage = cleanText(item?.originalLanguage);
+  if (!codes.length && !originalLanguage) return false;
+  if (item?.isAnimation && typeof item?.isAnime !== 'boolean') return false;
+  return true;
 }
 
 function buildTmdbPeople(details, mediaType) {
@@ -527,7 +683,7 @@ function compactTmdbRef(value) {
 
 function itemSignature(item) {
   return [
-    'tmdb-v3-preserve-persian',
+    'tmdb-v4-country-anime',
     cleanText(item.id || item.slug),
     item.type === 'series' ? 'series' : 'movie',
     normalizeImdbId(item.imdb || item.imdbId || item.imdb_id),
