@@ -14,6 +14,13 @@ const refreshDays = positiveInt(process.env.TMDB_REFRESH_DAYS, 30);
 const maxActors = positiveInt(process.env.TMDB_MAX_ACTORS, 18);
 const maxDirectors = positiveInt(process.env.TMDB_MAX_DIRECTORS, 4);
 
+const DAY_IDS_BY_JS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+const DAY_SORT_ORDER = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+const SCHEDULE_OVERRIDES = [
+  { pattern: /(^|\s)بدنام($|\s)/i, day: 'friday' },
+];
+
+
 if (!token) {
   throw new Error('GitHub Secret با نام TMDB_READ_ACCESS_TOKEN در دسترس Workflow نیست.');
 }
@@ -24,14 +31,14 @@ if (!catalog || !Array.isArray(catalog.items)) {
 }
 
 const cache = await readJson(cachePath, {
-  version: 4,
+  version: 5,
   updatedAt: null,
   items: {},
 });
-if (!cache.items || typeof cache.items !== 'object' || Array.isArray(cache.items)) {
+if (Number(cache.version || 0) !== 5 || !cache.items || typeof cache.items !== 'object' || Array.isArray(cache.items)) {
   cache.items = {};
 }
-cache.version = 4;
+cache.version = 5;
 
 const report = {
   startedAt: new Date().toISOString(),
@@ -42,6 +49,7 @@ const report = {
   enrichedTitles: 0,
   enrichedPeople: 0,
   classificationUpdated: 0,
+  weeklyScheduleEntries: 0,
   skippedAlreadyComplete: 0,
   iranianMatched: 0,
   titleSearchMatched: 0,
@@ -145,6 +153,13 @@ for (const item of catalog.items) {
     });
     if (report.errors.length > 100) report.errors.length = 100;
   }
+}
+
+const rebuiltWeeklySchedule = buildWeeklySchedule(catalog.items, catalog.weeklySchedule);
+report.weeklyScheduleEntries = rebuiltWeeklySchedule.length;
+if (JSON.stringify(Array.isArray(catalog.weeklySchedule) ? catalog.weeklySchedule : []) !== JSON.stringify(rebuiltWeeklySchedule)) {
+  catalog.weeklySchedule = rebuiltWeeklySchedule;
+  catalogChanged = true;
 }
 
 if (catalogChanged) {
@@ -288,6 +303,24 @@ function buildTmdbMetadata(details, mediaType, item) {
     isAnimation && (countryCodes.includes('JP') || originalLanguage === 'ja'),
   );
 
+  const nextEpisode = mediaType === 'tv' && details?.next_episode_to_air && typeof details.next_episode_to_air === 'object'
+    ? details.next_episode_to_air
+    : null;
+  const lastEpisode = mediaType === 'tv' && details?.last_episode_to_air && typeof details.last_episode_to_air === 'object'
+    ? details.last_episode_to_air
+    : null;
+  const status = cleanText(details?.status).toLowerCase();
+  const isAiring = mediaType === 'tv' && Boolean(
+    nextEpisode || details?.in_production === true || /returning|planned|pilot|in production/.test(status),
+  );
+  const nextEpisodeAirDate = cleanText(nextEpisode?.air_date);
+  const fallbackAirDate = isAiring
+    ? cleanText(lastEpisode?.air_date || details?.last_air_date || details?.first_air_date)
+    : '';
+  const scheduleDate = nextEpisodeAirDate || fallbackAirDate;
+  const scheduleDay = dayIdFromDate(scheduleDate);
+  const nextEpisodeNumber = positiveInt(nextEpisode?.episode_number, 0);
+
   return {
     countryCodes,
     countryLabels: countryCodes.map((code) => COUNTRY_LABELS_FA[code] || namesByCode.get(code) || code),
@@ -295,6 +328,12 @@ function buildTmdbMetadata(details, mediaType, item) {
     originalLanguage,
     isAnimation,
     isAnime,
+    ...(mediaType === 'tv' ? {
+      isAiring,
+      airDays: scheduleDay ? [scheduleDay] : [],
+      ...(nextEpisodeAirDate ? { nextEpisodeAirDate } : {}),
+      ...(nextEpisodeNumber > 0 ? { nextEpisodeNumber } : {}),
+    } : {}),
   };
 }
 
@@ -320,6 +359,10 @@ function applyTmdbMetadata(item, metadataValue) {
     categoryLabels: item.categoryLabels,
     contentKind: item.contentKind,
     ir: item.ir,
+    airDays: item.airDays,
+    nextEpisodeAirDate: item.nextEpisodeAirDate,
+    nextEpisodeNumber: item.nextEpisodeNumber,
+    isAiring: item.isAiring,
   });
 
   if (effectiveCodes.length) {
@@ -337,6 +380,20 @@ function applyTmdbMetadata(item, metadataValue) {
   item.isAnime = isAnime;
 
   const type = item.type === 'series' ? 'series' : 'movie';
+  if (type === 'series') {
+    const metadataAirDays = Array.isArray(metadata.airDays)
+      ? [...new Set(metadata.airDays.map(normalizeDayId).filter(Boolean))]
+      : [];
+    if (metadataAirDays.length) item.airDays = metadataAirDays;
+    const nextEpisodeAirDate = cleanText(metadata.nextEpisodeAirDate);
+    if (nextEpisodeAirDate) item.nextEpisodeAirDate = nextEpisodeAirDate;
+    else if (metadata.isAiring === false) delete item.nextEpisodeAirDate;
+    const nextEpisodeNumber = positiveInt(metadata.nextEpisodeNumber, 0);
+    if (nextEpisodeNumber > 0) item.nextEpisodeNumber = nextEpisodeNumber;
+    else if (metadata.isAiring === false) delete item.nextEpisodeNumber;
+    if (typeof metadata.isAiring === 'boolean') item.isAiring = metadata.isAiring;
+  }
+
   const removedKeys = new Set([
     'korean-movies', 'indian-movies', 'japanese-movies',
     'anime-movies', 'anime-series', 'animation-movies', 'animation-series',
@@ -378,6 +435,10 @@ function applyTmdbMetadata(item, metadataValue) {
     categoryLabels: item.categoryLabels,
     contentKind: item.contentKind,
     ir: item.ir,
+    airDays: item.airDays,
+    nextEpisodeAirDate: item.nextEpisodeAirDate,
+    nextEpisodeNumber: item.nextEpisodeNumber,
+    isAiring: item.isAiring,
   });
   return before !== after;
 }
@@ -387,7 +448,83 @@ function hasCompleteTmdbMetadata(item) {
   const originalLanguage = cleanText(item?.originalLanguage);
   if (!codes.length && !originalLanguage) return false;
   if (item?.isAnimation && typeof item?.isAnime !== 'boolean') return false;
+  if (item?.type === 'series' && typeof item?.isAiring !== 'boolean') return false;
   return true;
+}
+
+
+function normalizeDayId(value) {
+  const day = cleanText(value).toLowerCase();
+  return DAY_SORT_ORDER.includes(day) ? day : '';
+}
+
+function dayIdFromDate(value) {
+  const timestamp = Date.parse(cleanText(value));
+  if (!Number.isFinite(timestamp)) return '';
+  return DAY_IDS_BY_JS[new Date(timestamp).getUTCDay()] || '';
+}
+
+function scheduleDayForItem(item) {
+  const override = SCHEDULE_OVERRIDES.find(({ pattern }) => pattern.test(cleanText(item?.nameFa)));
+  if (override) return override.day;
+  const explicit = Array.isArray(item?.airDays)
+    ? item.airDays.map(normalizeDayId).find(Boolean)
+    : '';
+  if (explicit) return explicit;
+  const nextDay = dayIdFromDate(item?.nextEpisodeAirDate);
+  if (nextDay) return nextDay;
+
+  const recentValue = cleanText(
+    item?.meaningfulUpdatedAt || item?.sourceUpdatedAt || item?.updatedAt || item?.sourceCreatedAt || item?.createdAt,
+  );
+  const recentTimestamp = Date.parse(recentValue);
+  const recentlyUpdated = Number.isFinite(recentTimestamp) && Date.now() - recentTimestamp <= 45 * 24 * 60 * 60 * 1000;
+  if (item?.isAiring === true || recentlyUpdated) return dayIdFromDate(recentValue);
+  return '';
+}
+
+function buildWeeklySchedule(itemsValue, existingValue) {
+  const items = Array.isArray(itemsValue) ? itemsValue : [];
+  const generated = [];
+  for (const item of items) {
+    if (!item || item.type !== 'series') continue;
+    const day = scheduleDayForItem(item);
+    if (!day) continue;
+    const updateValue = cleanText(
+      item.nextEpisodeAirDate || item.meaningfulUpdatedAt || item.sourceUpdatedAt || item.updatedAt,
+    );
+    generated.push({
+      id: `tmdb-schedule-${item.id}-${day}`,
+      itemId: String(item.id),
+      nameFa: cleanText(item.nameFa || item.name),
+      poster: cleanText(item.poster),
+      day,
+      time: cleanText(item.airTime) || 'زمان نامشخص',
+      ...(positiveInt(item.nextEpisodeNumber, 0) > 0 ? { episode: positiveInt(item.nextEpisodeNumber, 0) } : {}),
+      region: item.ir === true || (Array.isArray(item.countryCodes) && item.countryCodes.includes('IR')) ? 'iranian' : 'foreign',
+      sourceLabel: item.nextEpisodeAirDate ? 'TMDB next episode' : 'catalog update day',
+      ...(updateValue ? { verifiedAt: updateValue } : {}),
+    });
+  }
+
+  const merged = new Map();
+  for (const entry of generated) merged.set(`${entry.itemId}:${entry.day}:${entry.region}`, entry);
+  for (const entry of Array.isArray(existingValue) ? existingValue : []) {
+    if (!entry || !entry.itemId || !normalizeDayId(entry.day)) continue;
+    const generatedEntry = String(entry.id || '').startsWith('tmdb-schedule-') ||
+      ['TMDB next episode', 'catalog update day'].includes(cleanText(entry.sourceLabel));
+    if (generatedEntry) continue;
+    const normalized = { ...entry, day: normalizeDayId(entry.day) };
+    merged.set(`${normalized.itemId}:${normalized.day}:${normalized.region === 'foreign' ? 'foreign' : 'iranian'}`, normalized);
+  }
+
+  return [...merged.values()].sort((a, b) => {
+    const dayDiff = DAY_SORT_ORDER.indexOf(a.day) - DAY_SORT_ORDER.indexOf(b.day);
+    if (dayDiff) return dayDiff;
+    const timeDiff = cleanText(a.time).localeCompare(cleanText(b.time));
+    if (timeDiff) return timeDiff;
+    return cleanText(a.nameFa).localeCompare(cleanText(b.nameFa), 'fa');
+  });
 }
 
 function buildTmdbPeople(details, mediaType) {
