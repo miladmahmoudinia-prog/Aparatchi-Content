@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   workflow_run:
     workflows:
-      - Sync free movies and series
+      - Sync Upera Free Catalog
     types:
       - completed
 
@@ -44,7 +44,7 @@ jobs:
             exit 1
           fi
 
-      - name: Enrich cast, crew names and portraits
+      - name: Enrich cast, countries and anime classification
         env:
           TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
           TMDB_MAX_TITLES_PER_RUN: '700'
@@ -61,6 +61,6 @@ jobs:
             echo "No TMDB enrichment changes to commit."
             exit 0
           fi
-          git commit -m "Enrich cast names and images from TMDB"
+          git commit -m "Enrich cast, countries and anime classification from TMDB"
           git pull --rebase origin main
           git push origin HEAD:main
