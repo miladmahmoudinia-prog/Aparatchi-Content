@@ -303,32 +303,67 @@ function tmdbPerson(entry, role, roleLabel, fallbackOrder) {
   };
 }
 
+function containsPersian(value) {
+  return /[\u0600-\u06ff]/.test(cleanText(value));
+}
+
 function mergeTmdbPeople(existingValue, tmdbValue) {
-  const existing = Array.isArray(existingValue) ? existingValue.filter(Boolean) : [];
-  const tmdb = Array.isArray(tmdbValue) ? tmdbValue.filter(Boolean) : [];
-  if (!tmdb.length) return existing.map(compactPerson);
+  const existing = Array.isArray(existingValue) ? existingValue.filter(Boolean).map(compactPerson) : [];
+  const tmdb = Array.isArray(tmdbValue) ? tmdbValue.filter(Boolean).map(compactPerson) : [];
+  if (!tmdb.length) return existing;
 
-  // TMDB is the source of truth whenever a title is matched. Use the original
-  // English person names for foreign and Iranian works alike, and keep local
-  // people only as a role-level fallback when TMDB has no cast or no director.
-  const normalizedTmdb = tmdb.map((person) => compactPerson({
-    ...person,
-    nameFa: cleanText(person?.name || person?.nameFa),
-    name: cleanText(person?.name || person?.nameFa),
-    source: 'tmdb',
-  }));
+  const usedExisting = new Set();
+  const findLocalMatch = (person) => {
+    const sameRole = existing
+      .map((candidate, index) => ({ candidate, index }))
+      .filter(({ candidate, index }) => candidate.role === person.role && !usedExisting.has(index));
 
-  const hasTmdbActors = normalizedTmdb.some((person) => person.role === 'actor');
-  const hasTmdbDirectors = normalizedTmdb.some((person) => person.role === 'director');
-  const fallback = existing
-    .filter((person) =>
-      (person?.role === 'actor' && !hasTmdbActors) ||
-      (person?.role === 'director' && !hasTmdbDirectors),
-    )
-    .map(compactPerson);
+    const byTmdb = person.tmdbId
+      ? sameRole.find(({ candidate }) => Number(candidate.tmdbId || 0) === Number(person.tmdbId))
+      : null;
+    if (byTmdb) return byTmdb;
 
+    const tmdbName = normalizeName(person.name || person.nameFa);
+    const byName = sameRole.find(({ candidate }) => {
+      const names = [candidate.name, candidate.nameFa].map(normalizeName).filter(Boolean);
+      return tmdbName && names.includes(tmdbName);
+    });
+    if (byName) return byName;
+
+    // Upera and TMDB commonly return cast in billing order. Use order only as a
+    // conservative last fallback, so a Persian local name can stay attached to
+    // the portrait without replacing an already matched person.
+    return sameRole.find(({ candidate }) =>
+      Number.isFinite(Number(candidate.order)) && Number(candidate.order) === Number(person.order),
+    ) || null;
+  };
+
+  const mergedTmdb = tmdb.map((person) => {
+    const match = findLocalMatch(person);
+    if (match) usedExisting.add(match.index);
+    const local = match?.candidate;
+    const localFa = containsPersian(local?.nameFa)
+      ? cleanText(local.nameFa)
+      : containsPersian(local?.name)
+        ? cleanText(local.name)
+        : '';
+    return compactPerson({
+      ...local,
+      ...person,
+      id: person.id || local?.id,
+      tmdbId: person.tmdbId || local?.tmdbId,
+      nameFa: localFa || cleanText(local?.nameFa || person.nameFa || person.name),
+      name: cleanText(person.name || local?.name || person.nameFa || local?.nameFa),
+      image: cleanText(person.image || local?.image),
+      character: cleanText(local?.character || person.character),
+      roleLabel: cleanText(local?.roleLabel || person.roleLabel),
+      source: 'tmdb',
+    });
+  });
+
+  const unmatchedLocal = existing.filter((_, index) => !usedExisting.has(index));
   const seen = new Set();
-  return [...normalizedTmdb, ...fallback]
+  return [...mergedTmdb, ...unmatchedLocal]
     .filter((person) => {
       const key = person.tmdbId
         ? `${person.role}:tmdb:${person.tmdbId}`
@@ -347,9 +382,10 @@ function mergeTmdbPeople(existingValue, tmdbValue) {
 function compactPerson(person) {
   const source = cleanText(person?.source || '');
   const englishName = cleanText(person?.name || person?.nameFa);
+  const localNameFa = cleanText(person?.nameFa || englishName);
   const result = {
     id: cleanText(person?.id),
-    nameFa: source === 'tmdb' ? englishName : cleanText(person?.nameFa || englishName),
+    nameFa: localNameFa,
     name: englishName,
     role: person?.role === 'director' ? 'director' : 'actor',
     roleLabel: cleanText(person?.roleLabel || (person?.role === 'director' ? 'کارگردان' : 'بازیگر')),
@@ -448,13 +484,9 @@ function hasCompleteTmdbPeople(peopleValue) {
   const actors = people.filter((person) => person?.role === 'actor');
   const directors = people.filter((person) => person?.role === 'director');
   const tmdbPeople = people.filter((person) => cleanText(person?.source) === 'tmdb');
-  const namesAreEnglish = tmdbPeople.every((person) =>
-    cleanText(person?.name) && cleanText(person?.nameFa) === cleanText(person?.name),
-  );
   const actorPortraits = actors.filter((person) => isHttpUrl(person?.image)).length;
   const directorPortraits = directors.filter((person) => isHttpUrl(person?.image)).length;
-  return tmdbPeople.length === people.length &&
-    namesAreEnglish &&
+  return tmdbPeople.length >= Math.min(people.length, Math.max(1, actors.length)) &&
     actorPortraits >= Math.min(6, Math.max(1, actors.length)) &&
     (directors.length === 0 || directorPortraits >= 1);
 }
@@ -495,7 +527,7 @@ function compactTmdbRef(value) {
 
 function itemSignature(item) {
   return [
-    'tmdb-v2-english-all',
+    'tmdb-v3-preserve-persian',
     cleanText(item.id || item.slug),
     item.type === 'series' ? 'series' : 'movie',
     normalizeImdbId(item.imdb || item.imdbId || item.imdb_id),
