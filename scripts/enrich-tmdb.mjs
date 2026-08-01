@@ -31,14 +31,14 @@ if (!catalog || !Array.isArray(catalog.items)) {
 }
 
 const cache = await readJson(cachePath, {
-  version: 5,
+  version: 6,
   updatedAt: null,
   items: {},
 });
-if (Number(cache.version || 0) !== 5 || !cache.items || typeof cache.items !== 'object' || Array.isArray(cache.items)) {
+if (Number(cache.version || 0) !== 6 || !cache.items || typeof cache.items !== 'object' || Array.isArray(cache.items)) {
   cache.items = {};
 }
-cache.version = 5;
+cache.version = 6;
 
 const report = {
   startedAt: new Date().toISOString(),
@@ -251,12 +251,12 @@ async function fetchTitleDetails(mediaType, id) {
   if (mediaType === 'tv') {
     return tmdbGet(`/tv/${id}`, {
       language: 'en-US',
-      append_to_response: 'aggregate_credits',
+      append_to_response: 'aggregate_credits,keywords',
     });
   }
   return tmdbGet(`/movie/${id}`, {
     language: 'en-US',
-    append_to_response: 'credits',
+    append_to_response: 'credits,keywords',
   });
 }
 
@@ -299,8 +299,29 @@ function buildTmdbMetadata(details, mediaType, item) {
     item?.isAnimation ||
     tmdbGenres.some((genre) => Number(genre?.id) === 16 || /animation|anime/i.test(cleanText(genre?.name))),
   );
+  const keywordEntries = Array.isArray(details?.keywords?.keywords)
+    ? details.keywords.keywords
+    : Array.isArray(details?.keywords?.results)
+      ? details.keywords.results
+      : [];
+  const keywordText = keywordEntries.map((entry) => cleanText(entry?.name)).join(' ');
+  const titleText = [
+    cleanText(details?.original_title || details?.original_name),
+    cleanText(details?.title || details?.name),
+    cleanText(item?.name),
+    cleanText(item?.nameFa),
+  ].join(' ');
+  const animeKeyword = /(?:^|\b)(?:anime|manga|based on manga|shounen|shōnen|japanese animation)(?:\b|$)/i.test(keywordText);
+  const knownAnimeTitle = /(?:jujutsu\s*kaisen|demon\s*slayer|kimetsu|attack\s*on\s*titan|one\s*piece|naruto|bleach|my\s*hero\s*academia|chainsaw\s*man|spy\s*[x×]\s*family|solo\s*leveling)/i.test(titleText);
+  const hasJapaneseScript = /[\u3040-\u30ff\u31f0-\u31ff]/.test(titleText);
   const isAnime = Boolean(
-    isAnimation && (countryCodes.includes('JP') || originalLanguage === 'ja'),
+    isAnimation && (
+      countryCodes.includes('JP') ||
+      originalLanguage === 'ja' ||
+      animeKeyword ||
+      knownAnimeTitle ||
+      hasJapaneseScript
+    ),
   );
 
   const nextEpisode = mediaType === 'tv' && details?.next_episode_to_air && typeof details.next_episode_to_air === 'object'
@@ -395,13 +416,14 @@ function applyTmdbMetadata(item, metadataValue) {
   }
 
   const removedKeys = new Set([
-    'korean-movies', 'indian-movies', 'japanese-movies',
+    'korean-movies', 'korean-series', 'indian-movies', 'japanese-movies',
     'anime-movies', 'anime-series', 'animation-movies', 'animation-series',
   ]);
   const categoryKeys = (Array.isArray(item.categoryKeys) ? item.categoryKeys : [])
     .map(cleanText)
     .filter((key) => key && !removedKeys.has(key));
   if (type === 'movie' && effectiveCodes.includes('KR')) categoryKeys.push('korean-movies');
+  if (type === 'series' && effectiveCodes.includes('KR')) categoryKeys.push('korean-series');
   if (type === 'movie' && effectiveCodes.includes('IN')) categoryKeys.push('indian-movies');
   if (type === 'movie' && effectiveCodes.includes('JP')) categoryKeys.push('japanese-movies');
   if (isAnimation) categoryKeys.push(isAnime
@@ -409,11 +431,12 @@ function applyTmdbMetadata(item, metadataValue) {
     : type === 'movie' ? 'animation-movies' : 'animation-series');
   item.categoryKeys = [...new Set(categoryKeys)];
 
-  const classificationLabels = /^(فیلم (کره‌ای|هندی|ژاپنی)|انیمه (سینمایی|سریالی)|انیمیشن (سینمایی|سریالی))$/;
+  const classificationLabels = /^(فیلم (کره‌ای|هندی|ژاپنی)|سریال کره‌ای|انیمه (سینمایی|سریالی)|انیمیشن (سینمایی|سریالی))$/;
   const categoryLabels = (Array.isArray(item.categoryLabels) ? item.categoryLabels : [])
     .map(cleanText)
     .filter((label) => label && !classificationLabels.test(label));
   if (type === 'movie' && effectiveCodes.includes('KR')) categoryLabels.push('فیلم کره‌ای');
+  if (type === 'series' && effectiveCodes.includes('KR')) categoryLabels.push('سریال کره‌ای');
   if (type === 'movie' && effectiveCodes.includes('IN')) categoryLabels.push('فیلم هندی');
   if (type === 'movie' && effectiveCodes.includes('JP')) categoryLabels.push('فیلم ژاپنی');
   if (isAnimation) categoryLabels.push(isAnime
