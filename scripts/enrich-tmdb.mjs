@@ -13,6 +13,9 @@ const maxTitlesPerRun = positiveInt(process.env.TMDB_MAX_TITLES_PER_RUN, 1200);
 const refreshDays = positiveInt(process.env.TMDB_REFRESH_DAYS, 30);
 const maxActors = positiveInt(process.env.TMDB_MAX_ACTORS, 18);
 const maxDirectors = positiveInt(process.env.TMDB_MAX_DIRECTORS, 4);
+const tvMazeBase = String(process.env.TVMAZE_API_BASE || 'https://api.tvmaze.com').replace(/\/+$/, '');
+const maxTvMazePerRun = positiveInt(process.env.TVMAZE_MAX_TITLES_PER_RUN, 260);
+const maxPersonImageLookups = positiveInt(process.env.TMDB_MAX_PERSON_IMAGE_LOOKUPS, 320);
 
 const DAY_IDS_BY_JS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const DAY_SORT_ORDER = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
@@ -44,14 +47,14 @@ if (!catalog || !Array.isArray(catalog.items)) {
 }
 
 const cache = await readJson(cachePath, {
-  version: 7,
+  version: 9,
   updatedAt: null,
   items: {},
 });
-if (Number(cache.version || 0) !== 7 || !cache.items || typeof cache.items !== 'object' || Array.isArray(cache.items)) {
+if (Number(cache.version || 0) !== 9 || !cache.items || typeof cache.items !== 'object' || Array.isArray(cache.items)) {
   cache.items = {};
 }
-cache.version = 7;
+cache.version = 9;
 
 const report = {
   startedAt: new Date().toISOString(),
@@ -66,13 +69,18 @@ const report = {
   skippedAlreadyComplete: 0,
   iranianMatched: 0,
   titleSearchMatched: 0,
+  tvMazeProcessed: 0,
+  personImageLookups: 0,
   skippedNoMatch: 0,
   skippedLimit: 0,
   errors: [],
 };
 
 let lastRequestAt = 0;
+let lastPublicRequestAt = 0;
 let apiTitlesUsed = 0;
+let tvMazeTitlesUsed = 0;
+let personImageLookupsUsed = 0;
 let catalogChanged = false;
 
 for (const item of catalog.items) {
@@ -94,9 +102,16 @@ for (const item of catalog.items) {
 
     if (cached.tmdb === null) {
       const sanitized = sanitizeInvalidTmdbData(item);
-      if (sanitized) {
+      const localPeople = removeTmdbPeople(item.people);
+      const restoredPeople = Array.isArray(cached.people)
+        ? mergeLocalPeopleImages(localPeople, cached.people)
+        : localPeople;
+      const peopleChanged = !deepEqualPeople(item.people, restoredPeople);
+      if (peopleChanged) item.people = restoredPeople;
+      if (sanitized || peopleChanged) {
         catalogChanged = true;
-        report.classificationUpdated += 1;
+        report.classificationUpdated += sanitized ? 1 : 0;
+        if (peopleChanged) report.enrichedPeople += restoredPeople.filter((person) => person?.image).length;
       }
       continue;
     }
@@ -112,7 +127,7 @@ for (const item of catalog.items) {
         if (peopleChanged) item.people = merged;
         item.tmdb = nextTmdb;
         item.tmdbEnrichedAt = cached.fetchedAt;
-        item.tmdbValidationVersion = 2;
+        item.tmdbValidationVersion = Math.max(3, Number(cached.metadata?.validationVersion || 0));
         catalogChanged = true;
         report.enrichedTitles += 1;
         if (peopleChanged) report.enrichedPeople += merged.filter((person) => person?.image).length;
@@ -125,7 +140,7 @@ for (const item of catalog.items) {
   if (
     hasCompleteTmdbPeople(item.people) &&
     hasCompleteTmdbMetadata(item) &&
-    Number(item.tmdbValidationVersion || 0) >= 2
+    Number(item.tmdbValidationVersion || 0) >= 3
   ) {
     report.skippedAlreadyComplete += 1;
     continue;
@@ -143,23 +158,28 @@ for (const item of catalog.items) {
     let match = await resolveTmdbTitle(item);
     let details = match ? await fetchTitleDetails(match.mediaType, match.id) : null;
 
-    if (match && details && !isTmdbDetailsCompatible(item, details, match.mediaType)) {
+    if (match && details && !isTmdbDetailsCompatible(item, details, match.mediaType, match.source)) {
       match = await resolveTmdbTitle(item, { ignoreImdb: true });
       details = match ? await fetchTitleDetails(match.mediaType, match.id) : null;
     }
 
-    if (!match || !details || !isTmdbDetailsCompatible(item, details, match.mediaType)) {
+    if (!match || !details || !isTmdbDetailsCompatible(item, details, match.mediaType, match.source)) {
       report.skippedNoMatch += 1;
       const sanitized = sanitizeInvalidTmdbData(item);
-      if (sanitized) {
+      const localPeople = removeTmdbPeople(item.people);
+      const peopleWithImages = await enrichLocalPeopleImages(localPeople);
+      const peopleChanged = !deepEqualPeople(item.people, peopleWithImages);
+      if (peopleChanged) item.people = peopleWithImages;
+      if (sanitized || peopleChanged) {
         catalogChanged = true;
-        report.classificationUpdated += 1;
+        if (sanitized) report.classificationUpdated += 1;
+        if (peopleChanged) report.enrichedPeople += peopleWithImages.filter((person) => person?.image).length;
       }
       cache.items[cacheKey] = {
         signature,
         fetchedAt: new Date().toISOString(),
         tmdb: null,
-        people: [],
+        people: peopleWithImages,
         metadata: null,
       };
       continue;
@@ -170,6 +190,10 @@ for (const item of catalog.items) {
 
     const tmdbPeople = buildTmdbPeople(details, match.mediaType);
     const metadata = buildTmdbMetadata(details, match.mediaType, item);
+    if (match.mediaType === 'tv') {
+      const scheduleMetadata = await resolveTvMazeSchedule(item, details);
+      if (scheduleMetadata) Object.assign(metadata, scheduleMetadata);
+    }
     const localPeople = removeTmdbPeople(item.people);
     const merged = mergeTmdbPeople(localPeople, tmdbPeople);
     const peopleChanged = !deepEqualPeople(item.people, merged);
@@ -193,7 +217,7 @@ for (const item of catalog.items) {
       if (peopleChanged) item.people = merged;
       item.tmdb = nextTmdb;
       item.tmdbEnrichedAt = cache.items[cacheKey].fetchedAt;
-      item.tmdbValidationVersion = 2;
+      item.tmdbValidationVersion = Math.max(3, Number(metadata.validationVersion || 0));
       catalogChanged = true;
       report.enrichedTitles += 1;
       if (peopleChanged) report.enrichedPeople += merged.filter((person) => person?.image).length;
@@ -231,7 +255,7 @@ await writeJson(reportPath, report);
 if (catalogChanged) await writeJson(catalogPath, catalog);
 
 console.log(`TMDB: ${report.enrichedTitles} عنوان، ${report.enrichedPeople} تصویر و ${report.classificationUpdated} دسته‌بندی کشور/انیمه به‌روزرسانی شد.`);
-console.log(`TMDB: ${report.cacheApplied} مورد از کش، ${report.apiProcessed} مورد از API، ${report.skippedNoMatch} مورد بدون تطبیق.`);
+console.log(`TMDB: ${report.cacheApplied} مورد از کش، ${report.apiProcessed} عنوان از API، ${report.personImageLookups} جست‌وجوی تصویر و ${report.tvMazeProcessed} برنامه TVMaze.`);
 if (report.errors.length) {
   console.warn(`TMDB: ${report.errors.length} خطا ثبت شد؛ جزئیات در tmdb-enrichment-report.json است.`);
 }
@@ -331,9 +355,10 @@ function buildTmdbMetadata(details, mediaType, item) {
       .filter(([code]) => Boolean(code)),
   );
   const originalLanguage = cleanText(details?.original_language || item?.originalLanguage).toLowerCase();
+  const posterFallback = tmdbImageUrl(details?.poster_path, 'w500');
+  const backdropFallback = tmdbImageUrl(details?.backdrop_path, 'w780');
   const tmdbGenres = Array.isArray(details?.genres) ? details.genres : [];
   const isAnimation = Boolean(
-    item?.isAnimation ||
     tmdbGenres.some((genre) => Number(genre?.id) === 16 || /animation|anime/i.test(cleanText(genre?.name))),
   );
   const keywordEntries = Array.isArray(details?.keywords?.keywords)
@@ -361,13 +386,7 @@ function buildTmdbMetadata(details, mediaType, item) {
     ),
   );
   const isDocumentary = Boolean(
-    item?.isDocumentary ||
     tmdbGenres.some((genre) => Number(genre?.id) === 99 || /documentary|مستند/i.test(cleanText(genre?.name))) ||
-    /(?:^|\s)(?:documentary|مستند)(?:\s|$)/i.test([
-      ...(Array.isArray(item?.genres) ? item.genres : []),
-      ...(Array.isArray(item?.categoryLabels) ? item.categoryLabels : []),
-      cleanText(item?.contentKind),
-    ].join(' ')) ||
     /(?:^|\s)مرد\s+ابدی(?:\s|$)/i.test(cleanText(item?.nameFa)),
   );
 
@@ -387,6 +406,7 @@ function buildTmdbMetadata(details, mediaType, item) {
     : '';
   const scheduleDate = nextEpisodeAirDate || fallbackAirDate;
   const scheduleDay = dayIdFromDate(scheduleDate);
+  const nextEpisodeSeasonNumber = positiveInt(nextEpisode?.season_number, 0);
   const nextEpisodeNumber = positiveInt(nextEpisode?.episode_number, 0);
 
   return {
@@ -394,14 +414,17 @@ function buildTmdbMetadata(details, mediaType, item) {
     countryLabels: countryCodes.map((code) => COUNTRY_LABELS_FA[code] || namesByCode.get(code) || code),
     countryNames: countryCodes.map((code) => namesByCode.get(code) || COUNTRY_NAMES_EN[code] || code),
     originalLanguage,
+    ...(posterFallback ? { posterFallback } : {}),
+    ...(backdropFallback ? { backdropFallback } : {}),
     isAnimation,
     isAnime,
     isDocumentary,
-    validationVersion: 2,
+    validationVersion: 3,
     ...(mediaType === 'tv' ? {
       isAiring,
       airDays: scheduleDay ? [scheduleDay] : [],
       ...(nextEpisodeAirDate ? { nextEpisodeAirDate } : {}),
+      ...(nextEpisodeSeasonNumber > 0 ? { nextEpisodeSeasonNumber } : {}),
       ...(nextEpisodeNumber > 0 ? { nextEpisodeNumber } : {}),
     } : {}),
   };
@@ -409,10 +432,16 @@ function buildTmdbMetadata(details, mediaType, item) {
 
 function applyTmdbMetadata(item, metadataValue) {
   const metadata = metadataValue && typeof metadataValue === 'object' ? metadataValue : {};
+  const validationVersion = Number(metadata.validationVersion || 0);
+  const trustedClassification = validationVersion >= 3;
   const countryCodes = Array.isArray(metadata.countryCodes)
     ? [...new Set(metadata.countryCodes.map(normalizeCountryCode).filter(Boolean))]
     : [];
-  const originalLanguage = cleanText(metadata.originalLanguage || item.originalLanguage).toLowerCase();
+  const originalLanguage = cleanText(
+    Object.prototype.hasOwnProperty.call(metadata, 'originalLanguage')
+      ? metadata.originalLanguage
+      : item.originalLanguage,
+  ).toLowerCase();
   const inferredCountry = originalLanguage === 'fa'
     ? 'IR'
     : originalLanguage === 'ko'
@@ -422,30 +451,45 @@ function applyTmdbMetadata(item, metadataValue) {
         : originalLanguage === 'ja'
           ? 'JP'
           : '';
-  const effectiveCodes = [...new Set([
-    ...(countryCodes.length
-      ? countryCodes
-      : Array.isArray(item.countryCodes) ? item.countryCodes.map(normalizeCountryCode).filter(Boolean) : []),
-    inferredCountry,
-  ].filter(Boolean))];
-  const isAnimation = Boolean(metadata.isAnimation || item.isAnimation);
+
+  const existingCodes = Array.isArray(item.countryCodes)
+    ? item.countryCodes.map(normalizeCountryCode).filter(Boolean)
+    : [];
+  const metadataHasCountries = Array.isArray(metadata.countryCodes);
+  const effectiveCodes = [...new Set(
+    trustedClassification || metadataHasCountries
+      ? (countryCodes.length ? countryCodes : inferredCountry ? [inferredCountry] : [])
+      : [...existingCodes, inferredCountry].filter(Boolean),
+  )];
+
+  const isAnimation = trustedClassification
+    ? Boolean(metadata.isAnimation)
+    : Boolean(metadata.isAnimation || item.isAnimation);
   const isAnime = Boolean(isAnimation && (
-    metadata.isAnime ||
-    effectiveCodes.includes('JP') ||
-    originalLanguage === 'ja'
+    trustedClassification
+      ? metadata.isAnime
+      : metadata.isAnime || effectiveCodes.includes('JP') || originalLanguage === 'ja'
   ));
-  const isDocumentary = Boolean(
-    metadata.isDocumentary ||
-    item.isDocumentary ||
-    item.contentKind === 'documentary' ||
-    (Array.isArray(item.genres) && item.genres.some((genre) => /مستند|documentary/i.test(cleanText(genre)))) ||
-    /(?:^|\s)مرد\s+ابدی(?:\s|$)/i.test(cleanText(item.nameFa)),
-  );
+  const eternalManOverride = /(?:^|\s)مرد\s+ابدی(?:\s|$)/i.test(cleanText(item.nameFa));
+  const isDocumentary = trustedClassification
+    ? Boolean(metadata.isDocumentary || eternalManOverride)
+    : Boolean(
+        metadata.isDocumentary ||
+        item.isDocumentary ||
+        item.contentKind === 'documentary' ||
+        (Array.isArray(item.genres) && item.genres.some((genre) => /مستند|documentary/i.test(cleanText(genre)))) ||
+        eternalManOverride
+      );
+
   const before = JSON.stringify({
     countryCodes: item.countryCodes,
     countryLabels: item.countryLabels,
     countryNames: item.countryNames,
     originalLanguage: item.originalLanguage,
+    poster: item.poster,
+    posterFallback: item.posterFallback,
+    backdrop: item.backdrop,
+    backdropFallback: item.backdropFallback,
     isAnimation: item.isAnimation,
     isAnime: item.isAnime,
     isDocumentary: item.isDocumentary,
@@ -454,28 +498,42 @@ function applyTmdbMetadata(item, metadataValue) {
     contentKind: item.contentKind,
     ir: item.ir,
     airDays: item.airDays,
+    airTime: item.airTime,
     nextEpisodeAirDate: item.nextEpisodeAirDate,
+    nextEpisodeSeasonNumber: item.nextEpisodeSeasonNumber,
     nextEpisodeNumber: item.nextEpisodeNumber,
     isAiring: item.isAiring,
   });
 
-  if (effectiveCodes.length) {
-    item.countryCodes = effectiveCodes;
-    item.countryLabels = effectiveCodes.map((code, index) =>
-      cleanText(metadata.countryLabels?.[index]) || COUNTRY_LABELS_FA[code] || code,
-    );
-    item.countryNames = effectiveCodes.map((code, index) =>
-      cleanText(metadata.countryNames?.[index]) || COUNTRY_NAMES_EN[code] || code,
-    );
-  }
+  item.countryCodes = effectiveCodes;
+  item.countryLabels = effectiveCodes.map((code, index) =>
+    cleanText(metadata.countryLabels?.[index]) || COUNTRY_LABELS_FA[code] || code,
+  );
+  item.countryNames = effectiveCodes.map((code, index) =>
+    cleanText(metadata.countryNames?.[index]) || COUNTRY_NAMES_EN[code] || code,
+  );
   if (originalLanguage) item.originalLanguage = originalLanguage;
-  item.ir = effectiveCodes.includes('IR') || item.ir === true;
+  item.ir = trustedClassification
+    ? effectiveCodes.includes('IR') || originalLanguage === 'fa'
+    : effectiveCodes.includes('IR') || item.ir === true;
+
+  const posterFallback = cleanText(metadata.posterFallback);
+  const backdropFallback = cleanText(metadata.backdropFallback);
+  if (isHttpUrl(posterFallback)) {
+    item.posterFallback = posterFallback;
+    if (!isUsableArtworkUrl(item.poster)) item.poster = posterFallback;
+  }
+  if (isHttpUrl(backdropFallback)) {
+    item.backdropFallback = backdropFallback;
+    if (!isUsableArtworkUrl(item.backdrop)) item.backdrop = backdropFallback;
+  }
+
   item.isAnimation = isAnimation;
   item.isAnime = isAnime;
   item.isDocumentary = isDocumentary;
   item.tmdbValidationVersion = Math.max(
     Number(item.tmdbValidationVersion || 0),
-    Number(metadata.validationVersion || 0),
+    validationVersion,
   );
 
   const type = item.type === 'series' ? 'series' : 'movie';
@@ -484,9 +542,14 @@ function applyTmdbMetadata(item, metadataValue) {
       ? [...new Set(metadata.airDays.map(normalizeDayId).filter(Boolean))]
       : [];
     if (metadataAirDays.length) item.airDays = metadataAirDays;
+    const airTime = cleanText(metadata.airTime);
+    if (airTime) item.airTime = airTime;
     const nextEpisodeAirDate = cleanText(metadata.nextEpisodeAirDate);
     if (nextEpisodeAirDate) item.nextEpisodeAirDate = nextEpisodeAirDate;
     else if (metadata.isAiring === false) delete item.nextEpisodeAirDate;
+    const nextEpisodeSeasonNumber = positiveInt(metadata.nextEpisodeSeasonNumber, 0);
+    if (nextEpisodeSeasonNumber > 0) item.nextEpisodeSeasonNumber = nextEpisodeSeasonNumber;
+    else if (metadata.isAiring === false) delete item.nextEpisodeSeasonNumber;
     const nextEpisodeNumber = positiveInt(metadata.nextEpisodeNumber, 0);
     if (nextEpisodeNumber > 0) item.nextEpisodeNumber = nextEpisodeNumber;
     else if (metadata.isAiring === false) delete item.nextEpisodeNumber;
@@ -504,7 +567,7 @@ function applyTmdbMetadata(item, metadataValue) {
   if (type === 'movie' && effectiveCodes.includes('KR')) categoryKeys.push('korean-movies');
   if (type === 'series' && effectiveCodes.includes('KR')) categoryKeys.push('korean-series');
   if (type === 'movie' && effectiveCodes.includes('IN')) categoryKeys.push('indian-movies');
-  if (type === 'movie' && effectiveCodes.includes('JP')) categoryKeys.push('japanese-movies');
+  if (type === 'movie' && effectiveCodes.includes('JP') && !isAnimation) categoryKeys.push('japanese-movies');
   if (isAnimation) categoryKeys.push(isAnime
     ? type === 'movie' ? 'anime-movies' : 'anime-series'
     : type === 'movie' ? 'animation-movies' : 'animation-series');
@@ -518,7 +581,7 @@ function applyTmdbMetadata(item, metadataValue) {
   if (type === 'movie' && effectiveCodes.includes('KR')) categoryLabels.push('فیلم کره‌ای');
   if (type === 'series' && effectiveCodes.includes('KR')) categoryLabels.push('سریال کره‌ای');
   if (type === 'movie' && effectiveCodes.includes('IN')) categoryLabels.push('فیلم هندی');
-  if (type === 'movie' && effectiveCodes.includes('JP')) categoryLabels.push('فیلم ژاپنی');
+  if (type === 'movie' && effectiveCodes.includes('JP') && !isAnimation) categoryLabels.push('فیلم ژاپنی');
   if (isAnimation) categoryLabels.push(isAnime
     ? type === 'movie' ? 'انیمه سینمایی' : 'انیمه سریالی'
     : type === 'movie' ? 'انیمیشن سینمایی' : 'انیمیشن سریالی');
@@ -528,6 +591,9 @@ function applyTmdbMetadata(item, metadataValue) {
   if (isDocumentary) item.contentKind = 'documentary';
   else if (isAnime) item.contentKind = type === 'movie' ? 'anime-movie' : 'anime-series';
   else if (isAnimation) item.contentKind = type === 'movie' ? 'animation-movie' : 'animation-series';
+  else if (['documentary', 'anime-movie', 'anime-series', 'animation-movie', 'animation-series'].includes(cleanText(item.contentKind))) {
+    delete item.contentKind;
+  }
 
   const languageTagsChanged = normalizeIranianLanguageTags(item);
 
@@ -536,6 +602,10 @@ function applyTmdbMetadata(item, metadataValue) {
     countryLabels: item.countryLabels,
     countryNames: item.countryNames,
     originalLanguage: item.originalLanguage,
+    poster: item.poster,
+    posterFallback: item.posterFallback,
+    backdrop: item.backdrop,
+    backdropFallback: item.backdropFallback,
     isAnimation: item.isAnimation,
     isAnime: item.isAnime,
     isDocumentary: item.isDocumentary,
@@ -544,7 +614,9 @@ function applyTmdbMetadata(item, metadataValue) {
     contentKind: item.contentKind,
     ir: item.ir,
     airDays: item.airDays,
+    airTime: item.airTime,
     nextEpisodeAirDate: item.nextEpisodeAirDate,
+    nextEpisodeSeasonNumber: item.nextEpisodeSeasonNumber,
     nextEpisodeNumber: item.nextEpisodeNumber,
     isAiring: item.isAiring,
   });
@@ -555,7 +627,7 @@ function hasCompleteTmdbMetadata(item) {
   const codes = Array.isArray(item?.countryCodes) ? item.countryCodes.filter(Boolean) : [];
   const originalLanguage = cleanText(item?.originalLanguage);
   if (!codes.length && !originalLanguage) return false;
-  if (Number(item?.tmdbValidationVersion || 0) < 2) return false;
+  if (Number(item?.tmdbValidationVersion || 0) < 3) return false;
   if (item?.isAnimation && typeof item?.isAnime !== 'boolean') return false;
   if (typeof item?.isDocumentary !== 'boolean') return false;
   if (item?.type === 'series' && typeof item?.isAiring !== 'boolean') return false;
@@ -590,7 +662,6 @@ function localTitleText(item) {
 }
 
 function applyLocalClassification(item) {
-  const text = localTitleText(item);
   const codes = Array.isArray(item?.countryCodes)
     ? item.countryCodes.map(normalizeCountryCode).filter(Boolean)
     : [];
@@ -600,24 +671,26 @@ function applyLocalClassification(item) {
   if (originalLanguage === 'hi' && !codes.includes('IN')) codes.push('IN');
   if (originalLanguage === 'ja' && !codes.includes('JP')) codes.push('JP');
 
-  const isAnimation = Boolean(
-    item?.isAnimation ||
-    /(?:انیمیشن|animation|anime|انیمه)/i.test(text),
-  );
+  // Local inference is intentionally conservative. Old generated category labels are
+  // not treated as source-of-truth, otherwise one wrong run keeps contaminating later runs.
+  const genreText = (Array.isArray(item?.genres) ? item.genres : []).map(cleanText).join(' ');
+  const contentKind = cleanText(item?.contentKind).toLowerCase();
+  const titleText = [cleanText(item?.nameFa), cleanText(item?.name)].join(' ');
+  const explicitAnimation = /(?:انیمیشن|animation|anime|انیمه)/i.test(genreText) ||
+    /^(?:anime|animation)-(?:movie|series)$/.test(contentKind);
+  const isAnimation = Boolean(explicitAnimation);
   const isAnime = Boolean(
     isAnimation && (
-      item?.isAnime ||
+      /^anime-/.test(contentKind) ||
       codes.includes('JP') ||
       originalLanguage === 'ja' ||
-      /(?:انیمه|anime|jujutsu\s*kaisen|جوجوتسو|demon\s*slayer|kimetsu|شیطان\s*کش|attack\s*on\s*titan|one\s*piece|naruto|bleach|chainsaw\s*man|spy\s*[x×]\s*family|solo\s*leveling)/i.test(text) ||
-      /[\u3040-\u30ff\u31f0-\u31ff]/.test(text)
+      /(?:انیمه|anime|jujutsu\s*kaisen|جوجوتسو|demon\s*slayer|kimetsu|شیطان\s*کش|attack\s*on\s*titan|one\s*piece|naruto|bleach|chainsaw\s*man|spy\s*[x×]\s*family|solo\s*leveling)/i.test(titleText) ||
+      /[\u3040-\u30ff\u31f0-\u31ff]/.test(titleText)
     )
   );
   const isDocumentary = Boolean(
-    item?.isDocumentary ||
-    item?.contentKind === 'documentary' ||
-    /(?:^|\s)(?:مستند|documentary)(?:\s|$)/i.test(text) ||
-    /(?:^|\s)مرد\s+ابدی(?:\s|$)/i.test(cleanText(item?.nameFa)),
+    /(?:^|\s)(?:مستند|documentary)(?:\s|$)/i.test(genreText) ||
+    /(?:^|\s)مرد\s+ابدی(?:\s|$)/i.test(cleanText(item?.nameFa))
   );
 
   return applyTmdbMetadata(item, {
@@ -628,6 +701,7 @@ function applyLocalClassification(item) {
     isAnimation,
     isAnime,
     isDocumentary,
+    validationVersion: Number(item?.tmdbValidationVersion || 0) >= 3 ? 3 : 0,
   });
 }
 
@@ -673,8 +747,37 @@ function normalizeIranianLanguageTags(item) {
 }
 
 function removeTmdbPeople(peopleValue) {
-  return (Array.isArray(peopleValue) ? peopleValue : [])
-    .filter((person) => cleanText(person?.source).toLowerCase() !== 'tmdb' && !/^tmdb-/i.test(cleanText(person?.id)));
+  const output = [];
+  for (const rawPerson of Array.isArray(peopleValue) ? peopleValue : []) {
+    if (!rawPerson || typeof rawPerson !== 'object') continue;
+    const tmdbGenerated = cleanText(rawPerson?.source).toLowerCase() === 'tmdb' ||
+      /^tmdb-/i.test(cleanText(rawPerson?.id)) ||
+      /-tmdb-/i.test(cleanText(rawPerson?.id));
+    if (!tmdbGenerated) {
+      output.push(compactPerson(rawPerson));
+      continue;
+    }
+
+    // Older runs sometimes merged a correct Persian Upera name into a wrong TMDB
+    // credit. Salvage that local identity before dropping the foreign portrait/name.
+    const localFa = containsPersian(rawPerson?.nameFa)
+      ? cleanText(rawPerson.nameFa)
+      : containsPersian(rawPerson?.name)
+        ? cleanText(rawPerson.name)
+        : '';
+    if (!localFa) continue;
+    const role = rawPerson?.role === 'director' ? 'director' : 'actor';
+    output.push(compactPerson({
+      id: `${role}-local-recovered-${normalizeName(localFa).replace(/\s+/g, '-')}`,
+      nameFa: localFa,
+      name: localFa,
+      role,
+      roleLabel: cleanText(rawPerson?.roleLabel || (role === 'director' ? 'کارگردان' : 'بازیگر')),
+      order: nonNegativeInt(rawPerson?.order, output.length),
+      source: 'upera',
+    }));
+  }
+  return output;
 }
 
 function sanitizeInvalidTmdbData(item) {
@@ -744,7 +847,7 @@ function titleSimilarity(leftValue, rightValue) {
   return union ? intersection / union : 0;
 }
 
-function isTmdbDetailsCompatible(item, details, mediaType) {
+function isTmdbDetailsCompatible(item, details, mediaType, matchSource = '') {
   if (!details || !positiveInt(details?.id, 0)) return false;
   const expectedType = item?.type === 'series' ? 'tv' : 'movie';
   if (mediaType !== expectedType) return false;
@@ -786,11 +889,13 @@ function isTmdbDetailsCompatible(item, details, mediaType) {
   );
 
   if (iranian) {
-    // Iranian titles are often absent from TMDB in Persian; matching country/language
-    // and year is safer than accepting a foreign same-name result.
-    return bestSimilarity >= 0.25 || (originalLanguage === 'fa' || codes.includes('IR'));
+    // An IMDb external-id match is stable. Title-search matches must still resemble
+    // the same work; sharing only Iran/language/year is not enough for common titles
+    // such as «ملکه»، «ماهی» or «عشق و مرگ».
+    if (/imdb/i.test(cleanText(matchSource))) return originalLanguage === 'fa' || codes.includes('IR');
+    return bestSimilarity >= 0.52;
   }
-  return bestSimilarity >= 0.45;
+  return bestSimilarity >= 0.5;
 }
 
 function normalizeDayId(value) {
@@ -798,10 +903,32 @@ function normalizeDayId(value) {
   return DAY_SORT_ORDER.includes(day) ? day : '';
 }
 
+function datePartsInTehran(dateValue) {
+  const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+  if (!Number.isFinite(date.getTime())) return null;
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Tehran',
+    weekday: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return {
+    day: normalizeDayId(values.weekday),
+    time: values.hour && values.minute ? `${values.hour}:${values.minute}` : '',
+  };
+}
+
 function dayIdFromDate(value) {
-  const timestamp = Date.parse(cleanText(value));
-  if (!Number.isFinite(timestamp)) return '';
-  return DAY_IDS_BY_JS[new Date(timestamp).getUTCDay()] || '';
+  const raw = cleanText(value);
+  if (!raw) return '';
+  // Date-only values must not be parsed as UTC midnight, which shifts the weekday
+  // for Persian users. Noon Tehran keeps the intended calendar date stable.
+  const dateValue = /^\d{4}-\d{2}-\d{2}$/.test(raw)
+    ? `${raw}T12:00:00+03:30`
+    : raw;
+  return datePartsInTehran(dateValue)?.day || '';
 }
 
 function scheduleDayForItem(item) {
@@ -837,12 +964,15 @@ function buildWeeklySchedule(itemsValue, existingValue) {
       id: `tmdb-schedule-${item.id}-${day}`,
       itemId: String(item.id),
       nameFa: cleanText(item.nameFa || item.name),
-      poster: cleanText(item.poster),
+      poster: cleanText(item.posterFallback || item.poster),
       day,
-      time: cleanText(item.airTime) || 'زمان نامشخص',
+      time: cleanText(item.airTime) || 'زمان انتشار اعلام نشده',
+      ...(positiveInt(item.nextEpisodeSeasonNumber, 0) > 0
+        ? { season: positiveInt(item.nextEpisodeSeasonNumber, 0) }
+        : {}),
       ...(positiveInt(item.nextEpisodeNumber, 0) > 0 ? { episode: positiveInt(item.nextEpisodeNumber, 0) } : {}),
       region: item.ir === true || (Array.isArray(item.countryCodes) && item.countryCodes.includes('IR')) ? 'iranian' : 'foreign',
-      sourceLabel: item.nextEpisodeAirDate ? 'TMDB next episode' : 'catalog update day',
+      sourceLabel: item.airTime ? 'TVMaze schedule' : item.nextEpisodeAirDate ? 'TMDB next episode' : 'catalog update day',
       ...(updateValue ? { verifiedAt: updateValue } : {}),
     });
   }
@@ -852,7 +982,7 @@ function buildWeeklySchedule(itemsValue, existingValue) {
   for (const entry of Array.isArray(existingValue) ? existingValue : []) {
     if (!entry || !entry.itemId || !normalizeDayId(entry.day)) continue;
     const generatedEntry = String(entry.id || '').startsWith('tmdb-schedule-') ||
-      ['TMDB next episode', 'catalog update day'].includes(cleanText(entry.sourceLabel));
+      ['TMDB next episode', 'TVMaze schedule', 'catalog update day'].includes(cleanText(entry.sourceLabel));
     if (generatedEntry) continue;
     const normalized = { ...entry, day: normalizeDayId(entry.day) };
     merged.set(`${normalized.itemId}:${normalized.day}:${normalized.region === 'foreign' ? 'foreign' : 'iranian'}`, normalized);
@@ -1078,6 +1208,177 @@ function chooseSearchResult(resultsValue, queryTitle, year, mediaType, item) {
   return best && best.score >= threshold ? best : null;
 }
 
+function tmdbImageUrl(filePath, size = 'w500') {
+  const clean = cleanText(filePath);
+  if (!clean) return '';
+  if (/^https?:\/\//i.test(clean)) return clean.replace(/^http:\/\//i, 'https://');
+  return `https://image.tmdb.org/t/p/${size}/${clean.replace(/^\/+/, '')}`;
+}
+
+function isUsableArtworkUrl(value) {
+  const url = cleanText(value);
+  return /^https:\/\//i.test(url) &&
+    !/(?:example\.com|replace-with|\/default\.(?:jpg|png)|posters\/default)/i.test(url);
+}
+
+function mergeLocalPeopleImages(localValue, cachedValue) {
+  const local = Array.isArray(localValue) ? localValue.filter(Boolean).map(compactPerson) : [];
+  const cached = Array.isArray(cachedValue) ? cachedValue.filter(Boolean).map(compactPerson) : [];
+  return local.map((person) => {
+    if (isHttpUrl(person.image)) return person;
+    const normalizedNames = [person.name, person.nameFa].map(normalizeName).filter(Boolean);
+    const match = cached.find((candidate) =>
+      candidate.role === person.role && (
+        (person.tmdbId && Number(candidate.tmdbId || 0) === Number(person.tmdbId)) ||
+        [candidate.name, candidate.nameFa].map(normalizeName).some((name) => name && normalizedNames.includes(name))
+      ),
+    );
+    if (!match?.image) return person;
+    return compactPerson({
+      ...person,
+      image: match.image,
+      tmdbId: person.tmdbId || match.tmdbId,
+      // Keep the local source. The portrait can come from TMDB without turning the
+      // entire credit into a title-level TMDB match that sanitizeInvalidTmdbData removes.
+      source: person.source || 'upera',
+    });
+  });
+}
+
+function choosePersonSearchResult(resultsValue, person) {
+  const results = Array.isArray(resultsValue) ? resultsValue : [];
+  const wantedNames = uniqueTexts([person?.name, person?.nameFa]);
+  let best = null;
+  let bestScore = 0;
+  for (const result of results) {
+    if (!positiveInt(result?.id, 0) || !cleanText(result?.profile_path)) continue;
+    const resultName = cleanText(result?.name || result?.original_name);
+    const similarity = Math.max(0, ...wantedNames.map((name) => titleSimilarity(name, resultName)));
+    const knownFor = Array.isArray(result?.known_for) ? result.known_for : [];
+    const iranianHint = knownFor.some((work) =>
+      cleanText(work?.original_language).toLowerCase() === 'fa' ||
+      (Array.isArray(work?.origin_country) && work.origin_country.includes('IR')),
+    );
+    const score = similarity * 100 + (iranianHint ? 8 : 0) + Math.min(5, Number(result?.popularity || 0) / 5);
+    if (score > bestScore) {
+      best = result;
+      bestScore = score;
+    }
+  }
+  // Portrait mismatches are worse than a placeholder. Require a strong name match.
+  return best && bestScore >= 72 ? best : null;
+}
+
+async function enrichLocalPeopleImages(peopleValue) {
+  const people = Array.isArray(peopleValue) ? peopleValue.filter(Boolean).map(compactPerson) : [];
+  const output = [];
+  for (const person of people) {
+    if (isHttpUrl(person.image) || personImageLookupsUsed >= maxPersonImageLookups) {
+      output.push(person);
+      continue;
+    }
+    const queries = uniqueTexts([person.name, person.nameFa]);
+    let match = null;
+    for (const query of queries) {
+      if (!query || personImageLookupsUsed >= maxPersonImageLookups) break;
+      personImageLookupsUsed += 1;
+      report.personImageLookups += 1;
+      const search = await tmdbGet('/search/person', {
+        query,
+        include_adult: 'false',
+        language: 'en-US',
+        page: '1',
+      });
+      match = choosePersonSearchResult(search?.results, person);
+      if (match) break;
+    }
+    if (!match) {
+      output.push(person);
+      continue;
+    }
+    output.push(compactPerson({
+      ...person,
+      tmdbId: positiveInt(match.id, 0),
+      image: tmdbProfileUrl(match.profile_path),
+      source: person.source || 'upera',
+    }));
+  }
+  return output;
+}
+
+async function publicJson(urlValue) {
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const elapsed = Date.now() - lastPublicRequestAt;
+    if (elapsed < 260) await sleep(260 - elapsed);
+    lastPublicRequestAt = Date.now();
+    const response = await fetch(urlValue, { headers: { accept: 'application/json' } });
+    if (response.status === 404) return null;
+    if (response.ok) return response.json();
+    if (response.status === 429 || response.status >= 500) {
+      await sleep(Math.min(5000, attempt * 900));
+      continue;
+    }
+    throw new Error(`Public API ${response.status}`);
+  }
+  return null;
+}
+
+function compatibleTvMazeShow(show, item, details) {
+  if (!show || !positiveInt(show.id, 0)) return false;
+  const itemTitles = uniqueTexts([
+    item?.name,
+    item?.nameFa,
+    details?.name,
+    details?.original_name,
+  ]);
+  const similarity = Math.max(0, ...itemTitles.map((title) => titleSimilarity(title, show?.name)));
+  if (similarity < 0.55) return false;
+  const itemYear = positiveInt(item?.year, 0) || positiveInt(cleanText(details?.first_air_date).slice(0, 4), 0);
+  const showYear = positiveInt(cleanText(show?.premiered).slice(0, 4), 0);
+  if (itemYear && showYear && Math.abs(itemYear - showYear) > 2) return false;
+  return true;
+}
+
+async function resolveTvMazeSchedule(item, details) {
+  if (tvMazeTitlesUsed >= maxTvMazePerRun) return null;
+  const title = cleanText(details?.name || item?.name || item?.nameFa);
+  if (!title) return null;
+  tvMazeTitlesUsed += 1;
+  report.tvMazeProcessed += 1;
+  const url = new URL(`${tvMazeBase}/singlesearch/shows`);
+  url.searchParams.set('q', title);
+  url.searchParams.set('embed', 'nextepisode');
+  const show = await publicJson(url);
+  if (!compatibleTvMazeShow(show, item, details)) return null;
+
+  const nextEpisode = show?._embedded?.nextepisode || null;
+  const airstamp = cleanText(nextEpisode?.airstamp);
+  const airdate = cleanText(nextEpisode?.airdate);
+  const tehran = airstamp ? datePartsInTehran(airstamp) : null;
+  const scheduleDays = Array.isArray(show?.schedule?.days)
+    ? show.schedule.days.map(normalizeDayId).filter(Boolean)
+    : [];
+  const airDays = tehran?.day
+    ? [tehran.day]
+    : airdate
+      ? [dayIdFromDate(airdate)].filter(Boolean)
+      : scheduleDays;
+  const airTime = tehran?.time || '';
+  const nextEpisodeSeasonNumber = positiveInt(nextEpisode?.season, 0);
+  const nextEpisodeNumber = positiveInt(nextEpisode?.number, 0);
+  const nextEpisodeAirDate = airdate || cleanText(details?.next_episode_to_air?.air_date);
+
+  if (!airDays.length && !airTime && !nextEpisodeSeasonNumber && !nextEpisodeNumber) return null;
+  return {
+    ...(airDays.length ? { airDays: [...new Set(airDays)] } : {}),
+    ...(airTime ? { airTime } : {}),
+    ...(nextEpisodeAirDate ? { nextEpisodeAirDate } : {}),
+    ...(nextEpisodeSeasonNumber > 0 ? { nextEpisodeSeasonNumber } : {}),
+    ...(nextEpisodeNumber > 0 ? { nextEpisodeNumber } : {}),
+    tvMazeId: positiveInt(show.id, 0),
+  };
+}
+
 async function tmdbGet(endpoint, params = {}) {
   await waitForRequestSlot();
   const url = new URL(`${apiBase}${endpoint}`);
@@ -1160,7 +1461,7 @@ function compactTmdbRef(value) {
 
 function itemSignature(item) {
   return [
-    'tmdb-v5-validated-country-anime-documentary',
+    'tmdb-v6-trusted-country-artwork-schedule-people',
     cleanText(item.id || item.slug),
     item.type === 'series' ? 'series' : 'movie',
     normalizeImdbId(item.imdb || item.imdbId || item.imdb_id),
