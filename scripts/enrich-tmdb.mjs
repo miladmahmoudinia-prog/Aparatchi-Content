@@ -39,6 +39,25 @@ const COUNTRY_NAMES_EN = {
   DE: 'Germany', ES: 'Spain', IT: 'Italy', CA: 'Canada', AU: 'Australia', RU: 'Russia',
 };
 
+const FEATURED_IRANIAN_NAME_HINTS = new Set([
+  'parviz parastui', 'shahab hosseini', 'navid mohammadzadeh', 'peyman maadi',
+  'leila hatami', 'taraneh alidoosti', 'hedieh tehrani', 'golshifteh farahani',
+  'jamshid hashempour', 'reza attaran', 'mehdi hashemi', 'fatemeh motamed arya',
+  'mahnaz afshar', 'baran kosari', 'sahar dolatshahi', 'homa roosta',
+  'پرویز پرستویی', 'شهاب حسینی', 'نوید محمدزاده', 'پیمان معادی',
+  'لیلا حاتمی', 'ترانه علیدوستی', 'هدیه تهرانی', 'گلشیفته فراهانی',
+  'جمشید هاشم پور', 'رضا عطاران', 'فاطمه معتمد آریا', 'سحر دولتشاهی',
+].map(normalizeName));
+
+const FEATURED_GLOBAL_NAME_HINTS = new Set([
+  'leonardo dicaprio', 'brad pitt', 'tom cruise', 'keanu reeves', 'robert de niro',
+  'morgan freeman', 'denzel washington', 'christian bale', 'cillian murphy',
+  'scarlett johansson', 'natalie portman', 'emma stone', 'margot robbie',
+  'cate blanchett', 'anne hathaway', 'zendaya', 'ryan gosling', 'jake gyllenhaal',
+  'song kang ho', 'lee byung hun', 'gong yoo', 'hyun bin', 'son ye jin',
+  'shah rukh khan', 'aamir khan', 'amitabh bachchan', 'deepika padukone',
+].map(normalizeName));
+
 
 if (!token) {
   throw new Error('GitHub Secret با نام TMDB_READ_ACCESS_TOKEN در دسترس Workflow نیست.');
@@ -1403,25 +1422,6 @@ async function resolveTvMazeSchedule(item, details) {
   };
 }
 
-
-const FEATURED_IRANIAN_NAME_HINTS = new Set([
-  'parviz parastui', 'shahab hosseini', 'navid mohammadzadeh', 'peyman maadi',
-  'leila hatami', 'taraneh alidoosti', 'hedieh tehrani', 'golshifteh farahani',
-  'jamshid hashempour', 'reza attaran', 'mehdi hashemi', 'fatemeh motamed arya',
-  'mahnaz afshar', 'baran kosari', 'sahar dolatshahi', 'homa roosta',
-  'پرویز پرستویی', 'شهاب حسینی', 'نوید محمدزاده', 'پیمان معادی',
-  'لیلا حاتمی', 'ترانه علیدوستی', 'هدیه تهرانی', 'گلشیفته فراهانی',
-  'جمشید هاشم پور', 'رضا عطاران', 'فاطمه معتمد آریا', 'سحر دولتشاهی',
-].map(normalizeName));
-
-const FEATURED_GLOBAL_NAME_HINTS = new Set([
-  'leonardo dicaprio', 'brad pitt', 'tom cruise', 'keanu reeves', 'robert de niro',
-  'morgan freeman', 'denzel washington', 'christian bale', 'cillian murphy',
-  'scarlett johansson', 'natalie portman', 'emma stone', 'margot robbie',
-  'cate blanchett', 'anne hathaway', 'zendaya', 'ryan gosling', 'jake gyllenhaal',
-  'song kang ho', 'lee byung hun', 'gong yoo', 'hyun bin', 'son ye jin',
-  'shah rukh khan', 'aamir khan', 'amitabh bachchan', 'deepika padukone',
-].map(normalizeName));
 
 function featuredNameBoost(value) {
   const normalized = normalizeName(value);
