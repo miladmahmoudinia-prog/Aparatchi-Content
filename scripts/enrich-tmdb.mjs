@@ -16,6 +16,9 @@ const maxDirectors = positiveInt(process.env.TMDB_MAX_DIRECTORS, 4);
 const tvMazeBase = String(process.env.TVMAZE_API_BASE || 'https://api.tvmaze.com').replace(/\/+$/, '');
 const maxTvMazePerRun = positiveInt(process.env.TVMAZE_MAX_TITLES_PER_RUN, 260);
 const maxPersonImageLookups = positiveInt(process.env.TMDB_MAX_PERSON_IMAGE_LOOKUPS, 320);
+const maxFeaturedPeople = positiveInt(process.env.TMDB_MAX_FEATURED_PEOPLE, 18);
+const maxFeaturedPersonDetails = positiveInt(process.env.TMDB_MAX_FEATURED_PERSON_DETAILS, 48);
+const featuredPersonRefreshDays = positiveInt(process.env.TMDB_FEATURED_PERSON_REFRESH_DAYS, 90);
 
 const DAY_IDS_BY_JS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const DAY_SORT_ORDER = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
@@ -55,6 +58,7 @@ if (Number(cache.version || 0) !== 9 || !cache.items || typeof cache.items !== '
   cache.items = {};
 }
 cache.version = 9;
+if (!cache.people || typeof cache.people !== 'object' || Array.isArray(cache.people)) cache.people = {};
 
 const report = {
   startedAt: new Date().toISOString(),
@@ -71,6 +75,8 @@ const report = {
   titleSearchMatched: 0,
   tvMazeProcessed: 0,
   personImageLookups: 0,
+  featuredPeople: 0,
+  featuredPersonApiCalls: 0,
   skippedNoMatch: 0,
   skippedLimit: 0,
   errors: [],
@@ -237,6 +243,13 @@ const rebuiltWeeklySchedule = buildWeeklySchedule(catalog.items, catalog.weeklyS
 report.weeklyScheduleEntries = rebuiltWeeklySchedule.length;
 if (JSON.stringify(Array.isArray(catalog.weeklySchedule) ? catalog.weeklySchedule : []) !== JSON.stringify(rebuiltWeeklySchedule)) {
   catalog.weeklySchedule = rebuiltWeeklySchedule;
+  catalogChanged = true;
+}
+
+const rebuiltFeaturedPeople = await buildFeaturedPeople(catalog.items, cache.people);
+report.featuredPeople = rebuiltFeaturedPeople.length;
+if (JSON.stringify(Array.isArray(catalog.featuredPeople) ? catalog.featuredPeople : []) !== JSON.stringify(rebuiltFeaturedPeople)) {
+  catalog.featuredPeople = rebuiltFeaturedPeople;
   catalogChanged = true;
 }
 
@@ -1061,6 +1074,7 @@ function tmdbPerson(entry, role, roleLabel, fallbackOrder) {
     roleLabel,
     ...(character ? { character } : {}),
     ...(profilePath ? { image: tmdbProfileUrl(profilePath) } : {}),
+    ...(Number(entry?.popularity || 0) > 0 ? { popularity: Number(entry.popularity) } : {}),
     order,
     source: 'tmdb',
   };
@@ -1159,6 +1173,16 @@ function compactPerson(person) {
   if (image) result.image = image;
   const character = cleanText(person?.character);
   if (character) result.character = character;
+  const birthday = cleanText(person?.birthday);
+  if (birthday) result.birthday = birthday;
+  const deathday = cleanText(person?.deathday);
+  if (deathday) result.deathday = deathday;
+  const placeOfBirth = cleanText(person?.placeOfBirth || person?.place_of_birth);
+  if (placeOfBirth) result.placeOfBirth = placeOfBirth;
+  const nationality = cleanText(person?.nationality);
+  if (nationality) result.nationality = nationality;
+  const popularity = Number(person?.popularity || 0);
+  if (Number.isFinite(popularity) && popularity > 0) result.popularity = popularity;
   result.order = nonNegativeInt(person?.order, 0);
   result.source = source || (tmdbId ? 'tmdb' : 'upera');
   return result;
@@ -1377,6 +1401,183 @@ async function resolveTvMazeSchedule(item, details) {
     ...(nextEpisodeNumber > 0 ? { nextEpisodeNumber } : {}),
     tvMazeId: positiveInt(show.id, 0),
   };
+}
+
+
+const FEATURED_IRANIAN_NAME_HINTS = new Set([
+  'parviz parastui', 'shahab hosseini', 'navid mohammadzadeh', 'peyman maadi',
+  'leila hatami', 'taraneh alidoosti', 'hedieh tehrani', 'golshifteh farahani',
+  'jamshid hashempour', 'reza attaran', 'mehdi hashemi', 'fatemeh motamed arya',
+  'mahnaz afshar', 'baran kosari', 'sahar dolatshahi', 'homa roosta',
+  'پرویز پرستویی', 'شهاب حسینی', 'نوید محمدزاده', 'پیمان معادی',
+  'لیلا حاتمی', 'ترانه علیدوستی', 'هدیه تهرانی', 'گلشیفته فراهانی',
+  'جمشید هاشم پور', 'رضا عطاران', 'فاطمه معتمد آریا', 'سحر دولتشاهی',
+].map(normalizeName));
+
+const FEATURED_GLOBAL_NAME_HINTS = new Set([
+  'leonardo dicaprio', 'brad pitt', 'tom cruise', 'keanu reeves', 'robert de niro',
+  'morgan freeman', 'denzel washington', 'christian bale', 'cillian murphy',
+  'scarlett johansson', 'natalie portman', 'emma stone', 'margot robbie',
+  'cate blanchett', 'anne hathaway', 'zendaya', 'ryan gosling', 'jake gyllenhaal',
+  'song kang ho', 'lee byung hun', 'gong yoo', 'hyun bin', 'son ye jin',
+  'shah rukh khan', 'aamir khan', 'amitabh bachchan', 'deepika padukone',
+].map(normalizeName));
+
+function featuredNameBoost(value) {
+  const normalized = normalizeName(value);
+  if (FEATURED_IRANIAN_NAME_HINTS.has(normalized)) return 180;
+  if (FEATURED_GLOBAL_NAME_HINTS.has(normalized)) return 150;
+  return 0;
+}
+
+function nationalityFromPlaceOfBirth(value) {
+  const place = cleanText(value).toLowerCase();
+  if (!place) return '';
+  const rules = [
+    [/iran|تهران|ایران|shiraz|isfahan|mashhad|tabriz/, 'ایرانی'],
+    [/united states|u\.s\.|usa|america|california|new york|texas|florida/, 'آمریکایی'],
+    [/united kingdom|england|scotland|wales|britain|london/, 'بریتانیایی'],
+    [/south korea|republic of korea|seoul|busan/, 'کره‌ای'],
+    [/japan|tokyo|osaka|kyoto/, 'ژاپنی'],
+    [/india|mumbai|delhi|kolkata|chennai/, 'هندی'],
+    [/france|paris/, 'فرانسوی'],
+    [/germany|berlin|munich/, 'آلمانی'],
+    [/italy|rome|milan/, 'ایتالیایی'],
+    [/spain|madrid|barcelona/, 'اسپانیایی'],
+    [/canada|toronto|vancouver|montreal/, 'کانادایی'],
+    [/australia|sydney|melbourne/, 'استرالیایی'],
+    [/china|beijing|shanghai|hong kong/, 'چینی'],
+    [/turkey|istanbul|ankara/, 'ترکیه‌ای'],
+    [/russia|moscow|saint petersburg/, 'روسی'],
+  ];
+  return rules.find(([pattern]) => pattern.test(place))?.[1] || '';
+}
+
+function compactFeaturedPerson(candidate, details) {
+  const tmdbId = positiveInt(details?.id || candidate?.tmdbId, 0);
+  const name = cleanText(details?.name || candidate?.name || candidate?.nameFa);
+  const image = tmdbProfileUrl(details?.profile_path) || cleanText(candidate?.image);
+  if (!tmdbId || !name || !isHttpUrl(image)) return null;
+  const birthday = cleanText(details?.birthday);
+  const deathday = cleanText(details?.deathday);
+  const placeOfBirth = cleanText(details?.place_of_birth);
+  const nationality = nationalityFromPlaceOfBirth(placeOfBirth);
+  const popularity = Number(details?.popularity || candidate?.popularity || 0);
+  return {
+    id: `actor-tmdb-${tmdbId}`,
+    tmdbId,
+    nameFa: name,
+    name,
+    role: 'actor',
+    roleLabel: 'بازیگر',
+    image,
+    source: 'tmdb',
+    order: 0,
+    ...(birthday ? { birthday } : {}),
+    ...(deathday ? { deathday } : {}),
+    ...(placeOfBirth ? { placeOfBirth } : {}),
+    ...(nationality ? { nationality } : {}),
+    ...(Number.isFinite(popularity) && popularity > 0 ? { popularity } : {}),
+    itemIds: [...candidate.itemIds],
+    workCount: candidate.itemIds.size,
+    region: candidate.iranianWorks >= candidate.foreignWorks ? 'iranian' : 'foreign',
+  };
+}
+
+async function buildFeaturedPeople(itemsValue, peopleCacheValue) {
+  const items = Array.isArray(itemsValue) ? itemsValue : [];
+  const candidates = new Map();
+  for (const item of items) {
+    if (!item || !item.id) continue;
+    const iranianWork = item.ir === true || (Array.isArray(item.countryCodes) && item.countryCodes.includes('IR'));
+    for (const person of Array.isArray(item.people) ? item.people : []) {
+      if (!person || person.role !== 'actor' || !isHttpUrl(person.image)) continue;
+      const tmdbId = positiveInt(person.tmdbId, 0) || tmdbIdFromPersonId(person.id);
+      if (!tmdbId) continue;
+      const key = String(tmdbId);
+      const current = candidates.get(key) || {
+        tmdbId,
+        name: cleanText(person.name || person.nameFa),
+        nameFa: cleanText(person.nameFa || person.name),
+        image: cleanText(person.image),
+        popularity: 0,
+        bestOrder: 999,
+        iranianWorks: 0,
+        foreignWorks: 0,
+        itemIds: new Set(),
+      };
+      current.itemIds.add(String(item.id));
+      current.bestOrder = Math.min(current.bestOrder, nonNegativeInt(person.order, 999));
+      current.popularity = Math.max(current.popularity, Number(person.popularity || 0));
+      current.image = current.image || cleanText(person.image);
+      current.name = current.name || cleanText(person.name || person.nameFa);
+      current.nameFa = current.nameFa || cleanText(person.nameFa || person.name);
+      if (iranianWork) current.iranianWorks += 1;
+      else current.foreignWorks += 1;
+      candidates.set(key, current);
+    }
+  }
+
+  const preliminary = [...candidates.values()]
+    .map((candidate) => ({
+      ...candidate,
+      preliminaryScore:
+        candidate.itemIds.size * 34 +
+        Math.max(0, 28 - candidate.bestOrder * 3) +
+        Math.min(90, candidate.popularity * 2) +
+        featuredNameBoost(candidate.name || candidate.nameFa),
+    }))
+    .sort((a, b) => b.preliminaryScore - a.preliminaryScore)
+    .slice(0, maxFeaturedPersonDetails);
+
+  const peopleCache = peopleCacheValue && typeof peopleCacheValue === 'object' ? peopleCacheValue : {};
+  const enriched = [];
+  for (const candidate of preliminary) {
+    const cacheKey = String(candidate.tmdbId);
+    let cached = peopleCache[cacheKey];
+    let details = cached?.details || null;
+    if (!cached || isCacheStale(cached.fetchedAt, featuredPersonRefreshDays)) {
+      try {
+        details = await tmdbGet(`/person/${candidate.tmdbId}`, { language: 'en-US' });
+        peopleCache[cacheKey] = { fetchedAt: new Date().toISOString(), details };
+        report.featuredPersonApiCalls += 1;
+      } catch (error) {
+        if (!details) continue;
+      }
+    }
+    const person = compactFeaturedPerson(candidate, details);
+    if (!person) continue;
+    enriched.push({
+      person,
+      score:
+        candidate.preliminaryScore +
+        Math.min(160, Number(person.popularity || 0) * 2.8) +
+        (person.birthday ? 12 : 0) +
+        (person.nationality ? 8 : 0),
+    });
+  }
+
+  const unique = new Map();
+  for (const entry of enriched.sort((a, b) => b.score - a.score)) {
+    if (!unique.has(entry.person.id)) unique.set(entry.person.id, entry);
+  }
+  const iranian = [...unique.values()].filter((entry) => entry.person.region === 'iranian');
+  const foreign = [...unique.values()].filter((entry) => entry.person.region === 'foreign');
+  const selected = [];
+  let iranianIndex = 0;
+  let foreignIndex = 0;
+  while (selected.length < maxFeaturedPeople && (iranianIndex < iranian.length || foreignIndex < foreign.length)) {
+    if (foreignIndex < foreign.length) selected.push(foreign[foreignIndex++].person);
+    if (selected.length >= maxFeaturedPeople) break;
+    if (iranianIndex < iranian.length) selected.push(iranian[iranianIndex++].person);
+  }
+  if (selected.length < maxFeaturedPeople) {
+    for (const entry of [...foreign.slice(foreignIndex), ...iranian.slice(iranianIndex)]) {
+      if (selected.length >= maxFeaturedPeople) break;
+      if (!selected.some((person) => person.id === entry.person.id)) selected.push(entry.person);
+    }
+  }
+  return selected.slice(0, maxFeaturedPeople);
 }
 
 async function tmdbGet(endpoint, params = {}) {
