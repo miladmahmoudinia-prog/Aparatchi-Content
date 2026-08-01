@@ -15,7 +15,7 @@ const maxActors = positiveInt(process.env.TMDB_MAX_ACTORS, 18);
 const maxDirectors = positiveInt(process.env.TMDB_MAX_DIRECTORS, 4);
 const tvMazeBase = String(process.env.TVMAZE_API_BASE || 'https://api.tvmaze.com').replace(/\/+$/, '');
 const maxTvMazePerRun = positiveInt(process.env.TVMAZE_MAX_TITLES_PER_RUN, 260);
-const maxPersonImageLookups = positiveInt(process.env.TMDB_MAX_PERSON_IMAGE_LOOKUPS, 320);
+const maxPersonImageLookups = positiveInt(process.env.TMDB_MAX_PERSON_IMAGE_LOOKUPS, 1200);
 const maxFeaturedPeople = positiveInt(process.env.TMDB_MAX_FEATURED_PEOPLE, 18);
 const maxFeaturedPersonDetails = positiveInt(process.env.TMDB_MAX_FEATURED_PERSON_DETAILS, 48);
 const featuredPersonRefreshDays = positiveInt(process.env.TMDB_FEATURED_PERSON_REFRESH_DAYS, 90);
@@ -69,14 +69,14 @@ if (!catalog || !Array.isArray(catalog.items)) {
 }
 
 const cache = await readJson(cachePath, {
-  version: 9,
+  version: 10,
   updatedAt: null,
   items: {},
 });
-if (Number(cache.version || 0) !== 9 || !cache.items || typeof cache.items !== 'object' || Array.isArray(cache.items)) {
+if (Number(cache.version || 0) !== 10 || !cache.items || typeof cache.items !== 'object' || Array.isArray(cache.items)) {
   cache.items = {};
 }
-cache.version = 9;
+cache.version = 10;
 if (!cache.people || typeof cache.people !== 'object' || Array.isArray(cache.people)) cache.people = {};
 
 const report = {
@@ -152,7 +152,7 @@ for (const item of catalog.items) {
         if (peopleChanged) item.people = merged;
         item.tmdb = nextTmdb;
         item.tmdbEnrichedAt = cached.fetchedAt;
-        item.tmdbValidationVersion = Math.max(3, Number(cached.metadata?.validationVersion || 0));
+        item.tmdbValidationVersion = Math.max(4, Number(cached.metadata?.validationVersion || 0));
         catalogChanged = true;
         report.enrichedTitles += 1;
         if (peopleChanged) report.enrichedPeople += merged.filter((person) => person?.image).length;
@@ -165,7 +165,7 @@ for (const item of catalog.items) {
   if (
     hasCompleteTmdbPeople(item.people) &&
     hasCompleteTmdbMetadata(item) &&
-    Number(item.tmdbValidationVersion || 0) >= 3
+    Number(item.tmdbValidationVersion || 0) >= 4
   ) {
     report.skippedAlreadyComplete += 1;
     continue;
@@ -213,7 +213,7 @@ for (const item of catalog.items) {
     if (isIranianCatalogItem(item)) report.iranianMatched += 1;
     if (match.source.startsWith('title-search')) report.titleSearchMatched += 1;
 
-    const tmdbPeople = buildTmdbPeople(details, match.mediaType);
+    const tmdbPeople = await enrichLocalPeopleImages(buildTmdbPeople(details, match.mediaType));
     const metadata = buildTmdbMetadata(details, match.mediaType, item);
     if (match.mediaType === 'tv') {
       const scheduleMetadata = await resolveTvMazeSchedule(item, details);
@@ -242,7 +242,7 @@ for (const item of catalog.items) {
       if (peopleChanged) item.people = merged;
       item.tmdb = nextTmdb;
       item.tmdbEnrichedAt = cache.items[cacheKey].fetchedAt;
-      item.tmdbValidationVersion = Math.max(3, Number(metadata.validationVersion || 0));
+      item.tmdbValidationVersion = Math.max(4, Number(metadata.validationVersion || 0));
       catalogChanged = true;
       report.enrichedTitles += 1;
       if (peopleChanged) report.enrichedPeople += merged.filter((person) => person?.image).length;
@@ -356,12 +356,14 @@ async function fetchTitleDetails(mediaType, id) {
   if (mediaType === 'tv') {
     return tmdbGet(`/tv/${id}`, {
       language: 'en-US',
-      append_to_response: 'aggregate_credits,keywords',
+      append_to_response: 'aggregate_credits,keywords,images',
+      include_image_language: 'null,en,fa',
     });
   }
   return tmdbGet(`/movie/${id}`, {
     language: 'en-US',
-    append_to_response: 'credits,keywords',
+    append_to_response: 'credits,keywords,images',
+    include_image_language: 'null,en,fa',
   });
 }
 
@@ -387,8 +389,14 @@ function buildTmdbMetadata(details, mediaType, item) {
       .filter(([code]) => Boolean(code)),
   );
   const originalLanguage = cleanText(details?.original_language || item?.originalLanguage).toLowerCase();
-  const posterFallback = tmdbImageUrl(details?.poster_path, 'w500');
-  const backdropFallback = tmdbImageUrl(details?.backdrop_path, 'w780');
+  const posterPath = cleanText(details?.poster_path) || bestTmdbImagePath(details?.images?.posters, 'poster');
+  const backdropPath = cleanText(details?.backdrop_path) || bestTmdbImagePath(details?.images?.backdrops, 'backdrop');
+  const posterFallback =
+    tmdbImageUrl(posterPath, 'w342') ||
+    tmdbImageUrl(backdropPath, 'w500');
+  const backdropFallback =
+    tmdbImageUrl(backdropPath, 'w780') ||
+    tmdbImageUrl(posterPath, 'w500');
   const tmdbGenres = Array.isArray(details?.genres) ? details.genres : [];
   const isAnimation = Boolean(
     tmdbGenres.some((genre) => Number(genre?.id) === 16 || /animation|anime/i.test(cleanText(genre?.name))),
@@ -451,7 +459,7 @@ function buildTmdbMetadata(details, mediaType, item) {
     isAnimation,
     isAnime,
     isDocumentary,
-    validationVersion: 3,
+    validationVersion: 4,
     ...(mediaType === 'tv' ? {
       isAiring,
       airDays: scheduleDay ? [scheduleDay] : [],
@@ -658,8 +666,15 @@ function applyTmdbMetadata(item, metadataValue) {
 function hasCompleteTmdbMetadata(item) {
   const codes = Array.isArray(item?.countryCodes) ? item.countryCodes.filter(Boolean) : [];
   const originalLanguage = cleanText(item?.originalLanguage);
+  const hasArtwork = [
+    item?.poster,
+    item?.posterFallback,
+    item?.backdropFallback,
+    item?.backdrop,
+  ].some(isUsableArtworkUrl);
   if (!codes.length && !originalLanguage) return false;
-  if (Number(item?.tmdbValidationVersion || 0) < 3) return false;
+  if (!hasArtwork) return false;
+  if (Number(item?.tmdbValidationVersion || 0) < 4) return false;
   if (item?.isAnimation && typeof item?.isAnime !== 'boolean') return false;
   if (typeof item?.isDocumentary !== 'boolean') return false;
   if (item?.type === 'series' && typeof item?.isAiring !== 'boolean') return false;
@@ -998,7 +1013,7 @@ function buildWeeklySchedule(itemsValue, existingValue) {
       nameFa: cleanText(item.nameFa || item.name),
       poster: cleanText(item.posterFallback || item.poster),
       day,
-      time: cleanText(item.airTime) || 'زمان انتشار اعلام نشده',
+      ...(cleanText(item.airTime) ? { time: cleanText(item.airTime) } : {}),
       ...(positiveInt(item.nextEpisodeSeasonNumber, 0) > 0
         ? { season: positiveInt(item.nextEpisodeSeasonNumber, 0) }
         : {}),
@@ -1251,6 +1266,29 @@ function chooseSearchResult(resultsValue, queryTitle, year, mediaType, item) {
   return best && best.score >= threshold ? best : null;
 }
 
+function bestTmdbImagePath(entriesValue, kind = 'poster') {
+  const entries = Array.isArray(entriesValue) ? entriesValue : [];
+  const ranked = entries
+    .filter((entry) => cleanText(entry?.file_path))
+    .map((entry) => {
+      const width = Number(entry?.width || 0);
+      const height = Number(entry?.height || 0);
+      const aspectRatio = Number(entry?.aspect_ratio || (width > 0 && height > 0 ? width / height : 0));
+      const preferredRatio = kind === 'poster' ? 2 / 3 : 16 / 9;
+      const ratioPenalty = aspectRatio > 0 ? Math.abs(aspectRatio - preferredRatio) * 20 : 8;
+      const vote = Math.max(0, Number(entry?.vote_average || 0)) * 3 + Math.min(12, Number(entry?.vote_count || 0) / 4);
+      const resolution = Math.min(10, Math.max(width, height) / 300);
+      const language = cleanText(entry?.iso_639_1).toLowerCase();
+      const languageBonus = !language || language === 'en' || language === 'fa' ? 3 : 0;
+      return {
+        path: cleanText(entry.file_path),
+        score: vote + resolution + languageBonus - ratioPenalty,
+      };
+    })
+    .sort((a, b) => b.score - a.score);
+  return ranked[0]?.path || '';
+}
+
 function tmdbImageUrl(filePath, size = 'w500') {
   const clean = cleanText(filePath);
   if (!clean) return '';
@@ -1320,28 +1358,50 @@ async function enrichLocalPeopleImages(peopleValue) {
       output.push(person);
       continue;
     }
-    const queries = uniqueTexts([person.name, person.nameFa]);
+
     let match = null;
-    for (const query of queries) {
-      if (!query || personImageLookupsUsed >= maxPersonImageLookups) break;
-      personImageLookupsUsed += 1;
-      report.personImageLookups += 1;
-      const search = await tmdbGet('/search/person', {
-        query,
-        include_adult: 'false',
-        language: 'en-US',
-        page: '1',
-      });
-      match = choosePersonSearchResult(search?.results, person);
-      if (match) break;
+    const knownTmdbId = positiveInt(person.tmdbId, 0) || tmdbIdFromPersonId(person.id);
+    if (knownTmdbId && personImageLookupsUsed < maxPersonImageLookups) {
+      try {
+        personImageLookupsUsed += 1;
+        report.personImageLookups += 1;
+        const details = await tmdbGet(`/person/${knownTmdbId}`, { language: 'en-US' });
+        if (cleanText(details?.profile_path)) {
+          match = {
+            id: knownTmdbId,
+            profile_path: details.profile_path,
+            name: details.name || person.name,
+          };
+        }
+      } catch {
+        // If the stable TMDB id no longer resolves, fall back to a strong name match.
+      }
     }
+
     if (!match) {
+      const queries = uniqueTexts([person.name, person.nameFa]);
+      for (const query of queries) {
+        if (!query || personImageLookupsUsed >= maxPersonImageLookups) break;
+        personImageLookupsUsed += 1;
+        report.personImageLookups += 1;
+        const search = await tmdbGet('/search/person', {
+          query,
+          include_adult: 'false',
+          language: 'en-US',
+          page: '1',
+        });
+        match = choosePersonSearchResult(search?.results, person);
+        if (match) break;
+      }
+    }
+
+    if (!match || !cleanText(match.profile_path)) {
       output.push(person);
       continue;
     }
     output.push(compactPerson({
       ...person,
-      tmdbId: positiveInt(match.id, 0),
+      tmdbId: positiveInt(match.id, 0) || knownTmdbId,
       image: tmdbProfileUrl(match.profile_path),
       source: person.source || 'upera',
     }));
@@ -1662,7 +1722,7 @@ function compactTmdbRef(value) {
 
 function itemSignature(item) {
   return [
-    'tmdb-v6-trusted-country-artwork-schedule-people',
+    'tmdb-v7-artwork-portraits-schedule',
     cleanText(item.id || item.slug),
     item.type === 'series' ? 'series' : 'movie',
     normalizeImdbId(item.imdb || item.imdbId || item.imdb_id),
@@ -1685,7 +1745,7 @@ function tmdbProfileUrl(profilePath) {
   const clean = cleanText(profilePath);
   if (!clean) return '';
   if (/^https?:\/\//i.test(clean)) return clean.replace(/^http:\/\//i, 'https://');
-  return `https://image.tmdb.org/t/p/w342/${clean.replace(/^\/+/, '')}`;
+  return `https://image.tmdb.org/t/p/w185/${clean.replace(/^\/+/, '')}`;
 }
 
 function normalizeTitle(value) {
