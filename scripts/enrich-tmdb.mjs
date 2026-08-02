@@ -16,8 +16,8 @@ const maxDirectors = positiveInt(process.env.TMDB_MAX_DIRECTORS, 4);
 const tvMazeBase = String(process.env.TVMAZE_API_BASE || 'https://api.tvmaze.com').replace(/\/+$/, '');
 const maxTvMazePerRun = positiveInt(process.env.TVMAZE_MAX_TITLES_PER_RUN, 260);
 const maxPersonImageLookups = positiveInt(process.env.TMDB_MAX_PERSON_IMAGE_LOOKUPS, 1200);
-const maxFeaturedPeople = positiveInt(process.env.TMDB_MAX_FEATURED_PEOPLE, 18);
-const maxFeaturedPersonDetails = positiveInt(process.env.TMDB_MAX_FEATURED_PERSON_DETAILS, 48);
+const maxFeaturedPeople = positiveInt(process.env.TMDB_MAX_FEATURED_PEOPLE, 32);
+const maxFeaturedPersonDetails = positiveInt(process.env.TMDB_MAX_FEATURED_PERSON_DETAILS, 96);
 const featuredPersonRefreshDays = positiveInt(process.env.TMDB_FEATURED_PERSON_REFRESH_DAYS, 90);
 
 const DAY_IDS_BY_JS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -44,18 +44,42 @@ const FEATURED_IRANIAN_NAME_HINTS = new Set([
   'leila hatami', 'taraneh alidoosti', 'hedieh tehrani', 'golshifteh farahani',
   'jamshid hashempour', 'reza attaran', 'mehdi hashemi', 'fatemeh motamed arya',
   'mahnaz afshar', 'baran kosari', 'sahar dolatshahi', 'homa roosta',
+  'ezzatolah entezami', 'ali nasirian', 'khosrow shakibai', 'amin hayaei',
+  'bahram radan', 'hamed behdad', 'mostafa zamani', 'saber abar',
+  'mohsen tanabandeh', 'javad ezzati', 'naser malek motiee', 'farimah farjami',
+  'niki karimi', 'elnaz shakerdoost', 'tannaz tabatabaei', 'merila zarei',
+  'parinaz izadyar', 'sara bahrami', 'vishka asayesh', 'roya nonahali',
+  'mahtab keramati', 'fatemeh motamed-arya', 'hutan shakiba', 'mehran modiri',
   'پرویز پرستویی', 'شهاب حسینی', 'نوید محمدزاده', 'پیمان معادی',
   'لیلا حاتمی', 'ترانه علیدوستی', 'هدیه تهرانی', 'گلشیفته فراهانی',
   'جمشید هاشم پور', 'رضا عطاران', 'فاطمه معتمد آریا', 'سحر دولتشاهی',
+  'عزت الله انتظامی', 'علی نصیریان', 'خسرو شکیبایی', 'امین حیایی',
+  'بهرام رادان', 'حامد بهداد', 'مصطفی زمانی', 'صابر ابر',
+  'محسن تنابنده', 'جواد عزتی', 'نیکی کریمی', 'الناز شاکردوست',
+  'طناز طباطبایی', 'مریلا زارعی', 'پریناز ایزدیار', 'سارا بهرامی',
+  'ویشکا آسایش', 'رویا نونهالی', 'مهتاب کرامتی', 'هوتن شکیبا', 'مهران مدیری',
 ].map(normalizeName));
 
 const FEATURED_GLOBAL_NAME_HINTS = new Set([
   'leonardo dicaprio', 'brad pitt', 'tom cruise', 'keanu reeves', 'robert de niro',
   'morgan freeman', 'denzel washington', 'christian bale', 'cillian murphy',
+  'al pacino', 'jack nicholson', 'tom hanks', 'anthony hopkins', 'gary oldman',
+  'matt damon', 'ben affleck', 'johnny depp', 'will smith', 'hugh jackman',
+  'robert downey jr', 'chris evans', 'chris hemsworth', 'joaquin phoenix',
+  'jason statham', 'mark ruffalo', 'edward norton', 'javier bardem',
   'scarlett johansson', 'natalie portman', 'emma stone', 'margot robbie',
   'cate blanchett', 'anne hathaway', 'zendaya', 'ryan gosling', 'jake gyllenhaal',
+  'meryl streep', 'nicole kidman', 'julia roberts', 'charlize theron',
+  'sandra bullock', 'amy adams', 'emily blunt', 'jennifer lawrence',
+  'florence pugh', 'anya taylor joy', 'penelope cruz', 'tilda swinton',
   'song kang ho', 'lee byung hun', 'gong yoo', 'hyun bin', 'son ye jin',
+  'lee min ho', 'kim soo hyun', 'park seo joon', 'ji chang wook',
+  'choi min sik', 'ma dong seok', 'park bo young', 'kim tae ri',
+  'jun ji hyun', 'kim go eun',
   'shah rukh khan', 'aamir khan', 'amitabh bachchan', 'deepika padukone',
+  'salman khan', 'ranbir kapoor', 'ranveer singh', 'hrithik roshan',
+  'ajay devgn', 'akshay kumar', 'alia bhatt', 'priyanka chopra',
+  'kareena kapoor', 'tabu',
 ].map(normalizeName));
 
 
@@ -69,14 +93,14 @@ if (!catalog || !Array.isArray(catalog.items)) {
 }
 
 const cache = await readJson(cachePath, {
-  version: 10,
+  version: 11,
   updatedAt: null,
   items: {},
 });
-if (Number(cache.version || 0) !== 10 || !cache.items || typeof cache.items !== 'object' || Array.isArray(cache.items)) {
+if (Number(cache.version || 0) !== 11 || !cache.items || typeof cache.items !== 'object' || Array.isArray(cache.items)) {
   cache.items = {};
 }
-cache.version = 10;
+cache.version = 11;
 if (!cache.people || typeof cache.people !== 'object' || Array.isArray(cache.people)) cache.people = {};
 
 const report = {
@@ -152,7 +176,7 @@ for (const item of catalog.items) {
         if (peopleChanged) item.people = merged;
         item.tmdb = nextTmdb;
         item.tmdbEnrichedAt = cached.fetchedAt;
-        item.tmdbValidationVersion = Math.max(4, Number(cached.metadata?.validationVersion || 0));
+        item.tmdbValidationVersion = Math.max(5, Number(cached.metadata?.validationVersion || 0));
         catalogChanged = true;
         report.enrichedTitles += 1;
         if (peopleChanged) report.enrichedPeople += merged.filter((person) => person?.image).length;
@@ -165,7 +189,7 @@ for (const item of catalog.items) {
   if (
     hasCompleteTmdbPeople(item.people) &&
     hasCompleteTmdbMetadata(item) &&
-    Number(item.tmdbValidationVersion || 0) >= 4
+    Number(item.tmdbValidationVersion || 0) >= 5
   ) {
     report.skippedAlreadyComplete += 1;
     continue;
@@ -242,7 +266,7 @@ for (const item of catalog.items) {
       if (peopleChanged) item.people = merged;
       item.tmdb = nextTmdb;
       item.tmdbEnrichedAt = cache.items[cacheKey].fetchedAt;
-      item.tmdbValidationVersion = Math.max(4, Number(metadata.validationVersion || 0));
+      item.tmdbValidationVersion = Math.max(5, Number(metadata.validationVersion || 0));
       catalogChanged = true;
       report.enrichedTitles += 1;
       if (peopleChanged) report.enrichedPeople += merged.filter((person) => person?.image).length;
@@ -317,6 +341,7 @@ async function resolveTmdbTitle(item, options = {}) {
 
   const year = positiveInt(item.year, 0);
   const titleCandidates = uniqueTexts([
+    ...titleSearchAliases(item),
     item.name,
     item.originalName,
     item.original_name,
@@ -459,7 +484,7 @@ function buildTmdbMetadata(details, mediaType, item) {
     isAnimation,
     isAnime,
     isDocumentary,
-    validationVersion: 4,
+    validationVersion: 5,
     ...(mediaType === 'tv' ? {
       isAiring,
       airDays: scheduleDay ? [scheduleDay] : [],
@@ -666,15 +691,10 @@ function applyTmdbMetadata(item, metadataValue) {
 function hasCompleteTmdbMetadata(item) {
   const codes = Array.isArray(item?.countryCodes) ? item.countryCodes.filter(Boolean) : [];
   const originalLanguage = cleanText(item?.originalLanguage);
-  const hasArtwork = [
-    item?.poster,
-    item?.posterFallback,
-    item?.backdropFallback,
-    item?.backdrop,
-  ].some(isUsableArtworkUrl);
+  const hasPoster = [item?.poster, item?.posterFallback].some(isUsableArtworkUrl);
   if (!codes.length && !originalLanguage) return false;
-  if (!hasArtwork) return false;
-  if (Number(item?.tmdbValidationVersion || 0) < 4) return false;
+  if (!hasPoster) return false;
+  if (Number(item?.tmdbValidationVersion || 0) < 5) return false;
   if (item?.isAnimation && typeof item?.isAnime !== 'boolean') return false;
   if (typeof item?.isDocumentary !== 'boolean') return false;
   if (item?.type === 'series' && typeof item?.isAiring !== 'boolean') return false;
@@ -854,7 +874,7 @@ function sanitizeInvalidTmdbData(item) {
   }
 
   applyLocalClassification(item);
-  item.tmdbValidationVersion = 2;
+  item.tmdbValidationVersion = Math.min(Number(item.tmdbValidationVersion || 0), 4);
 
   const after = JSON.stringify({
     people: item.people,
@@ -1163,7 +1183,7 @@ function mergeTmdbPeople(existingValue, tmdbValue) {
       ...person,
       id: person.id || local?.id,
       tmdbId: person.tmdbId || local?.tmdbId,
-      nameFa: localFa || cleanText(local?.nameFa || person.nameFa || person.name),
+      nameFa: cleanText(person.name || local?.name || person.nameFa || local?.nameFa),
       name: cleanText(person.name || local?.name || person.nameFa || local?.nameFa),
       image: cleanText(person.image || local?.image),
       character: cleanText(local?.character || person.character),
@@ -1299,7 +1319,7 @@ function tmdbImageUrl(filePath, size = 'w500') {
 function isUsableArtworkUrl(value) {
   const url = cleanText(value);
   return /^https:\/\//i.test(url) &&
-    !/(?:example\.com|replace-with|\/default\.(?:jpg|png)|posters\/default)/i.test(url);
+    !/(?:example\.com|replace-with|placeholder|no[-_ ]?image|default[-_ ]?(?:poster|cover|image)?|\/default\.(?:jpg|png)|posters\/default)/i.test(url);
 }
 
 function mergeLocalPeopleImages(localValue, cachedValue) {
@@ -1551,7 +1571,7 @@ async function buildFeaturedPeople(itemsValue, peopleCacheValue) {
     if (!item || !item.id) continue;
     const iranianWork = item.ir === true || (Array.isArray(item.countryCodes) && item.countryCodes.includes('IR'));
     for (const person of Array.isArray(item.people) ? item.people : []) {
-      if (!person || person.role !== 'actor' || !isHttpUrl(person.image)) continue;
+      if (!person || person.role !== 'actor') continue;
       const tmdbId = positiveInt(person.tmdbId, 0) || tmdbIdFromPersonId(person.id);
       if (!tmdbId) continue;
       const key = String(tmdbId);
@@ -1722,7 +1742,7 @@ function compactTmdbRef(value) {
 
 function itemSignature(item) {
   return [
-    'tmdb-v7-artwork-portraits-schedule',
+    'tmdb-v8-poster-people-names',
     cleanText(item.id || item.slug),
     item.type === 'series' ? 'series' : 'movie',
     normalizeImdbId(item.imdb || item.imdbId || item.imdb_id),
@@ -1745,7 +1765,20 @@ function tmdbProfileUrl(profilePath) {
   const clean = cleanText(profilePath);
   if (!clean) return '';
   if (/^https?:\/\//i.test(clean)) return clean.replace(/^http:\/\//i, 'https://');
-  return `https://image.tmdb.org/t/p/w185/${clean.replace(/^\/+/, '')}`;
+  return `https://image.tmdb.org/t/p/w342/${clean.replace(/^\/+/, '')}`;
+}
+
+function titleSearchAliases(item) {
+  const text = normalizeTitle([
+    cleanText(item?.nameFa),
+    cleanText(item?.name),
+    cleanText(item?.titleFa),
+    cleanText(item?.title),
+  ].join(' '));
+  const aliases = [];
+  if (/(?:^|\s)(?:یاغی|باغی|baaghi)\s*4(?:\s|$)/i.test(text)) aliases.push('Baaghi 4');
+  if (/(?:^|\s)colony(?:\s|$)/i.test(text) || /(?:^|\s)کلونی(?:\s|$)/i.test(text)) aliases.push('Colony');
+  return aliases;
 }
 
 function normalizeTitle(value) {
