@@ -1,5 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 
 const API_BASE = 'https://seeko.film/api/v1';
 
@@ -7,6 +10,8 @@ const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
 const statePath = path.join(root, 'sync-state.json');
 const reportPath = path.join(root, 'sync-report.json');
+const mediaRoot = path.join(root, 'assets', 'media');
+const execFileAsync = promisify(execFile);
 
 const refId = String(process.env.UPERA_REF_ID || '').trim();
 const token = String(process.env.UPERA_TOKEN || '').trim();
@@ -17,8 +22,8 @@ const moviePagesPerRun = Math.min(
 );
 
 const seriesPagesPerRun = Math.min(
-  2,
-  positiveInt(process.env.SERIES_PAGES_PER_RUN, 1),
+  3,
+  positiveInt(process.env.SERIES_PAGES_PER_RUN, 2),
 );
 
 const newTitlesHours = positiveInt(
@@ -33,22 +38,32 @@ const affiliateRequestDelay = positiveInt(
 
 const maxAffiliateRequests = positiveInt(
   process.env.UPERA_MAX_REQUESTS_PER_RUN,
-  30,
+  55,
 );
 
 const episodesPerSeriesRun = positiveInt(
   process.env.UPERA_EPISODES_PER_SERIES,
-  8,
+  5,
 );
 
 const seriesTitlesPerRun = positiveInt(
   process.env.UPERA_SERIES_TITLES_PER_RUN,
-  1,
+  6,
 );
 
 const maxIncrementalCandidates = positiveInt(
   process.env.UPERA_INCREMENTAL_LIMIT,
   10,
+);
+
+const maxMirroredImagesPerRun = positiveInt(
+  process.env.APARATCHI_SYNC_MAX_MIRRORED_IMAGES,
+  120,
+);
+
+const imageMirrorConcurrency = Math.min(
+  8,
+  positiveInt(process.env.APARATCHI_IMAGE_MIRROR_CONCURRENCY, 6),
 );
 
 if (!refId) {
@@ -111,6 +126,7 @@ const stats = {
 
   seriesPagesProcessed: 0,
   seriesTitlesProcessed: 0,
+  iranianSeriesProcessed: 0,
   episodesProcessed: 0,
 
   moviesAddedOrUpdated: 0,
@@ -120,6 +136,8 @@ const stats = {
   rateLimitHits: 0,
   rateLimitWaitMs: 0,
   skippedByBudget: 0,
+  imagesMirrored: 0,
+  imageMirrorErrors: 0,
 
   removedWithoutFreeLinks: 0,
   errors: [],
@@ -202,6 +220,7 @@ stats.affiliateRequests = affiliateRequestsUsed;
 await writeJson(catalogPath, output);
 await writeJson(statePath, state);
 await writeJson(reportPath, stats);
+await stageMirroredAssets();
 
 console.log(
   `پایان همگام‌سازی؛ ${items.length} عنوان حفظ شد.`,
@@ -353,7 +372,7 @@ async function syncSeriesArchive() {
       break;
     }
 
-    const seriesList = payload.items;
+    const seriesList = [...payload.items].sort((a, b) => Number(inferIranian(b)) - Number(inferIranian(a)));
 
     if (!seriesList.length) {
       state.seriesPage = nextPage(
@@ -515,6 +534,7 @@ async function processMovie(candidate, source) {
     existing,
   );
 
+  await mirrorCatalogItemImages(normalized);
   replaceItem(normalized);
   stats.moviesAddedOrUpdated += 1;
 
@@ -757,8 +777,10 @@ async function processSeries(
     updateLabel,
   );
 
+  await mirrorCatalogItemImages(normalized);
   replaceItem(normalized);
   stats.seriesAddedOrUpdated += 1;
+  if (normalized.ir) stats.iranianSeriesProcessed += 1;
 
   return {
     retryLater: stoppedByBudget,
@@ -1148,9 +1170,7 @@ function normalizeMovie(
       'backdrops',
     ) || poster;
 
-  const countryMetadata = mergeCountryMetadata(movie, existing);
-
-  const ir = inferIranian(movie) || existing?.ir === true || countryMetadata.countryCodes.includes('IR');
+  const ir = inferIranian(movie);
 
   const genres = translateGenres(
     movie.new_genres ||
@@ -1178,9 +1198,6 @@ function normalizeMovie(
       'movie',
       ir,
       genres,
-      countryMetadata,
-      existing?.isAnime === true,
-      existing?.isAnimation === true,
     );
 
   return {
@@ -1207,11 +1224,6 @@ function normalizeMovie(
     ...(movie.imdb
       ? { imdb: String(movie.imdb) }
       : {}),
-
-    ...(countryMetadata.countryCodes.length ? { countryCodes: countryMetadata.countryCodes } : {}),
-    ...(countryMetadata.countryLabels.length ? { countryLabels: countryMetadata.countryLabels } : {}),
-    ...(countryMetadata.countryNames.length ? { countryNames: countryMetadata.countryNames } : {}),
-    ...(countryMetadata.originalLanguage ? { originalLanguage: countryMetadata.originalLanguage } : {}),
 
     poster,
     backdrop,
@@ -1264,9 +1276,6 @@ function normalizeMovie(
     isAnimation:
       classification.isAnimation,
 
-    isAnime:
-      classification.isAnime,
-
     isTalkShow:
       classification.isTalkShow,
 
@@ -1304,9 +1313,7 @@ function normalizeSeries(
       'backdrops',
     ) || poster;
 
-  const countryMetadata = mergeCountryMetadata(series, existing);
-
-  const ir = inferIranian(series) || existing?.ir === true || countryMetadata.countryCodes.includes('IR');
+  const ir = inferIranian(series);
 
   const genres = translateGenres(
     series.new_genres ||
@@ -1338,9 +1345,6 @@ function normalizeSeries(
       'series',
       ir,
       genres,
-      countryMetadata,
-      existing?.isAnime === true,
-      existing?.isAnimation === true,
     );
 
   const seasonNumbers = new Set(
@@ -1375,11 +1379,6 @@ function normalizeSeries(
     ...(series.imdb
       ? { imdb: String(series.imdb) }
       : {}),
-
-    ...(countryMetadata.countryCodes.length ? { countryCodes: countryMetadata.countryCodes } : {}),
-    ...(countryMetadata.countryLabels.length ? { countryLabels: countryMetadata.countryLabels } : {}),
-    ...(countryMetadata.countryNames.length ? { countryNames: countryMetadata.countryNames } : {}),
-    ...(countryMetadata.originalLanguage ? { originalLanguage: countryMetadata.originalLanguage } : {}),
 
     poster,
     backdrop,
@@ -1449,9 +1448,6 @@ function normalizeSeries(
     isAnimation:
       classification.isAnimation,
 
-    isAnime:
-      classification.isAnime,
-
     isTalkShow:
       classification.isTalkShow,
 
@@ -1471,9 +1467,6 @@ function classifyContent(
   type,
   ir,
   genres,
-  countryMetadata = {},
-  existingIsAnime = false,
-  existingIsAnimation = false,
 ) {
   const normalizedGenres = genres.map(
     (genre) =>
@@ -1481,22 +1474,11 @@ function classifyContent(
   );
 
   const isAnimation =
-    existingIsAnimation || existingIsAnime ||
     normalizedGenres.some(
       (genre) =>
         genre.includes('انیمیشن') ||
-        genre.includes('animation') ||
-        genre.includes('anime'),
+        genre.includes('animation'),
     );
-
-  const countryCodes = Array.isArray(countryMetadata.countryCodes)
-    ? countryMetadata.countryCodes.map((code) => cleanText(code).toUpperCase()).filter(Boolean)
-    : [];
-  const originalLanguage = cleanText(countryMetadata.originalLanguage).toLowerCase();
-  const isAnime = Boolean(
-    isAnimation &&
-    (existingIsAnime || countryCodes.includes('JP') || originalLanguage === 'ja'),
-  );
 
   const isTalkShow =
     normalizedGenres.some(
@@ -1540,28 +1522,23 @@ function classifyContent(
     }
   }
 
-  if (type === 'movie') {
-    if (countryCodes.includes('KR')) {
-      categoryKeys.push('korean-movies');
-      categoryLabels.push('فیلم کره‌ای');
-    }
-    if (countryCodes.includes('IN')) {
-      categoryKeys.push('indian-movies');
-      categoryLabels.push('فیلم هندی');
-    }
-    if (countryCodes.includes('JP')) {
-      categoryKeys.push('japanese-movies');
-      categoryLabels.push('فیلم ژاپنی');
-    }
-  }
-
   if (isAnimation) {
-    if (isAnime) {
-      categoryKeys.push(type === 'movie' ? 'anime-movies' : 'anime-series');
-      categoryLabels.push(type === 'movie' ? 'انیمه سینمایی' : 'انیمه سریالی');
+    if (type === 'movie') {
+      categoryKeys.push(
+        'animation-movies',
+      );
+
+      categoryLabels.push(
+        'انیمیشن سینمایی',
+      );
     } else {
-      categoryKeys.push(type === 'movie' ? 'animation-movies' : 'animation-series');
-      categoryLabels.push(type === 'movie' ? 'انیمیشن سینمایی' : 'انیمیشن سریالی');
+      categoryKeys.push(
+        'animation-series',
+      );
+
+      categoryLabels.push(
+        'انیمیشن سریالی',
+      );
     }
   }
 
@@ -1577,10 +1554,11 @@ function classifyContent(
 
   let contentKind = type;
 
-  if (isAnime) {
-    contentKind = type === 'movie' ? 'anime-movie' : 'anime-series';
-  } else if (isAnimation) {
-    contentKind = type === 'movie' ? 'animation-movie' : 'animation-series';
+  if (isAnimation) {
+    contentKind =
+      type === 'movie'
+        ? 'animation-movie'
+        : 'animation-series';
   } else if (isTalkShow) {
     contentKind = 'talk-show';
   } else if (isDocumentary) {
@@ -1598,7 +1576,6 @@ function classifyContent(
 
     contentKind,
     isAnimation,
-    isAnime,
     isTalkShow,
     isDocumentary,
   };
@@ -1981,99 +1958,6 @@ function translateGenres(value) {
         : ['سایر'],
     ),
   ];
-}
-
-const COUNTRY_LABELS_FA = {
-  IR: 'ایران',
-  KR: 'کره جنوبی',
-  IN: 'هند',
-  JP: 'ژاپن',
-  TR: 'ترکیه',
-  US: 'آمریکا',
-  GB: 'بریتانیا',
-  CN: 'چین',
-  HK: 'هنگ‌کنگ',
-  FR: 'فرانسه',
-  DE: 'آلمان',
-  ES: 'اسپانیا',
-  IT: 'ایتالیا',
-  CA: 'کانادا',
-  AU: 'استرالیا',
-  RU: 'روسیه',
-};
-
-const COUNTRY_NAME_TO_CODE = [
-  [/ایران|\biran\b/i, 'IR'],
-  [/کره(?:\s*جنوبی)?|south\s*korea|korea,?\s*republic|republic\s*of\s*korea/i, 'KR'],
-  [/هند|\bindia\b/i, 'IN'],
-  [/ژاپن|\bjapan\b/i, 'JP'],
-  [/ترکیه|türkiye|\bturkey\b/i, 'TR'],
-  [/آمریکا|united\s*states|\busa\b/i, 'US'],
-  [/بریتانیا|united\s*kingdom|\buk\b/i, 'GB'],
-  [/چین|\bchina\b/i, 'CN'],
-  [/هنگ.?کنگ|hong\s*kong/i, 'HK'],
-];
-
-function countryCodeFromValue(value) {
-  if (value && typeof value === 'object') {
-    const direct = cleanText(value.iso_3166_1 || value.code || value.country_code).toUpperCase();
-    if (/^[A-Z]{2}$/.test(direct)) return direct;
-    value = value.name_fa || value.name || value.title || '';
-  }
-  const text = cleanText(value);
-  const direct = text.toUpperCase();
-  if (/^[A-Z]{2}$/.test(direct)) return direct;
-  return COUNTRY_NAME_TO_CODE.find(([pattern]) => pattern.test(text))?.[1] || '';
-}
-
-function countryValues(value) {
-  if (Array.isArray(value)) return value;
-  if (value && typeof value === 'object') return [value];
-  return String(value || '').split(/[,،|/]+/).map(cleanText).filter(Boolean);
-}
-
-function mergeCountryMetadata(source, existing) {
-  const rawCountries = [
-    source?.countryCodes,
-    source?.country_codes,
-    source?.origin_country,
-    source?.production_countries,
-    source?.countries,
-    source?.country,
-    source?.country_fa,
-    existing?.countryCodes,
-  ].flatMap(countryValues);
-
-  const countryCodes = [...new Set(rawCountries.map(countryCodeFromValue).filter(Boolean))];
-  const sourceNames = [
-    source?.countryNames,
-    source?.country_names,
-    source?.countries,
-    source?.country,
-    existing?.countryNames,
-  ].flatMap(countryValues).map((value) => cleanText(value?.name || value?.title || value)).filter((value) => value && !/^[A-Z]{2}$/.test(value));
-  const sourceLabels = [
-    source?.countryLabels,
-    source?.country_labels,
-    source?.country_fa,
-    existing?.countryLabels,
-  ].flatMap(countryValues).map((value) => cleanText(value?.name_fa || value?.nameFa || value)).filter(Boolean);
-
-  const originalLanguage = cleanText(
-    source?.originalLanguage ||
-    source?.original_language ||
-    source?.language_code ||
-    source?.language ||
-    existing?.originalLanguage ||
-    '',
-  ).toLowerCase().slice(0, 8);
-
-  return {
-    countryCodes,
-    countryLabels: [...new Set([...sourceLabels, ...countryCodes.map((code) => COUNTRY_LABELS_FA[code]).filter(Boolean)])],
-    countryNames: [...new Set(sourceNames)],
-    originalLanguage,
-  };
 }
 
 function inferIranian(item) {
@@ -2596,6 +2480,102 @@ function uniqueByUrl(links) {
     seen.add(link.link);
     return true;
   });
+}
+
+function mirroredExtension(contentType, sourceUrl) {
+  const type = cleanText(contentType).toLowerCase();
+  if (type.includes('png')) return '.png';
+  if (type.includes('webp')) return '.webp';
+  if (type.includes('avif')) return '.avif';
+  if (type.includes('jpeg') || type.includes('jpg')) return '.jpg';
+  const match = cleanText(sourceUrl).match(/\.(jpe?g|png|webp|avif)(?:$|[?#])/i);
+  return match ? `.${match[1].toLowerCase().replace('jpeg', 'jpg')}` : '.jpg';
+}
+
+function relativeMediaPath(kind, fileName) {
+  return path.posix.join('assets', 'media', kind, fileName);
+}
+
+async function existingMirroredPath(kind, hash) {
+  for (const extension of ['.jpg', '.png', '.webp', '.avif']) {
+    const relative = relativeMediaPath(kind, `${hash}${extension}`);
+    try {
+      await fs.access(path.join(root, ...relative.split('/')));
+      return relative;
+    } catch {
+      // Continue checking extensions.
+    }
+  }
+  return '';
+}
+
+async function mirrorImageUrl(sourceUrl, kind) {
+  const raw = cleanText(sourceUrl);
+  if (!raw || /^(?:\.\/)?assets\/media\//i.test(raw)) return raw;
+  if (!/^https?:\/\//i.test(raw) || /default\.jpg(?:$|[?#])/i.test(raw)) return raw;
+  const normalizedUrl = raw.replace(/^http:\/\//i, 'https://');
+  const hash = createHash('sha256').update(normalizedUrl).digest('hex').slice(0, 28);
+  const existing = await existingMirroredPath(kind, hash);
+  if (existing) return existing;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+  try {
+    const response = await fetch(normalizedUrl, {
+      signal: controller.signal,
+      headers: {
+        Accept: 'image/avif,image/webp,image/png,image/jpeg,image/*;q=0.8',
+        'User-Agent': 'Aparatchi-Image-Mirror/1.0',
+      },
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const contentType = cleanText(response.headers.get('content-type'));
+    if (contentType && !contentType.toLowerCase().startsWith('image/')) {
+      throw new Error(`Unexpected content type ${contentType}`);
+    }
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (buffer.length < 512 || buffer.length > 10 * 1024 * 1024) {
+      throw new Error(`Invalid image size ${buffer.length}`);
+    }
+    const extension = mirroredExtension(contentType, normalizedUrl);
+    const relative = relativeMediaPath(kind, `${hash}${extension}`);
+    const absolute = path.join(root, ...relative.split('/'));
+    await fs.mkdir(path.dirname(absolute), { recursive: true });
+    await fs.writeFile(absolute, buffer);
+    stats.imagesMirrored += 1;
+    return relative;
+  } catch (error) {
+    stats.imageMirrorErrors += 1;
+    rememberError(`image-${kind}`, error);
+    return normalizedUrl;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+let mirroredImagesUsed = 0;
+async function mirrorCatalogItemImages(item) {
+  for (const [field, kind] of [
+    ['poster', 'posters'],
+    ['posterFallback', 'posters'],
+    ['backdrop', 'backdrops'],
+    ['backdropFallback', 'backdrops'],
+  ]) {
+    if (mirroredImagesUsed >= maxMirroredImagesPerRun) return;
+    const value = cleanText(item?.[field]);
+    if (!value || /^(?:\.\/)?assets\/media\//i.test(value)) continue;
+    const next = await mirrorImageUrl(value, kind);
+    mirroredImagesUsed += 1;
+    if (next) item[field] = next;
+  }
+}
+
+async function stageMirroredAssets() {
+  try {
+    await execFileAsync('git', ['add', '-f', '--', 'assets/media']);
+  } catch {
+    // Local syntax tests can run outside a Git repository.
+  }
 }
 
 function imageUrl(file, folder) {

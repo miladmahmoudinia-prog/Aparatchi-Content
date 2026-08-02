@@ -1,10 +1,15 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
 const cachePath = path.join(root, 'tmdb-cache.json');
 const reportPath = path.join(root, 'tmdb-enrichment-report.json');
+const mediaRoot = path.join(root, 'assets', 'media');
+const execFileAsync = promisify(execFile);
 
 const token = String(process.env.TMDB_READ_ACCESS_TOKEN || '').trim();
 const apiBase = String(process.env.TMDB_API_BASE || 'https://api.themoviedb.org/3').replace(/\/+$/, '');
@@ -19,6 +24,8 @@ const maxPersonImageLookups = positiveInt(process.env.TMDB_MAX_PERSON_IMAGE_LOOK
 const maxFeaturedPeople = positiveInt(process.env.TMDB_MAX_FEATURED_PEOPLE, 32);
 const maxFeaturedPersonDetails = positiveInt(process.env.TMDB_MAX_FEATURED_PERSON_DETAILS, 96);
 const featuredPersonRefreshDays = positiveInt(process.env.TMDB_FEATURED_PERSON_REFRESH_DAYS, 90);
+const maxMirroredImagesPerRun = positiveInt(process.env.APARATCHI_MAX_MIRRORED_IMAGES, 450);
+const imageMirrorConcurrency = Math.min(10, positiveInt(process.env.APARATCHI_IMAGE_MIRROR_CONCURRENCY, 7));
 
 const DAY_IDS_BY_JS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const DAY_SORT_ORDER = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
@@ -120,6 +127,8 @@ const report = {
   personImageLookups: 0,
   featuredPeople: 0,
   featuredPersonApiCalls: 0,
+  imagesMirrored: 0,
+  imageMirrorErrors: 0,
   skippedNoMatch: 0,
   skippedLimit: 0,
   errors: [],
@@ -296,6 +305,9 @@ if (JSON.stringify(Array.isArray(catalog.featuredPeople) ? catalog.featuredPeopl
   catalogChanged = true;
 }
 
+const mirroredImagesChanged = await mirrorCatalogImages(catalog);
+if (mirroredImagesChanged) catalogChanged = true;
+
 if (catalogChanged) {
   catalog.updatedAt = new Date().toISOString();
   catalog.tmdbEnrichedAt = catalog.updatedAt;
@@ -309,6 +321,7 @@ report.apiTitlesUsed = apiTitlesUsed;
 await writeJson(cachePath, cache);
 await writeJson(reportPath, report);
 if (catalogChanged) await writeJson(catalogPath, catalog);
+await stageMirroredAssets();
 
 console.log(`TMDB: ${report.enrichedTitles} عنوان، ${report.enrichedPeople} تصویر و ${report.classificationUpdated} دسته‌بندی کشور/انیمه به‌روزرسانی شد.`);
 console.log(`TMDB: ${report.cacheApplied} مورد از کش، ${report.apiProcessed} عنوان از API، ${report.personImageLookups} جست‌وجوی تصویر و ${report.tvMazeProcessed} برنامه TVMaze.`);
@@ -1826,6 +1839,149 @@ function nonNegativeInt(value, fallback = 0) {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function mirroredExtension(contentType, sourceUrl) {
+  const type = cleanText(contentType).toLowerCase();
+  if (type.includes('png')) return '.png';
+  if (type.includes('webp')) return '.webp';
+  if (type.includes('avif')) return '.avif';
+  if (type.includes('jpeg') || type.includes('jpg')) return '.jpg';
+  const match = cleanText(sourceUrl).match(/\.(jpe?g|png|webp|avif)(?:$|[?#])/i);
+  return match ? `.${match[1].toLowerCase().replace('jpeg', 'jpg')}` : '.jpg';
+}
+
+function relativeMediaPath(kind, fileName) {
+  return path.posix.join('assets', 'media', kind, fileName);
+}
+
+async function existingMirroredPath(kind, hash) {
+  for (const extension of ['.jpg', '.png', '.webp', '.avif']) {
+    const relative = relativeMediaPath(kind, `${hash}${extension}`);
+    try {
+      await fs.access(path.join(root, ...relative.split('/')));
+      return relative;
+    } catch {
+      // Continue checking extensions.
+    }
+  }
+  return '';
+}
+
+async function mirrorImageUrl(sourceUrl, kind) {
+  const raw = cleanText(sourceUrl);
+  if (!raw || /^(?:\.\/)?assets\/media\//i.test(raw)) return raw;
+  if (!/^https?:\/\//i.test(raw) || /default\.jpg(?:$|[?#])/i.test(raw)) return raw;
+
+  const normalizedUrl = raw.replace(/^http:\/\//i, 'https://');
+  const hash = createHash('sha256').update(normalizedUrl).digest('hex').slice(0, 28);
+  const existing = await existingMirroredPath(kind, hash);
+  if (existing) return existing;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 14000);
+  try {
+    const response = await fetch(normalizedUrl, {
+      signal: controller.signal,
+      headers: {
+        Accept: 'image/avif,image/webp,image/png,image/jpeg,image/*;q=0.8',
+        'User-Agent': 'Aparatchi-Image-Mirror/1.0',
+      },
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const contentType = cleanText(response.headers.get('content-type'));
+    if (contentType && !contentType.toLowerCase().startsWith('image/')) {
+      throw new Error(`Unexpected content type ${contentType}`);
+    }
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (buffer.length < 512 || buffer.length > 10 * 1024 * 1024) {
+      throw new Error(`Invalid image size ${buffer.length}`);
+    }
+    const extension = mirroredExtension(contentType, normalizedUrl);
+    const relative = relativeMediaPath(kind, `${hash}${extension}`);
+    const absolute = path.join(root, ...relative.split('/'));
+    await fs.mkdir(path.dirname(absolute), { recursive: true });
+    await fs.writeFile(absolute, buffer);
+    report.imagesMirrored += 1;
+    return relative;
+  } catch (error) {
+    report.imageMirrorErrors += 1;
+    if (report.errors.length < 100) {
+      report.errors.push({
+        id: `image:${kind}`,
+        title: normalizedUrl.slice(0, 180),
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+    return normalizedUrl;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function mapLimitValues(values, limit, mapper) {
+  const result = new Array(values.length);
+  let nextIndex = 0;
+  const workers = Array.from({ length: Math.min(limit, values.length) }, async () => {
+    while (true) {
+      const index = nextIndex;
+      nextIndex += 1;
+      if (index >= values.length) return;
+      result[index] = await mapper(values[index], index);
+    }
+  });
+  await Promise.all(workers);
+  return result;
+}
+
+async function mirrorCatalogImages(targetCatalog) {
+  const jobs = [];
+  const pushJob = (owner, field, kind) => {
+    const value = cleanText(owner?.[field]);
+    if (!value || /^(?:\.\/)?assets\/media\//i.test(value)) return;
+    jobs.push({ owner, field, kind, value });
+  };
+
+  for (const person of Array.isArray(targetCatalog.featuredPeople) ? targetCatalog.featuredPeople : []) {
+    pushJob(person, 'image', 'people');
+  }
+  for (const entry of Array.isArray(targetCatalog.weeklySchedule) ? targetCatalog.weeklySchedule : []) {
+    pushJob(entry, 'poster', 'posters');
+  }
+  for (const entry of Array.isArray(targetCatalog.iranianSchedule) ? targetCatalog.iranianSchedule : []) {
+    pushJob(entry, 'poster', 'posters');
+  }
+
+  const sortedItems = [...(Array.isArray(targetCatalog.items) ? targetCatalog.items : [])]
+    .sort((a, b) => String(b?.updatedAt || b?.sourceUpdatedAt || '').localeCompare(String(a?.updatedAt || a?.sourceUpdatedAt || '')));
+  for (const item of sortedItems) {
+    pushJob(item, 'poster', 'posters');
+    pushJob(item, 'posterFallback', 'posters');
+    pushJob(item, 'backdrop', 'backdrops');
+    pushJob(item, 'backdropFallback', 'backdrops');
+    for (const person of Array.isArray(item?.people) ? item.people : []) {
+      pushJob(person, 'image', 'people');
+    }
+  }
+
+  const selected = jobs.slice(0, maxMirroredImagesPerRun);
+  let changed = false;
+  await mapLimitValues(selected, imageMirrorConcurrency, async (job) => {
+    const next = await mirrorImageUrl(job.value, job.kind);
+    if (next && next !== job.owner[job.field]) {
+      job.owner[job.field] = next;
+      changed = true;
+    }
+  });
+  return changed;
+}
+
+async function stageMirroredAssets() {
+  try {
+    await execFileAsync('git', ['add', '-f', '--', 'assets/media']);
+  } catch {
+    // Local syntax tests can run outside a Git repository.
+  }
 }
 
 async function readJson(filePath, fallback) {
