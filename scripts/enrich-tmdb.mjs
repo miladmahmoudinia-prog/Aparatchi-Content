@@ -24,8 +24,11 @@ const maxPersonImageLookups = positiveInt(process.env.TMDB_MAX_PERSON_IMAGE_LOOK
 const maxFeaturedPeople = positiveInt(process.env.TMDB_MAX_FEATURED_PEOPLE, 32);
 const maxFeaturedPersonDetails = positiveInt(process.env.TMDB_MAX_FEATURED_PERSON_DETAILS, 96);
 const featuredPersonRefreshDays = positiveInt(process.env.TMDB_FEATURED_PERSON_REFRESH_DAYS, 90);
-const maxMirroredImagesPerRun = positiveInt(process.env.APARATCHI_MAX_MIRRORED_IMAGES, 450);
-const imageMirrorConcurrency = Math.min(10, positiveInt(process.env.APARATCHI_IMAGE_MIRROR_CONCURRENCY, 7));
+const maxMirroredImagesPerRun = positiveInt(process.env.APARATCHI_MAX_MIRRORED_IMAGES, 1200);
+const imageMirrorConcurrency = Math.min(12, positiveInt(process.env.APARATCHI_IMAGE_MIRROR_CONCURRENCY, 8));
+const maxPosterValidationsPerRun = positiveInt(process.env.APARATCHI_MAX_POSTER_VALIDATIONS, 900);
+const posterValidationConcurrency = Math.min(12, positiveInt(process.env.APARATCHI_POSTER_VALIDATION_CONCURRENCY, 10));
+const posterValidationRefreshDays = positiveInt(process.env.APARATCHI_POSTER_VALIDATION_REFRESH_DAYS, 7);
 
 const DAY_IDS_BY_JS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const DAY_SORT_ORDER = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
@@ -109,6 +112,7 @@ if (Number(cache.version || 0) !== 11 || !cache.items || typeof cache.items !== 
 }
 cache.version = 11;
 if (!cache.people || typeof cache.people !== 'object' || Array.isArray(cache.people)) cache.people = {};
+if (!cache.posterChecks || typeof cache.posterChecks !== 'object' || Array.isArray(cache.posterChecks)) cache.posterChecks = {};
 
 const report = {
   startedAt: new Date().toISOString(),
@@ -129,6 +133,8 @@ const report = {
   featuredPersonApiCalls: 0,
   imagesMirrored: 0,
   imageMirrorErrors: 0,
+  postersValidated: 0,
+  posterFallbacksActivated: 0,
   skippedNoMatch: 0,
   skippedLimit: 0,
   errors: [],
@@ -304,6 +310,9 @@ if (JSON.stringify(Array.isArray(catalog.featuredPeople) ? catalog.featuredPeopl
   catalog.featuredPeople = rebuiltFeaturedPeople;
   catalogChanged = true;
 }
+
+const posterFallbacksChanged = await activateBrokenPosterFallbacks(catalog);
+if (posterFallbacksChanged) catalogChanged = true;
 
 const mirroredImagesChanged = await mirrorCatalogImages(catalog);
 if (mirroredImagesChanged) catalogChanged = true;
@@ -1778,7 +1787,7 @@ function tmdbProfileUrl(profilePath) {
   const clean = cleanText(profilePath);
   if (!clean) return '';
   if (/^https?:\/\//i.test(clean)) return clean.replace(/^http:\/\//i, 'https://');
-  return `https://image.tmdb.org/t/p/w342/${clean.replace(/^\/+/, '')}`;
+  return `https://image.tmdb.org/t/p/w185/${clean.replace(/^\/+/, '')}`;
 }
 
 function titleSearchAliases(item) {
@@ -1839,6 +1848,95 @@ function nonNegativeInt(value, fallback = 0) {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isTmdbImageUrl(value) {
+  return /^https?:\/\/image\.tmdb\.org\/t\/p\//i.test(cleanText(value));
+}
+
+function isLocalMirroredImage(value) {
+  return /^(?:\.\/)?assets\/media\//i.test(cleanText(value));
+}
+
+function posterCheckKey(url) {
+  return createHash('sha1').update(cleanText(url).replace(/^http:\/\//i, 'https://')).digest('hex');
+}
+
+function isFreshPosterCheck(record) {
+  if (!record?.checkedAt) return false;
+  const timestamp = Date.parse(record.checkedAt);
+  return Number.isFinite(timestamp) && Date.now() - timestamp < posterValidationRefreshDays * 86400000;
+}
+
+async function validateRemotePoster(sourceUrl) {
+  const url = cleanText(sourceUrl).replace(/^http:\/\//i, 'https://');
+  if (!isUsableArtworkUrl(url)) return false;
+  if (isLocalMirroredImage(url) || isTmdbImageUrl(url)) return true;
+
+  const key = posterCheckKey(url);
+  const cachedCheck = cache.posterChecks[key];
+  if (cachedCheck?.url === url && isFreshPosterCheck(cachedCheck)) return cachedCheck.ok === true;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6500);
+  let ok = false;
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        Accept: 'image/avif,image/webp,image/png,image/jpeg,image/*;q=0.8',
+        Range: 'bytes=0-4095',
+        'User-Agent': 'Aparatchi-Poster-Validator/1.0',
+      },
+    });
+    const contentType = cleanText(response.headers.get('content-type')).toLowerCase();
+    const length = Number(response.headers.get('content-length') || 0);
+    ok = response.ok && (!contentType || contentType.startsWith('image/')) && (length <= 0 || length >= 512);
+    if (ok) {
+      const buffer = Buffer.from(await response.arrayBuffer());
+      ok = buffer.length >= 256;
+    }
+  } catch {
+    ok = false;
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  cache.posterChecks[key] = { url, ok, checkedAt: new Date().toISOString() };
+  report.postersValidated += 1;
+  return ok;
+}
+
+async function activateBrokenPosterFallbacks(targetCatalog) {
+  const candidates = [...(Array.isArray(targetCatalog.items) ? targetCatalog.items : [])]
+    .filter((item) => {
+      const poster = cleanText(item?.poster);
+      const fallback = cleanText(item?.posterFallback);
+      return Boolean(fallback && (isTmdbImageUrl(fallback) || isLocalMirroredImage(fallback)) && poster !== fallback && !isLocalMirroredImage(poster));
+    })
+    .sort((a, b) => {
+      const aSuspicious = isUsableArtworkUrl(a?.poster) ? 0 : 1;
+      const bSuspicious = isUsableArtworkUrl(b?.poster) ? 0 : 1;
+      return bSuspicious - aSuspicious || String(b?.updatedAt || '').localeCompare(String(a?.updatedAt || ''));
+    })
+    .slice(0, maxPosterValidationsPerRun);
+
+  let changed = false;
+  await mapLimitValues(candidates, posterValidationConcurrency, async (item) => {
+    const poster = cleanText(item.poster);
+    const fallback = cleanText(item.posterFallback);
+    const valid = poster ? await validateRemotePoster(poster) : false;
+    if (valid || !fallback) return;
+
+    item.poster = fallback;
+    if (!isUsableArtworkUrl(item.backdrop) || cleanText(item.backdrop) === poster) {
+      item.backdrop = cleanText(item.backdropFallback) || fallback;
+    }
+    item.posterFallbackActivatedAt = new Date().toISOString();
+    report.posterFallbacksActivated += 1;
+    changed = true;
+  });
+  return changed;
 }
 
 function mirroredExtension(contentType, sourceUrl) {
@@ -1935,43 +2033,56 @@ async function mapLimitValues(values, limit, mapper) {
 }
 
 async function mirrorCatalogImages(targetCatalog) {
-  const jobs = [];
-  const pushJob = (owner, field, kind) => {
+  const priorityJobs = [];
+  const regularJobs = [];
+  const pushJob = (owner, field, kind, priority = false) => {
     const value = cleanText(owner?.[field]);
-    if (!value || /^(?:\.\/)?assets\/media\//i.test(value)) return;
-    jobs.push({ owner, field, kind, value });
+    if (!value || isLocalMirroredImage(value) || !isTmdbImageUrl(value)) return;
+    (priority ? priorityJobs : regularJobs).push({ owner, field, kind, value });
   };
 
-  for (const person of Array.isArray(targetCatalog.featuredPeople) ? targetCatalog.featuredPeople : []) {
-    pushJob(person, 'image', 'people');
+  // Only an actively used TMDB poster/backdrop is mirrored. An unused TMDB fallback
+  // stays remote until the Upera poster validator actually activates it.
+  for (const item of Array.isArray(targetCatalog.items) ? targetCatalog.items : []) {
+    pushJob(item, 'poster', 'posters', true);
+    pushJob(item, 'backdrop', 'backdrops', true);
   }
   for (const entry of Array.isArray(targetCatalog.weeklySchedule) ? targetCatalog.weeklySchedule : []) {
-    pushJob(entry, 'poster', 'posters');
+    pushJob(entry, 'poster', 'posters', true);
   }
   for (const entry of Array.isArray(targetCatalog.iranianSchedule) ? targetCatalog.iranianSchedule : []) {
-    pushJob(entry, 'poster', 'posters');
+    pushJob(entry, 'poster', 'posters', true);
+  }
+  for (const person of Array.isArray(targetCatalog.featuredPeople) ? targetCatalog.featuredPeople : []) {
+    pushJob(person, 'image', 'people', true);
   }
 
   const sortedItems = [...(Array.isArray(targetCatalog.items) ? targetCatalog.items : [])]
     .sort((a, b) => String(b?.updatedAt || b?.sourceUpdatedAt || '').localeCompare(String(a?.updatedAt || a?.sourceUpdatedAt || '')));
   for (const item of sortedItems) {
-    pushJob(item, 'poster', 'posters');
-    pushJob(item, 'posterFallback', 'posters');
-    pushJob(item, 'backdrop', 'backdrops');
-    pushJob(item, 'backdropFallback', 'backdrops');
     for (const person of Array.isArray(item?.people) ? item.people : []) {
       pushJob(person, 'image', 'people');
     }
   }
 
-  const selected = jobs.slice(0, maxMirroredImagesPerRun);
+  const jobs = [...priorityJobs, ...regularJobs].slice(0, maxMirroredImagesPerRun);
+  const mirrorPromisesByUrl = new Map();
   let changed = false;
-  await mapLimitValues(selected, imageMirrorConcurrency, async (job) => {
-    const next = await mirrorImageUrl(job.value, job.kind);
-    if (next && next !== job.owner[job.field]) {
-      job.owner[job.field] = next;
-      changed = true;
+
+  await mapLimitValues(jobs, imageMirrorConcurrency, async (job) => {
+    let mirrorPromise = mirrorPromisesByUrl.get(job.value);
+    if (!mirrorPromise) {
+      mirrorPromise = mirrorImageUrl(job.value, job.kind);
+      mirrorPromisesByUrl.set(job.value, mirrorPromise);
     }
+    const next = await mirrorPromise;
+    if (!next || next === job.owner[job.field] || !isLocalMirroredImage(next)) return;
+
+    const oldValue = job.owner[job.field];
+    job.owner[job.field] = next;
+    if (job.field === 'poster' && cleanText(job.owner.posterFallback) === oldValue) job.owner.posterFallback = next;
+    if (job.field === 'backdrop' && cleanText(job.owner.backdropFallback) === oldValue) job.owner.backdropFallback = next;
+    changed = true;
   });
   return changed;
 }

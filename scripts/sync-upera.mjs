@@ -534,7 +534,6 @@ async function processMovie(candidate, source) {
     existing,
   );
 
-  await mirrorCatalogItemImages(normalized);
   replaceItem(normalized);
   stats.moviesAddedOrUpdated += 1;
 
@@ -777,7 +776,6 @@ async function processSeries(
     updateLabel,
   );
 
-  await mirrorCatalogItemImages(normalized);
   replaceItem(normalized);
   stats.seriesAddedOrUpdated += 1;
   if (normalized.ir) stats.iranianSeriesProcessed += 1;
