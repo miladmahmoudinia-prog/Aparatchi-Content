@@ -133,6 +133,7 @@ const report = {
   featuredPersonApiCalls: 0,
   imagesMirrored: 0,
   imageMirrorErrors: 0,
+  sharedPersonImagesApplied: 0,
   postersValidated: 0,
   posterFallbacksActivated: 0,
   skippedNoMatch: 0,
@@ -316,6 +317,13 @@ if (posterFallbacksChanged) catalogChanged = true;
 
 const mirroredImagesChanged = await mirrorCatalogImages(catalog);
 if (mirroredImagesChanged) catalogChanged = true;
+
+// The stars row and title detail pages must use the same portrait. Mirroring
+// prioritizes featured people, so propagate that local portrait back to every
+// matching cast entry by TMDB id (name is a conservative fallback).
+const sharedPersonImagesApplied = propagateSharedPersonImages(catalog);
+report.sharedPersonImagesApplied = sharedPersonImagesApplied;
+if (sharedPersonImagesApplied > 0) catalogChanged = true;
 
 if (catalogChanged) {
   catalog.updatedAt = new Date().toISOString();
@@ -2084,6 +2092,57 @@ async function mirrorCatalogImages(targetCatalog) {
     if (job.field === 'backdrop' && cleanText(job.owner.backdropFallback) === oldValue) job.owner.backdropFallback = next;
     changed = true;
   });
+  return changed;
+}
+
+function personIdentityKeys(person) {
+  const keys = [];
+  const tmdbId = positiveInt(person?.tmdbId, 0) || tmdbIdFromPersonId(person?.id);
+  if (tmdbId) keys.push(`tmdb:${tmdbId}`);
+  for (const value of [person?.name, person?.nameFa]) {
+    const normalized = normalizeName(value);
+    if (normalized) keys.push(`name:${normalized}`);
+  }
+  return [...new Set(keys)];
+}
+
+function propagateSharedPersonImages(targetCatalog) {
+  const featured = Array.isArray(targetCatalog?.featuredPeople)
+    ? targetCatalog.featuredPeople
+    : [];
+  const itemPeople = (Array.isArray(targetCatalog?.items) ? targetCatalog.items : [])
+    .flatMap((item) => Array.isArray(item?.people) ? item.people : []);
+  const allPeople = [...featured, ...itemPeople];
+  const imageByIdentity = new Map();
+
+  // Local mirrors are preferred. A non-TMDB HTTPS image is a secondary source,
+  // but a direct image.tmdb.org URL is never propagated into app content.
+  for (const person of allPeople) {
+    const image = cleanText(person?.image);
+    if (!image || isTmdbImageUrl(image)) continue;
+    const priority = isLocalMirroredImage(image) ? 2 : isHttpUrl(image) ? 1 : 0;
+    if (!priority) continue;
+    for (const key of personIdentityKeys(person)) {
+      const current = imageByIdentity.get(key);
+      if (!current || priority > current.priority) imageByIdentity.set(key, { image, priority });
+    }
+  }
+
+  let changed = 0;
+  for (const person of allPeople) {
+    const currentImage = cleanText(person?.image);
+    if (currentImage && !isTmdbImageUrl(currentImage)) continue;
+    let shared = null;
+    for (const key of personIdentityKeys(person)) {
+      const candidate = imageByIdentity.get(key);
+      if (!candidate) continue;
+      if (!shared || candidate.priority > shared.priority) shared = candidate;
+    }
+    if (!shared?.image || shared.image === currentImage) continue;
+    person.image = shared.image;
+    changed += 1;
+  }
+
   return changed;
 }
 

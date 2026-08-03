@@ -5,6 +5,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const API_BASE = 'https://seeko.film/api/v1';
+const IRANIAN_SERIES_SCAN_VERSION = 2;
 
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
@@ -60,7 +61,7 @@ const iranianSeriesPagesPerRun = Math.min(
 
 const iranianSeriesTitlesPerRun = positiveInt(
   process.env.UPERA_IRANIAN_SERIES_TITLES_PER_RUN,
-  6,
+  8,
 );
 
 const operatorSeriesPagesPerRun = Math.min(
@@ -85,7 +86,7 @@ const operatorMovieTitlesPerRun = positiveInt(
 
 const priorityEpisodesPerSeries = Math.min(
   6,
-  positiveInt(process.env.UPERA_PRIORITY_EPISODES_PER_SERIES, 3),
+  positiveInt(process.env.UPERA_PRIORITY_EPISODES_PER_SERIES, 4),
 );
 
 const maxIncrementalCandidates = positiveInt(
@@ -124,6 +125,7 @@ const defaultState = {
   seriesOffset: 0,
   iranianSeriesPage: 1,
   iranianSeriesOffset: 0,
+  iranianSeriesScanVersion: IRANIAN_SERIES_SCAN_VERSION,
   operatorSeriesPage: 1,
   operatorSeriesOffset: 0,
   operatorMoviePage: 1,
@@ -141,6 +143,11 @@ state.seriesPage = positiveInt(state.seriesPage, 1);
 state.seriesOffset = nonNegativeInt(state.seriesOffset, 0);
 state.iranianSeriesPage = positiveInt(state.iranianSeriesPage, 1);
 state.iranianSeriesOffset = nonNegativeInt(state.iranianSeriesOffset, 0);
+if (Number(state.iranianSeriesScanVersion || 0) !== IRANIAN_SERIES_SCAN_VERSION) {
+  state.iranianSeriesPage = 1;
+  state.iranianSeriesOffset = 0;
+  state.iranianSeriesScanVersion = IRANIAN_SERIES_SCAN_VERSION;
+}
 state.operatorSeriesPage = positiveInt(state.operatorSeriesPage, 1);
 state.operatorSeriesOffset = nonNegativeInt(state.operatorSeriesOffset, 0);
 state.operatorMoviePage = positiveInt(state.operatorMoviePage, 1);
@@ -157,6 +164,11 @@ if (
 let items = Array.isArray(catalog.items)
   ? catalog.items.filter(Boolean)
   : [];
+
+// Operator access is recomputed from validated files on every run. This
+// removes stale badges/categories created by older, overly broad matching.
+const operatorCleanup = sanitizeCatalogOperatorAccess(items);
+items = operatorCleanup.items;
 
 let lastAffiliateRequestAt = 0;
 let affiliateRequestsUsed = 0;
@@ -194,6 +206,9 @@ const stats = {
   operatorMoviesAddedOrUpdated: 0,
   operatorMoviesRejectedNoOperatorLink: 0,
   operatorLinksFound: 0,
+  operatorClassificationsRemoved: operatorCleanup.removed,
+  iranianSeriesDiagnostics: [],
+  operatorDiagnostics: [],
 
   moviesAddedOrUpdated: 0,
   seriesAddedOrUpdated: 0,
@@ -398,6 +413,13 @@ async function syncIranianSeriesArchive() {
           episodeLimit: priorityEpisodesPerSeries,
         });
         retryLater = Boolean(result?.retryLater);
+        rememberDiagnostic('iranianSeriesDiagnostics', {
+          id: String(series?.id || series?.t_id || ''),
+          title: cleanText(series?.name_fa || series?.name || ''),
+          result: result?.added ? 'added-or-updated' : 'rejected',
+          reason: result?.reason || '',
+          retryLater,
+        });
       } catch (error) {
         rememberError(
           `iranian-series-${series?.id || series?.t_id || 'unknown'}`,
@@ -473,6 +495,14 @@ async function syncOperatorSeriesArchive() {
           episodeLimit: priorityEpisodesPerSeries,
         });
         retryLater = Boolean(result?.retryLater);
+        rememberDiagnostic('operatorDiagnostics', {
+          type: 'series',
+          id: String(series?.id || series?.t_id || ''),
+          title: cleanText(series?.name_fa || series?.name || ''),
+          result: result?.added ? 'added-or-updated' : 'rejected',
+          reason: result?.reason || '',
+          retryLater,
+        });
       } catch (error) {
         rememberError(
           `operator-series-${series?.id || series?.t_id || 'unknown'}`,
@@ -546,6 +576,14 @@ async function syncOperatorMovieArchive() {
           requireOperator: true,
         });
         retryLater = Boolean(result?.retryLater);
+        rememberDiagnostic('operatorDiagnostics', {
+          type: 'movie',
+          id: String(movie?.id || movie?.t_id || ''),
+          title: cleanText(movie?.name_fa || movie?.name || ''),
+          result: result?.added ? 'added-or-updated' : 'rejected',
+          reason: result?.reason || '',
+          retryLater,
+        });
       } catch (error) {
         rememberError(
           `operator-movie-${movie?.id || movie?.t_id || 'unknown'}`,
@@ -783,7 +821,7 @@ async function processMovie(candidate, source, options = {}) {
   const id = candidate?.id || candidate?.t_id;
 
   if (!id) {
-    return { retryLater: false, added: false };
+    return { retryLater: false, added: false, reason: 'missing-id' };
   }
 
   let movie = candidate;
@@ -793,24 +831,24 @@ async function processMovie(candidate, source, options = {}) {
   }
 
   if (!movie) {
-    return { retryLater: false, added: false };
+    return { retryLater: false, added: false, reason: 'missing-detail' };
   }
 
   if (options.requireIranian && !inferIranian(movie)) {
-    return { retryLater: false, added: false };
+    return { retryLater: false, added: false, reason: 'not-iranian' };
   }
 
   const linkResult = await fetchAffiliateLinks(id, 'movie');
 
   if (linkResult.skipped) {
-    return { retryLater: true, added: false };
+    return { retryLater: true, added: false, reason: 'request-budget' };
   }
 
   const media = parseMediaLinks(linkResult.links);
 
   if (options.requireOperator && !media.operatorFiles.length) {
     stats.operatorMoviesRejectedNoOperatorLink += 1;
-    return { retryLater: false, added: false };
+    return { retryLater: false, added: false, reason: 'no-operator-link' };
   }
 
   if (!media.downloads.length && !media.streamUrl) {
@@ -818,7 +856,7 @@ async function processMovie(candidate, source, options = {}) {
       `فیلم ${id} لینک رایگان مستقیم یا ویژه اینترنت همراه نداشت؛ مورد قبلی حذف نشد.`,
     );
 
-    return { retryLater: false, added: false };
+    return { retryLater: false, added: false, reason: 'no-usable-links' };
   }
 
   const existing = findExistingItem(movie, 'movie');
@@ -834,7 +872,7 @@ async function processMovie(candidate, source, options = {}) {
     }
   }
 
-  return { retryLater: false, added: true };
+  return { retryLater: false, added: true, reason: 'added-or-updated' };
 }
 
 async function processSeries(
@@ -848,20 +886,20 @@ async function processSeries(
     candidate?.series_id;
 
   if (!id) {
-    return { retryLater: false, completeBackfill: true, added: false };
+    return { retryLater: false, completeBackfill: true, added: false, reason: 'missing-id' };
   }
 
   const detail = await fetchSeriesDetail(id);
   const series = detail.series;
 
   if (!series) {
-    return { retryLater: false, completeBackfill: true, added: false };
+    return { retryLater: false, completeBackfill: true, added: false, reason: 'missing-detail' };
   }
 
   const iranian = inferIranian(series);
   if (options.requireIranian && !iranian) {
     stats.iranianSeriesRejectedNotIranian += 1;
-    return { retryLater: false, completeBackfill: true, added: false };
+    return { retryLater: false, completeBackfill: true, added: false, reason: 'not-iranian' };
   }
 
   const episodes = detail.episodes
@@ -983,6 +1021,7 @@ async function processSeries(
       retryLater: stoppedByBudget,
       completeBackfill,
       added: false,
+      reason: 'no-operator-link',
     };
   }
 
@@ -999,6 +1038,7 @@ async function processSeries(
       retryLater: stoppedByBudget,
       completeBackfill,
       added: false,
+      reason: stoppedByBudget ? 'request-budget' : 'no-usable-links',
     };
   }
 
@@ -1038,6 +1078,7 @@ async function processSeries(
     retryLater: stoppedByBudget,
     completeBackfill,
     added: true,
+    reason: 'added-or-updated',
   };
 }
 
@@ -1092,13 +1133,31 @@ async function fetchSeriesPage(page) {
 
 
 async function fetchIranianSeriesPage(page) {
-  return fetchScopedArchivePage('series', page, {
-    // Empty means: do not pre-filter out operator-only/purchase records.
-    // We still keep only amount=0 links after fetching affiliate links.
-    free: '',
-    persian: 1,
-    traffic: 1,
-  });
+  // The upstream API has used more than one interpretation for the Persian
+  // filters. Query the known variants and merge them, then let inferIranian
+  // validate the detail record before it is added to the catalog.
+  const variants = [
+    { free: 1, persian: 1, traffic: 1, noFreeFallback: true },
+    { free: '', persian: 1, traffic: 1, noFreeFallback: true },
+    { free: 1, persian: 'true', traffic: 1, noFreeFallback: true },
+    { free: 1, persian: '', country: 'IR', traffic: 1, noFreeFallback: true },
+    // Fallback scan: some deployments ignore/rename the Persian filter.
+    { free: 1, persian: 0, traffic: 1, noFreeFallback: true },
+  ];
+
+  const results = [];
+  for (const filters of variants) {
+    try {
+      results.push(await fetchScopedArchivePage('series', page, filters));
+    } catch (error) {
+      rememberError(`iranian-series-filter-${page}-${JSON.stringify(filters)}`, error);
+    }
+  }
+
+  return {
+    items: dedupeCandidates(results.flatMap((result) => result.items || [])),
+    lastPage: Math.max(1, ...results.map((result) => Number(result.lastPage || 1))),
+  };
 }
 
 async function fetchOperatorSeriesPage(page) {
@@ -1125,7 +1184,7 @@ async function fetchScopedArchivePage(kind, page, filters = {}) {
     trending: 1,
     genre: 'all',
     free: filters.free ?? '',
-    country: 0,
+    country: filters.country ?? 0,
     persian: filters.persian ?? '',
     query: '',
     affiliate: 1,
@@ -1140,7 +1199,7 @@ async function fetchScopedArchivePage(kind, page, filters = {}) {
   // Some deployments interpret an empty free filter differently. Falling
   // back to free=1 keeps the sync working while the operator parser still
   // detects mobile-only links returned by the affiliate endpoint.
-  if (!result.items.length && filters.free === '') {
+  if (!result.items.length && filters.free === '' && !filters.noFreeFallback) {
     url.searchParams.set('free', '1');
     const fallbackJson = await fetchJson(url, { method: 'POST' });
     return pagedResult(fallbackJson, kind);
@@ -2322,18 +2381,44 @@ function translateGenres(value) {
 }
 
 function inferIranian(item) {
-  if (Number(item?.ir || 0) === 1) {
+  const irFlag = item?.ir ?? item?.is_iranian ?? item?.isIranian;
+  if (
+    irFlag === true ||
+    Number(irFlag || 0) === 1 ||
+    String(irFlag || '').toLowerCase() === 'true'
+  ) {
     return true;
   }
 
-  const country = cleanText(
-    item?.country_fa ||
-    item?.country ||
-    item?.countries ||
+  const language = cleanText(
+    item?.original_language ||
+    item?.originalLanguage ||
+    item?.language_code ||
+    item?.lang ||
+    item?.language ||
     '',
-  );
+  ).toLowerCase();
+  if (language === 'fa' || language === 'fas' || language === 'per' || language === 'persian') {
+    return true;
+  }
 
-  return /ایران|iran/i.test(country);
+  const countryValue = [
+    item?.country_fa,
+    item?.country,
+    item?.countries,
+    item?.country_name,
+    item?.countryName,
+    item?.country_code,
+    item?.countryCode,
+  ];
+  let country = '';
+  try {
+    country = JSON.stringify(countryValue);
+  } catch {
+    country = countryValue.map((value) => cleanText(value)).join(' ');
+  }
+
+  return /ایران|iran|(?:^|[^a-z])ir(?:[^a-z]|$)/i.test(country);
 }
 
 function extractCandidates(
@@ -2717,22 +2802,31 @@ function isDirectMediaUrl(value) {
 function operatorPortalDetails(value) {
   try {
     const url = new URL(value);
-    const trustedHost =
-      /(^|\.)upera\.tv$/i.test(url.hostname) ||
-      /(^|\.)redl\.ink$/i.test(url.hostname);
+    if (url.protocol !== 'https:') return null;
 
-    if (!trustedHost) return null;
+    const isUpera = /(^|\.)upera\.tv$/i.test(url.hostname);
+    const isShortLink = /(^|\.)redl\.ink$/i.test(url.hostname);
+    if (!isUpera && !isShortLink) return null;
 
     const pathText = decodeURIComponent(url.pathname || '');
+    if (isShortLink) {
+      return pathText && pathText !== '/'
+        ? { action: '', hostname: url.hostname, pathname: url.pathname, shortLink: true }
+        : null;
+    }
+
     const actionMatch = pathText.match(/\/(stream|watch|play|download)(?:\/|$)/i);
     const mediaMatch = pathText.match(/\/(movie|series|episode)(?:\/|$)/i);
 
-    if (!actionMatch && !mediaMatch) return null;
+    // A normal movie/series page is not operator access. It must explicitly
+    // contain both an access action and a media resource segment.
+    if (!actionMatch || !mediaMatch) return null;
 
     return {
-      action: String(actionMatch?.[1] || '').toLowerCase(),
+      action: String(actionMatch[1] || '').toLowerCase(),
       hostname: url.hostname,
       pathname: url.pathname,
+      shortLink: false,
     };
   } catch {
     return null;
@@ -2754,9 +2848,9 @@ function scalarLinkText(link) {
 }
 
 function isOperatorAccessLink(link) {
-  if (!link || !isHttp(link.link)) return false;
-  if (operatorPortalDetails(link.link)) return true;
+  if (!link || !isHttp(link.link) || isDirectMediaUrl(link.link)) return false;
 
+  const portal = operatorPortalDetails(link.link);
   const explicitFlag = [
     link.operatorOnly,
     link.operator_only,
@@ -2773,10 +2867,12 @@ function isOperatorAccessLink(link) {
     String(value) === '1',
   );
 
-  if (explicitFlag) return true;
-
   const text = scalarLinkText(link);
-  return /ویژه\s*(?:اینترنت\s*)?(?:همراه|اپراتور)|همراه\s*اول|ایرانسل|رایتل|شاتل\s*موبایل|mobile\s*(?:operator|internet|data)|cellular\s*(?:only|access)|operator[-_\s]*(?:only|play|download)/i.test(text);
+  const explicitText = /ویژه\s*(?:اینترنت\s*)?(?:همراه|اپراتور)|همراه\s*اول|ایرانسل|رایتل|شاتل\s*موبایل|mobile\s*(?:operator|internet|data)|cellular\s*(?:only|access)|operator[-_\s]*(?:only|play|download)/i.test(text);
+
+  if (!portal) return false;
+  if (portal.shortLink) return explicitFlag || explicitText;
+  return true;
 }
 
 function operatorModeForLink(link) {
@@ -2852,6 +2948,96 @@ function groupsHaveOperatorLinks(groups) {
       file?.mode === 'operator-play' || file?.mode === 'operator-download',
     ),
   );
+}
+
+function isValidStoredOperatorFile(file) {
+  if (!file || !['operator-play', 'operator-download'].includes(file.mode)) return false;
+  return Boolean(operatorPortalDetails(file.url));
+}
+
+function recoverDirectFileFromInvalidOperator(file) {
+  if (!file || !isDirectMediaUrl(file.url)) return null;
+  const isHls = /\.m3u8(?:$|[?#])/i.test(String(file.url || ''));
+  const next = {
+    ...file,
+    mode: isHls ? 'play' : 'download',
+  };
+  delete next.operatorOnly;
+  delete next.supportedOperators;
+  return next;
+}
+
+function sanitizeCatalogOperatorAccess(sourceItems) {
+  let removed = 0;
+  const sanitized = (Array.isArray(sourceItems) ? sourceItems : []).map((item) => {
+    const downloads = (Array.isArray(item?.downloads) ? item.downloads : []).flatMap((section) => {
+      const nextFiles = [];
+      for (const file of Array.isArray(section?.files) ? section.files : []) {
+        if (file?.mode === 'operator-play' || file?.mode === 'operator-download') {
+          if (isValidStoredOperatorFile(file)) {
+            nextFiles.push(file);
+          } else {
+            removed += 1;
+            const recovered = recoverDirectFileFromInvalidOperator(file);
+            if (recovered) nextFiles.push(recovered);
+          }
+        } else {
+          nextFiles.push(file);
+        }
+      }
+      if (!nextFiles.length) return [];
+      return [{ ...section, files: nextFiles }];
+    });
+
+    const operatorFiles = downloads.flatMap((section) =>
+      (section.files || []).filter((file) => isValidStoredOperatorFile(file)),
+    );
+    const hasOperator = operatorFiles.length > 0;
+    const directFiles = downloads.flatMap((section) =>
+      (section.files || []).filter((file) => !['operator-play', 'operator-download'].includes(file?.mode)),
+    );
+    const operatorOnly = hasOperator && directFiles.length === 0;
+    const categoryKeys = uniqueStrings(
+      (item?.categoryKeys || []).filter((key) => key !== 'mobile-operator'),
+    );
+    const categoryLabels = uniqueStrings(
+      (item?.categoryLabels || []).filter((label) => label !== 'ویژه اینترنت همراه'),
+    );
+    if (hasOperator) {
+      categoryKeys.push('mobile-operator');
+      categoryLabels.push('ویژه اینترنت همراه');
+    }
+
+    const next = {
+      ...item,
+      downloads,
+      access: operatorOnly ? 'operator' : 'free',
+      operatorOnly,
+      categoryKeys: uniqueStrings(categoryKeys),
+      categoryLabels: uniqueStrings(categoryLabels),
+    };
+
+    if (hasOperator) {
+      next.operatorAccess = operatorAccessFromFiles(operatorFiles);
+      const supportedOperators = uniqueStrings(
+        operatorFiles.flatMap((file) => file.supportedOperators || []),
+      );
+      if (supportedOperators.length) next.supportedOperators = supportedOperators;
+      else delete next.supportedOperators;
+    } else {
+      delete next.operatorAccess;
+      delete next.supportedOperators;
+    }
+
+    return next;
+  });
+
+  return { items: sanitized, removed };
+}
+
+function rememberDiagnostic(bucket, entry) {
+  if (!Array.isArray(stats[bucket])) return;
+  if (stats[bucket].length < 100) stats[bucket].push(entry);
 }
 
 function uniqueStrings(values) {
