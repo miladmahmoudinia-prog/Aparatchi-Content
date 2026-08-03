@@ -42,6 +42,33 @@ const maxAffiliateRequests = positiveInt(
   55,
 );
 
+const requestedSyncMode = String(
+  process.env.UPERA_SYNC_MODE || 'AUTO',
+).trim().toUpperCase();
+
+const syncModeSetting = ['AUTO', 'BACKFILL', 'NORMAL'].includes(requestedSyncMode)
+  ? requestedSyncMode
+  : 'AUTO';
+
+const maxBackfillNoProgressRuns = Math.min(
+  10,
+  positiveInt(process.env.UPERA_BACKFILL_MAX_NO_PROGRESS_RUNS, 3),
+);
+
+const backfillEpisodeLimit = Math.min(
+  maxAffiliateRequests,
+  positiveInt(process.env.UPERA_BACKFILL_EPISODES_PER_RUN, maxAffiliateRequests),
+);
+
+const retryBlockedBackfill = ['1', 'true', 'yes'].includes(
+  String(process.env.UPERA_RETRY_BLOCKED || '').trim().toLowerCase(),
+);
+
+const maxEpisodePaginationPages = Math.min(
+  100,
+  positiveInt(process.env.UPERA_MAX_EPISODE_PAGES, 50),
+);
+
 const episodesPerSeriesRun = positiveInt(
   process.env.UPERA_EPISODES_PER_SERIES,
   10,
@@ -122,7 +149,7 @@ if (!refId) {
 }
 
 const defaultCatalog = {
-  version: '0.8.7-series-publication',
+  version: '0.9.0-global-sequential-backfill',
   updatedAt: new Date(0).toISOString(),
   items: [],
   iranianSchedule: [],
@@ -143,6 +170,10 @@ const defaultState = {
   operatorMovieOffset: 0,
   airingSeriesOffset: 0,
   seriesEpisodeCursor: {},
+  archiveBackfillSeriesId: '',
+  archiveBackfillSeriesTitle: '',
+  archiveBackfillNoProgress: {},
+  archiveBackfillCompleted: {},
   lastSyncAt: null,
 };
 
@@ -174,6 +205,23 @@ if (
   state.seriesEpisodeCursor = {};
 }
 
+state.archiveBackfillSeriesId = String(state.archiveBackfillSeriesId || '');
+state.archiveBackfillSeriesTitle = String(state.archiveBackfillSeriesTitle || '');
+if (
+  !state.archiveBackfillNoProgress ||
+  typeof state.archiveBackfillNoProgress !== 'object' ||
+  Array.isArray(state.archiveBackfillNoProgress)
+) {
+  state.archiveBackfillNoProgress = {};
+}
+if (
+  !state.archiveBackfillCompleted ||
+  typeof state.archiveBackfillCompleted !== 'object' ||
+  Array.isArray(state.archiveBackfillCompleted)
+) {
+  state.archiveBackfillCompleted = {};
+}
+
 let items = Array.isArray(catalog.items)
   ? catalog.items.filter(Boolean)
   : [];
@@ -191,6 +239,23 @@ const stats = {
   startedAt: new Date().toISOString(),
   originalCount: items.length,
   finalCount: items.length,
+  requestedSyncMode: syncModeSetting,
+  effectiveSyncMode: '',
+  backfillQueueTotal: 0,
+  backfillBacklogRemaining: 0,
+  backfillBlockedTotal: 0,
+  backfillActiveSeries: null,
+  backfillSeriesCompletedThisRun: [],
+  backfillSeriesBlockedThisRun: [],
+  backfillEpisodesAdded: 0,
+  backfillNoProgressRuns: 0,
+  normalSyncSkippedForBackfill: false,
+  backfillOrdering: 'oldest-to-newest-global',
+  backfillNextSeries: null,
+  episodePaginationPagesFetched: 0,
+  episodePaginationErrors: 0,
+  episodePaginationTruncated: 0,
+  episodeDiscoveryIncomplete: 0,
 
   incrementalCandidates: 0,
   incrementalProcessed: 0,
@@ -257,41 +322,60 @@ console.log(
   `شروع همگام‌سازی امن؛ ${items.length} عنوان قبلی حفظ می‌شود.`,
 );
 
-// Check already-published weekly series first. This pass only asks for
-// episodes that are not in the catalog yet, so a newly released episode is
-// added automatically without re-downloading every older episode.
-await syncAiringSeriesUpdates();
+const initialBackfillQueue = buildSequentialBackfillQueue();
+stats.backfillQueueTotal = initialBackfillQueue.length;
 
-// Repair known gaps in already-saved series next, so titles already visible
-// in the app do not wait until their archive page is encountered again.
-if (!affiliateBudgetExhausted) {
-  await syncIncompleteSeriesRepair();
-}
+const effectiveSyncMode =
+  syncModeSetting === 'BACKFILL' ||
+  (syncModeSetting === 'AUTO' && initialBackfillQueue.length > 0)
+    ? 'BACKFILL'
+    : 'NORMAL';
 
-// Fill the requested empty sections before the general archive can use
-// the affiliate request budget.
-if (!affiliateBudgetExhausted) {
-  await syncIranianSeriesArchive();
-}
+stats.effectiveSyncMode = effectiveSyncMode;
+console.log(`حالت اجرا: ${effectiveSyncMode}`);
 
-if (!affiliateBudgetExhausted) {
-  await syncOperatorSeriesArchive();
-}
+if (effectiveSyncMode === 'BACKFILL') {
+  // The archive queue is intentionally exclusive: one series is completed
+  // as far as the request budget allows before the next series is selected.
+  // No new movie/series archive pages are scanned in this mode, so repeated
+  // runs shrink the existing backlog instead of continuously adding more
+  // incomplete titles.
+  stats.normalSyncSkippedForBackfill = true;
+  await syncSequentialSeriesBackfill();
 
-if (!affiliateBudgetExhausted) {
-  await syncOperatorMovieArchive();
-}
+  // If the active archive finished before the request budget was consumed,
+  // keep already-published weekly series current without discovering titles.
+  if (!affiliateBudgetExhausted) {
+    await syncAiringSeriesUpdates();
+  }
+} else {
+  // Normal mode is used only after the current archive queue is empty (or
+  // when explicitly forced). Existing airing series are checked first.
+  await syncAiringSeriesUpdates();
 
-if (!affiliateBudgetExhausted) {
-  await syncIncrementalTitles();
-}
+  if (!affiliateBudgetExhausted) {
+    await syncIranianSeriesArchive();
+  }
 
-if (!affiliateBudgetExhausted) {
-  await syncSeriesArchive();
-}
+  if (!affiliateBudgetExhausted) {
+    await syncOperatorSeriesArchive();
+  }
 
-if (!affiliateBudgetExhausted) {
-  await syncMovieArchive();
+  if (!affiliateBudgetExhausted) {
+    await syncOperatorMovieArchive();
+  }
+
+  if (!affiliateBudgetExhausted) {
+    await syncIncrementalTitles();
+  }
+
+  if (!affiliateBudgetExhausted) {
+    await syncSeriesArchive();
+  }
+
+  if (!affiliateBudgetExhausted) {
+    await syncMovieArchive();
+  }
 }
 
 items.sort((a, b) => {
@@ -324,6 +408,10 @@ const activeIds = new Set(
 items = items.map((item) => withSeriesPublicationState(item));
 stats.seriesAwaitingArchiveAudit = items.filter(
   (item) => item?.type === 'series' && !hasSeriesArchiveMetadata(item),
+).length;
+stats.backfillBacklogRemaining = buildSequentialBackfillQueue().length;
+stats.backfillBlockedTotal = items.filter(
+  (item) => item?.type === 'series' && item?.archiveAuditStatus === 'blocked',
 ).length;
 
 const publishableIds = new Set(
@@ -370,7 +458,7 @@ const now = new Date().toISOString();
 
 const output = {
   ...catalog,
-  version: '0.8.7-series-publication',
+  version: '0.9.0-global-sequential-backfill',
   updatedAt: now,
   items,
   iranianSchedule,
@@ -488,76 +576,281 @@ async function syncAiringSeriesUpdates() {
 }
 
 
-async function syncIncompleteSeriesRepair() {
-  const candidates = items
-    .filter((item) => item?.type === 'series')
-    .map((item) => ({
-      item,
-      deficit: seriesArchiveDeficit(item),
-    }))
-    .filter((entry) =>
-      entry.deficit.total > 0 ||
-      entry.item?.publicationStatus !== 'published' ||
-      !hasSeriesArchiveMetadata(entry.item)
-    )
-    .sort((a, b) => {
-      const hiddenDiff =
-        Number(b.item?.publicationStatus !== 'published') -
-        Number(a.item?.publicationStatus !== 'published');
-      if (hiddenDiff) return hiddenDiff;
-      const iranianDiff = Number(Boolean(b.item?.ir)) - Number(Boolean(a.item?.ir));
-      if (iranianDiff) return iranianDiff;
-      return b.deficit.total - a.deficit.total;
-    })
-    .slice(0, incompleteSeriesTitlesPerRun);
+async function syncSequentialSeriesBackfill() {
+  let completedInThisRun = 0;
 
-  stats.incompleteSeriesCandidates = candidates.length;
+  while (!affiliateBudgetExhausted) {
+    const queue = buildSequentialBackfillQueue();
+    stats.incompleteSeriesCandidates = queue.length;
+    stats.backfillQueueTotal = Math.max(stats.backfillQueueTotal, queue.length);
 
-  for (const candidate of candidates) {
-    if (affiliateBudgetExhausted) break;
+    if (!queue.length) {
+      clearActiveBackfillSeries();
+      break;
+    }
+
+    const active = chooseActiveBackfillSeries(queue);
+    if (!active) break;
+
+    const id = String(active.item.id || '');
+    const title = active.item.nameFa || active.item.name || id;
+    state.archiveBackfillSeriesId = id;
+    state.archiveBackfillSeriesTitle = title;
+    stats.backfillActiveSeries = {
+      id,
+      title,
+      year: seriesBackfillYear(active.item),
+      country: cleanText(
+        active.item?.country ||
+        active.item?.countryName ||
+        (active.item?.ir ? 'IR' : ''),
+      ),
+      missingBefore: active.deficit.missing,
+      pendingBefore: active.deficit.pending,
+      noProgressRuns: nonNegativeInt(state.archiveBackfillNoProgress[id], 0),
+    };
+
+    const nextEntry = queue.find((entry) => String(entry.item?.id || '') !== id);
+    stats.backfillNextSeries = nextEntry
+      ? {
+          id: String(nextEntry.item?.id || ''),
+          title: nextEntry.item?.nameFa || nextEntry.item?.name || '',
+          year: seriesBackfillYear(nextEntry.item),
+        }
+      : null;
+
+    console.log(`تکمیل ترتیبی سریال: ${title}`);
+
+    const beforeTotal = active.deficit.total;
+    let result;
     try {
-      const result = await processSeries(
-        { id: candidate.item.id, type: 'series' },
-        'gap-repair',
+      result = await processSeries(
+        { id, type: 'series' },
+        'sequential-backfill',
         {
           episodeStrategy: 'latest',
-          episodeLimit: priorityEpisodesPerSeries,
+          episodeLimit: Math.max(1, Math.min(
+            backfillEpisodeLimit,
+            maxAffiliateRequests - affiliateRequestsUsed,
+          )),
+          onlyMissing: true,
         },
       );
-      const refreshed = items.find((item) =>
-        item?.type === 'series' && String(item.id) === String(candidate.item.id),
-      );
-      const remaining = seriesArchiveDeficit(refreshed);
-      if (
-        result?.added &&
-        (
-          remaining.total < candidate.deficit.total ||
-          refreshed?.publicationStatus === 'published'
-        )
-      ) {
-        stats.incompleteSeriesRepaired += 1;
-      }
-      if (
-        remaining.total > 0 ||
-        refreshed?.publicationStatus !== 'published'
-      ) {
-        stats.incompleteSeriesStillMissing += 1;
-      }
+    } catch (error) {
+      rememberError(`sequential-backfill-${id || 'unknown'}`, error);
+      result = { added: false, addedEpisodes: 0, reason: 'request-error' };
+    }
+
+    const refreshed = items.find((item) =>
+      item?.type === 'series' && String(item.id) === id,
+    );
+    const remaining = seriesArchiveDeficit(refreshed);
+    const addedEpisodes = Number(result?.addedEpisodes || 0);
+    stats.backfillEpisodesAdded += addedEpisodes;
+
+    const completed = Boolean(
+      refreshed?.archiveComplete === true &&
+      refreshed?.publicationStatus === 'published' &&
+      remaining.total === 0,
+    );
+    const progressed = Boolean(
+      addedEpisodes > 0 ||
+      remaining.total < beforeTotal ||
+      completed,
+    );
+
+    if (completed) {
+      stats.incompleteSeriesRepaired += 1;
+      stats.backfillSeriesCompletedThisRun.push({ id, title });
+      state.archiveBackfillCompleted[id] = new Date().toISOString();
+      delete state.archiveBackfillNoProgress[id];
+      clearActiveBackfillSeries();
+      completedInThisRun += 1;
+
       rememberDiagnostic('seriesEpisodeDiagnostics', {
-        seriesId: String(candidate.item.id || ''),
-        title: candidate.item.nameFa || candidate.item.name || '',
-        source: 'gap-repair-summary',
-        missingBefore: candidate.deficit.missing,
-        pendingBefore: candidate.deficit.pending,
+        seriesId: id,
+        title,
+        source: 'sequential-backfill-summary',
+        missingBefore: active.deficit.missing,
+        pendingBefore: active.deficit.pending,
         missingAfter: remaining.missing,
         pendingAfter: remaining.pending,
         publicationStatus: refreshed?.publicationStatus || '',
-        reason: result?.reason || '',
+        result: 'completed',
       });
-    } catch (error) {
-      rememberError(`gap-repair-${candidate.item?.id || 'unknown'}`, error);
+
+      // Continue directly to the next series only when budget remains. The
+      // queue is always processed one title at a time.
+      if (affiliateBudgetExhausted) break;
+      continue;
     }
+
+    stats.incompleteSeriesStillMissing += 1;
+
+    if (progressed) {
+      state.archiveBackfillNoProgress[id] = 0;
+    } else if (!affiliateBudgetExhausted) {
+      state.archiveBackfillNoProgress[id] =
+        nonNegativeInt(state.archiveBackfillNoProgress[id], 0) + 1;
+    }
+
+    const noProgressRuns = nonNegativeInt(state.archiveBackfillNoProgress[id], 0);
+    stats.backfillNoProgressRuns = noProgressRuns;
+
+    if (
+      !affiliateBudgetExhausted &&
+      noProgressRuns >= maxBackfillNoProgressRuns
+    ) {
+      markSeriesBackfillBlocked(id, {
+        reason: result?.reason || 'no-progress',
+        missing: remaining.missing,
+        pending: remaining.pending,
+        attempts: noProgressRuns,
+      });
+      stats.backfillSeriesBlockedThisRun.push({
+        id,
+        title,
+        reason: result?.reason || 'no-progress',
+        attempts: noProgressRuns,
+      });
+      clearActiveBackfillSeries();
+
+      rememberDiagnostic('seriesEpisodeDiagnostics', {
+        seriesId: id,
+        title,
+        source: 'sequential-backfill-summary',
+        missingBefore: active.deficit.missing,
+        pendingBefore: active.deficit.pending,
+        missingAfter: remaining.missing,
+        pendingAfter: remaining.pending,
+        publicationStatus: 'building-archive',
+        result: 'blocked-after-no-progress',
+        attempts: noProgressRuns,
+      });
+
+      // Move to the next series only after the current one has been explicitly
+      // marked blocked. It stays hidden from the app and is listed in report.
+      continue;
+    }
+
+    rememberDiagnostic('seriesEpisodeDiagnostics', {
+      seriesId: id,
+      title,
+      source: 'sequential-backfill-summary',
+      missingBefore: active.deficit.missing,
+      pendingBefore: active.deficit.pending,
+      missingAfter: remaining.missing,
+      pendingAfter: remaining.pending,
+      publicationStatus: refreshed?.publicationStatus || '',
+      result: affiliateBudgetExhausted ? 'paused-by-budget' : 'still-in-progress',
+      addedEpisodes,
+      noProgressRuns,
+    });
+
+    // The current title remains active for the next workflow run. Do not jump
+    // to another title while this one is incomplete.
+    break;
   }
+
+  if (completedInThisRun > 0) {
+    console.log(`${completedInThisRun} سریال در این اجرا کامل شد.`);
+  }
+}
+
+function buildSequentialBackfillQueue() {
+  return items
+    .filter((item) => item?.type === 'series')
+    .map((item, catalogIndex) => ({
+      item,
+      catalogIndex,
+      deficit: seriesArchiveDeficit(item),
+    }))
+    .filter((entry) => {
+      const blocked = entry.item?.archiveAuditStatus === 'blocked';
+      if (blocked && !retryBlockedBackfill) return false;
+      return (
+        entry.deficit.total > 0 ||
+        entry.item?.publicationStatus !== 'published' ||
+        !hasSeriesArchiveMetadata(entry.item)
+      );
+    })
+    .sort((a, b) => {
+      const activeId = String(state.archiveBackfillSeriesId || '');
+      const aActive = String(a.item?.id || '') === activeId;
+      const bActive = String(b.item?.id || '') === activeId;
+      if (aActive !== bActive) return aActive ? -1 : 1;
+
+      // Country never affects the queue. Iranian, Korean, Turkish, American
+      // and every other series are ordered together from oldest to newest.
+      const yearDiff = seriesBackfillYear(a.item) - seriesBackfillYear(b.item);
+      if (yearDiff) return yearDiff;
+
+      const dateDiff =
+        seriesBackfillTimestamp(a.item) -
+        seriesBackfillTimestamp(b.item);
+      if (dateDiff) return dateDiff;
+
+      const titleDiff = String(a.item?.nameFa || a.item?.name || '').localeCompare(
+        String(b.item?.nameFa || b.item?.name || ''),
+        'fa',
+      );
+      if (titleDiff) return titleDiff;
+
+      return a.catalogIndex - b.catalogIndex;
+    });
+}
+
+function seriesBackfillYear(item) {
+  const year = Number(item?.year);
+  return Number.isInteger(year) && year >= 1900 && year <= 2100
+    ? year
+    : 9999;
+}
+
+function seriesBackfillTimestamp(item) {
+  for (const candidate of [
+    item?.sourceCreatedAt,
+    item?.createdAt,
+    item?.firstSeenAt,
+  ]) {
+    const timestamp = Date.parse(String(candidate || ''));
+    if (Number.isFinite(timestamp)) return timestamp;
+  }
+  return Number.MAX_SAFE_INTEGER;
+}
+
+function chooseActiveBackfillSeries(queue) {
+  const activeId = String(state.archiveBackfillSeriesId || '');
+  if (activeId) {
+    const active = queue.find((entry) => String(entry.item?.id || '') === activeId);
+    if (active) return active;
+    clearActiveBackfillSeries();
+  }
+  return queue[0] || null;
+}
+
+function clearActiveBackfillSeries() {
+  state.archiveBackfillSeriesId = '';
+  state.archiveBackfillSeriesTitle = '';
+}
+
+function markSeriesBackfillBlocked(id, detail = {}) {
+  const item = items.find((candidate) =>
+    candidate?.type === 'series' && String(candidate.id) === String(id),
+  );
+  if (!item) return;
+
+  replaceItem({
+    ...item,
+    archiveComplete: false,
+    publicationStatus: 'building-archive',
+    archiveAuditStatus: 'blocked',
+    archiveBlockedReason: String(detail.reason || 'no-progress'),
+    archiveBlockedAttempts: nonNegativeInt(detail.attempts, 0),
+    archiveBlockedMissing: Array.isArray(detail.missing) ? detail.missing.slice(0, 100) : [],
+    archiveBlockedPending: nonNegativeInt(detail.pending, 0),
+    archiveBlockedAt: new Date().toISOString(),
+  });
 }
 
 async function syncIranianSeriesArchive() {
@@ -1090,6 +1383,7 @@ async function processSeries(
 
   const detail = await fetchSeriesDetail(id);
   const series = detail.series;
+  const episodeDiscoveryComplete = detail.episodeDiscoveryComplete !== false;
 
   if (!series) {
     return { retryLater: false, completeBackfill: true, added: false, reason: 'missing-detail' };
@@ -1268,6 +1562,8 @@ async function processSeries(
   );
   const isAiring = inferSeriesAiring(series, existing);
   const archiveComplete =
+    episodeDiscoveryComplete &&
+    episodes.length > 0 &&
     remainingSourceEpisodes.length === 0 &&
     !stoppedByBudget;
   const historicalMissing = remainingSourceEpisodes.filter(
@@ -1312,6 +1608,9 @@ async function processSeries(
       publicationStatus,
       sourceEpisodeCount: episodes.length,
       pendingEpisodes: remainingSourceEpisodes,
+      episodeDiscoveryComplete,
+      episodePaginationPagesFetched: detail.episodePaginationPagesFetched || 0,
+      episodePaginationErrors: detail.episodePaginationErrors || 0,
     },
   );
 
@@ -1335,7 +1634,14 @@ async function processSeries(
     completeBackfill,
     added: true,
     addedEpisodes,
-    reason: 'added-or-updated',
+    archiveComplete,
+    publicationStatus,
+    remainingEpisodeCount: remainingSourceEpisodes.length,
+    sourceEpisodeCount: episodes.length,
+    episodeDiscoveryComplete,
+    reason: episodeDiscoveryComplete
+      ? 'added-or-updated'
+      : 'episode-discovery-incomplete',
   };
 }
 
@@ -1550,8 +1856,10 @@ async function fetchSeriesDetail(id) {
   const episodePayloads = [data];
   const queuedUrls = collectEpisodePaginationUrls(data);
   const visitedUrls = new Set();
+  let episodeDiscoveryComplete = true;
+  let paginationErrors = 0;
 
-  while (queuedUrls.length && visitedUrls.size < 20) {
+  while (queuedUrls.length && visitedUrls.size < maxEpisodePaginationPages) {
     const nextUrl = queuedUrls.shift();
     if (!nextUrl || visitedUrls.has(nextUrl)) continue;
     visitedUrls.add(nextUrl);
@@ -1560,25 +1868,49 @@ async function fetchSeriesDetail(id) {
       const pageJson = await fetchJson(nextUrl);
       const pageData = pageJson?.data ?? pageJson;
       episodePayloads.push(pageData);
+      stats.episodePaginationPagesFetched += 1;
       for (const discoveredUrl of collectEpisodePaginationUrls(pageData)) {
         if (!visitedUrls.has(discoveredUrl) && !queuedUrls.includes(discoveredUrl)) {
           queuedUrls.push(discoveredUrl);
         }
       }
     } catch (error) {
+      episodeDiscoveryComplete = false;
+      paginationErrors += 1;
+      stats.episodePaginationErrors += 1;
       rememberError(`series-${id}-episode-page-${visitedUrls.size}`, error);
     }
+  }
+
+  if (queuedUrls.length > 0) {
+    episodeDiscoveryComplete = false;
+    stats.episodePaginationTruncated += 1;
+    rememberDiagnostic('seriesEpisodeDiagnostics', {
+      seriesId: String(id),
+      title: series?.name_fa || series?.name || '',
+      source: 'episode-pagination',
+      result: 'pagination-limit-reached',
+      visitedPages: visitedUrls.size,
+      queuedPagesRemaining: queuedUrls.length,
+      pageLimit: maxEpisodePaginationPages,
+    });
   }
 
   const episodes = dedupeEpisodes(
     episodePayloads.flatMap((payload) => collectEpisodes(payload)),
   ).sort(compareEpisodes);
 
+  if (!episodeDiscoveryComplete) {
+    stats.episodeDiscoveryIncomplete += 1;
+  }
   stats.episodesDiscovered += episodes.length;
 
   return {
     series,
     episodes,
+    episodeDiscoveryComplete,
+    episodePaginationPagesFetched: visitedUrls.size - paginationErrors,
+    episodePaginationErrors: paginationErrors,
   };
 }
 
@@ -2119,6 +2451,17 @@ function normalizeSeries(
     archiveComplete: Boolean(archiveMeta.archiveComplete),
     publicationStatus: archiveMeta.publicationStatus || 'building-archive',
     isAiring: Boolean(archiveMeta.isAiring),
+    archiveEpisodeDiscoveryComplete:
+      archiveMeta.episodeDiscoveryComplete !== false,
+    archiveEpisodePaginationPagesFetched: nonNegativeInt(
+      archiveMeta.episodePaginationPagesFetched,
+      nonNegativeInt(existing?.archiveEpisodePaginationPagesFetched, 0),
+    ),
+    archiveEpisodePaginationErrors: nonNegativeInt(
+      archiveMeta.episodePaginationErrors,
+      0,
+    ),
+    archiveDiscoveryCheckedAt: new Date().toISOString(),
 
     latestEpisode: latestEpisode
       ? {
@@ -2730,6 +3073,7 @@ function seriesArchiveDeficit(item) {
     pendingFromCount,
     nonNegativeInt(item.archivePendingEpisodeCount, 0),
     Array.isArray(item.archivePendingEpisodes) ? item.archivePendingEpisodes.length : 0,
+    item.archiveEpisodeDiscoveryComplete === false ? 1 : 0,
   );
 
   return {
@@ -2755,25 +3099,31 @@ function withSeriesPublicationState(item) {
   const deficit = seriesArchiveDeficit(item);
   const hasArchiveMetadata = hasSeriesArchiveMetadata(item);
 
-  // Migration safety: do not make the entire existing catalog disappear on
-  // the first upgraded run. Legacy titles with an obvious numeric gap are
-  // hidden immediately; continuous legacy titles stay visible while they are
-  // audited in the priority repair queue.
+  // Strict publication rule: a legacy series is hidden until its source
+  // episode list has been audited. This prevents an apparently continuous but
+  // truncated archive (for example only episodes 1-6 of a 30-episode season)
+  // from being published merely because there is no numeric gap yet.
   if (!hasArchiveMetadata) {
     return {
       ...item,
       archiveComplete: false,
-      archivePendingEpisodeCount: deficit.pending,
-      publicationStatus:
-        deficit.missing.length > 0
-          ? 'building-archive'
-          : (item.publicationStatus || 'published'),
+      archivePendingEpisodeCount: Math.max(1, deficit.pending),
+      publicationStatus: 'building-archive',
       archiveAuditStatus: 'pending',
+    };
+  }
+
+  if (item.archiveAuditStatus === 'blocked' && !retryBlockedBackfill) {
+    return {
+      ...item,
+      archiveComplete: false,
+      publicationStatus: 'building-archive',
     };
   }
 
   const archiveComplete =
     deficit.total === 0 &&
+    item.archiveEpisodeDiscoveryComplete !== false &&
     Boolean(item.downloads?.length);
   const keepPublishedWhileAiring = Boolean(
     item.isAiring &&
