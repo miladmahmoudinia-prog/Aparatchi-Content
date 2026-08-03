@@ -5,7 +5,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const API_BASE = 'https://seeko.film/api/v1';
-const IRANIAN_SERIES_SCAN_VERSION = 2;
+const IRANIAN_SERIES_SCAN_VERSION = 3;
 
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
@@ -44,12 +44,17 @@ const maxAffiliateRequests = positiveInt(
 
 const episodesPerSeriesRun = positiveInt(
   process.env.UPERA_EPISODES_PER_SERIES,
-  5,
+  10,
 );
 
 const seriesTitlesPerRun = positiveInt(
   process.env.UPERA_SERIES_TITLES_PER_RUN,
   6,
+);
+
+const incompleteSeriesTitlesPerRun = Math.min(
+  8,
+  positiveInt(process.env.UPERA_INCOMPLETE_SERIES_TITLES_PER_RUN, 4),
 );
 
 // Priority passes fill the two sections that used to stay empty:
@@ -85,8 +90,8 @@ const operatorMovieTitlesPerRun = positiveInt(
 );
 
 const priorityEpisodesPerSeries = Math.min(
-  6,
-  positiveInt(process.env.UPERA_PRIORITY_EPISODES_PER_SERIES, 4),
+  16,
+  positiveInt(process.env.UPERA_PRIORITY_EPISODES_PER_SERIES, 10),
 );
 
 const maxIncrementalCandidates = positiveInt(
@@ -187,6 +192,9 @@ const stats = {
 
   seriesPagesProcessed: 0,
   seriesTitlesProcessed: 0,
+  incompleteSeriesCandidates: 0,
+  incompleteSeriesRepaired: 0,
+  incompleteSeriesStillMissing: 0,
   iranianSeriesProcessed: 0,
   episodesProcessed: 0,
 
@@ -209,6 +217,11 @@ const stats = {
   operatorClassificationsRemoved: operatorCleanup.removed,
   iranianSeriesDiagnostics: [],
   operatorDiagnostics: [],
+  seriesEpisodeDiagnostics: [],
+  catalogEpisodeGapDiagnostics: [],
+  episodesDiscovered: 0,
+  episodeGroupsAdded: 0,
+  episodesRejectedNoLinks: 0,
 
   moviesAddedOrUpdated: 0,
   seriesAddedOrUpdated: 0,
@@ -229,9 +242,15 @@ console.log(
   `شروع همگام‌سازی امن؛ ${items.length} عنوان قبلی حفظ می‌شود.`,
 );
 
+// Repair known gaps in already-saved series first, so titles already visible
+// in the app do not wait until their archive page is encountered again.
+await syncIncompleteSeriesRepair();
+
 // Fill the requested empty sections before the general archive can use
 // the affiliate request budget.
-await syncIranianSeriesArchive();
+if (!affiliateBudgetExhausted) {
+  await syncIranianSeriesArchive();
+}
 
 if (!affiliateBudgetExhausted) {
   await syncOperatorSeriesArchive();
@@ -294,6 +313,8 @@ const weeklySchedule = Array.isArray(
         activeIds.has(String(entry.itemId)),
     )
   : [];
+
+stats.catalogEpisodeGapDiagnostics = buildCatalogEpisodeGapDiagnostics(items);
 
 const now = new Date().toISOString();
 
@@ -360,6 +381,53 @@ async function syncIncrementalTitles() {
   }
 }
 
+
+async function syncIncompleteSeriesRepair() {
+  const candidates = items
+    .filter((item) => item?.type === 'series')
+    .map((item) => ({ item, missing: episodeGapsForGroups(item.downloads) }))
+    .filter((entry) => entry.missing.length > 0)
+    .sort((a, b) => {
+      const iranianDiff = Number(Boolean(b.item?.ir)) - Number(Boolean(a.item?.ir));
+      if (iranianDiff) return iranianDiff;
+      return b.missing.length - a.missing.length;
+    })
+    .slice(0, incompleteSeriesTitlesPerRun);
+
+  stats.incompleteSeriesCandidates = candidates.length;
+
+  for (const candidate of candidates) {
+    if (affiliateBudgetExhausted) break;
+    try {
+      const result = await processSeries(
+        { id: candidate.item.id, type: 'series' },
+        'gap-repair',
+        {
+          episodeStrategy: 'latest',
+          episodeLimit: priorityEpisodesPerSeries,
+        },
+      );
+      const refreshed = items.find((item) =>
+        item?.type === 'series' && String(item.id) === String(candidate.item.id),
+      );
+      const remaining = episodeGapsForGroups(refreshed?.downloads);
+      if (result?.added && remaining.length < candidate.missing.length) {
+        stats.incompleteSeriesRepaired += 1;
+      }
+      if (remaining.length) stats.incompleteSeriesStillMissing += 1;
+      rememberDiagnostic('seriesEpisodeDiagnostics', {
+        seriesId: String(candidate.item.id || ''),
+        title: candidate.item.nameFa || candidate.item.name || '',
+        source: 'gap-repair-summary',
+        missingBefore: candidate.missing,
+        missingAfter: remaining,
+        reason: result?.reason || '',
+      });
+    } catch (error) {
+      rememberError(`gap-repair-${candidate.item?.id || 'unknown'}`, error);
+    }
+  }
+}
 
 async function syncIranianSeriesArchive() {
   let completedPages = 0;
@@ -920,6 +988,18 @@ async function processSeries(
   let selectedEpisodes = [];
   let cursor = 0;
 
+  const missingEpisodes = episodes
+    .filter((episode) => !findEpisodeGroup(previousGroups, episode))
+    .sort(compareEpisodes);
+  const changedExistingEpisodes = episodes
+    .filter((episode) => findEpisodeGroup(previousGroups, episode))
+    .filter((episode) => episodeNeedsRefresh(episode, previousGroups))
+    .sort((a, b) =>
+      String(b.updated_at || b.created_at || '').localeCompare(
+        String(a.updated_at || a.created_at || ''),
+      ),
+    );
+
   if (options.onlyEpisodeId) {
     const matched = episodes.find(
       (episode) => String(episode.id) === String(options.onlyEpisodeId),
@@ -927,31 +1007,17 @@ async function processSeries(
     if (matched) selectedEpisodes = [matched];
   } else if (options.episodeStrategy === 'latest') {
     const limit = positiveInt(options.episodeLimit, priorityEpisodesPerSeries);
-    const changedEpisodes = episodes
-      .filter((episode) => episodeNeedsRefresh(episode, previousGroups))
-      .sort((a, b) =>
-        String(b.updated_at || b.created_at || '').localeCompare(
-          String(a.updated_at || a.created_at || ''),
-        ),
-      );
-
-    selectedEpisodes = changedEpisodes.slice(0, limit);
-    if (!selectedEpisodes.length && episodes.length) {
-      selectedEpisodes = episodes.slice(-limit).reverse();
-    }
+    // Completeness comes first: fill missing old/gap episodes before refreshing
+    // already-known recent episodes. This prevents lists such as 5,6,7,10.
+    selectedEpisodes = [
+      ...missingEpisodes,
+      ...changedExistingEpisodes,
+    ].slice(0, limit);
   } else if (source === 'incremental') {
-    const changedEpisodes = episodes
-      .filter((episode) => episodeNeedsRefresh(episode, previousGroups))
-      .sort((a, b) =>
-        String(b.updated_at || b.created_at || '').localeCompare(
-          String(a.updated_at || a.created_at || ''),
-        ),
-      );
-
-    selectedEpisodes = changedEpisodes.slice(0, episodesPerSeriesRun);
-    if (!selectedEpisodes.length && episodes.length) {
-      selectedEpisodes = episodes.slice(-2);
-    }
+    selectedEpisodes = [
+      ...missingEpisodes,
+      ...changedExistingEpisodes,
+    ].slice(0, episodesPerSeriesRun);
   } else {
     const savedCursor = nonNegativeInt(state.seriesEpisodeCursor[id], 0);
     cursor = savedCursor < episodes.length ? savedCursor : 0;
@@ -963,6 +1029,7 @@ async function processSeries(
   let latestAddedEpisode = null;
   let stoppedByBudget = false;
   let operatorLinksInThisTitle = 0;
+  const rejectedEpisodes = [];
 
   for (const episode of selectedEpisodes) {
     if (affiliateBudgetExhausted) {
@@ -985,10 +1052,23 @@ async function processSeries(
       operatorLinksInThisTitle += media.operatorFiles.length;
 
       if (options.requireOperator && !media.operatorFiles.length) {
+        rejectedEpisodes.push({
+          id: String(episode.id),
+          seasonNumber: episodeSeasonNumber(episode),
+          episodeNumber: episodeNumberValue(episode),
+          reason: 'no-operator-link',
+        });
         continue;
       }
 
       if (!media.downloads.length && !media.streamUrl) {
+        stats.episodesRejectedNoLinks += 1;
+        rejectedEpisodes.push({
+          id: String(episode.id),
+          seasonNumber: episodeSeasonNumber(episode),
+          episodeNumber: episodeNumberValue(episode),
+          reason: 'no-usable-links',
+        });
         continue;
       }
 
@@ -998,6 +1078,7 @@ async function processSeries(
 
       if (!previousGroup) {
         addedEpisodes += 1;
+        stats.episodeGroupsAdded += 1;
         latestAddedEpisode = episode;
       }
     } catch (error) {
@@ -1045,11 +1126,19 @@ async function processSeries(
   let updateLabel = existing?.updateLabel || '';
 
   if (addedEpisodes > 0 && latestAddedEpisode) {
-    const episodeNumber = Number(latestAddedEpisode.episode_number || 0);
+    const episodeNumber = episodeNumberValue(latestAddedEpisode);
     updateLabel = `قسمت ${toPersianDigits(episodeNumber)} اضافه شد`;
   } else if ((source === 'incremental' || source.endsWith('-priority')) && existing) {
     updateLabel = 'بروزرسانی شد';
   }
+
+  rememberSeriesEpisodeDiagnostic(
+    series,
+    source,
+    episodes,
+    mergedGroups,
+    rejectedEpisodes,
+  );
 
   const normalized = normalizeSeries(
     series,
@@ -1286,13 +1375,38 @@ async function fetchSeriesDetail(id) {
     series = data;
   }
 
-  const seasonData =
-    data?.season ||
-    data?.seasons ||
-    {};
+  // Some API deployments return episode lists in `season`, while others
+  // nest them elsewhere in the detail payload. Scan the complete payload,
+  // then follow any Laravel-style next-page URLs so older episodes are not
+  // silently omitted.
+  const episodePayloads = [data];
+  const queuedUrls = collectEpisodePaginationUrls(data);
+  const visitedUrls = new Set();
 
-  const episodes =
-    collectEpisodes(seasonData);
+  while (queuedUrls.length && visitedUrls.size < 20) {
+    const nextUrl = queuedUrls.shift();
+    if (!nextUrl || visitedUrls.has(nextUrl)) continue;
+    visitedUrls.add(nextUrl);
+
+    try {
+      const pageJson = await fetchJson(nextUrl);
+      const pageData = pageJson?.data ?? pageJson;
+      episodePayloads.push(pageData);
+      for (const discoveredUrl of collectEpisodePaginationUrls(pageData)) {
+        if (!visitedUrls.has(discoveredUrl) && !queuedUrls.includes(discoveredUrl)) {
+          queuedUrls.push(discoveredUrl);
+        }
+      }
+    } catch (error) {
+      rememberError(`series-${id}-episode-page-${visitedUrls.size}`, error);
+    }
+  }
+
+  const episodes = dedupeEpisodes(
+    episodePayloads.flatMap((payload) => collectEpisodes(payload)),
+  ).sort(compareEpisodes);
+
+  stats.episodesDiscovered += episodes.length;
 
   return {
     series,
@@ -1450,13 +1564,9 @@ function parseMediaLinks(links) {
 }
 
 function episodeGroup(episode, media) {
-  const season = Number(
-    episode.season_number || 1,
-  );
+  const season = episodeSeasonNumber(episode);
 
-  const number = Number(
-    episode.episode_number || 0,
-  );
+  const number = episodeNumberValue(episode);
 
   const files = [];
 
@@ -2121,13 +2231,9 @@ function findEpisodeGroup(
     episode?.id || '',
   );
 
-  const season = Number(
-    episode?.season_number || 1,
-  );
+  const season = episodeSeasonNumber(episode);
 
-  const number = Number(
-    episode?.episode_number || 0,
-  );
+  const number = episodeNumberValue(episode);
 
   return (
     groups.find((group) => {
@@ -2182,22 +2288,233 @@ function upsertEpisodeGroup(
   );
 
   if (index >= 0) {
-    groups[index] = next;
+    const current = groups[index];
+    const files = dedupeMediaFiles([
+      ...(Array.isArray(current?.files) ? current.files : []),
+      ...(Array.isArray(next?.files) ? next.files : []),
+    ]);
+    groups[index] = {
+      ...current,
+      ...next,
+      files,
+      sourceUpdatedAt: maxDate(current?.sourceUpdatedAt, next?.sourceUpdatedAt),
+    };
   } else {
     groups.push(next);
   }
 }
 
+
+function normalizeNumericText(value) {
+  return String(value ?? '')
+    .replace(/[۰-۹]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)))
+    .replace(/[٠-٩]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)));
+}
+
+function numericField(value, fallback = 0) {
+  const normalized = normalizeNumericText(value).trim();
+  if (!normalized) return fallback;
+  const direct = Number(normalized);
+  if (Number.isFinite(direct)) return direct;
+  const match = normalized.match(/\d+/);
+  return match ? Number(match[0]) : fallback;
+}
+
+function episodeNumberValue(episode) {
+  for (const candidate of [
+    episode?.episode_number,
+    episode?.episodeNumber,
+    episode?.episode,
+    episode?.number,
+    episode?.order,
+  ]) {
+    const value = numericField(candidate, 0);
+    if (value > 0) return value;
+  }
+
+  const label = normalizeNumericText(
+    episode?.name_fa || episode?.name || episode?.title || '',
+  );
+  const labeled = label.match(/(?:قسمت|episode|ep\.?|e)\s*[-:#]*\s*(\d{1,4})/i);
+  return labeled ? Number(labeled[1]) : 0;
+}
+
+function episodeSeasonNumber(episode) {
+  for (const candidate of [
+    episode?.season_number,
+    episode?.seasonNumber,
+    episode?.season,
+  ]) {
+    const value = numericField(candidate, 0);
+    if (value > 0) return value;
+  }
+
+  const label = normalizeNumericText(
+    episode?.name_fa || episode?.name || episode?.title || '',
+  );
+  const labeled = label.match(/(?:فصل|season|s)\s*[-:#]*\s*(\d{1,3})/i);
+  return labeled ? Number(labeled[1]) : 1;
+}
+
+function dedupeEpisodes(episodes) {
+  const byKey = new Map();
+  for (const episode of episodes || []) {
+    if (!episode || typeof episode !== 'object') continue;
+    const id = String(episode.id || '');
+    const season = episodeSeasonNumber(episode);
+    const number = episodeNumberValue(episode);
+    const key = id ? `id:${id}` : `s:${season}:e:${number}`;
+    if (!id && number <= 0) continue;
+    const current = byKey.get(key);
+    byKey.set(key, current ? { ...current, ...episode } : episode);
+  }
+  return [...byKey.values()];
+}
+
+function collectEpisodePaginationUrls(value) {
+  const result = new Set();
+  const seen = new Set();
+
+  function add(raw) {
+    if (typeof raw !== 'string' || !raw.trim()) return;
+    try {
+      const parsed = new URL(raw, API_BASE);
+      if (parsed.protocol !== 'https:' || parsed.hostname !== new URL(API_BASE).hostname) return;
+      result.add(parsed.toString());
+    } catch {
+      // Ignore malformed pagination metadata.
+    }
+  }
+
+  function walk(node, depth = 0) {
+    if (!node || depth > 10 || typeof node !== 'object' || seen.has(node)) return;
+    seen.add(node);
+
+    if (Array.isArray(node)) {
+      for (const entry of node) walk(entry, depth + 1);
+      return;
+    }
+
+    for (const [key, entry] of Object.entries(node)) {
+      if (/^(?:next_page_url|nextPageUrl)$/i.test(key)) add(entry);
+      if (key === 'links' && Array.isArray(entry)) {
+        for (const link of entry) {
+          if (link && typeof link === 'object' && /next|بعد/i.test(String(link.label || ''))) {
+            add(link.url);
+          }
+        }
+      }
+      walk(entry, depth + 1);
+    }
+  }
+
+  walk(value);
+  return [...result];
+}
+
+function dedupeMediaFiles(files) {
+  const seen = new Set();
+  const result = [];
+  for (const file of files || []) {
+    if (!file || typeof file !== 'object') continue;
+    const key = `${String(file.mode || 'download')}:${String(file.url || file.id || '')}`;
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    result.push(file);
+  }
+  return result;
+}
+
+function missingEpisodeNumbers(expectedNumbers, availableNumbers) {
+  const expected = [...new Set(expectedNumbers.filter((value) => value > 0))].sort((a, b) => a - b);
+  const available = new Set(availableNumbers.filter((value) => value > 0));
+  return expected.filter((value) => !available.has(value));
+}
+
+function rememberSeriesEpisodeDiagnostic(series, source, episodes, groups, rejectedEpisodes = []) {
+  const expectedBySeason = new Map();
+  const availableBySeason = new Map();
+
+  for (const episode of episodes || []) {
+    const season = episodeSeasonNumber(episode);
+    const number = episodeNumberValue(episode);
+    if (!expectedBySeason.has(season)) expectedBySeason.set(season, []);
+    if (number > 0) expectedBySeason.get(season).push(number);
+  }
+
+  for (const group of groups || []) {
+    const season = Number(group?.seasonNumber || 1);
+    const number = Number(group?.episodeNumber || 0);
+    if (!availableBySeason.has(season)) availableBySeason.set(season, []);
+    if (number > 0) availableBySeason.get(season).push(number);
+  }
+
+  const missing = [];
+  for (const [season, expected] of expectedBySeason.entries()) {
+    for (const episodeNumber of missingEpisodeNumbers(expected, availableBySeason.get(season) || [])) {
+      missing.push({ seasonNumber: season, episodeNumber });
+    }
+  }
+
+  rememberDiagnostic('seriesEpisodeDiagnostics', {
+    seriesId: String(series?.id || series?.t_id || ''),
+    title: cleanText(series?.name_fa || series?.name || ''),
+    source,
+    discoveredEpisodeCount: episodes.length,
+    catalogEpisodeCount: groups.length,
+    missing,
+    rejectedEpisodes,
+  });
+}
+
+function episodeGapsForGroups(groups) {
+  const bySeason = new Map();
+  for (const group of Array.isArray(groups) ? groups : []) {
+    const season = Number(group?.seasonNumber || 1);
+    const number = Number(group?.episodeNumber || 0);
+    if (number <= 0) continue;
+    if (!bySeason.has(season)) bySeason.set(season, []);
+    bySeason.get(season).push(number);
+  }
+
+  const missing = [];
+  for (const [season, numbers] of bySeason.entries()) {
+    const maximum = Math.max(0, ...numbers);
+    const available = new Set(numbers);
+    for (let number = 1; number <= maximum; number += 1) {
+      if (!available.has(number)) missing.push({ seasonNumber: season, episodeNumber: number });
+    }
+  }
+  return missing;
+}
+
+function buildCatalogEpisodeGapDiagnostics(catalogItems) {
+  const diagnostics = [];
+  for (const item of catalogItems || []) {
+    if (item?.type !== 'series' || !Array.isArray(item.downloads)) continue;
+    const missing = episodeGapsForGroups(item.downloads);
+    if (missing.length) {
+      diagnostics.push({
+        seriesId: String(item.id || ''),
+        title: item.nameFa || item.name || '',
+        missing,
+      });
+    }
+    if (diagnostics.length >= 100) break;
+  }
+  return diagnostics;
+}
+
 function compareEpisodes(a, b) {
   const seasonDiff =
-    Number(a.season_number || 0) -
-    Number(b.season_number || 0);
+    episodeSeasonNumber(a) -
+    episodeSeasonNumber(b);
 
   if (seasonDiff) return seasonDiff;
 
   return (
-    Number(a.episode_number || 0) -
-    Number(b.episode_number || 0)
+    episodeNumberValue(a) -
+    episodeNumberValue(b)
   );
 }
 
@@ -2232,6 +2549,8 @@ function collectEpisodes(value) {
           typeof entry === 'object' &&
           (
             entry.episode_number != null ||
+            entry.episodeNumber != null ||
+            entry.episode != null ||
             entry.series_id ||
             entry.type === 'episode'
           )
