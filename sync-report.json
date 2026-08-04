@@ -1,10 +1,10 @@
 {
-  "startedAt": "2026-08-04T19:34:57.650Z",
+  "startedAt": "2026-08-04T19:50:21.541Z",
   "originalCount": 650,
   "finalCount": 650,
   "requestedSyncMode": "AUTO",
   "effectiveSyncMode": "BACKFILL",
-  "backfillQueueTotal": 28,
+  "backfillQueueTotal": 27,
   "backfillBacklogRemaining": 27,
   "backfillBlockedTotal": 8,
   "backfillActiveSeries": {
@@ -12,34 +12,14 @@
     "title": "ابله تر",
     "year": 2015,
     "country": "IR",
-    "missingBefore": [
-      {
-        "seasonNumber": 1,
-        "episodeNumber": 2
-      },
-      {
-        "seasonNumber": 1,
-        "episodeNumber": 3
-      },
-      {
-        "seasonNumber": 1,
-        "episodeNumber": 4
-      }
-    ],
-    "pendingBefore": 0,
+    "missingBefore": [],
+    "pendingBefore": 18,
     "noProgressRuns": 0
   },
   "backfillSeriesCompletedThisRun": [],
-  "backfillSeriesBlockedThisRun": [
-    {
-      "id": "09070160-3a34-11e8-976b-cbc7d564706f",
-      "title": "شهرزاد",
-      "reason": "added-or-updated",
-      "attempts": 3
-    }
-  ],
-  "backfillEpisodesAdded": 3,
-  "backfillNoProgressRuns": 0,
+  "backfillSeriesBlockedThisRun": [],
+  "backfillEpisodesAdded": 0,
+  "backfillNoProgressRuns": 1,
   "normalSyncSkippedForBackfill": true,
   "backfillOrdering": "oldest-to-newest-global",
   "backfillNextSeries": {
@@ -62,13 +42,13 @@
   "airingSeriesUpdated": 0,
   "incompleteSeriesCandidates": 27,
   "incompleteSeriesRepaired": 0,
-  "incompleteSeriesStillMissing": 2,
-  "seriesHiddenUntilComplete": 2,
+  "incompleteSeriesStillMissing": 1,
+  "seriesHiddenUntilComplete": 1,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 2,
-  "episodesProcessed": 22,
+  "iranianSeriesProcessed": 1,
+  "episodesProcessed": 16,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
@@ -87,27 +67,6 @@
   "iranianSeriesDiagnostics": [],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
-    {
-      "seriesId": "09070160-3a34-11e8-976b-cbc7d564706f",
-      "title": "شهرزاد",
-      "source": "sequential-backfill",
-      "discoveredEpisodeCount": 77,
-      "catalogEpisodeCount": 59,
-      "missing": [],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "09070160-3a34-11e8-976b-cbc7d564706f",
-      "title": "شهرزاد",
-      "source": "sequential-backfill-summary",
-      "missingBefore": [],
-      "pendingBefore": 18,
-      "missingAfter": [],
-      "pendingAfter": 18,
-      "publicationStatus": "building-archive",
-      "result": "blocked-after-no-progress",
-      "attempts": 3
-    },
     {
       "seriesId": "6c71ffe0-3ef0-11e8-a14c-137f453c2a5d",
       "title": "ابله تر",
@@ -154,27 +113,14 @@
       "seriesId": "6c71ffe0-3ef0-11e8-a14c-137f453c2a5d",
       "title": "ابله تر",
       "source": "sequential-backfill-summary",
-      "missingBefore": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 2
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 3
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 4
-        }
-      ],
-      "pendingBefore": 0,
+      "missingBefore": [],
+      "pendingBefore": 18,
       "missingAfter": [],
       "pendingAfter": 18,
       "publicationStatus": "building-archive",
       "result": "still-in-progress",
-      "addedEpisodes": 3,
-      "noProgressRuns": 0
+      "addedEpisodes": 0,
+      "noProgressRuns": 1
     }
   ],
   "catalogEpisodeGapDiagnostics": [
@@ -1171,12 +1117,12 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 102,
-  "episodeGroupsAdded": 3,
+  "episodesDiscovered": 25,
+  "episodeGroupsAdded": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 2,
-  "affiliateRequests": 22,
+  "seriesAddedOrUpdated": 1,
+  "affiliateRequests": 16,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1191,18 +1137,6 @@
     {
       "scope": "episode-45c86e00-d02a-11ec-9953-a31100034ade",
       "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=45c86e00-d02a-11ec-9953-a31100034ade&type=episode&ref=***&traffic=1&token=***"
-    },
-    {
-      "scope": "episode-9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a&type=episode&ref=***&traffic=1&token=***"
-    },
-    {
-      "scope": "episode-45c86e00-d02a-11ec-9953-a31100034ade",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=45c86e00-d02a-11ec-9953-a31100034ade&type=episode&ref=***&traffic=1&token=***"
-    },
-    {
-      "scope": "episode-f7f53050-8cb6-11f1-9780-abd782dd77a1",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=f7f53050-8cb6-11f1-9780-abd782dd77a1&type=episode&ref=***&traffic=1&token=***"
     },
     {
       "scope": "episode-0fe8c940-6e52-11f1-b8dc-a5993cc534d7",
@@ -1266,6 +1200,6 @@
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 105,
-  "finishedAt": "2026-08-04T19:46:22.091Z"
+  "apiRequests": 86,
+  "finishedAt": "2026-08-04T19:59:56.809Z"
 }
