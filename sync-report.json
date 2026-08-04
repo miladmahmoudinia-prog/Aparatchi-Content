@@ -1,10 +1,10 @@
 {
-  "startedAt": "2026-08-04T17:47:56.610Z",
+  "startedAt": "2026-08-04T18:03:26.327Z",
   "originalCount": 650,
   "finalCount": 650,
   "requestedSyncMode": "AUTO",
   "effectiveSyncMode": "BACKFILL",
-  "backfillQueueTotal": 30,
+  "backfillQueueTotal": 29,
   "backfillBacklogRemaining": 29,
   "backfillBlockedTotal": 6,
   "backfillActiveSeries": {
@@ -12,46 +12,14 @@
     "title": "ابله",
     "year": 2014,
     "country": "IR",
-    "missingBefore": [
-      {
-        "seasonNumber": 1,
-        "episodeNumber": 1
-      },
-      {
-        "seasonNumber": 1,
-        "episodeNumber": 2
-      },
-      {
-        "seasonNumber": 1,
-        "episodeNumber": 4
-      },
-      {
-        "seasonNumber": 1,
-        "episodeNumber": 5
-      },
-      {
-        "seasonNumber": 1,
-        "episodeNumber": 6
-      },
-      {
-        "seasonNumber": 1,
-        "episodeNumber": 7
-      }
-    ],
-    "pendingBefore": 0,
+    "missingBefore": [],
+    "pendingBefore": 18,
     "noProgressRuns": 0
   },
   "backfillSeriesCompletedThisRun": [],
-  "backfillSeriesBlockedThisRun": [
-    {
-      "id": "30995770-d91a-11e8-a1de-3fdec812a3e5",
-      "title": "شوخی کردم",
-      "reason": "added-or-updated",
-      "attempts": 3
-    }
-  ],
-  "backfillEpisodesAdded": 10,
-  "backfillNoProgressRuns": 0,
+  "backfillSeriesBlockedThisRun": [],
+  "backfillEpisodesAdded": 0,
+  "backfillNoProgressRuns": 1,
   "normalSyncSkippedForBackfill": true,
   "backfillOrdering": "oldest-to-newest-global",
   "backfillNextSeries": {
@@ -74,13 +42,13 @@
   "airingSeriesUpdated": 0,
   "incompleteSeriesCandidates": 29,
   "incompleteSeriesRepaired": 0,
-  "incompleteSeriesStillMissing": 2,
-  "seriesHiddenUntilComplete": 2,
+  "incompleteSeriesStillMissing": 1,
+  "seriesHiddenUntilComplete": 1,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 2,
-  "episodesProcessed": 29,
+  "iranianSeriesProcessed": 1,
+  "episodesProcessed": 11,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
@@ -99,27 +67,6 @@
   "iranianSeriesDiagnostics": [],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
-    {
-      "seriesId": "30995770-d91a-11e8-a1de-3fdec812a3e5",
-      "title": "شوخی کردم",
-      "source": "sequential-backfill",
-      "discoveredEpisodeCount": 42,
-      "catalogEpisodeCount": 24,
-      "missing": [],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "30995770-d91a-11e8-a1de-3fdec812a3e5",
-      "title": "شوخی کردم",
-      "source": "sequential-backfill-summary",
-      "missingBefore": [],
-      "pendingBefore": 18,
-      "missingAfter": [],
-      "pendingAfter": 18,
-      "publicationStatus": "building-archive",
-      "result": "blocked-after-no-progress",
-      "attempts": 3
-    },
     {
       "seriesId": "2a00d500-3eed-11e8-bbc0-ef914c209838",
       "title": "ابله",
@@ -150,39 +97,14 @@
       "seriesId": "2a00d500-3eed-11e8-bbc0-ef914c209838",
       "title": "ابله",
       "source": "sequential-backfill-summary",
-      "missingBefore": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 1
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 2
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 4
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 5
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 6
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 7
-        }
-      ],
-      "pendingBefore": 0,
+      "missingBefore": [],
+      "pendingBefore": 18,
       "missingAfter": [],
       "pendingAfter": 18,
       "publicationStatus": "building-archive",
       "result": "still-in-progress",
-      "addedEpisodes": 10,
-      "noProgressRuns": 0
+      "addedEpisodes": 0,
+      "noProgressRuns": 1
     }
   ],
   "catalogEpisodeGapDiagnostics": [
@@ -1241,12 +1163,12 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 74,
-  "episodeGroupsAdded": 10,
+  "episodesDiscovered": 32,
+  "episodeGroupsAdded": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 2,
-  "affiliateRequests": 29,
+  "seriesAddedOrUpdated": 1,
+  "affiliateRequests": 11,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1261,38 +1183,6 @@
     {
       "scope": "episode-45c86e00-d02a-11ec-9953-a31100034ade",
       "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=45c86e00-d02a-11ec-9953-a31100034ade&type=episode&ref=***&traffic=1&token=***"
-    },
-    {
-      "scope": "episode-9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a&type=episode&ref=***&traffic=1&token=***"
-    },
-    {
-      "scope": "episode-45c86e00-d02a-11ec-9953-a31100034ade",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=45c86e00-d02a-11ec-9953-a31100034ade&type=episode&ref=***&traffic=1&token=***"
-    },
-    {
-      "scope": "episode-999d3220-8f4f-11f1-80be-c1e0daefe188",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=999d3220-8f4f-11f1-80be-c1e0daefe188&type=episode&ref=***&traffic=1&token=***"
-    },
-    {
-      "scope": "episode-f7f53050-8cb6-11f1-9780-abd782dd77a1",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=f7f53050-8cb6-11f1-9780-abd782dd77a1&type=episode&ref=***&traffic=1&token=***"
-    },
-    {
-      "scope": "episode-8a2c7c70-1a21-11f1-ae10-4f7a3c2190bf",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=8a2c7c70-1a21-11f1-ae10-4f7a3c2190bf&type=episode&ref=***&traffic=1&token=***"
-    },
-    {
-      "scope": "episode-14613be0-5f67-11f1-be9f-87496992859e",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=14613be0-5f67-11f1-be9f-87496992859e&type=episode&ref=***&traffic=1&token=***"
-    },
-    {
-      "scope": "episode-4b9424f0-e7f4-11f0-b3e6-33cffeab9913",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=4b9424f0-e7f4-11f0-b3e6-33cffeab9913&type=episode&ref=***&traffic=1&token=***"
-    },
-    {
-      "scope": "episode-fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2&type=episode&ref=***&traffic=1&token=***"
     },
     {
       "scope": "episode-9f4046d0-8e7f-11f1-a566-b19ea1c59921",
@@ -1336,6 +1226,6 @@
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 112,
-  "finishedAt": "2026-08-04T17:59:41.858Z"
+  "apiRequests": 61,
+  "finishedAt": "2026-08-04T18:10:08.288Z"
 }
