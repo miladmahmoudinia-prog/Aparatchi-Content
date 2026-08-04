@@ -1,47 +1,90 @@
 {
-  "startedAt": "2026-08-04T16:09:45.528Z",
+  "startedAt": "2026-08-04T16:24:04.760Z",
   "originalCount": 650,
   "finalCount": 650,
   "requestedSyncMode": "AUTO",
   "effectiveSyncMode": "BACKFILL",
   "backfillQueueTotal": 32,
-  "backfillBacklogRemaining": 32,
-  "backfillBlockedTotal": 3,
+  "backfillBacklogRemaining": 31,
+  "backfillBlockedTotal": 4,
   "backfillActiveSeries": {
-    "id": "223b4500-d7ca-11ef-a2a5-65ed70f68a2b",
-    "title": "دلبندان",
+    "id": "946774b0-3ee5-11e8-95aa-77b5803429da",
+    "title": "شاهگوش",
     "year": 2013,
     "country": "IR",
     "missingBefore": [
       {
         "seasonNumber": 1,
-        "episodeNumber": 1
+        "episodeNumber": 8
       },
       {
         "seasonNumber": 1,
-        "episodeNumber": 2
+        "episodeNumber": 9
       },
       {
         "seasonNumber": 1,
-        "episodeNumber": 3
+        "episodeNumber": 10
       },
       {
         "seasonNumber": 1,
-        "episodeNumber": 4
+        "episodeNumber": 12
+      },
+      {
+        "seasonNumber": 1,
+        "episodeNumber": 13
+      },
+      {
+        "seasonNumber": 1,
+        "episodeNumber": 14
+      },
+      {
+        "seasonNumber": 1,
+        "episodeNumber": 15
+      },
+      {
+        "seasonNumber": 1,
+        "episodeNumber": 16
+      },
+      {
+        "seasonNumber": 1,
+        "episodeNumber": 18
+      },
+      {
+        "seasonNumber": 1,
+        "episodeNumber": 19
+      },
+      {
+        "seasonNumber": 1,
+        "episodeNumber": 20
+      },
+      {
+        "seasonNumber": 1,
+        "episodeNumber": 21
+      },
+      {
+        "seasonNumber": 1,
+        "episodeNumber": 22
       }
     ],
-    "pendingBefore": 18,
-    "noProgressRuns": 1
+    "pendingBefore": 0,
+    "noProgressRuns": 0
   },
   "backfillSeriesCompletedThisRun": [],
-  "backfillSeriesBlockedThisRun": [],
-  "backfillEpisodesAdded": 0,
-  "backfillNoProgressRuns": 2,
+  "backfillSeriesBlockedThisRun": [
+    {
+      "id": "223b4500-d7ca-11ef-a2a5-65ed70f68a2b",
+      "title": "دلبندان",
+      "reason": "added-or-updated",
+      "attempts": 3
+    }
+  ],
+  "backfillEpisodesAdded": 18,
+  "backfillNoProgressRuns": 0,
   "normalSyncSkippedForBackfill": true,
   "backfillOrdering": "oldest-to-newest-global",
   "backfillNextSeries": {
-    "id": "946774b0-3ee5-11e8-95aa-77b5803429da",
-    "title": "شاهگوش",
+    "id": "30995770-d91a-11e8-a1de-3fdec812a3e5",
+    "title": "شوخی کردم",
     "year": 2013
   },
   "episodePaginationPagesFetched": 0,
@@ -57,15 +100,15 @@
   "airingSeriesCandidates": 1,
   "airingSeriesChecked": 1,
   "airingSeriesUpdated": 0,
-  "incompleteSeriesCandidates": 32,
+  "incompleteSeriesCandidates": 31,
   "incompleteSeriesRepaired": 0,
-  "incompleteSeriesStillMissing": 1,
-  "seriesHiddenUntilComplete": 1,
+  "incompleteSeriesStillMissing": 2,
+  "seriesHiddenUntilComplete": 2,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 1,
-  "episodesProcessed": 11,
+  "iranianSeriesProcessed": 2,
+  "episodesProcessed": 45,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
@@ -157,9 +200,83 @@
       ],
       "pendingAfter": 18,
       "publicationStatus": "building-archive",
+      "result": "blocked-after-no-progress",
+      "attempts": 3
+    },
+    {
+      "seriesId": "946774b0-3ee5-11e8-95aa-77b5803429da",
+      "title": "شاهگوش",
+      "source": "sequential-backfill",
+      "discoveredEpisodeCount": 46,
+      "catalogEpisodeCount": 28,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "946774b0-3ee5-11e8-95aa-77b5803429da",
+      "title": "شاهگوش",
+      "source": "sequential-backfill-summary",
+      "missingBefore": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 8
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 9
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 16
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 19
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 21
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "pendingBefore": 0,
+      "missingAfter": [],
+      "pendingAfter": 18,
+      "publicationStatus": "building-archive",
       "result": "still-in-progress",
-      "addedEpisodes": 0,
-      "noProgressRuns": 2
+      "addedEpisodes": 18,
+      "noProgressRuns": 0
     }
   ],
   "catalogEpisodeGapDiagnostics": [
@@ -1075,61 +1192,8 @@
     {
       "seriesId": "946774b0-3ee5-11e8-95aa-77b5803429da",
       "title": "شاهگوش",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 8
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 9
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 10
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 12
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 13
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 14
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 15
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 16
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 18
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 19
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 20
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 21
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 22
-        }
-      ],
-      "pendingEpisodeCount": 0,
+      "missing": [],
+      "pendingEpisodeCount": 18,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
@@ -1325,12 +1389,12 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 29,
-  "episodeGroupsAdded": 0,
+  "episodesDiscovered": 75,
+  "episodeGroupsAdded": 18,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 11,
+  "seriesAddedOrUpdated": 2,
+  "affiliateRequests": 45,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1383,11 +1447,75 @@
       "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=c8c7bfe0-8dee-11f0-a322-05750ae92848&type=episode&ref=***&traffic=1&token=***"
     },
     {
+      "scope": "episode-9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
+      "scope": "episode-45c86e00-d02a-11ec-9953-a31100034ade",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=45c86e00-d02a-11ec-9953-a31100034ade&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
+      "scope": "episode-0fe8c940-6e52-11f1-b8dc-a5993cc534d7",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=0fe8c940-6e52-11f1-b8dc-a5993cc534d7&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
+      "scope": "episode-8a2c7c70-1a21-11f1-ae10-4f7a3c2190bf",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=8a2c7c70-1a21-11f1-ae10-4f7a3c2190bf&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
+      "scope": "episode-14613be0-5f67-11f1-be9f-87496992859e",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=14613be0-5f67-11f1-be9f-87496992859e&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
+      "scope": "episode-4b9424f0-e7f4-11f0-b3e6-33cffeab9913",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=4b9424f0-e7f4-11f0-b3e6-33cffeab9913&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
+      "scope": "episode-fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
+      "scope": "episode-9f4046d0-8e7f-11f1-a566-b19ea1c59921",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=9f4046d0-8e7f-11f1-a566-b19ea1c59921&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
+      "scope": "episode-5f8394b0-89eb-11f1-a5d5-f5268777e2e0",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=5f8394b0-89eb-11f1-a5d5-f5268777e2e0&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
+      "scope": "episode-7c1448e0-d532-11f0-aebf-7f020b8689ca",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=7c1448e0-d532-11f0-aebf-7f020b8689ca&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
+      "scope": "episode-da7bbe30-c629-11f0-a062-ed284b0e9fd8",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=da7bbe30-c629-11f0-a062-ed284b0e9fd8&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
+      "scope": "episode-6a3891a0-be51-11f0-8f57-5b13bfa71465",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=6a3891a0-be51-11f0-8f57-5b13bfa71465&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
+      "scope": "episode-132053f0-d387-11f0-9b0a-65d68e4f69fd",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=132053f0-d387-11f0-9b0a-65d68e4f69fd&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
+      "scope": "episode-5ddab3a0-d130-11f0-bd64-1ba19d1d22f0",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=5ddab3a0-d130-11f0-bd64-1ba19d1d22f0&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
+      "scope": "episode-a74ad510-ab0f-11f0-9ad0-0f49e7b62786",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=a74ad510-ab0f-11f0-9ad0-0f49e7b62786&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
+      "scope": "episode-c8c7bfe0-8dee-11f0-a322-05750ae92848",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/getaffiliatelinks?id=c8c7bfe0-8dee-11f0-a322-05750ae92848&type=episode&ref=***&traffic=1&token=***"
+    },
+    {
       "scope": "airing-series-fbb54130-89c7-11ee-b35e-63f53dbb63af",
       "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/fbb54130-89c7-11ee-b35e-63f53dbb63af?affiliate=1"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 61,
-  "finishedAt": "2026-08-04T16:16:31.930Z"
+  "apiRequests": 160,
+  "finishedAt": "2026-08-04T16:40:44.084Z"
 }
