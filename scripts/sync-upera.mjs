@@ -142,6 +142,12 @@ const imageMirrorConcurrency = Math.min(
   positiveInt(process.env.APARATCHI_IMAGE_MIRROR_CONCURRENCY, 6),
 );
 
+// This counter must be initialized before the top-level sync flow calls
+// mirrorCatalogPeopleImages(). Keeping it near the helper functions causes
+// a temporal-dead-zone ReferenceError because those functions are invoked
+// earlier in this module.
+let mirroredImagesUsed = 0;
+
 if (!refId) {
   throw new Error(
     'GitHub Secret با نام UPERA_REF_ID تنظیم نشده است.',
@@ -4352,7 +4358,6 @@ async function mirrorImageUrl(sourceUrl, kind) {
   }
 }
 
-let mirroredImagesUsed = 0;
 async function mirrorCatalogItemImages(item) {
   for (const [field, kind] of [
     ['poster', 'posters'],
