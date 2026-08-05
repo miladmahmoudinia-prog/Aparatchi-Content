@@ -149,7 +149,7 @@ if (!refId) {
 }
 
 const defaultCatalog = {
-  version: '0.9.0-global-sequential-backfill',
+  version: '0.10.1-classification-and-publication-fix',
   updatedAt: new Date(0).toISOString(),
   items: [],
   iranianSchedule: [],
@@ -349,9 +349,14 @@ if (effectiveSyncMode === 'BACKFILL') {
     await syncAiringSeriesUpdates();
   }
 } else {
-  // Normal mode is used only after the current archive queue is empty (or
-  // when explicitly forced). Existing airing series are checked first.
-  await syncAiringSeriesUpdates();
+  // New and recently changed titles are always processed first. Older
+  // maintenance passes must never consume the whole request budget before the
+  // hourly incremental feed is checked.
+  await syncIncrementalTitles();
+
+  if (!affiliateBudgetExhausted) {
+    await syncAiringSeriesUpdates();
+  }
 
   if (!affiliateBudgetExhausted) {
     await syncIranianSeriesArchive();
@@ -363,10 +368,6 @@ if (effectiveSyncMode === 'BACKFILL') {
 
   if (!affiliateBudgetExhausted) {
     await syncOperatorMovieArchive();
-  }
-
-  if (!affiliateBudgetExhausted) {
-    await syncIncrementalTitles();
   }
 
   if (!affiliateBudgetExhausted) {
@@ -454,11 +455,13 @@ const weeklySchedule = Array.isArray(
 
 stats.catalogEpisodeGapDiagnostics = buildCatalogEpisodeGapDiagnostics(items);
 
+await mirrorCatalogPeopleImages(items, catalog.featuredPeople);
+
 const now = new Date().toISOString();
 
 const output = {
   ...catalog,
-  version: '0.9.0-global-sequential-backfill',
+  version: '0.10.1-classification-and-publication-fix',
   updatedAt: now,
   items,
   iranianSchedule,
@@ -2185,6 +2188,11 @@ function normalizeMovie(
       'movie',
       ir,
       genres,
+      {
+        nameFa: movie.name_fa || movie.name,
+        name: movie.name || movie.name_fa,
+        existing,
+      },
     );
 
   const operatorFiles = Array.isArray(media.operatorFiles)
@@ -2351,6 +2359,11 @@ function normalizeSeries(
       'series',
       ir,
       genres,
+      {
+        nameFa: series.name_fa || series.name,
+        name: series.name || series.name_fa,
+        existing,
+      },
     );
 
   const operatorFiles = groups.flatMap((group) =>
@@ -2523,37 +2536,114 @@ function normalizeSeries(
   };
 }
 
+function normalizeClassificationText(value) {
+  return cleanText(value)
+    .toLowerCase()
+    .normalize('NFKC')
+    .replace(/[يى]/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/[^a-z0-9\u0600-\u06ff]+/g, ' ')
+    .trim();
+}
+
+function hasClassificationTerm(text, terms) {
+  const padded = ` ${normalizeClassificationText(text)} `;
+  return terms.some((term) =>
+    padded.includes(` ${normalizeClassificationText(term)} `),
+  );
+}
+
 function classifyContent(
   type,
   ir,
   genres,
+  metadata = {},
 ) {
-  const normalizedGenres = genres.map(
-    (genre) =>
-      cleanText(genre).toLowerCase(),
+  const normalizedGenres = genres.map((genre) => normalizeClassificationText(genre));
+  const genreText = normalizedGenres.join(' ');
+  const titleText = normalizeClassificationText([
+    metadata.nameFa,
+    metadata.name,
+  ].filter(Boolean).join(' '));
+  const existing = metadata.existing || {};
+  const existingKind = normalizeClassificationText(existing.contentKind);
+  const existingCategories = normalizeClassificationText([
+    ...(Array.isArray(existing.categoryKeys) ? existing.categoryKeys : []),
+    ...(Array.isArray(existing.categoryLabels) ? existing.categoryLabels : []),
+  ].join(' '));
+
+  const isAnimation = normalizedGenres.some((genre) =>
+    genre.includes('انیمیشن') || genre.includes('animation'),
+  ) || Boolean(existing.isAnimation);
+
+  const isDocumentary = normalizedGenres.some((genre) =>
+    genre.includes('مستند') || genre.includes('documentary'),
+  ) || existingKind === 'documentary';
+
+  const adultOrHeavy = hasClassificationTerm(genreText, [
+    'ترسناک', 'وحشت', 'جنگی', 'جنایی', 'هیجان انگیز', 'بزرگسال',
+    'horror', 'war', 'crime', 'thriller', 'adult',
+  ]);
+
+  const isQuran = hasClassificationTerm(titleText, [
+    'قرآن', 'قرآنی', 'ترتیل', 'تلاوت', 'quran', 'recitation',
+  ]) || hasClassificationTerm(existingCategories, ['quran']);
+
+  const isReligious = Boolean(
+    isQuran ||
+    existingKind === 'religious program' ||
+    existingKind === 'quran program' ||
+    hasClassificationTerm(titleText, [
+      'ادعیه', 'دعا', 'دعای', 'مذهبی', 'مداحی', 'نوحه', 'زیارت',
+      'عاشورا', 'کربلا', 'پیامبر', 'نبی', 'امام', 'religious',
+    ]) ||
+    hasClassificationTerm(genreText, ['مذهبی', 'religious'])
   );
 
-  const isAnimation =
-    normalizedGenres.some(
-      (genre) =>
-        genre.includes('انیمیشن') ||
-        genre.includes('animation'),
-    );
+  const explicitKidsTitle = hasClassificationTerm(titleText, [
+    'کودک', 'کودکان', 'کودکانه', 'بچه ها', 'برنامه کودک', 'ترانه کودک',
+    'خاله نسرین', 'خاله سوسکه', 'با بابام', 'بیا آشتی کنیم', 'بنیامین',
+    'ننه لالا', 'kids', 'children', 'nursery',
+  ]);
+  const explicitKidsGenre = hasClassificationTerm(genreText, [
+    'کودک', 'کودکان', 'kids', 'children',
+  ]);
+  const animatedFamily = Boolean(
+    isAnimation &&
+    hasClassificationTerm(genreText, ['خانوادگی', 'family']) &&
+    !adultOrHeavy,
+  );
+  const isKids = Boolean(
+    !adultOrHeavy &&
+    (
+      existingKind === 'kids' ||
+      existingKind === 'children program' ||
+      explicitKidsTitle ||
+      explicitKidsGenre ||
+      animatedFamily
+    )
+  );
 
-  const isTalkShow =
-    normalizedGenres.some(
-      (genre) =>
-        genre.includes('تاک‌شو') ||
-        genre.includes('تاک شو') ||
-        genre.includes('talk'),
-    );
-
-  const isDocumentary =
-    normalizedGenres.some(
-      (genre) =>
-        genre.includes('مستند') ||
-        genre.includes('documentary'),
-    );
+  const isTalkShow = Boolean(
+    existing.isTalkShow ||
+    existingKind === 'talk show' ||
+    hasClassificationTerm(genreText, ['تاک شو', 'talk show']) ||
+    (type === 'series' && hasClassificationTerm(titleText, ['تاک شو', 'talk show']))
+  );
+  const isRealityCompetition = Boolean(
+    type === 'series' &&
+    (
+      existingKind === 'reality competition' ||
+      hasClassificationTerm(genreText, [
+        'رئالیتی شو', 'مسابقه تلویزیونی', 'reality', 'game show',
+      ]) ||
+      hasClassificationTerm(titleText, [
+        'رئالیتی شو', 'مسابقه', 'گیم شو', 'سیزده شمالی',
+        'شب های مافیا', 'جوکر', 'reality', 'game show',
+      ])
+    )
+  );
+  const isProgram = isTalkShow || isRealityCompetition;
 
   const categoryKeys = [];
   const categoryLabels = [];
@@ -2561,50 +2651,52 @@ function classifyContent(
   if (type === 'movie') {
     categoryKeys.push('movies');
     categoryLabels.push('فیلم‌ها');
-
-    if (ir) {
-      categoryKeys.push('iranian-movies');
-      categoryLabels.push('فیلم ایرانی');
-    } else {
-      categoryKeys.push('foreign-movies');
-      categoryLabels.push('فیلم خارجی');
-    }
   } else {
     categoryKeys.push('series');
-    categoryLabels.push('سریال‌ها');
+    categoryLabels.push('مجموعه‌ها');
+  }
 
-    if (ir) {
-      categoryKeys.push('iranian-series');
-      categoryLabels.push('سریال ایرانی');
+  const specialSection = isReligious || isKids || isProgram || isAnimation || isDocumentary;
+  if (!specialSection) {
+    if (type === 'movie') {
+      categoryKeys.push(ir ? 'iranian-movies' : 'foreign-movies');
+      categoryLabels.push(ir ? 'فیلم ایرانی' : 'فیلم خارجی');
     } else {
-      categoryKeys.push('foreign-series');
-      categoryLabels.push('سریال خارجی');
+      categoryKeys.push(ir ? 'iranian-series' : 'foreign-series');
+      categoryLabels.push(ir ? 'سریال ایرانی' : 'سریال خارجی');
     }
   }
 
   if (isAnimation) {
-    if (type === 'movie') {
-      categoryKeys.push(
-        'animation-movies',
-      );
+    categoryKeys.push(type === 'movie' ? 'animation-movies' : 'animation-series');
+    categoryLabels.push(type === 'movie' ? 'انیمیشن سینمایی' : 'انیمیشن سریالی');
+  }
 
-      categoryLabels.push(
-        'انیمیشن سینمایی',
-      );
-    } else {
-      categoryKeys.push(
-        'animation-series',
-      );
+  if (isKids) {
+    categoryKeys.push('kids');
+    categoryLabels.push('کودکان');
+  }
 
-      categoryLabels.push(
-        'انیمیشن سریالی',
-      );
+  if (isReligious) {
+    categoryKeys.push('religious');
+    categoryLabels.push('مذهبی و مناسبتی');
+    if (isQuran) {
+      categoryKeys.push('quran');
+      categoryLabels.push('قرآن و ادعیه');
     }
   }
 
-  if (isTalkShow) {
-    categoryKeys.push('talk-shows');
-    categoryLabels.push('تاک‌شو');
+  if (isProgram) {
+    categoryKeys.push('programs');
+    categoryLabels.push('برنامه‌ها و مسابقه‌ها');
+    if (isTalkShow) {
+      categoryKeys.push('talk-shows');
+      categoryLabels.push('تاک‌شو');
+    }
+    if (isRealityCompetition) {
+      categoryKeys.push('reality');
+      categoryLabels.push('مسابقه و رئالیتی‌شو');
+    }
   }
 
   if (isDocumentary) {
@@ -2613,27 +2705,17 @@ function classifyContent(
   }
 
   let contentKind = type;
-
-  if (isAnimation) {
-    contentKind =
-      type === 'movie'
-        ? 'animation-movie'
-        : 'animation-series';
-  } else if (isTalkShow) {
-    contentKind = 'talk-show';
-  } else if (isDocumentary) {
-    contentKind = 'documentary';
-  }
+  if (isQuran) contentKind = 'religious-program';
+  else if (isReligious) contentKind = 'religious-program';
+  else if (isKids) contentKind = isAnimation ? 'kids' : 'children-program';
+  else if (isRealityCompetition) contentKind = 'reality-competition';
+  else if (isTalkShow) contentKind = 'talk-show';
+  else if (isAnimation) contentKind = type === 'movie' ? 'animation-movie' : 'animation-series';
+  else if (isDocumentary) contentKind = 'documentary';
 
   return {
-    categoryKeys: [
-      ...new Set(categoryKeys),
-    ],
-
-    categoryLabels: [
-      ...new Set(categoryLabels),
-    ],
-
+    categoryKeys: [...new Set(categoryKeys)],
+    categoryLabels: [...new Set(categoryLabels)],
     contentKind,
     isAnimation,
     isTalkShow,
@@ -3069,12 +3151,25 @@ function seriesArchiveDeficit(item) {
   const missing = episodeGapsForGroups(groups);
   const sourceEpisodeCount = nonNegativeInt(item.sourceEpisodeCount, 0);
   const pendingFromCount = Math.max(0, sourceEpisodeCount - groups.length);
-  const pending = Math.max(
-    pendingFromCount,
-    nonNegativeInt(item.archivePendingEpisodeCount, 0),
-    Array.isArray(item.archivePendingEpisodes) ? item.archivePendingEpisodes.length : 0,
-    item.archiveEpisodeDiscoveryComplete === false ? 1 : 0,
+  const hasExplicitPendingList = Array.isArray(item.archivePendingEpisodes);
+  const auditedDiscoveryComplete = Boolean(
+    item.archiveAuditStatus === 'checked' &&
+    item.archiveEpisodeDiscoveryComplete !== false &&
+    nonNegativeInt(item.archiveEpisodePaginationErrors, 0) === 0 &&
+    cleanText(item.archiveDiscoveryCheckedAt) &&
+    hasExplicitPendingList,
   );
+  const explicitPendingCount = hasExplicitPendingList
+    ? item.archivePendingEpisodes.length
+    : 0;
+  const pending = auditedDiscoveryComplete
+    ? explicitPendingCount
+    : Math.max(
+        pendingFromCount,
+        nonNegativeInt(item.archivePendingEpisodeCount, 0),
+        explicitPendingCount,
+        item.archiveEpisodeDiscoveryComplete === false ? 1 : 0,
+      );
 
   return {
     missing,
@@ -4271,6 +4366,40 @@ async function mirrorCatalogItemImages(item) {
     const next = await mirrorImageUrl(value, kind);
     mirroredImagesUsed += 1;
     if (next) item[field] = next;
+  }
+}
+
+async function mirrorCatalogPeopleImages(catalogItems, featuredPeople) {
+  if (maxMirroredImagesPerRun <= 0) return;
+
+  const targetsByUrl = new Map();
+  const register = (person) => {
+    const value = cleanText(person?.image);
+    if (!value || /^(?:\.\/)?assets\/media\//i.test(value)) return;
+    if (!/^https?:\/\//i.test(value)) return;
+    const setters = targetsByUrl.get(value) || [];
+    setters.push((next) => { person.image = next; });
+    targetsByUrl.set(value, setters);
+  };
+
+  for (const item of Array.isArray(catalogItems) ? catalogItems : []) {
+    for (const person of Array.isArray(item?.people) ? item.people : []) register(person);
+  }
+  for (const person of Array.isArray(featuredPeople) ? featuredPeople : []) register(person);
+
+  const targets = [...targetsByUrl.entries()].sort(([a], [b]) =>
+    Number(/image\.tmdb\.org/i.test(b)) - Number(/image\.tmdb\.org/i.test(a)),
+  );
+
+  for (let offset = 0; offset < targets.length && mirroredImagesUsed < maxMirroredImagesPerRun; offset += imageMirrorConcurrency) {
+    const batch = targets.slice(offset, offset + imageMirrorConcurrency);
+    await Promise.all(batch.map(async ([url, setters]) => {
+      if (mirroredImagesUsed >= maxMirroredImagesPerRun) return;
+      mirroredImagesUsed += 1;
+      const next = await mirrorImageUrl(url, 'people');
+      if (!next || next === url) return;
+      for (const setter of setters) setter(next);
+    }));
   }
 }
 
