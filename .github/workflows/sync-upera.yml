@@ -14,7 +14,7 @@ on:
       series_pages:
         description: 'تعداد صفحات سریال برای بررسی در این اجرا'
         required: false
-        default: '1'
+        default: '3'
 
       new_hours:
         description: 'بررسی تغییرات چند ساعت اخیر'
@@ -50,7 +50,7 @@ jobs:
           NEW_HOURS='${{ github.event.inputs.new_hours }}'
 
           echo "MOVIE_PAGES_PER_RUN=${MOVIE_PAGES:-3}" >> "$GITHUB_ENV"
-          echo "SERIES_PAGES_PER_RUN=${SERIES_PAGES:-1}" >> "$GITHUB_ENV"
+          echo "SERIES_PAGES_PER_RUN=${SERIES_PAGES:-3}" >> "$GITHUB_ENV"
           echo "NEW_TITLES_HOURS=${NEW_HOURS:-72}" >> "$GITHUB_ENV"
 
       - name: Sync new movies and series
@@ -59,10 +59,20 @@ jobs:
           UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
           UPERA_SYNC_MODE: 'NORMAL'
           SYNC_CONCURRENCY: '5'
-          UPERA_MAX_REQUESTS_PER_RUN: '35'
+          UPERA_MAX_REQUESTS_PER_RUN: '60'
           UPERA_REQUEST_DELAY_MS: '3500'
-          UPERA_AIRING_SERIES_TITLES_PER_RUN: '6'
-          UPERA_SERIES_TITLES_PER_RUN: '6'
+          UPERA_AIRING_SERIES_TITLES_PER_RUN: '4'
+          UPERA_SERIES_TITLES_PER_RUN: '4'
+          UPERA_INCREMENTAL_LIMIT: '20'
+          UPERA_IRANIAN_SERIES_PAGES_PER_RUN: '1'
+          UPERA_IRANIAN_SERIES_TITLES_PER_RUN: '2'
+          UPERA_OPERATOR_SERIES_PAGES_PER_RUN: '1'
+          UPERA_OPERATOR_SERIES_TITLES_PER_RUN: '1'
+          UPERA_OPERATOR_MOVIE_PAGES_PER_RUN: '1'
+          UPERA_OPERATOR_MOVIE_TITLES_PER_RUN: '1'
+          UPERA_PRIORITY_EPISODES_PER_SERIES: '10'
+          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '120'
+          APARATCHI_IMAGE_MIRROR_CONCURRENCY: '6'
         run: node scripts/sync-upera.mjs
 
       - name: Complete old series archives
@@ -76,6 +86,8 @@ jobs:
           UPERA_MAX_EPISODE_PAGES: '50'
           UPERA_BACKFILL_MAX_NO_PROGRESS_RUNS: '5'
           UPERA_REQUEST_DELAY_MS: '3500'
+          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '120'
+          APARATCHI_IMAGE_MIRROR_CONCURRENCY: '6'
         run: node scripts/sync-upera.mjs
 
       - name: Commit updated catalog
