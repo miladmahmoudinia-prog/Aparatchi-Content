@@ -50,6 +50,32 @@ const syncModeSetting = ['AUTO', 'BACKFILL', 'NORMAL'].includes(requestedSyncMod
   ? requestedSyncMode
   : 'AUTO';
 
+// Each GitHub Actions step has a hard internal time budget. The script stops
+// requesting new pages before the deadline, writes catalog/state/report, and
+// lets the next hourly run continue from the saved cursor. This prevents a few
+// slow or broken source links from keeping one workflow alive for hours.
+const runStartedAtMs = Date.now();
+const runTimeLimitMinutes = Math.min(
+  30,
+  positiveInt(
+    process.env.APARATCHI_RUN_TIME_LIMIT_MINUTES,
+    syncModeSetting === 'BACKFILL' ? 18 : 8,
+  ),
+);
+const runCheckpointReserveMs = Math.min(
+  120000,
+  positiveInt(process.env.APARATCHI_CHECKPOINT_RESERVE_MS, 45000),
+);
+const requestTimeoutMs = Math.min(
+  20000,
+  positiveInt(process.env.APARATCHI_REQUEST_TIMEOUT_MS, 15000),
+);
+const requestMaxAttempts = Math.min(
+  3,
+  positiveInt(process.env.APARATCHI_REQUEST_MAX_ATTEMPTS, 2),
+);
+const runDeadlineAtMs = runStartedAtMs + runTimeLimitMinutes * 60 * 1000;
+
 const maxBackfillNoProgressRuns = Math.min(
   10,
   positiveInt(process.env.UPERA_BACKFILL_MAX_NO_PROGRESS_RUNS, 3),
@@ -147,9 +173,9 @@ const maxIncrementalCandidates = positiveInt(
   10,
 );
 
-const maxMirroredImagesPerRun = positiveInt(
-  process.env.APARATCHI_SYNC_MAX_MIRRORED_IMAGES,
-  120,
+const maxMirroredImagesPerRun = Math.min(
+  240,
+  nonNegativeInt(process.env.APARATCHI_SYNC_MAX_MIRRORED_IMAGES, 40),
 );
 
 const imageMirrorConcurrency = Math.min(
@@ -170,7 +196,7 @@ if (!refId) {
 }
 
 const defaultCatalog = {
-  version: '0.10.2-fast-archive-and-classification',
+  version: '0.10.3-bounded-sync-and-operator-access',
   updatedAt: new Date(0).toISOString(),
   items: [],
   iranianSchedule: [],
@@ -259,7 +285,16 @@ let items = Array.isArray(catalog.items)
 
 // Operator access is recomputed from validated files on every run. This
 // removes stale badges/categories created by older, overly broad matching.
-const operatorCleanup = sanitizeCatalogOperatorAccess(items);
+// Existing duplicate rows (for example direct + operator versions of one title)
+// are merged before the new sync starts.
+const initialOperatorCleanup = sanitizeCatalogOperatorAccess(items);
+const duplicateCleanup = mergeDuplicateCatalogItems(initialOperatorCleanup.items);
+const finalOperatorCleanup = sanitizeCatalogOperatorAccess(duplicateCleanup.items);
+const operatorCleanup = {
+  items: finalOperatorCleanup.items,
+  removed: initialOperatorCleanup.removed + finalOperatorCleanup.removed,
+  duplicatesMerged: duplicateCleanup.merged,
+};
 items = operatorCleanup.items.map((item) => withSeriesPublicationState(item));
 
 let lastAffiliateRequestAt = 0;
@@ -268,6 +303,12 @@ let affiliateBudgetExhausted = false;
 
 const stats = {
   startedAt: new Date().toISOString(),
+  runTimeLimitMinutes,
+  runDeadlineAt: new Date(runDeadlineAtMs).toISOString(),
+  stoppedByTimeBudget: false,
+  timeBudgetStopContext: '',
+  remainingRunMsAtFinish: 0,
+  imageMirroringSkipped: false,
   originalCount: items.length,
   finalCount: items.length,
   requestedSyncMode: syncModeSetting,
@@ -329,6 +370,7 @@ const stats = {
   operatorMoviesRejectedNoOperatorLink: 0,
   operatorLinksFound: 0,
   operatorClassificationsRemoved: operatorCleanup.removed,
+  duplicateCatalogItemsMerged: operatorCleanup.duplicatesMerged,
   iranianSeriesDiagnostics: [],
   operatorDiagnostics: [],
   seriesEpisodeDiagnostics: [],
@@ -489,13 +531,21 @@ const weeklySchedule = Array.isArray(
 
 stats.catalogEpisodeGapDiagnostics = buildCatalogEpisodeGapDiagnostics(items);
 
-await mirrorCatalogPeopleImages(items, catalog.featuredPeople);
+if (
+  effectiveSyncMode !== 'BACKFILL' &&
+  maxMirroredImagesPerRun > 0 &&
+  !runTimeBudgetReached('image-mirroring', 90000)
+) {
+  await mirrorCatalogPeopleImages(items, catalog.featuredPeople);
+} else {
+  stats.imageMirroringSkipped = true;
+}
 
 const now = new Date().toISOString();
 
 const output = {
   ...catalog,
-  version: '0.10.2-fast-archive-and-classification',
+  version: '0.10.3-bounded-sync-and-operator-access',
   updatedAt: now,
   items,
   iranianSchedule,
@@ -507,6 +557,7 @@ state.lastSyncAt = now;
 stats.finishedAt = now;
 stats.finalCount = items.length;
 stats.affiliateRequests = affiliateRequestsUsed;
+stats.remainingRunMsAtFinish = Math.max(0, runDeadlineAtMs - Date.now());
 
 await writeJson(catalogPath, output);
 await writeJson(statePath, state);
@@ -618,7 +669,11 @@ async function syncSequentialSeriesBackfill() {
   let completedInThisRun = 0;
   const visitedThisRun = new Set();
 
-  while (!affiliateBudgetExhausted && processedSeries < backfillSeriesPerRun) {
+  while (
+    !affiliateBudgetExhausted &&
+    !runTimeBudgetReached('backfill-loop') &&
+    processedSeries < backfillSeriesPerRun
+  ) {
     const queue = buildSequentialBackfillQueue();
     stats.incompleteSeriesCandidates = queue.length;
     stats.backfillQueueTotal = Math.max(stats.backfillQueueTotal, queue.length);
@@ -704,8 +759,7 @@ async function syncSequentialSeriesBackfill() {
     const progressed = Boolean(
       addedEpisodes > 0 ||
       remaining.total < beforeTotal ||
-      completed ||
-      Number(result?.unavailableMarked || 0) > 0,
+      completed,
     );
 
     if (completed) {
@@ -759,6 +813,7 @@ async function syncSequentialSeriesBackfill() {
 
     clearActiveBackfillSeries();
     await persistSyncCheckpoint(`backfill-${id}`);
+    if (runTimeBudgetReached('after-backfill-checkpoint')) break;
   }
 
   if (completedInThisRun > 0) {
@@ -1361,7 +1416,8 @@ async function processMovie(candidate, source, options = {}) {
   }
 
   const existing = findExistingItem(movie, 'movie');
-  const normalized = normalizeMovie(movie, media, source, existing);
+  const mergedMedia = mergeMovieMedia(existing, media);
+  const normalized = normalizeMovie(movie, mergedMedia, source, existing);
 
   replaceItem(normalized);
   stats.moviesAddedOrUpdated += 1;
@@ -1474,7 +1530,6 @@ async function processSeries(
 
   const missingEpisodes = episodes
     .filter((episode) => !findEpisodeGroup(previousGroups, episode))
-    .filter((episode) => !unavailableEpisodeMap.has(archiveEpisodeKey(id, episode)))
     .sort(compareEpisodes);
   const changedExistingEpisodes = episodes
     .filter((episode) => findEpisodeGroup(previousGroups, episode))
@@ -1571,6 +1626,11 @@ async function processSeries(
         latestAddedEpisode = episode;
       }
     } catch (error) {
+      if (isRunTimeBudgetError(error)) {
+        stoppedByBudget = true;
+        affiliateBudgetExhausted = true;
+        break;
+      }
       rememberError(`episode-${episode.id}`, error);
       if (registerArchiveEpisodeFailure(id, episode, 'request-error', unavailableEpisodeMap)) {
         unavailableMarked += 1;
@@ -1624,10 +1684,11 @@ async function processSeries(
     updateLabel = 'بروزرسانی شد';
   }
 
+  // A source episode without a usable file remains missing. Failure markers are
+  // diagnostic only; they must not allow an incomplete old series to be
+  // published, and the episode is retried on later hourly runs.
   const remainingSourceEpisodes = episodes.filter(
-    (episode) =>
-      !findEpisodeGroup(mergedGroups, episode) &&
-      !unavailableEpisodeMap.has(archiveEpisodeKey(id, episode)),
+    (episode) => !findEpisodeGroup(mergedGroups, episode),
   );
   const isAiring = inferSeriesAiring(series, existing);
   const archiveComplete =
@@ -1989,6 +2050,11 @@ async function fetchAffiliateLinks(
   id,
   type,
 ) {
+  if (runTimeBudgetReached('affiliate-request', 30000)) {
+    stats.skippedByBudget += 1;
+    return { links: [], skipped: true };
+  }
+
   if (
     affiliateRequestsUsed >=
     maxAffiliateRequests
@@ -2046,9 +2112,10 @@ async function throttleAffiliateRequest() {
     elapsed;
 
   if (remaining > 0) {
-    await sleep(remaining);
+    await sleepWithinRunBudget(remaining, 'affiliate-throttle');
   }
 
+  throwIfRunTimeBudgetReached('affiliate-throttle-finished', 30000);
   lastAffiliateRequestAt = Date.now();
 }
 
@@ -2102,9 +2169,9 @@ function parseMediaLinks(links) {
     files,
   }));
 
-  const operatorFiles = operatorLinks.map((link) =>
-    toOperatorFile(link),
-  );
+  const operatorFiles = operatorLinks
+    .map((link) => toOperatorFile(link))
+    .filter(Boolean);
 
   if (operatorFiles.length) {
     downloads.push({
@@ -2132,6 +2199,198 @@ function parseMediaLinks(links) {
       operatorFiles.flatMap((file) => file.supportedOperators || []),
     ),
   };
+}
+
+function mergeDownloadSections(existingSections, incomingSections) {
+  const order = [];
+  const byId = new Map();
+
+  for (const section of [
+    ...(Array.isArray(existingSections) ? existingSections : []),
+    ...(Array.isArray(incomingSections) ? incomingSections : []),
+  ]) {
+    if (!section || typeof section !== 'object') continue;
+    const id = cleanText(section.id || '') || `section-${simpleHash(JSON.stringify(section))}`;
+    const current = byId.get(id);
+    const next = current
+      ? {
+          ...current,
+          ...section,
+          id,
+          files: dedupeMediaFiles([
+            ...(Array.isArray(current.files) ? current.files : []),
+            ...(Array.isArray(section.files) ? section.files : []),
+          ]),
+        }
+      : {
+          ...section,
+          id,
+          files: dedupeMediaFiles(Array.isArray(section.files) ? section.files : []),
+        };
+
+    if (!byId.has(id)) order.push(id);
+    byId.set(id, next);
+  }
+
+  return order
+    .map((id) => byId.get(id))
+    .filter((section) => Array.isArray(section?.files) && section.files.length > 0);
+}
+
+function mergeMovieMedia(existing, media) {
+  const downloads = mergeDownloadSections(existing?.downloads, media?.downloads);
+  const allFiles = downloads.flatMap((section) => section.files || []);
+  const operatorFiles = allFiles.filter((file) => isValidStoredOperatorFile(file));
+
+  return {
+    ...media,
+    downloads,
+    streamUrl: media?.streamUrl || existing?.streamUrl || null,
+    operatorFiles,
+    operatorAccess: operatorAccessFromFiles(operatorFiles),
+    supportedOperators: uniqueStrings(
+      operatorFiles.flatMap((file) => file.supportedOperators || []),
+    ),
+  };
+}
+
+function chooseCanonicalTitle(left, right) {
+  const values = [cleanText(left), cleanText(right)].filter(Boolean);
+  if (!values.length) return '';
+  return [...values].sort((a, b) => {
+    const aIdentity = normalizeIdentityName(a);
+    const bIdentity = normalizeIdentityName(b);
+    if (aIdentity === bIdentity) return a.length - b.length;
+    return b.length - a.length;
+  })[0];
+}
+
+function mergePeople(left, right) {
+  const result = [];
+  const seen = new Set();
+  for (const person of [
+    ...(Array.isArray(left) ? left : []),
+    ...(Array.isArray(right) ? right : []),
+  ]) {
+    if (!person || typeof person !== 'object') continue;
+    const key = cleanText(person.id || person.tmdbId || '') || normalizeIdentityName(person.nameFa || person.name || '');
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    result.push(person);
+  }
+  return result;
+}
+
+function mergeDuplicateCatalogPair(current, incoming) {
+  const type = current.type || incoming.type;
+  let downloads;
+
+  if (type === 'series') {
+    downloads = [...(Array.isArray(current.downloads) ? current.downloads : [])];
+    for (const group of Array.isArray(incoming.downloads) ? incoming.downloads : []) {
+      upsertEpisodeGroup(downloads, group);
+    }
+    downloads.sort(compareEpisodeGroups);
+  } else {
+    downloads = mergeDownloadSections(current.downloads, incoming.downloads);
+  }
+
+  const seasonNumbers = new Set(
+    downloads
+      .map((group) => Number(group?.seasonNumber || 0))
+      .filter((value) => value > 0),
+  );
+
+  return {
+    ...current,
+    ...incoming,
+    id: current.id,
+    slug: current.slug || incoming.slug,
+    type,
+    nameFa: chooseCanonicalTitle(current.nameFa, incoming.nameFa),
+    name: chooseCanonicalTitle(current.name, incoming.name),
+    imdb: current.imdb || incoming.imdb,
+    poster: current.poster || incoming.poster,
+    posterFallback: current.posterFallback || incoming.posterFallback,
+    backdrop: current.backdrop || incoming.backdrop,
+    backdropFallback: current.backdropFallback || incoming.backdropFallback,
+    overview: cleanText(current.overview).length >= cleanText(incoming.overview).length
+      ? current.overview
+      : incoming.overview,
+    genres: uniqueStrings([...(current.genres || []), ...(incoming.genres || [])]),
+    countryCodes: uniqueStrings([...(current.countryCodes || []), ...(incoming.countryCodes || [])]),
+    countryLabels: uniqueStrings([...(current.countryLabels || []), ...(incoming.countryLabels || [])]),
+    countryNames: uniqueStrings([...(current.countryNames || []), ...(incoming.countryNames || [])]),
+    people: mergePeople(current.people, incoming.people),
+    availableLanguages: uniqueStrings([...(current.availableLanguages || []), ...(incoming.availableLanguages || [])]),
+    categoryKeys: uniqueStrings([...(current.categoryKeys || []), ...(incoming.categoryKeys || [])]),
+    categoryLabels: uniqueStrings([...(current.categoryLabels || []), ...(incoming.categoryLabels || [])]),
+    downloads,
+    streamUrl: current.streamUrl || incoming.streamUrl,
+    streamMode: current.streamUrl || incoming.streamUrl ? 'video' : undefined,
+    createdAt: [current.createdAt, incoming.createdAt].filter(Boolean).sort()[0],
+    sourceCreatedAt: [current.sourceCreatedAt, incoming.sourceCreatedAt].filter(Boolean).sort()[0],
+    updatedAt: maxDate(current.updatedAt, incoming.updatedAt),
+    sourceUpdatedAt: maxDate(current.sourceUpdatedAt, incoming.sourceUpdatedAt),
+    meaningfulUpdatedAt: maxDate(current.meaningfulUpdatedAt, incoming.meaningfulUpdatedAt),
+    firstSeenAt: [current.firstSeenAt, incoming.firstSeenAt].filter(Boolean).sort()[0],
+    lastSyncedAt: maxDate(current.lastSyncedAt, incoming.lastSyncedAt),
+    ...(type === 'series' ? {
+      episodeCount: downloads.length,
+      seasonCount: seasonNumbers.size,
+      sourceEpisodeCount: Math.max(
+        nonNegativeInt(current.sourceEpisodeCount, 0),
+        nonNegativeInt(incoming.sourceEpisodeCount, 0),
+        downloads.length,
+      ),
+      publicationStatus:
+        current.publicationStatus === 'published' || incoming.publicationStatus === 'published'
+          ? 'published'
+          : 'building-archive',
+      archiveComplete: Boolean(current.archiveComplete || incoming.archiveComplete),
+    } : {}),
+  };
+}
+
+function mergeDuplicateCatalogItems(sourceItems) {
+  const result = [];
+  const indexesByName = new Map();
+  let merged = 0;
+
+  for (const item of Array.isArray(sourceItems) ? sourceItems : []) {
+    if (!item || !['movie', 'series'].includes(item.type)) {
+      result.push(item);
+      continue;
+    }
+
+    const names = identityNames(item);
+    let matchIndex = -1;
+    for (const name of names) {
+      const candidates = indexesByName.get(`${item.type}:${name}`) || [];
+      matchIndex = candidates.find((index) => yearsAreCompatible(result[index]?.year, item.year)) ?? -1;
+      if (matchIndex >= 0) break;
+    }
+
+    if (matchIndex < 0) {
+      const index = result.length;
+      result.push(item);
+      for (const name of names) {
+        const key = `${item.type}:${name}`;
+        indexesByName.set(key, [...(indexesByName.get(key) || []), index]);
+      }
+      continue;
+    }
+
+    result[matchIndex] = mergeDuplicateCatalogPair(result[matchIndex], item);
+    merged += 1;
+    for (const name of identityNames(result[matchIndex])) {
+      const key = `${result[matchIndex].type}:${name}`;
+      const indexes = indexesByName.get(key) || [];
+      if (!indexes.includes(matchIndex)) indexesByName.set(key, [...indexes, matchIndex]);
+    }
+  }
+
+  return { items: result, merged };
 }
 
 function episodeGroup(episode, media) {
@@ -2213,8 +2472,11 @@ function normalizeMovie(
   source,
   existing,
 ) {
+  // وقتی نسخه رایگان و نسخه ویژه همراه شناسه‌های متفاوت دارند،
+  // شناسه کاتالوگ قبلی را نگه می‌داریم تا عنوان دوباره ساخته نشود
+  // و لینک‌های عمیق/علاقه‌مندی‌ها بین سینک‌ها تغییر نکنند.
   const id = String(
-    movie.id || movie.t_id,
+    existing?.id || movie.id || movie.t_id,
   );
 
   const poster = imageUrl(
@@ -2380,8 +2642,10 @@ function normalizeSeries(
   updateLabel,
   archiveMeta = {},
 ) {
+  // نسخه مستقیم و نسخه اپراتوری یک سریال ممکن است در منبع
+  // شناسه‌های جدا داشته باشند؛ شناسه موجود کاتالوگ باید پایدار بماند.
   const id = String(
-    series.id || series.t_id,
+    existing?.id || series.id || series.t_id,
   );
 
   const poster = imageUrl(
@@ -2829,6 +3093,40 @@ function reclassifyCatalogItem(item) {
   };
 }
 
+function identityYear(value) {
+  const year = Number(value);
+  return Number.isFinite(year) && year > 1800 ? year : 0;
+}
+
+function yearsAreCompatible(left, right) {
+  const a = identityYear(left);
+  const b = identityYear(right);
+  return !a || !b || Math.abs(a - b) <= 1;
+}
+
+function normalizeIdentityName(value) {
+  let text = cleanText(value);
+  const accessSuffix = /(?:[\s\-–—|:]*[([{]?\s*)?(?:نسخه\s*)?(?:ویژه\s*(?:اینترنت\s*)?همراه|اپراتوری|فیلیمو|filimo|mobile\s*operator|operator\s*only)\s*[)\]}]?\s*$/i;
+  for (let index = 0; index < 3; index += 1) {
+    const next = text.replace(accessSuffix, '').trim();
+    if (next === text) break;
+    text = next;
+  }
+  return normalizeName(text);
+}
+
+function identityNames(value) {
+  return uniqueStrings([
+    normalizeIdentityName(value?.name_fa || value?.nameFa || ''),
+    normalizeIdentityName(value?.name || ''),
+  ]);
+}
+
+function namesOverlap(left, right) {
+  const leftNames = new Set(identityNames(left));
+  return identityNames(right).some((name) => leftNames.has(name));
+}
+
 function findExistingItem(
   candidate,
   type,
@@ -2842,12 +3140,7 @@ function findExistingItem(
   const imdb = candidate?.imdb
     ? String(candidate.imdb)
     : '';
-
-  const name = normalizeName(
-    candidate?.name_fa ||
-    candidate?.name ||
-    '',
-  );
+  const year = identityYear(candidate?.year);
 
   return (
     items.find((item) => {
@@ -2867,23 +3160,15 @@ function findExistingItem(
       }
 
       return Boolean(
-        name &&
         item.type === type &&
-        normalizeName(
-          item.nameFa ||
-          item.name,
-        ) === name,
+        namesOverlap(candidate, item) &&
+        yearsAreCompatible(year, item.year),
       );
     }) || null
   );
 }
 
 function replaceItem(next) {
-  const nextName = normalizeName(
-    next.nameFa ||
-    next.name,
-  );
-
   items = items.filter((item) => {
     if (
       String(item.id) ===
@@ -2903,10 +3188,8 @@ function replaceItem(next) {
 
     return !(
       item.type === next.type &&
-      normalizeName(
-        item.nameFa ||
-        item.name,
-      ) === nextName
+      namesOverlap(item, next) &&
+      yearsAreCompatible(item.year, next.year)
     );
   });
 
@@ -3840,6 +4123,42 @@ function pagedResult(json, key) {
   };
 }
 
+function createRunTimeBudgetError(context = 'runtime') {
+  const error = new Error(`APARATCHI_RUN_TIME_BUDGET:${context}`);
+  error.code = 'APARATCHI_RUN_TIME_BUDGET';
+  return error;
+}
+
+function isRunTimeBudgetError(error) {
+  return Boolean(
+    error?.code === 'APARATCHI_RUN_TIME_BUDGET' ||
+    String(error?.message || '').startsWith('APARATCHI_RUN_TIME_BUDGET:'),
+  );
+}
+
+function runTimeBudgetReached(context = 'runtime', reserveMs = runCheckpointReserveMs) {
+  const reached = Date.now() + Math.max(0, reserveMs) >= runDeadlineAtMs;
+  if (reached) {
+    affiliateBudgetExhausted = true;
+    stats.stoppedByTimeBudget = true;
+    if (!stats.timeBudgetStopContext) stats.timeBudgetStopContext = context;
+  }
+  return reached;
+}
+
+function throwIfRunTimeBudgetReached(context = 'runtime', reserveMs = runCheckpointReserveMs) {
+  if (runTimeBudgetReached(context, reserveMs)) {
+    throw createRunTimeBudgetError(context);
+  }
+}
+
+async function sleepWithinRunBudget(ms, context = 'sleep') {
+  const allowed = Math.max(0, runDeadlineAtMs - Date.now() - runCheckpointReserveMs);
+  if (allowed <= 0) throw createRunTimeBudgetError(context);
+  await sleep(Math.min(Math.max(0, ms), allowed));
+  throwIfRunTimeBudgetReached(context);
+}
+
 async function fetchJson(
   input,
   options = {},
@@ -3848,7 +4167,7 @@ async function fetchJson(
     ? input.toString()
     : String(input);
 
-  const maxAttempts = 5;
+  const maxAttempts = requestMaxAttempts;
   let lastError;
 
   for (
@@ -3856,12 +4175,12 @@ async function fetchJson(
     attempt <= maxAttempts;
     attempt += 1
   ) {
-    const controller =
-      new AbortController();
-
+    throwIfRunTimeBudgetReached('fetch-json', 20000);
+    const controller = new AbortController();
+    const remainingForRequest = Math.max(1000, runDeadlineAtMs - Date.now() - runCheckpointReserveMs);
     const timeout = setTimeout(
       () => controller.abort(),
-      45000,
+      Math.max(1000, Math.min(requestTimeoutMs, remainingForRequest)),
     );
 
     try {
@@ -3896,14 +4215,8 @@ async function fetchJson(
 
         const waitMs =
           Number.isFinite(retrySeconds)
-            ? Math.max(
-                15000,
-                retrySeconds * 1000,
-              )
-            : Math.min(
-                60000,
-                15000 * attempt,
-              );
+            ? Math.min(20000, Math.max(3000, retrySeconds * 1000))
+            : Math.min(15000, 5000 * attempt);
 
         stats.rateLimitHits += 1;
         stats.rateLimitWaitMs += waitMs;
@@ -3916,7 +4229,7 @@ async function fetchJson(
           `محدودیت آپرا؛ ${Math.ceil(waitMs / 1000)} ثانیه انتظار.`,
         );
 
-        await sleep(waitMs);
+        await sleepWithinRunBudget(waitMs, 'rate-limit-wait');
         continue;
       }
 
@@ -3936,11 +4249,9 @@ async function fetchJson(
         ) {
           lastError = error;
 
-          await sleep(
-            Math.min(
-              30000,
-              3000 * attempt,
-            ),
+          await sleepWithinRunBudget(
+            Math.min(8000, 2000 * attempt),
+            'http-retry-wait',
           );
 
           continue;
@@ -3965,6 +4276,9 @@ async function fetchJson(
 
       return json;
     } catch (error) {
+      if (runTimeBudgetReached('fetch-json-catch', 15000)) {
+        throw createRunTimeBudgetError('fetch-json-catch');
+      }
       lastError = error;
 
       if (attempt >= maxAttempts) {
@@ -3979,11 +4293,9 @@ async function fetchJson(
       if (
         !message.includes('HTTP 429')
       ) {
-        await sleep(
-          Math.min(
-            30000,
-            3000 * attempt,
-          ),
+        await sleepWithinRunBudget(
+          Math.min(8000, 2000 * attempt),
+          'network-retry-wait',
         );
       }
     } finally {
@@ -4010,25 +4322,20 @@ function operatorPortalDetails(value) {
     if (url.protocol !== 'https:') return null;
 
     const isUpera = /(^|\.)upera\.tv$/i.test(url.hostname);
-    const isShortLink = /(^|\.)redl\.ink$/i.test(url.hostname);
-    if (!isUpera && !isShortLink) return null;
+    if (!isUpera) return null;
 
     const pathText = decodeURIComponent(url.pathname || '');
-    if (isShortLink) {
-      return pathText && pathText !== '/'
-        ? { action: '', hostname: url.hostname, pathname: url.pathname, shortLink: true }
-        : null;
-    }
 
-    const actionMatch = pathText.match(/\/(stream|watch|play|download)(?:\/|$)/i);
-    const mediaMatch = pathText.match(/\/(movie|series|episode)(?:\/|$)/i);
-
-    // A normal movie/series page is not operator access. It must explicitly
-    // contain both an access action and a media resource segment.
-    if (!actionMatch || !mediaMatch) return null;
+    // لینک ویژه همراه فقط همین دو شکل معتبر را دارد:
+    // /stream/movie/<id> و /stream/episode/<id>
+    // این سخت‌گیری مانع برچسب‌خوردن اشتباه همه آثار ایرانی می‌شود.
+    const streamMatch = pathText.match(/^\/stream\/(movie|episode)\/([^/?#]+)\/?$/i);
+    if (!streamMatch) return null;
 
     return {
-      action: String(actionMatch[1] || '').toLowerCase(),
+      action: 'stream',
+      mediaType: String(streamMatch[1] || '').toLowerCase(),
+      resourceId: String(streamMatch[2] || ''),
       hostname: url.hostname,
       pathname: url.pathname,
       shortLink: false,
@@ -4076,22 +4383,18 @@ function isOperatorAccessLink(link) {
   const explicitText = /ویژه\s*(?:اینترنت\s*)?(?:همراه|اپراتور)|همراه\s*اول|ایرانسل|رایتل|شاتل\s*موبایل|mobile\s*(?:operator|internet|data)|cellular\s*(?:only|access)|operator[-_\s]*(?:only|play|download)/i.test(text);
 
   if (!portal) return false;
-  if (portal.shortLink) return explicitFlag || explicitText;
+
+  // مسیر معتبر آپرا به‌تنهایی برای تشخیص کافی است. فلگ و متن فقط
+  // برای گزارش و سازگاری داده نگه داشته می‌شوند، نه برای برچسب‌زنی عمومی.
+  void explicitFlag;
+  void explicitText;
   return true;
 }
 
 function operatorModeForLink(link) {
-  const portal = operatorPortalDetails(link?.link);
-  const text = scalarLinkText(link);
-
-  if (
-    portal?.action === 'download' ||
-    /دانلود|دریافت|download|save/i.test(text)
-  ) {
-    return 'operator-download';
-  }
-
-  return 'operator-play';
+  // لینک‌های ویژه همراه در آپرا صفحه پخش هستند، نه فایل دانلودی.
+  // حتی اگر عنوان لینک واژه «دانلود» داشته باشد، مسیر /stream/... باید پخش شود.
+  return operatorPortalDetails(link?.link) ? 'operator-play' : null;
 }
 
 function supportedOperatorsForLink(link) {
@@ -4117,21 +4420,25 @@ function supportedOperatorsForLink(link) {
 
 function toOperatorFile(link) {
   const mode = operatorModeForLink(link);
+  if (!mode) return null;
+
+  const portal = operatorPortalDetails(link.link);
   const label = cleanText(
     link.title ||
     link.label ||
     link.name ||
-    (mode === 'operator-play' ? 'پخش آنلاین با اینترنت همراه' : 'دانلود با اینترنت همراه'),
+    (portal?.mediaType === 'episode'
+      ? 'پخش قسمت با اینترنت همراه'
+      : 'پخش فیلم با اینترنت همراه'),
   );
   const supportedOperators = supportedOperatorsForLink(link);
 
   return {
-    id: `operator-${mode === 'operator-play' ? 'play' : 'download'}-${simpleHash(link.link)}`,
-    quality: mode === 'operator-play' ? 'پخش آنلاین' : qualityLabel(label || 'دانلود'),
+    id: `operator-play-${simpleHash(link.link)}`,
+    quality: 'پخش آنلاین',
     label,
-    ...(link.size && Number(link.size) !== 0 ? { size: String(link.size) } : {}),
     url: link.link,
-    mode,
+    mode: 'operator-play',
     operatorOnly: true,
     ...(supportedOperators.length ? { supportedOperators } : {}),
   };
@@ -4156,7 +4463,7 @@ function groupsHaveOperatorLinks(groups) {
 }
 
 function isValidStoredOperatorFile(file) {
-  if (!file || !['operator-play', 'operator-download'].includes(file.mode)) return false;
+  if (!file || file.mode !== 'operator-play') return false;
   return Boolean(operatorPortalDetails(file.url));
 }
 
@@ -4201,7 +4508,8 @@ function sanitizeCatalogOperatorAccess(sourceItems) {
     const directFiles = downloads.flatMap((section) =>
       (section.files || []).filter((file) => !['operator-play', 'operator-download'].includes(file?.mode)),
     );
-    const operatorOnly = hasOperator && directFiles.length === 0;
+    const hasDirect = directFiles.length > 0 || isDirectMediaUrl(item?.streamUrl);
+    const operatorOnly = hasOperator && !hasDirect;
     const categoryKeys = uniqueStrings(
       (item?.categoryKeys || []).filter((key) => key !== 'mobile-operator'),
     );
@@ -4751,7 +5059,7 @@ async function persistSyncCheckpoint(reason = 'checkpoint') {
     .map((item) => withSeriesPublicationState(item));
   const checkpointOutput = {
     ...catalog,
-    version: '0.10.2-fast-archive-and-classification',
+    version: '0.10.3-bounded-sync-and-operator-access',
     updatedAt: now,
     items: checkpointItems,
     iranianSchedule: Array.isArray(catalog.iranianSchedule) ? catalog.iranianSchedule : [],
@@ -4763,6 +5071,7 @@ async function persistSyncCheckpoint(reason = 'checkpoint') {
   stats.backfillCheckpoints = nonNegativeInt(stats.backfillCheckpoints, 0) + 1;
   stats.affiliateRequests = affiliateRequestsUsed;
   stats.finalCount = checkpointItems.length;
+  stats.remainingRunMsAtCheckpoint = Math.max(0, runDeadlineAtMs - Date.now());
   await writeJson(catalogPath, checkpointOutput);
   await writeJson(statePath, state);
   await writeJson(reportPath, stats);
