@@ -16,6 +16,22 @@ const execFileAsync = promisify(execFile);
 
 const refId = String(process.env.UPERA_REF_ID || '').trim();
 const token = String(process.env.UPERA_TOKEN || '').trim();
+const tmdbBearerToken = String(process.env.TMDB_BEARER_TOKEN || '').trim();
+
+const peopleEnrichmentTitlesPerRun = Math.min(
+  24,
+  positiveInt(process.env.APARATCHI_PEOPLE_TITLES_PER_RUN, 10),
+);
+
+const peopleEnrichmentMaxPeople = Math.min(
+  20,
+  positiveInt(process.env.APARATCHI_PEOPLE_MAX_PER_TITLE, 12),
+);
+
+const peopleEnrichmentRetryHours = Math.min(
+  168,
+  positiveInt(process.env.APARATCHI_PEOPLE_RETRY_HOURS, 12),
+);
 
 const moviePagesPerRun = Math.min(
   20,
@@ -46,7 +62,7 @@ const requestedSyncMode = String(
   process.env.UPERA_SYNC_MODE || 'AUTO',
 ).trim().toUpperCase();
 
-const syncModeSetting = ['AUTO', 'BACKFILL', 'NORMAL'].includes(requestedSyncMode)
+const syncModeSetting = ['AUTO', 'BACKFILL', 'NORMAL', 'PEOPLE'].includes(requestedSyncMode)
   ? requestedSyncMode
   : 'AUTO';
 
@@ -59,7 +75,7 @@ const runTimeLimitMinutes = Math.min(
   30,
   positiveInt(
     process.env.APARATCHI_RUN_TIME_LIMIT_MINUTES,
-    syncModeSetting === 'BACKFILL' ? 18 : 8,
+    syncModeSetting === 'BACKFILL' ? 18 : syncModeSetting === 'PEOPLE' ? 4 : 8,
   ),
 );
 const runCheckpointReserveMs = Math.min(
@@ -196,7 +212,7 @@ if (!refId) {
 }
 
 const defaultCatalog = {
-  version: '0.10.3-bounded-sync-and-operator-access',
+  version: '0.10.4-bounded-sync-operator-and-people',
   updatedAt: new Date(0).toISOString(),
   items: [],
   iranianSchedule: [],
@@ -223,6 +239,9 @@ const defaultState = {
   archiveBackfillNoProgress: {},
   archiveBackfillCompleted: {},
   archiveEpisodeFailures: {},
+  peopleEnrichmentOffset: 0,
+  peopleEnrichmentFailures: {},
+  lastPeopleEnrichmentAt: null,
   lastSyncAt: null,
 };
 
@@ -245,6 +264,15 @@ state.operatorSeriesOffset = nonNegativeInt(state.operatorSeriesOffset, 0);
 state.operatorMoviePage = positiveInt(state.operatorMoviePage, 1);
 state.operatorMovieOffset = nonNegativeInt(state.operatorMovieOffset, 0);
 state.airingSeriesOffset = nonNegativeInt(state.airingSeriesOffset, 0);
+state.peopleEnrichmentOffset = nonNegativeInt(state.peopleEnrichmentOffset, 0);
+if (
+  !state.peopleEnrichmentFailures ||
+  typeof state.peopleEnrichmentFailures !== 'object' ||
+  Array.isArray(state.peopleEnrichmentFailures)
+) {
+  state.peopleEnrichmentFailures = {};
+}
+state.lastPeopleEnrichmentAt = state.lastPeopleEnrichmentAt || null;
 
 if (
   !state.seriesEpisodeCursor ||
@@ -388,6 +416,17 @@ const stats = {
   skippedByBudget: 0,
   imagesMirrored: 0,
   imageMirrorErrors: 0,
+  peopleEnrichmentCandidates: 0,
+  peopleEnrichmentProcessed: 0,
+  peopleEnrichmentSucceeded: 0,
+  peopleEnrichmentFailed: 0,
+  peopleEnrichmentSkippedFresh: 0,
+  peopleEnrichmentFromSource: 0,
+  peopleEnrichmentFromTmdb: 0,
+  peopleEnrichmentFromImdb: 0,
+  peopleAdded: 0,
+  tmdbRequests: 0,
+  imdbRequests: 0,
 
   removedWithoutFreeLinks: 0,
   errors: [],
@@ -402,15 +441,19 @@ const initialBackfillQueue = buildSequentialBackfillQueue();
 stats.backfillQueueTotal = initialBackfillQueue.length;
 
 const effectiveSyncMode =
-  syncModeSetting === 'BACKFILL' ||
-  (syncModeSetting === 'AUTO' && initialBackfillQueue.length > 0)
-    ? 'BACKFILL'
-    : 'NORMAL';
+  syncModeSetting === 'PEOPLE'
+    ? 'PEOPLE'
+    : syncModeSetting === 'BACKFILL' ||
+      (syncModeSetting === 'AUTO' && initialBackfillQueue.length > 0)
+      ? 'BACKFILL'
+      : 'NORMAL';
 
 stats.effectiveSyncMode = effectiveSyncMode;
 console.log(`حالت اجرا: ${effectiveSyncMode}`);
 
-if (effectiveSyncMode === 'BACKFILL') {
+if (effectiveSyncMode === 'PEOPLE') {
+  await syncPeopleMetadata();
+} else if (effectiveSyncMode === 'BACKFILL') {
   // The archive queue is intentionally exclusive: one series is completed
   // as far as the request budget allows before the next series is selected.
   // No new movie/series archive pages are scanned in this mode, so repeated
@@ -452,6 +495,10 @@ if (effectiveSyncMode === 'BACKFILL') {
 
   if (!affiliateBudgetExhausted) {
     await syncMovieArchive();
+  }
+
+  if (!runTimeBudgetReached('normal-people-enrichment', 90000)) {
+    await syncPeopleMetadata({ preferRecent: true, maxTitles: Math.min(4, peopleEnrichmentTitlesPerRun) });
   }
 }
 
@@ -531,10 +578,11 @@ const weeklySchedule = Array.isArray(
 
 stats.catalogEpisodeGapDiagnostics = buildCatalogEpisodeGapDiagnostics(items);
 
+const imageMirroringReserveMs = effectiveSyncMode === 'PEOPLE' ? 30000 : 90000;
 if (
   effectiveSyncMode !== 'BACKFILL' &&
   maxMirroredImagesPerRun > 0 &&
-  !runTimeBudgetReached('image-mirroring', 90000)
+  !runTimeBudgetReached('image-mirroring', imageMirroringReserveMs)
 ) {
   await mirrorCatalogPeopleImages(items, catalog.featuredPeople);
 } else {
@@ -545,7 +593,7 @@ const now = new Date().toISOString();
 
 const output = {
   ...catalog,
-  version: '0.10.3-bounded-sync-and-operator-access',
+  version: '0.10.4-bounded-sync-operator-and-people',
   updatedAt: now,
   items,
   iranianSchedule,
@@ -2265,18 +2313,479 @@ function chooseCanonicalTitle(left, right) {
   })[0];
 }
 
+function peopleImageValue(value) {
+  if (!value) return '';
+  if (typeof value === 'string') return cleanText(value);
+  if (typeof value === 'object') {
+    return cleanText(value.url || value.imageUrl || value.src || value.contentUrl || '');
+  }
+  return '';
+}
+
+function personSourceId(value) {
+  const text = cleanText(value);
+  const nm = text.match(/(?:^|\/)(nm\d{5,12})(?:\/|$|[?#])/i);
+  return nm ? nm[1].toLowerCase() : '';
+}
+
+function sourcePersonToCatalog(person, fallbackRole = 'actor', order = 0) {
+  if (!person) return null;
+  if (typeof person === 'string') {
+    const name = cleanText(person);
+    if (!name) return null;
+    return {
+      id: `source-person-${simpleHash(normalizeIdentityName(name))}`,
+      nameFa: name,
+      name,
+      role: fallbackRole,
+      roleLabel: fallbackRole === 'director' ? 'کارگردان' : 'بازیگر',
+      order,
+      source: 'upera',
+    };
+  }
+
+  if (typeof person !== 'object') return null;
+  const name = cleanText(
+    person.name_fa || person.nameFa || person.name || person.original_name ||
+    person.full_name || person.title || '',
+  );
+  if (!name) return null;
+
+  const roleText = cleanText(
+    person.role || person.type || person.job || person.department || person.known_for_department || '',
+  ).toLowerCase();
+  const role = /director|کارگردان/.test(roleText) ? 'director' : fallbackRole;
+  const tmdbId = Number(person.tmdb_id || person.tmdbId || 0);
+  const externalId = cleanText(person.imdb_id || person.imdbId || person.url || '');
+  const sourceId = personSourceId(externalId);
+  let image = peopleImageValue(
+    person.image || person.photo || person.avatar || person.profile || person.profile_path,
+  );
+  if (image && image.startsWith('/')) image = `https://image.tmdb.org/t/p/w500${image}`;
+  if (image && !/^https?:\/\//i.test(image) && !/^(?:\.\/)?assets\/media\//i.test(image)) image = '';
+
+  return {
+    id: tmdbId > 0
+      ? `tmdb-person-${tmdbId}`
+      : cleanText(person.id) || sourceId || `source-person-${simpleHash(normalizeIdentityName(name))}`,
+    nameFa: cleanText(person.name_fa || person.nameFa || name),
+    name: cleanText(person.original_name || person.name || name),
+    role,
+    roleLabel: role === 'director' ? 'کارگردان' : 'بازیگر',
+    ...(cleanText(person.character || person.role_name || person.as) ? {
+      character: cleanText(person.character || person.role_name || person.as),
+    } : {}),
+    ...(image ? { image } : {}),
+    order: nonNegativeInt(person.order, order),
+    ...(tmdbId > 0 ? { tmdbId } : {}),
+    ...(isFiniteNumber(person.popularity) ? { popularity: Number(person.popularity) } : {}),
+    source: 'upera',
+  };
+}
+
+function extractSourcePeople(payload) {
+  if (!payload || typeof payload !== 'object') return [];
+  const result = [];
+  const addArray = (value, role) => {
+    const values = Array.isArray(value) ? value : value ? [value] : [];
+    values.forEach((entry, index) => {
+      const person = sourcePersonToCatalog(entry, role, index);
+      if (person) result.push(person);
+    });
+  };
+
+  addArray(payload.people, 'actor');
+  addArray(payload.cast, 'actor');
+  addArray(payload.casts, 'actor');
+  addArray(payload.actors, 'actor');
+  addArray(payload.actor, 'actor');
+  addArray(payload.directors, 'director');
+  addArray(payload.director, 'director');
+
+  if (Array.isArray(payload.crew)) {
+    for (const entry of payload.crew) {
+      const roleText = cleanText(entry?.job || entry?.role || '').toLowerCase();
+      if (!/director|کارگردان/.test(roleText)) continue;
+      const person = sourcePersonToCatalog(entry, 'director', 0);
+      if (person) result.push(person);
+    }
+  }
+
+  return mergePeople([], result).slice(0, peopleEnrichmentMaxPeople);
+}
+
+function validImdbTitleId(value) {
+  const match = cleanText(value).match(/tt\d{5,12}/i);
+  return match ? match[0].toLowerCase() : '';
+}
+
+function tmdbProfileUrl(profilePath) {
+  const value = cleanText(profilePath);
+  if (!value) return '';
+  if (/^https?:\/\//i.test(value)) return value;
+  return `https://image.tmdb.org/t/p/w500/${value.replace(/^\/+/, '')}`;
+}
+
+function tmdbCreditPerson(person, role, order = 0) {
+  if (!person || typeof person !== 'object') return null;
+  const tmdbId = Number(person.id || 0);
+  const name = cleanText(person.name || person.original_name || '');
+  if (!tmdbId || !name) return null;
+  const image = tmdbProfileUrl(person.profile_path);
+  return {
+    id: `tmdb-person-${tmdbId}`,
+    tmdbId,
+    nameFa: name,
+    name: cleanText(person.original_name || name),
+    role,
+    roleLabel: role === 'director' ? 'کارگردان' : 'بازیگر',
+    ...(role === 'actor' && cleanText(person.character) ? { character: cleanText(person.character) } : {}),
+    ...(image ? { image } : {}),
+    order: role === 'director' ? Math.min(-1, -1 - order) : nonNegativeInt(person.order, order),
+    ...(isFiniteNumber(person.popularity) ? { popularity: Number(person.popularity) } : {}),
+    source: 'tmdb',
+  };
+}
+
+async function fetchTmdbJson(pathname, query = {}) {
+  if (!tmdbBearerToken) return null;
+  const url = new URL(`https://api.themoviedb.org/3/${String(pathname).replace(/^\/+/, '')}`);
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value));
+  }
+  stats.tmdbRequests += 1;
+  return fetchJson(url, {
+    headers: {
+      Authorization: `Bearer ${tmdbBearerToken}`,
+      'Content-Type': 'application/json;charset=utf-8',
+    },
+  });
+}
+
+function tmdbResultYear(result, type) {
+  const raw = type === 'series' ? result?.first_air_date : result?.release_date;
+  const match = cleanText(raw).match(/^(\d{4})/);
+  return match ? Number(match[1]) : 0;
+}
+
+function selectTmdbSearchResult(item, results) {
+  const names = uniqueStrings([item?.name, item?.nameFa])
+    .map(normalizeIdentityName)
+    .filter(Boolean);
+  const year = Number(item?.year || 0);
+  const ranked = (Array.isArray(results) ? results : [])
+    .map((result) => {
+      const resultNames = uniqueStrings([
+        result?.title, result?.original_title, result?.name, result?.original_name,
+      ]).map(normalizeIdentityName).filter(Boolean);
+      const exactName = resultNames.some((name) => names.includes(name));
+      const resultYear = tmdbResultYear(result, item?.type);
+      const yearDistance = year && resultYear ? Math.abs(year - resultYear) : 0;
+      return { result, exactName, yearDistance, popularity: Number(result?.popularity || 0) };
+    })
+    .filter((entry) => entry.exactName && entry.yearDistance <= 1)
+    .sort((a, b) => a.yearDistance - b.yearDistance || b.popularity - a.popularity);
+  return ranked[0]?.result || null;
+}
+
+async function resolveTmdbTitle(item) {
+  if (!tmdbBearerToken) return null;
+  const mediaType = item?.type === 'series' ? 'tv' : 'movie';
+  const imdbId = validImdbTitleId(item?.imdb);
+  if (imdbId) {
+    const found = await fetchTmdbJson(`find/${imdbId}`, { external_source: 'imdb_id' });
+    const direct = mediaType === 'tv' ? found?.tv_results?.[0] : found?.movie_results?.[0];
+    if (direct?.id) return { id: Number(direct.id), mediaType };
+  }
+
+  const query = cleanText(item?.name || item?.nameFa);
+  if (!query) return null;
+  const search = await fetchTmdbJson(`search/${mediaType}`, {
+    query,
+    include_adult: 'false',
+    language: 'en-US',
+    ...(item?.year ? { [mediaType === 'tv' ? 'first_air_date_year' : 'year']: item.year } : {}),
+  });
+  const selected = selectTmdbSearchResult(item, search?.results);
+  return selected?.id ? { id: Number(selected.id), mediaType } : null;
+}
+
+async function enrichPeopleFromTmdb(item) {
+  const title = await resolveTmdbTitle(item);
+  if (!title) return null;
+  const credits = await fetchTmdbJson(`${title.mediaType}/${title.id}/credits`, { language: 'en-US' });
+  const directors = (Array.isArray(credits?.crew) ? credits.crew : [])
+    .filter((person) => cleanText(person?.job).toLowerCase() === 'director')
+    .slice(0, 2)
+    .map((person, index) => tmdbCreditPerson(person, 'director', index))
+    .filter(Boolean);
+  const castLimit = Math.max(1, peopleEnrichmentMaxPeople - directors.length);
+  const actors = (Array.isArray(credits?.cast) ? credits.cast : [])
+    .slice(0, castLimit)
+    .map((person, index) => tmdbCreditPerson(person, 'actor', index))
+    .filter(Boolean);
+  const people = mergePeople(directors, actors).slice(0, peopleEnrichmentMaxPeople);
+  return people.length ? { people, tmdbId: title.id, source: 'tmdb' } : null;
+}
+
+function decodeBasicHtmlEntities(value) {
+  return String(value || '')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+}
+
+async function fetchTextDocument(input) {
+  const url = String(input);
+  const controller = new AbortController();
+  const remaining = Math.max(1000, runDeadlineAtMs - Date.now() - runCheckpointReserveMs);
+  const timeout = setTimeout(() => controller.abort(), Math.min(requestTimeoutMs, remaining));
+  try {
+    stats.imdbRequests += 1;
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        Accept: 'text/html,application/xhtml+xml',
+        'Accept-Language': 'en-US,en;q=0.8',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36',
+      },
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status} برای ${url}`);
+    return response.text();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function imdbJsonLdPeople(documentText) {
+  const matches = [...String(documentText || '').matchAll(
+    /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
+  )];
+  for (const match of matches) {
+    try {
+      const parsed = JSON.parse(decodeBasicHtmlEntities(match[1]).trim());
+      const nodes = Array.isArray(parsed) ? parsed : [parsed];
+      for (const node of nodes) {
+        if (!node || typeof node !== 'object') continue;
+        const directorsRaw = Array.isArray(node.director) ? node.director : node.director ? [node.director] : [];
+        const actorsRaw = Array.isArray(node.actor) ? node.actor : node.actor ? [node.actor] : [];
+        const directors = directorsRaw.slice(0, 2).map((person, index) => {
+          const name = cleanText(person?.name);
+          if (!name) return null;
+          const externalId = personSourceId(person?.url || person?.['@id'] || '');
+          const image = peopleImageValue(person?.image);
+          return {
+            id: externalId || `imdb-person-${simpleHash(normalizeIdentityName(name))}`,
+            nameFa: name,
+            name,
+            role: 'director',
+            roleLabel: 'کارگردان',
+            ...(image ? { image } : {}),
+            order: -1 - index,
+            source: 'imdb',
+          };
+        }).filter(Boolean);
+        const actors = actorsRaw.slice(0, Math.max(1, peopleEnrichmentMaxPeople - directors.length)).map((person, index) => {
+          const name = cleanText(person?.name);
+          if (!name) return null;
+          const externalId = personSourceId(person?.url || person?.['@id'] || '');
+          const image = peopleImageValue(person?.image);
+          return {
+            id: externalId || `imdb-person-${simpleHash(normalizeIdentityName(name))}`,
+            nameFa: name,
+            name,
+            role: 'actor',
+            roleLabel: 'بازیگر',
+            ...(image ? { image } : {}),
+            order: index,
+            source: 'imdb',
+          };
+        }).filter(Boolean);
+        const people = mergePeople(directors, actors).slice(0, peopleEnrichmentMaxPeople);
+        if (people.length) return people;
+      }
+    } catch {
+      // Other JSON-LD blocks may not be title metadata.
+    }
+  }
+  return [];
+}
+
+async function resolveImdbTitleId(item) {
+  const existing = validImdbTitleId(item?.imdb);
+  if (existing) return existing;
+  const query = cleanText(item?.name || item?.nameFa);
+  if (!query) return '';
+
+  stats.imdbRequests += 1;
+  const suggestionUrl = `https://v2.sg.media-imdb.com/suggestion/x/${encodeURIComponent(query)}.json`;
+  const suggestion = await fetchJson(suggestionUrl);
+  const itemNames = uniqueStrings([item?.name, item?.nameFa])
+    .map(normalizeIdentityName)
+    .filter(Boolean);
+  const itemYear = Number(item?.year || 0);
+  const ranked = (Array.isArray(suggestion?.d) ? suggestion.d : [])
+    .map((candidate) => {
+      const id = validImdbTitleId(candidate?.id);
+      const title = normalizeIdentityName(candidate?.l || candidate?.title || '');
+      const year = Number(candidate?.y || 0);
+      const typeText = cleanText(candidate?.q || candidate?.qid || '').toLowerCase();
+      const nameMatches = Boolean(title && itemNames.includes(title));
+      const yearDistance = itemYear && year ? Math.abs(itemYear - year) : 0;
+      const typeMatches = item?.type === 'series'
+        ? /series|mini|tv/.test(typeText)
+        : !/series|episode/.test(typeText);
+      return { id, nameMatches, yearDistance, typeMatches, rank: Number(candidate?.rank || 999999) };
+    })
+    .filter((candidate) => candidate.id && candidate.nameMatches && candidate.yearDistance <= 1 && candidate.typeMatches)
+    .sort((a, b) => a.yearDistance - b.yearDistance || a.rank - b.rank);
+  return ranked[0]?.id || '';
+}
+
+async function enrichPeopleFromImdb(item) {
+  const imdbId = await resolveImdbTitleId(item);
+  if (!imdbId) return null;
+  let html = await fetchTextDocument(`https://www.imdb.com/title/${imdbId}/`);
+  let people = imdbJsonLdPeople(html);
+  if (!people.length && !runTimeBudgetReached('imdb-reference-fallback', 45000)) {
+    html = await fetchTextDocument(`https://www.imdb.com/title/${imdbId}/reference/`);
+    people = imdbJsonLdPeople(html);
+  }
+  return people.length ? { people, source: 'imdb' } : null;
+}
+
+function peopleRetryAllowed(item, nowMs = Date.now()) {
+  const next = Date.parse(item?.peopleEnrichmentNextRetryAt || '') || 0;
+  return next <= nowMs;
+}
+
+function peopleEnrichmentNeedsWork(item) {
+  if (!item || !['movie', 'series'].includes(item.type)) return false;
+  const people = (Array.isArray(item.people) ? item.people : [])
+    .filter((person) => person?.role === 'actor' || person?.role === 'director');
+  const hasDirector = people.some((person) => person.role === 'director');
+  return people.length < 3 || !hasDirector;
+}
+
+function peopleCandidateTimestamp(item) {
+  return Date.parse(
+    item?.sourceCreatedAt || item?.createdAt || item?.sourceUpdatedAt || item?.updatedAt || '',
+  ) || 0;
+}
+
+async function syncPeopleMetadata(options = {}) {
+  const nowMs = Date.now();
+  const maxTitles = Math.max(1, Math.min(
+    peopleEnrichmentTitlesPerRun,
+    positiveInt(options.maxTitles, peopleEnrichmentTitlesPerRun),
+  ));
+  const candidates = items
+    .filter((item) => peopleEnrichmentNeedsWork(item))
+    .filter((item) => {
+      const allowed = peopleRetryAllowed(item, nowMs);
+      if (!allowed) stats.peopleEnrichmentSkippedFresh += 1;
+      return allowed;
+    })
+    .sort((a, b) => peopleCandidateTimestamp(b) - peopleCandidateTimestamp(a));
+
+  stats.peopleEnrichmentCandidates = candidates.length;
+  if (!candidates.length) {
+    state.peopleEnrichmentOffset = 0;
+    state.lastPeopleEnrichmentAt = new Date().toISOString();
+    return;
+  }
+
+  const start = options.preferRecent ? 0 : state.peopleEnrichmentOffset % candidates.length;
+  const selected = Array.from(
+    { length: Math.min(maxTitles, candidates.length) },
+    (_, index) => candidates[(start + index) % candidates.length],
+  );
+
+  let visited = 0;
+  for (const item of selected) {
+    if (runTimeBudgetReached('people-enrichment', 45000)) break;
+    visited += 1;
+    stats.peopleEnrichmentProcessed += 1;
+    const id = String(item.id || '');
+    try {
+      let result = null;
+      if (tmdbBearerToken) result = await enrichPeopleFromTmdb(item);
+      if (!result) result = await enrichPeopleFromImdb(item);
+
+      if (!result?.people?.length) throw new Error('فهرست عوامل معتبری پیدا نشد.');
+      const before = Array.isArray(item.people) ? item.people.length : 0;
+      item.people = mergePeople(item.people, result.people).slice(0, peopleEnrichmentMaxPeople);
+      item.peopleEnrichmentStatus = item.people.length >= 3 ? 'complete' : 'partial';
+      item.peopleEnrichmentCheckedAt = new Date().toISOString();
+      item.peopleEnrichmentSource = result.source;
+      delete item.peopleEnrichmentNextRetryAt;
+      if (result.tmdbId) item.tmdbId = result.tmdbId;
+      delete state.peopleEnrichmentFailures[id];
+      stats.peopleEnrichmentSucceeded += 1;
+      stats.peopleAdded += Math.max(0, item.people.length - before);
+      if (result.source === 'tmdb') stats.peopleEnrichmentFromTmdb += 1;
+      else if (result.source === 'imdb') stats.peopleEnrichmentFromImdb += 1;
+      else stats.peopleEnrichmentFromSource += 1;
+    } catch (error) {
+      const failures = nonNegativeInt(state.peopleEnrichmentFailures[id], 0) + 1;
+      state.peopleEnrichmentFailures[id] = failures;
+      item.peopleEnrichmentStatus = 'failed';
+      item.peopleEnrichmentCheckedAt = new Date().toISOString();
+      item.peopleEnrichmentNextRetryAt = new Date(
+        Date.now() + peopleEnrichmentRetryHours * 60 * 60 * 1000,
+      ).toISOString();
+      stats.peopleEnrichmentFailed += 1;
+      rememberError(`people-${id || 'unknown'}`, error);
+    }
+  }
+
+  state.peopleEnrichmentOffset = candidates.length
+    ? (start + visited) % candidates.length
+    : 0;
+  state.lastPeopleEnrichmentAt = new Date().toISOString();
+}
+
 function mergePeople(left, right) {
   const result = [];
-  const seen = new Set();
+  const indexByKey = new Map();
   for (const person of [
     ...(Array.isArray(left) ? left : []),
     ...(Array.isArray(right) ? right : []),
   ]) {
     if (!person || typeof person !== 'object') continue;
-    const key = cleanText(person.id || person.tmdbId || '') || normalizeIdentityName(person.nameFa || person.name || '');
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
-    result.push(person);
+    const key = cleanText(person.tmdbId || person.id || '') || normalizeIdentityName(person.nameFa || person.name || '');
+    if (!key) continue;
+    const existingIndex = indexByKey.get(key);
+    if (existingIndex === undefined) {
+      indexByKey.set(key, result.length);
+      result.push({ ...person });
+      continue;
+    }
+
+    const current = result[existingIndex];
+    const currentImage = cleanText(current.image);
+    const incomingImage = cleanText(person.image);
+    const preferredImage = /^(?:\.\/)?assets\/media\//i.test(currentImage)
+      ? currentImage
+      : incomingImage || currentImage;
+    result[existingIndex] = {
+      ...current,
+      ...person,
+      id: current.id || person.id,
+      nameFa: current.nameFa || person.nameFa || person.name,
+      name: current.name || person.name || person.nameFa,
+      role: current.role === 'director' || person.role === 'director' ? 'director' : (person.role || current.role),
+      roleLabel: current.role === 'director' || person.role === 'director'
+        ? 'کارگردان'
+        : (person.roleLabel || current.roleLabel || 'بازیگر'),
+      ...(preferredImage ? { image: preferredImage } : {}),
+      order: Math.min(
+        Number.isFinite(Number(current.order)) ? Number(current.order) : 999,
+        Number.isFinite(Number(person.order)) ? Number(person.order) : 999,
+      ),
+    };
   }
   return result;
 }
@@ -2582,6 +3091,8 @@ function normalizeMovie(
 
     genres,
 
+    people: mergePeople(existing?.people, extractSourcePeople(movie)),
+
     ...(isFiniteNumber(movie.rate)
       ? { rate: Number(movie.rate) }
       : {}),
@@ -2765,6 +3276,8 @@ function normalizeSeries(
     ),
 
     genres,
+
+    people: mergePeople(existing?.people, extractSourcePeople(series)),
 
     ...(isFiniteNumber(series.rate)
       ? { rate: Number(series.rate) }
@@ -5059,7 +5572,7 @@ async function persistSyncCheckpoint(reason = 'checkpoint') {
     .map((item) => withSeriesPublicationState(item));
   const checkpointOutput = {
     ...catalog,
-    version: '0.10.3-bounded-sync-and-operator-access',
+    version: '0.10.4-bounded-sync-operator-and-people',
     updatedAt: now,
     items: checkpointItems,
     iranianSchedule: Array.isArray(catalog.iranianSchedule) ? catalog.iranianSchedule : [],
