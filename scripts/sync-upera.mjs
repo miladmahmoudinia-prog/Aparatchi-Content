@@ -18,13 +18,13 @@ const refId = String(process.env.UPERA_REF_ID || '').trim();
 const token = String(process.env.UPERA_TOKEN || '').trim();
 
 const moviePagesPerRun = Math.min(
-  3,
-  positiveInt(process.env.MOVIE_PAGES_PER_RUN, 1),
+  20,
+  positiveInt(process.env.MOVIE_PAGES_PER_RUN, 6),
 );
 
 const seriesPagesPerRun = Math.min(
-  3,
-  positiveInt(process.env.SERIES_PAGES_PER_RUN, 2),
+  20,
+  positiveInt(process.env.SERIES_PAGES_PER_RUN, 6),
 );
 
 const newTitlesHours = positiveInt(
@@ -58,6 +58,21 @@ const maxBackfillNoProgressRuns = Math.min(
 const backfillEpisodeLimit = Math.min(
   maxAffiliateRequests,
   positiveInt(process.env.UPERA_BACKFILL_EPISODES_PER_RUN, maxAffiliateRequests),
+);
+
+const backfillSeriesPerRun = Math.min(
+  60,
+  positiveInt(process.env.UPERA_BACKFILL_SERIES_PER_RUN, 24),
+);
+
+const backfillEpisodesPerSeries = Math.min(
+  30,
+  positiveInt(process.env.UPERA_BACKFILL_EPISODES_PER_SERIES, 12),
+);
+
+const episodeUnavailableAfterAttempts = Math.min(
+  8,
+  positiveInt(process.env.UPERA_EPISODE_UNAVAILABLE_AFTER_ATTEMPTS, 3),
 );
 
 const retryBlockedBackfill = ['1', 'true', 'yes'].includes(
@@ -155,7 +170,7 @@ if (!refId) {
 }
 
 const defaultCatalog = {
-  version: '0.10.1-classification-and-publication-fix',
+  version: '0.10.2-fast-archive-and-classification',
   updatedAt: new Date(0).toISOString(),
   items: [],
   iranianSchedule: [],
@@ -178,8 +193,10 @@ const defaultState = {
   seriesEpisodeCursor: {},
   archiveBackfillSeriesId: '',
   archiveBackfillSeriesTitle: '',
+  archiveBackfillOffset: 0,
   archiveBackfillNoProgress: {},
   archiveBackfillCompleted: {},
+  archiveEpisodeFailures: {},
   lastSyncAt: null,
 };
 
@@ -213,6 +230,7 @@ if (
 
 state.archiveBackfillSeriesId = String(state.archiveBackfillSeriesId || '');
 state.archiveBackfillSeriesTitle = String(state.archiveBackfillSeriesTitle || '');
+state.archiveBackfillOffset = nonNegativeInt(state.archiveBackfillOffset, 0);
 if (
   !state.archiveBackfillNoProgress ||
   typeof state.archiveBackfillNoProgress !== 'object' ||
@@ -226,6 +244,13 @@ if (
   Array.isArray(state.archiveBackfillCompleted)
 ) {
   state.archiveBackfillCompleted = {};
+}
+if (
+  !state.archiveEpisodeFailures ||
+  typeof state.archiveEpisodeFailures !== 'object' ||
+  Array.isArray(state.archiveEpisodeFailures)
+) {
+  state.archiveEpisodeFailures = {};
 }
 
 let items = Array.isArray(catalog.items)
@@ -254,6 +279,9 @@ const stats = {
   backfillSeriesCompletedThisRun: [],
   backfillSeriesBlockedThisRun: [],
   backfillEpisodesAdded: 0,
+  backfillSeriesVisited: 0,
+  backfillCheckpoints: 0,
+  episodesMarkedUnavailable: 0,
   backfillNoProgressRuns: 0,
   normalSyncSkippedForBackfill: false,
   backfillOrdering: 'oldest-to-newest-global',
@@ -412,7 +440,7 @@ const activeIds = new Set(
 // discovered episode has a usable link. Already-published airing series stay
 // visible while a newly released tail episode is being fetched, but historical
 // gaps still hide them.
-items = items.map((item) => withSeriesPublicationState(item));
+items = items.map(reclassifyCatalogItem).map((item) => withSeriesPublicationState(item));
 stats.seriesAwaitingArchiveAudit = items.filter(
   (item) => item?.type === 'series' && !hasSeriesArchiveMetadata(item),
 ).length;
@@ -467,7 +495,7 @@ const now = new Date().toISOString();
 
 const output = {
   ...catalog,
-  version: '0.10.1-classification-and-publication-fix',
+  version: '0.10.2-fast-archive-and-classification',
   updatedAt: now,
   items,
   iranianSchedule,
@@ -586,23 +614,40 @@ async function syncAiringSeriesUpdates() {
 
 
 async function syncSequentialSeriesBackfill() {
+  let processedSeries = 0;
   let completedInThisRun = 0;
+  const visitedThisRun = new Set();
 
-  while (!affiliateBudgetExhausted) {
+  while (!affiliateBudgetExhausted && processedSeries < backfillSeriesPerRun) {
     const queue = buildSequentialBackfillQueue();
     stats.incompleteSeriesCandidates = queue.length;
     stats.backfillQueueTotal = Math.max(stats.backfillQueueTotal, queue.length);
 
     if (!queue.length) {
       clearActiveBackfillSeries();
+      state.archiveBackfillOffset = 0;
       break;
     }
 
-    const active = chooseActiveBackfillSeries(queue);
+    const startOffset = state.archiveBackfillOffset % queue.length;
+    let active = null;
+    for (let step = 0; step < queue.length; step += 1) {
+      const candidate = queue[(startOffset + step) % queue.length];
+      const candidateId = String(candidate?.item?.id || '');
+      if (!candidateId || visitedThisRun.has(candidateId)) continue;
+      active = candidate;
+      state.archiveBackfillOffset = (startOffset + step + 1) % Math.max(1, queue.length);
+      break;
+    }
+
+    // Every currently queued title has already received a fair slice in this run.
     if (!active) break;
 
     const id = String(active.item.id || '');
     const title = active.item.nameFa || active.item.name || id;
+    visitedThisRun.add(id);
+    processedSeries += 1;
+    stats.backfillSeriesVisited = processedSeries;
     state.archiveBackfillSeriesId = id;
     state.archiveBackfillSeriesTitle = title;
     stats.backfillActiveSeries = {
@@ -619,34 +664,28 @@ async function syncSequentialSeriesBackfill() {
       noProgressRuns: nonNegativeInt(state.archiveBackfillNoProgress[id], 0),
     };
 
-    const nextEntry = queue.find((entry) => String(entry.item?.id || '') !== id);
-    stats.backfillNextSeries = nextEntry
-      ? {
-          id: String(nextEntry.item?.id || ''),
-          title: nextEntry.item?.nameFa || nextEntry.item?.name || '',
-          year: seriesBackfillYear(nextEntry.item),
-        }
-      : null;
-
-    console.log(`تکمیل ترتیبی سریال: ${title}`);
-
+    console.log(`تکمیل سریع آرشیو: ${title}`);
     const beforeTotal = active.deficit.total;
+    const remainingBudget = Math.max(0, maxAffiliateRequests - affiliateRequestsUsed);
+    if (remainingBudget <= 1) break;
+
     let result;
     try {
       result = await processSeries(
         { id, type: 'series' },
-        'sequential-backfill',
+        'fast-backfill',
         {
           episodeStrategy: 'latest',
           episodeLimit: Math.max(1, Math.min(
+            backfillEpisodesPerSeries,
             backfillEpisodeLimit,
-            maxAffiliateRequests - affiliateRequestsUsed,
+            Math.max(1, remainingBudget - 1),
           )),
           onlyMissing: true,
         },
       );
     } catch (error) {
-      rememberError(`sequential-backfill-${id || 'unknown'}`, error);
+      rememberError(`fast-backfill-${id || 'unknown'}`, error);
       result = { added: false, addedEpisodes: 0, reason: 'request-error' };
     }
 
@@ -665,7 +704,8 @@ async function syncSequentialSeriesBackfill() {
     const progressed = Boolean(
       addedEpisodes > 0 ||
       remaining.total < beforeTotal ||
-      completed,
+      completed ||
+      Number(result?.unavailableMarked || 0) > 0,
     );
 
     if (completed) {
@@ -673,92 +713,52 @@ async function syncSequentialSeriesBackfill() {
       stats.backfillSeriesCompletedThisRun.push({ id, title });
       state.archiveBackfillCompleted[id] = new Date().toISOString();
       delete state.archiveBackfillNoProgress[id];
-      clearActiveBackfillSeries();
       completedInThisRun += 1;
+    } else {
+      stats.incompleteSeriesStillMissing += 1;
+      if (progressed) {
+        state.archiveBackfillNoProgress[id] = 0;
+      } else if (!affiliateBudgetExhausted) {
+        state.archiveBackfillNoProgress[id] =
+          nonNegativeInt(state.archiveBackfillNoProgress[id], 0) + 1;
+      }
 
-      rememberDiagnostic('seriesEpisodeDiagnostics', {
-        seriesId: id,
-        title,
-        source: 'sequential-backfill-summary',
-        missingBefore: active.deficit.missing,
-        pendingBefore: active.deficit.pending,
-        missingAfter: remaining.missing,
-        pendingAfter: remaining.pending,
-        publicationStatus: refreshed?.publicationStatus || '',
-        result: 'completed',
-      });
-
-      // Continue directly to the next series only when budget remains. The
-      // queue is always processed one title at a time.
-      if (affiliateBudgetExhausted) break;
-      continue;
-    }
-
-    stats.incompleteSeriesStillMissing += 1;
-
-    if (progressed) {
-      state.archiveBackfillNoProgress[id] = 0;
-    } else if (!affiliateBudgetExhausted) {
-      state.archiveBackfillNoProgress[id] =
-        nonNegativeInt(state.archiveBackfillNoProgress[id], 0) + 1;
-    }
-
-    const noProgressRuns = nonNegativeInt(state.archiveBackfillNoProgress[id], 0);
-    stats.backfillNoProgressRuns = noProgressRuns;
-
-    if (
-      !affiliateBudgetExhausted &&
-      noProgressRuns >= maxBackfillNoProgressRuns
-    ) {
-      markSeriesBackfillBlocked(id, {
-        reason: result?.reason || 'no-progress',
-        missing: remaining.missing,
-        pending: remaining.pending,
-        attempts: noProgressRuns,
-      });
-      stats.backfillSeriesBlockedThisRun.push({
-        id,
-        title,
-        reason: result?.reason || 'no-progress',
-        attempts: noProgressRuns,
-      });
-      clearActiveBackfillSeries();
-
-      rememberDiagnostic('seriesEpisodeDiagnostics', {
-        seriesId: id,
-        title,
-        source: 'sequential-backfill-summary',
-        missingBefore: active.deficit.missing,
-        pendingBefore: active.deficit.pending,
-        missingAfter: remaining.missing,
-        pendingAfter: remaining.pending,
-        publicationStatus: 'building-archive',
-        result: 'blocked-after-no-progress',
-        attempts: noProgressRuns,
-      });
-
-      // Move to the next series only after the current one has been explicitly
-      // marked blocked. It stays hidden from the app and is listed in report.
-      continue;
+      const noProgressRuns = nonNegativeInt(state.archiveBackfillNoProgress[id], 0);
+      stats.backfillNoProgressRuns = Math.max(stats.backfillNoProgressRuns, noProgressRuns);
+      if (!affiliateBudgetExhausted && noProgressRuns >= maxBackfillNoProgressRuns) {
+        // Do not freeze the global queue on one broken title. Mark it for a later
+        // retry and immediately continue with the remaining archive.
+        markSeriesBackfillBlocked(id, {
+          reason: result?.reason || 'no-progress',
+          missing: remaining.missing,
+          pending: remaining.pending,
+          attempts: noProgressRuns,
+        });
+        stats.backfillSeriesBlockedThisRun.push({
+          id,
+          title,
+          reason: result?.reason || 'no-progress',
+          attempts: noProgressRuns,
+        });
+      }
     }
 
     rememberDiagnostic('seriesEpisodeDiagnostics', {
       seriesId: id,
       title,
-      source: 'sequential-backfill-summary',
+      source: 'fast-backfill-summary',
       missingBefore: active.deficit.missing,
       pendingBefore: active.deficit.pending,
       missingAfter: remaining.missing,
       pendingAfter: remaining.pending,
       publicationStatus: refreshed?.publicationStatus || '',
-      result: affiliateBudgetExhausted ? 'paused-by-budget' : 'still-in-progress',
+      result: completed ? 'completed' : affiliateBudgetExhausted ? 'paused-by-budget' : 'advanced',
       addedEpisodes,
-      noProgressRuns,
+      unavailableMarked: Number(result?.unavailableMarked || 0),
     });
 
-    // The current title remains active for the next workflow run. Do not jump
-    // to another title while this one is incomplete.
-    break;
+    clearActiveBackfillSeries();
+    await persistSyncCheckpoint(`backfill-${id}`);
   }
 
   if (completedInThisRun > 0) {
@@ -1376,6 +1376,54 @@ async function processMovie(candidate, source, options = {}) {
   return { retryLater: false, added: true, reason: 'added-or-updated' };
 }
 
+function archiveEpisodeKey(seriesId, episode) {
+  const episodeId = cleanText(episode?.id || episode?.sourceEpisodeId || '');
+  if (episodeId) return `${String(seriesId)}:id:${episodeId}`;
+  return `${String(seriesId)}:s${episodeSeasonNumber(episode)}e${episodeNumberValue(episode)}`;
+}
+
+function existingUnavailableEpisodeMap(seriesId, existing) {
+  const map = new Map();
+  for (const entry of Array.isArray(existing?.archiveUnavailableEpisodes)
+    ? existing.archiveUnavailableEpisodes
+    : []) {
+    const key = archiveEpisodeKey(seriesId, entry);
+    map.set(key, {
+      sourceEpisodeId: cleanText(entry?.sourceEpisodeId || entry?.id || ''),
+      seasonNumber: nonNegativeInt(entry?.seasonNumber, 0),
+      episodeNumber: nonNegativeInt(entry?.episodeNumber, 0),
+      reason: cleanText(entry?.reason || 'no-usable-links'),
+      attempts: positiveInt(entry?.attempts, episodeUnavailableAfterAttempts),
+      markedAt: entry?.markedAt || new Date().toISOString(),
+    });
+  }
+  return map;
+}
+
+function clearArchiveEpisodeFailure(seriesId, episode, unavailableMap) {
+  const key = archiveEpisodeKey(seriesId, episode);
+  delete state.archiveEpisodeFailures[key];
+  unavailableMap.delete(key);
+}
+
+function registerArchiveEpisodeFailure(seriesId, episode, reason, unavailableMap) {
+  const key = archiveEpisodeKey(seriesId, episode);
+  const attempts = nonNegativeInt(state.archiveEpisodeFailures[key], 0) + 1;
+  state.archiveEpisodeFailures[key] = attempts;
+  if (attempts < episodeUnavailableAfterAttempts) return false;
+
+  if (!unavailableMap.has(key)) stats.episodesMarkedUnavailable += 1;
+  unavailableMap.set(key, {
+    sourceEpisodeId: cleanText(episode?.id || episode?.sourceEpisodeId || ''),
+    seasonNumber: episodeSeasonNumber(episode),
+    episodeNumber: episodeNumberValue(episode),
+    reason: cleanText(reason || 'no-usable-links'),
+    attempts,
+    markedAt: new Date().toISOString(),
+  });
+  return true;
+}
+
 async function processSeries(
   candidate,
   source,
@@ -1414,6 +1462,8 @@ async function processSeries(
     .sort(compareEpisodes);
 
   const existing = findExistingItem(series, 'series');
+  const unavailableEpisodeMap = existingUnavailableEpisodeMap(id, existing);
+  let unavailableMarked = 0;
   const previousGroups = Array.isArray(existing?.downloads)
     ? existing.downloads
     : [];
@@ -1424,6 +1474,7 @@ async function processSeries(
 
   const missingEpisodes = episodes
     .filter((episode) => !findEpisodeGroup(previousGroups, episode))
+    .filter((episode) => !unavailableEpisodeMap.has(archiveEpisodeKey(id, episode)))
     .sort(compareEpisodes);
   const changedExistingEpisodes = episodes
     .filter((episode) => findEpisodeGroup(previousGroups, episode))
@@ -1503,9 +1554,13 @@ async function processSeries(
           episodeNumber: episodeNumberValue(episode),
           reason: 'no-usable-links',
         });
+        if (registerArchiveEpisodeFailure(id, episode, 'no-usable-links', unavailableEpisodeMap)) {
+          unavailableMarked += 1;
+        }
         continue;
       }
 
+      clearArchiveEpisodeFailure(id, episode, unavailableEpisodeMap);
       const previousGroup = findEpisodeGroup(mergedGroups, episode);
       const nextGroup = episodeGroup(episode, media);
       upsertEpisodeGroup(mergedGroups, nextGroup);
@@ -1517,6 +1572,9 @@ async function processSeries(
       }
     } catch (error) {
       rememberError(`episode-${episode.id}`, error);
+      if (registerArchiveEpisodeFailure(id, episode, 'request-error', unavailableEpisodeMap)) {
+        unavailableMarked += 1;
+      }
     }
   }
 
@@ -1567,7 +1625,9 @@ async function processSeries(
   }
 
   const remainingSourceEpisodes = episodes.filter(
-    (episode) => !findEpisodeGroup(mergedGroups, episode),
+    (episode) =>
+      !findEpisodeGroup(mergedGroups, episode) &&
+      !unavailableEpisodeMap.has(archiveEpisodeKey(id, episode)),
   );
   const isAiring = inferSeriesAiring(series, existing);
   const archiveComplete =
@@ -1617,6 +1677,7 @@ async function processSeries(
       publicationStatus,
       sourceEpisodeCount: episodes.length,
       pendingEpisodes: remainingSourceEpisodes,
+      unavailableEpisodes: [...unavailableEpisodeMap.values()],
       episodeDiscoveryComplete,
       episodePaginationPagesFetched: detail.episodePaginationPagesFetched || 0,
       episodePaginationErrors: detail.episodePaginationErrors || 0,
@@ -1643,6 +1704,7 @@ async function processSeries(
     completeBackfill,
     added: true,
     addedEpisodes,
+    unavailableMarked,
     archiveComplete,
     publicationStatus,
     remainingEpisodeCount: remainingSourceEpisodes.length,
@@ -2467,6 +2529,11 @@ function normalizeSeries(
       : Array.isArray(existing?.archivePendingEpisodes)
         ? existing.archivePendingEpisodes
         : [],
+    archiveUnavailableEpisodes: Array.isArray(archiveMeta.unavailableEpisodes)
+      ? archiveMeta.unavailableEpisodes.slice(0, 200)
+      : Array.isArray(existing?.archiveUnavailableEpisodes)
+        ? existing.archiveUnavailableEpisodes
+        : [],
     archiveComplete: Boolean(archiveMeta.archiveComplete),
     publicationStatus: archiveMeta.publicationStatus || 'building-archive',
     isAiring: Boolean(archiveMeta.isAiring),
@@ -2565,7 +2632,9 @@ function classifyContent(
   genres,
   metadata = {},
 ) {
-  const normalizedGenres = genres.map((genre) => normalizeClassificationText(genre));
+  const normalizedGenres = (Array.isArray(genres) ? genres : [])
+    .map((genre) => normalizeClassificationText(genre))
+    .filter(Boolean);
   const genreText = normalizedGenres.join(' ');
   const titleText = normalizeClassificationText([
     metadata.nameFa,
@@ -2573,18 +2642,19 @@ function classifyContent(
   ].filter(Boolean).join(' '));
   const existing = metadata.existing || {};
   const existingKind = normalizeClassificationText(existing.contentKind);
-  const existingCategories = normalizeClassificationText([
-    ...(Array.isArray(existing.categoryKeys) ? existing.categoryKeys : []),
-    ...(Array.isArray(existing.categoryLabels) ? existing.categoryLabels : []),
-  ].join(' '));
+  const allowExistingFallback = normalizedGenres.length === 0;
 
   const isAnimation = normalizedGenres.some((genre) =>
     genre.includes('انیمیشن') || genre.includes('animation'),
-  ) || Boolean(existing.isAnimation);
+  ) || Boolean(allowExistingFallback && existing.isAnimation);
 
-  const isDocumentary = normalizedGenres.some((genre) =>
-    genre.includes('مستند') || genre.includes('documentary'),
-  ) || existingKind === 'documentary';
+  const knownNarrativeWhistle = hasClassificationTerm(titleText, ['سوت', 'whistle']) &&
+    hasClassificationTerm(genreText, ['ترسناک', 'وحشت', 'هیجان انگیز', 'horror', 'thriller', 'drama']);
+  const isDocumentary = !knownNarrativeWhistle && (
+    normalizedGenres.some((genre) =>
+      genre.includes('مستند') || genre.includes('documentary'),
+    ) || Boolean(allowExistingFallback && existingKind === 'documentary')
+  );
 
   const adultOrHeavy = hasClassificationTerm(genreText, [
     'ترسناک', 'وحشت', 'جنگی', 'جنایی', 'هیجان انگیز', 'بزرگسال',
@@ -2593,77 +2663,75 @@ function classifyContent(
 
   const isQuran = hasClassificationTerm(titleText, [
     'قرآن', 'قرآنی', 'ترتیل', 'تلاوت', 'quran', 'recitation',
-  ]) || hasClassificationTerm(existingCategories, ['quran']);
-
+  ]);
+  const religiousProgramTerms = [
+    'ادعیه', 'دعای', 'دعا', 'مداحی', 'نوحه', 'زیارت', 'ترتیل', 'تلاوت',
+  ];
   const isReligious = Boolean(
     isQuran ||
-    existingKind === 'religious program' ||
-    existingKind === 'quran program' ||
     hasClassificationTerm(titleText, [
-      'ادعیه', 'دعا', 'دعای', 'مذهبی', 'مداحی', 'نوحه', 'زیارت',
-      'عاشورا', 'کربلا', 'پیامبر', 'نبی', 'امام', 'religious',
+      ...religiousProgramTerms,
+      'مذهبی', 'عاشورا', 'کربلا', 'پیامبر', 'نبی', 'امام', 'religious',
     ]) ||
-    hasClassificationTerm(genreText, ['مذهبی', 'religious'])
+    hasClassificationTerm(genreText, ['مذهبی', 'religious']) ||
+    (allowExistingFallback && ['religious program', 'quran program', 'religious movie', 'religious series'].includes(existingKind))
+  );
+  const isReligiousProgram = Boolean(
+    isQuran ||
+    hasClassificationTerm(titleText, religiousProgramTerms) ||
+    (allowExistingFallback && ['religious program', 'quran program'].includes(existingKind))
   );
 
   const explicitKidsTitle = hasClassificationTerm(titleText, [
-    'کودک', 'کودکان', 'کودکانه', 'بچه ها', 'برنامه کودک', 'ترانه کودک',
+    'کودک', 'کودکان', 'کودکانه', 'برنامه کودک', 'ترانه کودک',
     'خاله نسرین', 'خاله سوسکه', 'با بابام', 'بیا آشتی کنیم', 'بنیامین',
     'ننه لالا', 'kids', 'children', 'nursery',
   ]);
   const explicitKidsGenre = hasClassificationTerm(genreText, [
     'کودک', 'کودکان', 'kids', 'children',
   ]);
-  const animatedFamily = Boolean(
-    isAnimation &&
-    hasClassificationTerm(genreText, ['خانوادگی', 'family']) &&
-    !adultOrHeavy,
-  );
   const isKids = Boolean(
     !adultOrHeavy &&
     (
-      existingKind === 'kids' ||
-      existingKind === 'children program' ||
       explicitKidsTitle ||
       explicitKidsGenre ||
-      animatedFamily
+      (allowExistingFallback && ['kids', 'children program'].includes(existingKind))
     )
   );
 
   const isTalkShow = Boolean(
-    existing.isTalkShow ||
-    existingKind === 'talk show' ||
-    hasClassificationTerm(genreText, ['تاک شو', 'talk show']) ||
-    (type === 'series' && hasClassificationTerm(titleText, ['تاک شو', 'talk show']))
+    type === 'series' &&
+    (
+      hasClassificationTerm(genreText, ['تاک شو', 'talk show']) ||
+      hasClassificationTerm(titleText, ['تاک شو', 'talk show']) ||
+      (allowExistingFallback && existingKind === 'talk show')
+    )
   );
   const isRealityCompetition = Boolean(
     type === 'series' &&
     (
-      existingKind === 'reality competition' ||
       hasClassificationTerm(genreText, [
         'رئالیتی شو', 'مسابقه تلویزیونی', 'reality', 'game show',
       ]) ||
       hasClassificationTerm(titleText, [
         'رئالیتی شو', 'مسابقه', 'گیم شو', 'سیزده شمالی',
         'شب های مافیا', 'جوکر', 'reality', 'game show',
-      ])
+      ]) ||
+      (allowExistingFallback && existingKind === 'reality competition')
     )
   );
   const isProgram = isTalkShow || isRealityCompetition;
 
-  const categoryKeys = [];
-  const categoryLabels = [];
+  const categoryKeys = [type === 'movie' ? 'movies' : 'series'];
+  const categoryLabels = [type === 'movie' ? 'فیلم‌ها' : 'مجموعه‌ها'];
 
-  if (type === 'movie') {
-    categoryKeys.push('movies');
-    categoryLabels.push('فیلم‌ها');
-  } else {
-    categoryKeys.push('series');
-    categoryLabels.push('مجموعه‌ها');
-  }
-
-  const specialSection = isReligious || isKids || isProgram || isAnimation || isDocumentary;
-  if (!specialSection) {
+  // Narrative religious films/series may also remain in their normal regional
+  // shelf. Programs, kids content, animation and documentaries stay in their
+  // dedicated shelves and do not pollute the standard series/movie lists.
+  const excludeFromRegional = Boolean(
+    isAnimation || isDocumentary || isKids || isProgram || isReligiousProgram,
+  );
+  if (!excludeFromRegional) {
     if (type === 'movie') {
       categoryKeys.push(ir ? 'iranian-movies' : 'foreign-movies');
       categoryLabels.push(ir ? 'فیلم ایرانی' : 'فیلم خارجی');
@@ -2677,12 +2745,10 @@ function classifyContent(
     categoryKeys.push(type === 'movie' ? 'animation-movies' : 'animation-series');
     categoryLabels.push(type === 'movie' ? 'انیمیشن سینمایی' : 'انیمیشن سریالی');
   }
-
   if (isKids) {
     categoryKeys.push('kids');
     categoryLabels.push('کودکان');
   }
-
   if (isReligious) {
     categoryKeys.push('religious');
     categoryLabels.push('مذهبی و مناسبتی');
@@ -2691,7 +2757,6 @@ function classifyContent(
       categoryLabels.push('قرآن و ادعیه');
     }
   }
-
   if (isProgram) {
     categoryKeys.push('programs');
     categoryLabels.push('برنامه‌ها و مسابقه‌ها');
@@ -2704,15 +2769,14 @@ function classifyContent(
       categoryLabels.push('مسابقه و رئالیتی‌شو');
     }
   }
-
   if (isDocumentary) {
     categoryKeys.push('documentaries');
     categoryLabels.push('مستند');
   }
 
   let contentKind = type;
-  if (isQuran) contentKind = 'religious-program';
-  else if (isReligious) contentKind = 'religious-program';
+  if (isQuran || isReligiousProgram) contentKind = 'religious-program';
+  else if (isReligious) contentKind = type === 'movie' ? 'religious-movie' : 'religious-series';
   else if (isKids) contentKind = isAnimation ? 'kids' : 'children-program';
   else if (isRealityCompetition) contentKind = 'reality-competition';
   else if (isTalkShow) contentKind = 'talk-show';
@@ -2726,6 +2790,42 @@ function classifyContent(
     isAnimation,
     isTalkShow,
     isDocumentary,
+  };
+}
+
+function isManagedCategoryKey(value) {
+  return [
+    'movies', 'series', 'iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series',
+    'animation-movies', 'animation-series', 'kids', 'religious', 'quran',
+    'programs', 'talk-shows', 'reality', 'documentaries',
+  ].includes(String(value));
+}
+
+function isManagedCategoryLabel(value) {
+  return [
+    'فیلم‌ها', 'مجموعه‌ها', 'فیلم ایرانی', 'فیلم خارجی', 'سریال ایرانی', 'سریال خارجی',
+    'انیمیشن سینمایی', 'انیمیشن سریالی', 'کودکان', 'مذهبی و مناسبتی', 'قرآن و ادعیه',
+    'برنامه‌ها و مسابقه‌ها', 'تاک‌شو', 'مسابقه و رئالیتی‌شو', 'مستند',
+  ].includes(String(value));
+}
+
+function reclassifyCatalogItem(item) {
+  if (!item || !['movie', 'series'].includes(item.type)) return item;
+  const classification = classifyContent(
+    item.type,
+    Boolean(item.ir),
+    Array.isArray(item.genres) ? item.genres : [],
+    { nameFa: item.nameFa, name: item.name, existing: {} },
+  );
+  const preservedKeys = (Array.isArray(item.categoryKeys) ? item.categoryKeys : [])
+    .filter((key) => !isManagedCategoryKey(key));
+  const preservedLabels = (Array.isArray(item.categoryLabels) ? item.categoryLabels : [])
+    .filter((label) => !isManagedCategoryLabel(label));
+  return {
+    ...item,
+    ...classification,
+    categoryKeys: uniqueStrings([...classification.categoryKeys, ...preservedKeys]),
+    categoryLabels: uniqueStrings([...classification.categoryLabels, ...preservedLabels]),
   };
 }
 
@@ -4642,6 +4742,30 @@ function redact(url) {
   } catch {
     return url;
   }
+}
+
+async function persistSyncCheckpoint(reason = 'checkpoint') {
+  const now = new Date().toISOString();
+  const checkpointItems = items
+    .map(reclassifyCatalogItem)
+    .map((item) => withSeriesPublicationState(item));
+  const checkpointOutput = {
+    ...catalog,
+    version: '0.10.2-fast-archive-and-classification',
+    updatedAt: now,
+    items: checkpointItems,
+    iranianSchedule: Array.isArray(catalog.iranianSchedule) ? catalog.iranianSchedule : [],
+    weeklySchedule: Array.isArray(catalog.weeklySchedule) ? catalog.weeklySchedule : [],
+  };
+  state.lastSyncAt = now;
+  stats.lastCheckpointAt = now;
+  stats.lastCheckpointReason = reason;
+  stats.backfillCheckpoints = nonNegativeInt(stats.backfillCheckpoints, 0) + 1;
+  stats.affiliateRequests = affiliateRequestsUsed;
+  stats.finalCount = checkpointItems.length;
+  await writeJson(catalogPath, checkpointOutput);
+  await writeJson(statePath, state);
+  await writeJson(reportPath, stats);
 }
 
 function sleep(ms) {
