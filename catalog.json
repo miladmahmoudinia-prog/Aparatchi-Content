@@ -1,6 +1,6 @@
 {
-  "version": "0.10.1-classification-and-publication-fix",
-  "updatedAt": "2026-08-05T16:13:57.686Z",
+  "version": "0.10.4-bounded-sync-operator-and-people",
+  "updatedAt": "2026-08-05T19:36:14.965Z",
   "items": [
     {
       "id": "97621840-979a-11ee-8a86-2b09342f24e2",
@@ -133,7 +133,10 @@
       "isTalkShow": false,
       "isDocumentary": false,
       "updateLabel": "",
-      "source": "upera-backfill"
+      "source": "upera-backfill",
+      "peopleEnrichmentStatus": "failed",
+      "peopleEnrichmentCheckedAt": "2026-08-05T19:36:11.850Z",
+      "peopleEnrichmentNextRetryAt": "2026-08-06T07:36:11.850Z"
     },
     {
       "id": "32093a60-e06c-11ee-b09b-89f25bc35434",
@@ -265,7 +268,10 @@
       "isTalkShow": false,
       "isDocumentary": false,
       "updateLabel": "",
-      "source": "upera-backfill"
+      "source": "upera-backfill",
+      "peopleEnrichmentStatus": "failed",
+      "peopleEnrichmentCheckedAt": "2026-08-05T19:36:12.653Z",
+      "peopleEnrichmentNextRetryAt": "2026-08-06T07:36:12.653Z"
     },
     {
       "id": "2a86fde0-8281-11f0-bb31-5f402e86ac1b",
@@ -337,20 +343,21 @@
       "lastSyncedAt": "2026-08-05T16:04:13.990Z",
       "categoryKeys": [
         "movies",
-        "animation-movies",
-        "kids"
+        "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "انیمیشن سینمایی",
-        "کودکان"
+        "انیمیشن سینمایی"
       ],
-      "contentKind": "kids",
+      "contentKind": "animation-movie",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
       "updateLabel": "",
-      "source": "upera-backfill"
+      "source": "upera-backfill",
+      "peopleEnrichmentStatus": "failed",
+      "peopleEnrichmentCheckedAt": "2026-08-05T19:36:13.078Z",
+      "peopleEnrichmentNextRetryAt": "2026-08-06T07:36:13.078Z"
     },
     {
       "id": "62b542d0-827f-11f0-98b3-737002a6fc41",
@@ -433,7 +440,10 @@
       "isTalkShow": false,
       "isDocumentary": false,
       "updateLabel": "",
-      "source": "upera-backfill"
+      "source": "upera-backfill",
+      "peopleEnrichmentStatus": "failed",
+      "peopleEnrichmentCheckedAt": "2026-08-05T19:36:13.560Z",
+      "peopleEnrichmentNextRetryAt": "2026-08-06T07:36:13.560Z"
     },
     {
       "id": "a42e4310-84cc-11f0-bbe6-893398b98171",
@@ -2964,15 +2974,13 @@
       "lastSyncedAt": "2026-08-05T09:32:27.532Z",
       "categoryKeys": [
         "movies",
-        "animation-movies",
-        "kids"
+        "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "انیمیشن سینمایی",
-        "کودکان"
+        "انیمیشن سینمایی"
       ],
-      "contentKind": "kids",
+      "contentKind": "animation-movie",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -10989,15 +10997,13 @@
       "lastSyncedAt": "2026-08-05T09:32:23.987Z",
       "categoryKeys": [
         "movies",
-        "animation-movies",
-        "kids"
+        "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "انیمیشن سینمایی",
-        "کودکان"
+        "انیمیشن سینمایی"
       ],
-      "contentKind": "kids",
+      "contentKind": "animation-movie",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -14162,17 +14168,17 @@
       "lastSyncedAt": "2026-08-02T20:43:36.592Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
+        "animation-movies",
         "korean-movies",
         "anime-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
+        "انیمیشن سینمایی",
         "فیلم کره‌ای",
         "انیمه سینمایی"
       ],
-      "contentKind": "anime-movie",
+      "contentKind": "animation-movie",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -20268,15 +20274,15 @@
       "lastSyncedAt": "2026-08-02T16:35:35.301Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
+        "animation-movies",
         "anime-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
+        "انیمیشن سینمایی",
         "انیمه سینمایی"
       ],
-      "contentKind": "anime-movie",
+      "contentKind": "animation-movie",
       "isAnimation": true,
       "isAnime": true,
       "isTalkShow": false,
@@ -22645,12 +22651,10 @@
       "lastSyncedAt": "2026-08-02T16:35:00.267Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
         "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
         "انیمیشن سینمایی"
       ],
       "contentKind": "animation-movie",
@@ -24435,8 +24439,9 @@
         "foreign-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال خارجی"
+        "مجموعه‌ها",
+        "سریال خارجی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -30958,13 +30963,12 @@
       "lastSyncedAt": "2026-08-02T21:18:45.616Z",
       "categoryKeys": [
         "series",
-        "foreign-series",
         "animation-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال خارجی",
-        "انیمیشن سریالی"
+        "مجموعه‌ها",
+        "انیمیشن سریالی",
+        "سریال‌ها"
       ],
       "contentKind": "animation-series",
       "isAnimation": true,
@@ -34150,12 +34154,10 @@
       "lastSyncedAt": "2026-08-02T09:00:16.061Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
         "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
         "انیمیشن سینمایی"
       ],
       "contentKind": "animation-movie",
@@ -41462,12 +41464,10 @@
       "lastSyncedAt": "2026-08-01T23:45:00.807Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
         "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
         "انیمیشن سینمایی"
       ],
       "contentKind": "animation-movie",
@@ -45371,7 +45371,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 544004,
-          "image": "https://image.tmdb.org/t/p/w342/v9BA3YRPkEBpfL3ogKkn2Phag6m.jpg",
+          "image": "assets/media/people/bb5c8866c3ccad36b46a792403b7.webp",
           "character": "Amaia",
           "popularity": 0.7725,
           "order": 0,
@@ -45384,7 +45384,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 51905,
-          "image": "https://image.tmdb.org/t/p/w342/qR9EyorWi9Z8WnoFcY5AskYBW4B.jpg",
+          "image": "assets/media/people/4f3ab25f723ce2f42d94ef4c137b.webp",
           "character": "Teniente Coronel Castro",
           "popularity": 0.5348,
           "order": 1,
@@ -45397,7 +45397,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 1522118,
-          "image": "https://image.tmdb.org/t/p/w342/sqtUzaP1hwLkEkMQ8JoZZbjqtNr.jpg",
+          "image": "assets/media/people/810d9e2011f54b5e3f02981a7872.webp",
           "character": "Begoña",
           "popularity": 0.1957,
           "order": 2,
@@ -45410,7 +45410,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 17006,
-          "image": "https://image.tmdb.org/t/p/w342/4g5IyK6br9UCRqLLlW8z5ZLFtYf.jpg",
+          "image": "assets/media/people/b3ad46533c03ff864fc24c4a212e.webp",
           "character": "Anboto",
           "popularity": 1.1887,
           "order": 3,
@@ -45423,7 +45423,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 34021,
-          "image": "https://image.tmdb.org/t/p/w342/npWhiRnqlbqku6mNnk5RTgGvnj2.jpg",
+          "image": "assets/media/people/e6569aa03ba3bf5a03e26be599e8.webp",
           "character": "Arrieta",
           "popularity": 1.1363,
           "order": 4,
@@ -45436,7 +45436,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 1117804,
-          "image": "https://image.tmdb.org/t/p/w342/abQ9nXis7hqVjAW7VKNDRYkbgzy.jpg",
+          "image": "assets/media/people/49c28da8027b571460edd08977d6.webp",
           "character": "Antza",
           "popularity": 0.266,
           "order": 5,
@@ -45449,7 +45449,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 37613,
-          "image": "https://image.tmdb.org/t/p/w342/7W1ax4s7l31seVqSndufvcdjulS.jpg",
+          "image": "assets/media/people/5a1624e4fcb506473be682e09753.webp",
           "character": "Txiki el Viejo",
           "popularity": 0.4027,
           "order": 6,
@@ -45462,7 +45462,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 1987954,
-          "image": "https://image.tmdb.org/t/p/w342/qJeRU4ToSc57diLsHlCx2fkWl1G.jpg",
+          "image": "assets/media/people/b3ce939cd2d64efe50e589c90f2b.webp",
           "character": "Adela",
           "popularity": 0.4658,
           "order": 7,
@@ -45475,7 +45475,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 1076948,
-          "image": "https://image.tmdb.org/t/p/w342/uCL4nq9WZUU708By82SOk0D7jxr.jpg",
+          "image": "assets/media/people/61ac06b1351cab832d3c81976298.webp",
           "character": "Renteria",
           "popularity": 0.4354,
           "order": 8,
@@ -45488,7 +45488,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 2943742,
-          "image": "https://image.tmdb.org/t/p/w342/1RzK5asw7lm6fTfDrNgTkqGagwu.jpg",
+          "image": "assets/media/people/c5ba70f700ae249660bc2d2cf23f.webp",
           "character": "Andoni",
           "popularity": 0.0071,
           "order": 9,
@@ -45501,7 +45501,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 143599,
-          "image": "https://image.tmdb.org/t/p/w342/v83R8q95DMfzmGlMeb7xWNKyvN0.jpg",
+          "image": "assets/media/people/3f157f01a64fdc32bac7b637af8f.webp",
           "character": "Ezquertia",
           "popularity": 0.2567,
           "order": 10,
@@ -45514,7 +45514,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 2059337,
-          "image": "https://image.tmdb.org/t/p/w342/gNbL51NhgiUI4NZXZtfi7n34SVD.jpg",
+          "image": "assets/media/people/73d00842b18b2b379dd7c965a834.webp",
           "character": "Txapote",
           "popularity": 0.4727,
           "order": 11,
@@ -45551,7 +45551,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 2085172,
-          "image": "https://image.tmdb.org/t/p/w342/8MqQkk9osgEJhRzCxBfmOC9p8De.jpg",
+          "image": "assets/media/people/2e11c34850b6f7429b2f5a60235c.webp",
           "character": "Antonio",
           "popularity": 0.2621,
           "order": 14,
@@ -45564,7 +45564,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 2016203,
-          "image": "https://image.tmdb.org/t/p/w342/lzatPm2uE0gy8QRBxCFTkHWnsw2.jpg",
+          "image": "assets/media/people/94f2822b545723c0dd50503eb155.webp",
           "character": "Sargento",
           "popularity": 0.479,
           "order": 15,
@@ -45577,7 +45577,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 93649,
-          "image": "https://image.tmdb.org/t/p/w342/qwXxX6gKIphuCXJ2wgeROPjIdic.jpg",
+          "image": "assets/media/people/e240b2ad2dc508f3834de74fafdf.webp",
           "character": "Comandante Silva",
           "popularity": 0.5471,
           "order": 16,
@@ -45728,7 +45728,7 @@
           "role": "director",
           "roleLabel": "کارگردان",
           "tmdbId": 1510156,
-          "image": "https://image.tmdb.org/t/p/w342/F5EBHmg5uaTfR7X97gsAk9dUWz.jpg",
+          "image": "assets/media/people/d9ab7d0049c8c42f3dafbb5c937e.webp",
           "popularity": 0.0883,
           "order": 1,
           "source": "tmdb"
@@ -45740,7 +45740,7 @@
           "role": "director",
           "roleLabel": "کارگردان",
           "tmdbId": 1108802,
-          "image": "https://image.tmdb.org/t/p/w342/f5XI2wJs2JPcd5FSECsdcnkyOMW.jpg",
+          "image": "assets/media/people/967aaa4fd6e5715d3824f58cca7a.webp",
           "popularity": 1.4713,
           "order": 2,
           "source": "tmdb"
@@ -45763,7 +45763,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 2242585,
-          "image": "https://image.tmdb.org/t/p/w342/9hsOatm8AtXf55ko7dWySVv9noZ.jpg",
+          "image": "assets/media/people/5cfd7bc4e82885f222ee15c2fb4f.webp",
           "character": "Neelesh Ahirwar",
           "popularity": 0.754,
           "order": 0,
@@ -45776,7 +45776,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 2100209,
-          "image": "https://image.tmdb.org/t/p/w342/5NBOKv8f9O0b41NPebgdB0eQ20y.jpg",
+          "image": "assets/media/people/1ef83428500de6401f388a02aac6.webp",
           "character": "Vidhisha 'Vidhi' Bharadwaj",
           "popularity": 1.7902,
           "order": 1,
@@ -45789,7 +45789,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 2967618,
-          "image": "https://image.tmdb.org/t/p/w342/z8BMzffBOWDr8QtdqM00SLXbMCE.jpg",
+          "image": "assets/media/people/a435280a7035f33289500caebbb0.webp",
           "character": "Ronnie",
           "popularity": 0.338,
           "order": 2,
@@ -45802,7 +45802,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 2353414,
-          "image": "https://image.tmdb.org/t/p/w342/owFhWHeW4fyc7k6ik8uCvYQCXoy.jpg",
+          "image": "assets/media/people/27dc47ee6e6d421ca9c63cadf2cc.webp",
           "character": "Shankar",
           "popularity": 1.357,
           "order": 3,
@@ -45815,7 +45815,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 52768,
-          "image": "https://image.tmdb.org/t/p/w342/3TZHbQ1Zi3z1B721jwwTKxAMXqI.jpg",
+          "image": "assets/media/people/917b74f8515f145d271e585c2255.webp",
           "character": "Nandkumar",
           "popularity": 0.9599,
           "order": 4,
@@ -45828,7 +45828,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 85656,
-          "image": "https://image.tmdb.org/t/p/w342/etiL0ANjzBhTiyvUblZl6vwIog9.jpg",
+          "image": "assets/media/people/ad94fec8617f4399ccc0f53f95c2.webp",
           "character": "Dean Haider Ansari",
           "popularity": 0.8466,
           "order": 5,
@@ -45841,7 +45841,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 2918853,
-          "image": "https://image.tmdb.org/t/p/w342/7KeBm0PHfsWIG8wjyrboUTem2TM.jpg",
+          "image": "assets/media/people/9e96c86c771561d1f6c52575981e.webp",
           "character": "Beena",
           "popularity": 1.4263,
           "order": 6,
@@ -45854,7 +45854,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 3006633,
-          "image": "https://image.tmdb.org/t/p/w342/avyZUEqDQyWSOwGLMQQz1Osq4tV.jpg",
+          "image": "assets/media/people/090db6ccf8e9485c6339bbcec6f2.webp",
           "character": "Shekhar",
           "popularity": 0.2649,
           "order": 7,
@@ -45867,7 +45867,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 1822831,
-          "image": "https://image.tmdb.org/t/p/w342/2w5q4vb6IPtd03qNJjAVKqYfFex.jpg",
+          "image": "assets/media/people/b00c9fb41bb962ab32cbf8691792.webp",
           "character": "Nimisha",
           "popularity": 0.527,
           "order": 8,
@@ -45880,7 +45880,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 1664858,
-          "image": "https://image.tmdb.org/t/p/w342/uUp5UH7SpPvCBidrAIa3mMaLZIu.jpg",
+          "image": "assets/media/people/431e4b243b6ed3f14f554b256fd3.webp",
           "character": "Arvind Bharadwaj",
           "popularity": 0.5626,
           "order": 9,
@@ -45893,7 +45893,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 2007865,
-          "image": "https://image.tmdb.org/t/p/w342/qqN36Vnq7liSOpDHyAHLCwUlkMe.jpg",
+          "image": "assets/media/people/7b47c064e7540e985020c24b6c3e.webp",
           "character": "Richa",
           "popularity": 0.6681,
           "order": 10,
@@ -46093,7 +46093,7 @@
           "role": "director",
           "roleLabel": "کارگردان",
           "tmdbId": 2831618,
-          "image": "https://image.tmdb.org/t/p/w342/3HhM2nZCajd4Je6GPvnObkYYdlK.jpg",
+          "image": "assets/media/people/f60070c8318b68a15b3138f071c3.webp",
           "popularity": 0.2083,
           "order": 0,
           "source": "tmdb"
@@ -46116,7 +46116,7 @@
           "role": "director",
           "roleLabel": "کارگردان",
           "tmdbId": 2831619,
-          "image": "https://image.tmdb.org/t/p/w342/2YLZHeBwAUTxINZE5bN4zDrvOaQ.jpg",
+          "image": "assets/media/people/43e630cf5936376331c4b60cf3eb.webp",
           "popularity": 0.2591,
           "order": 2,
           "source": "tmdb"
@@ -48107,12 +48107,10 @@
       "lastSyncedAt": "2026-08-01T20:16:17.524Z",
       "categoryKeys": [
         "movies",
-        "iranian-movies",
         "documentaries"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم ایرانی",
         "مستند"
       ],
       "contentKind": "documentary",
@@ -51390,12 +51388,10 @@
       "lastSyncedAt": "2026-08-01T20:15:38.984Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
         "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
         "انیمیشن سینمایی"
       ],
       "contentKind": "animation-movie",
@@ -53146,7 +53142,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 2059337,
-          "image": "https://image.tmdb.org/t/p/w342/gNbL51NhgiUI4NZXZtfi7n34SVD.jpg",
+          "image": "assets/media/people/73d00842b18b2b379dd7c965a834.webp",
           "character": "Diputado Congreso",
           "popularity": 0.4727,
           "order": 17,
@@ -59311,12 +59307,10 @@
       "lastSyncedAt": "2026-08-01T15:47:32.981Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
         "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
         "انیمیشن سینمایی"
       ],
       "contentKind": "animation-movie",
@@ -60303,8 +60297,9 @@
         "korean-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
+        "مجموعه‌ها",
         "سریال خارجی",
+        "سریال‌ها",
         "سریال کره‌ای"
       ],
       "contentKind": "series",
@@ -61981,12 +61976,10 @@
       "lastSyncedAt": "2026-08-01T11:49:45.212Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
         "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
         "انیمیشن سینمایی"
       ],
       "contentKind": "animation-movie",
@@ -63409,15 +63402,13 @@
       "lastSyncedAt": "2026-08-01T11:49:31.147Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
-        "indian-movies",
-        "animation-movies"
+        "animation-movies",
+        "indian-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
-        "فیلم هندی",
-        "انیمیشن سینمایی"
+        "انیمیشن سینمایی",
+        "فیلم هندی"
       ],
       "contentKind": "animation-movie",
       "isAnimation": true,
@@ -64121,12 +64112,10 @@
       "lastSyncedAt": "2026-08-01T11:49:24.150Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
         "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
         "انیمیشن سینمایی"
       ],
       "contentKind": "animation-movie",
@@ -66004,12 +65993,10 @@
       "lastSyncedAt": "2026-08-01T11:48:32.771Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
         "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
         "انیمیشن سینمایی"
       ],
       "contentKind": "animation-movie",
@@ -69642,12 +69629,10 @@
       "lastSyncedAt": "2026-08-01T06:49:01.933Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
         "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
         "انیمیشن سینمایی"
       ],
       "contentKind": "animation-movie",
@@ -70303,17 +70288,18 @@
       "type": "movie",
       "ir": false,
       "year": 2025,
-      "nameFa": "خاطرات یک بچه چلمن: آخرین ضربه",
+      "nameFa": "دفتر خاطرات یک بچه‌ی بی‌عرضه: آخرین نی",
       "name": "Diary of a Wimpy Kid: The Last Straw",
       "poster": "https://thumb.upera.tv/s3/posters/jGSLIl21jrQMwrId075x.jpg",
       "backdrop": "https://thumb.upera.tv/s3/backdrops/9POSQbEgD38Lo9BA9jhK.jpg",
-      "overview": "وقتی گرگ آرام و بی‌خیال با انتظارات بیش‌ازحد پدرش روبه‌رو می‌شود، فشار برای تغییر رفتار و عملکردش افزایش می‌یابد. پس از چند حادثهٔ نزدیک به فاجعه و خنده‌دار، پدرش به او یک اولتیماتوم می‌دهد که شاید برای همیشه سبک زندگی کم‌جربزه و بی‌مایه‌اش را به چالش بکشد.",
+      "overview": "وقتی گرگِ خونسرد خود را در تضاد با انتظارات بیش از حد پدرش می‌بیند، فشاری برای تغییر رویه‌اش افزایش می‌یابد. پس از یک سری اتفاقات خنده‌دار که نزدیک بود به فاجعه ختم شوند، پدر گرگ به او اولتیماتومی می‌دهد که ممکن است رفتارهای نسنجیده‌اش را برای همیشه به چالش بکشد.",
       "genres": [
         "انیمیشن",
         "خانوادگی",
-        "کمدی"
+        "کمدی",
+        "درام"
       ],
-      "rate": 6,
+      "rate": 5.8,
       "access": "free",
       "streamUrl": "https://aparatchi.upera.tv/3063380-0-hls.m3u8?ref=3580590",
       "streamMode": "video",
@@ -70357,22 +70343,68 @@
               "mode": "download"
             }
           ]
+        },
+        {
+          "id": "download-نسخه-اصلی",
+          "title": "نسخه اصلی",
+          "subtitle": "5 کیفیت دانلود مستقیم",
+          "badge": "DL",
+          "files": [
+            {
+              "id": "480p-kjpskd",
+              "quality": "480p",
+              "label": "کیفیت 480",
+              "size": "502.95 MB",
+              "url": "https://aparatchi.upera.tv/3063797-0-480.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "720p-6k26au",
+              "quality": "720p",
+              "label": "کیفیت 720",
+              "size": "695.88 MB",
+              "url": "https://aparatchi.upera.tv/3063797-0-720.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "1080p-c25hem",
+              "quality": "1080p",
+              "label": "کیفیت 1080",
+              "size": "1.29 GB",
+              "url": "https://aparatchi.upera.tv/3063797-0-1080.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "hq-1080p-rzfev2",
+              "quality": "HQ 1080p",
+              "label": "کیفیت HQ_1080",
+              "size": "1.77 GB",
+              "url": "https://aparatchi.upera.tv/3063797-0-HQ_1080.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "کیفیت-bluray-u80qw6",
+              "quality": "کیفیت BLURAY",
+              "label": "کیفیت BLURAY",
+              "size": "5.02 GB",
+              "url": "https://aparatchi.upera.tv/3063797-0-BLURAY.mp4?ref=3580590",
+              "mode": "download"
+            }
+          ]
         }
       ],
-      "createdAt": "2026-08-01T06:48:55.003Z",
+      "createdAt": "2026-07-30T16:12:23.869Z",
       "updatedAt": "2026-08-01T06:48:55.003Z",
-      "sourceCreatedAt": "2026-08-01T06:48:55.003Z",
+      "sourceCreatedAt": "2026-07-30T16:12:23.869Z",
       "sourceUpdatedAt": "2026-08-01T06:48:55.003Z",
-      "firstSeenAt": "2026-08-01T06:48:55.004Z",
+      "firstSeenAt": "2026-07-30T16:12:23.869Z",
       "lastSyncedAt": "2026-08-01T06:48:55.004Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
         "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
         "انیمیشن سینمایی"
       ],
       "contentKind": "animation-movie",
@@ -70647,10 +70679,12 @@
         "mediaType": "movie",
         "source": "title-search-year"
       },
-      "tmdbEnrichedAt": "2026-08-02T08:45:16.631Z",
+      "tmdbEnrichedAt": "2026-08-02T08:47:50.836Z",
       "posterFallback": "https://image.tmdb.org/t/p/w342/emcCjpC289NxAGuVwlItHCTrgT7.jpg",
       "backdropFallback": "https://image.tmdb.org/t/p/w780/v8tpkxm7AhLu69eaZKJLsNaSL5.jpg",
-      "operatorOnly": false
+      "operatorOnly": false,
+      "availableLanguages": [],
+      "meaningfulUpdatedAt": "2026-08-05T19:33:24.548Z"
     },
     {
       "id": "9f7bb1d0-d438-11f0-8f86-47f32e35ce54",
@@ -72527,15 +72561,15 @@
       "lastSyncedAt": "2026-08-01T06:48:33.922Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
+        "animation-movies",
         "anime-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
+        "انیمیشن سینمایی",
         "انیمه سینمایی"
       ],
-      "contentKind": "anime-movie",
+      "contentKind": "animation-movie",
       "isAnimation": true,
       "isAnime": true,
       "isTalkShow": false,
@@ -74112,12 +74146,10 @@
       "lastSyncedAt": "2026-08-01T06:48:16.398Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
         "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
         "انیمیشن سینمایی"
       ],
       "contentKind": "animation-movie",
@@ -75816,12 +75848,10 @@
       "lastSyncedAt": "2026-08-01T06:48:02.399Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
         "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
         "انیمیشن سینمایی"
       ],
       "contentKind": "animation-movie",
@@ -91009,17 +91039,15 @@
       "lastSyncedAt": "2026-07-31T15:52:34.940Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
-        "documentaries"
+        "foreign-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
-        "مستند"
+        "فیلم خارجی"
       ],
       "isAnimation": false,
       "isTalkShow": false,
-      "isDocumentary": true,
+      "isDocumentary": false,
       "updateLabel": "",
       "meaningfulUpdatedAt": "",
       "availableLanguages": [
@@ -91046,7 +91074,7 @@
       "originalLanguage": "ro",
       "posterFallback": "https://image.tmdb.org/t/p/w342/bogm0aqhQBQld8UptNIA4s4Ntvx.jpg",
       "backdropFallback": "https://image.tmdb.org/t/p/w780/5zCOx3m3k9ijp4L8S4gbHvdaQkg.jpg",
-      "contentKind": "documentary"
+      "contentKind": "movie"
     },
     {
       "id": "78789460-c534-11f0-a590-6b740b4012a1",
@@ -91690,13 +91718,15 @@
       "lastSyncedAt": "2026-07-31T08:14:28.269Z",
       "categoryKeys": [
         "movies",
+        "animation-movies",
         "anime-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
+        "انیمیشن سینمایی",
         "انیمه سینمایی"
       ],
-      "contentKind": "anime-movie",
+      "contentKind": "animation-movie",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -92362,13 +92392,15 @@
       "lastSyncedAt": "2026-07-31T08:14:14.189Z",
       "categoryKeys": [
         "movies",
+        "animation-movies",
         "anime-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
+        "انیمیشن سینمایی",
         "انیمه سینمایی"
       ],
-      "contentKind": "anime-movie",
+      "contentKind": "animation-movie",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -102103,13 +102135,15 @@
       "lastSyncedAt": "2026-07-30T16:38:43.518Z",
       "categoryKeys": [
         "movies",
+        "animation-movies",
         "indian-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
+        "انیمیشن سینمایی",
         "فیلم هندی"
       ],
-      "isAnimation": false,
+      "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
       "updateLabel": "",
@@ -102135,7 +102169,8 @@
       ],
       "originalLanguage": "ml",
       "posterFallback": "https://image.tmdb.org/t/p/w342/6nJ0OUYwNR2jaPXlzPAA3WryiZr.jpg",
-      "backdropFallback": "https://image.tmdb.org/t/p/w780/hSaWQkfHXJ46UM2eDo1YdmptGnk.jpg"
+      "backdropFallback": "https://image.tmdb.org/t/p/w780/hSaWQkfHXJ46UM2eDo1YdmptGnk.jpg",
+      "contentKind": "animation-movie"
     },
     {
       "id": "6b9d4f20-f9fd-11f0-a855-33a208b8c793",
@@ -102199,12 +102234,10 @@
       "lastSyncedAt": "2026-07-30T16:38:39.998Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
         "documentaries"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
         "مستند"
       ],
       "contentKind": "documentary",
@@ -102292,17 +102325,17 @@
       "lastSyncedAt": "2026-07-30T16:38:36.536Z",
       "categoryKeys": [
         "movies",
-        "iranian-movies",
+        "documentaries",
         "country-ir"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم ایرانی",
+        "مستند",
         "ایران"
       ],
       "isAnimation": false,
       "isTalkShow": false,
-      "isDocumentary": false,
+      "isDocumentary": true,
       "updateLabel": "",
       "meaningfulUpdatedAt": "",
       "availableLanguages": [],
@@ -102387,7 +102420,8 @@
       "tmdbValidationVersion": 5,
       "originalLanguage": "fa",
       "posterFallback": "https://image.tmdb.org/t/p/w342/dxLJVdPCgElFD1EPeE6GV3xtRtN.jpg",
-      "backdropFallback": "https://image.tmdb.org/t/p/w500/dxLJVdPCgElFD1EPeE6GV3xtRtN.jpg"
+      "backdropFallback": "https://image.tmdb.org/t/p/w500/dxLJVdPCgElFD1EPeE6GV3xtRtN.jpg",
+      "contentKind": "documentary"
     },
     {
       "id": "0b0e8af0-f1fe-11f0-b89b-db32a9f98d59",
@@ -103485,16 +103519,14 @@
       "lastSyncedAt": "2026-07-30T16:38:22.517Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
-        "animation-movies"
+        "foreign-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
-        "انیمیشن سینمایی"
+        "فیلم خارجی"
       ],
-      "contentKind": "animation-movie",
-      "isAnimation": true,
+      "contentKind": "movie",
+      "isAnimation": false,
       "isTalkShow": false,
       "isDocumentary": false,
       "updateLabel": "",
@@ -110452,369 +110484,6 @@
       "originalLanguage": "en",
       "posterFallback": "https://image.tmdb.org/t/p/w342/dVU7SNc6dgStTVdtbPLQncWxsyZ.jpg",
       "backdropFallback": "https://image.tmdb.org/t/p/w780/28PLbMHktbX8TnuEWSiTrRbI4p8.jpg"
-    },
-    {
-      "id": "1e821460-d6da-11f0-8ce3-fbc67e895fae",
-      "slug": "movie-1e821460-d6da-11f0-8ce3-fbc67e895fae",
-      "type": "movie",
-      "ir": false,
-      "year": 2025,
-      "nameFa": "دفتر خاطرات یک بچه‌ی بی‌عرضه: آخرین نی",
-      "name": "Diary of a Wimpy Kid: The Last Straw",
-      "people": [
-        {
-          "id": "director-tmdb-1365066",
-          "nameFa": "Matt Danner",
-          "name": "Matt Danner",
-          "role": "director",
-          "roleLabel": "کارگردان",
-          "tmdbId": 1365066,
-          "image": "https://image.tmdb.org/t/p/w342/cnUbWtnPdQl4KgXsSrtd3yEvrAz.jpg",
-          "popularity": 0.5078,
-          "order": 0,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-4959355",
-          "nameFa": "Aaron D. Harris",
-          "name": "Aaron D. Harris",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 4959355,
-          "image": "https://image.tmdb.org/t/p/w342/8OJy0QkNyUcQmTAlLdeaV8mSs9R.jpg",
-          "character": "Greg (voice)",
-          "popularity": 0.5646,
-          "order": 0,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-1217648",
-          "nameFa": "Chris Diamantopoulos",
-          "name": "Chris Diamantopoulos",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 1217648,
-          "image": "https://image.tmdb.org/t/p/w342/oenBtpk0RTId4wacQKYU4cPcq8Z.jpg",
-          "character": "Frank (voice)",
-          "popularity": 3.0666,
-          "order": 1,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-1218928",
-          "nameFa": "Erica Cerra",
-          "name": "Erica Cerra",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 1218928,
-          "image": "https://image.tmdb.org/t/p/w342/c2Eou9gh70jU5MvWAzTA0vO8Xm9.jpg",
-          "character": "Susan (voice)",
-          "popularity": 2.2729,
-          "order": 2,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-1882895",
-          "nameFa": "Hunter Dillon",
-          "name": "Hunter Dillon",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 1882895,
-          "image": "https://image.tmdb.org/t/p/w342/oyS0TEPIm0dN489rFc2epzZmRxA.jpg",
-          "character": "Rodrick (voice)",
-          "popularity": 1.0661,
-          "order": 3,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-5462054",
-          "nameFa": "Jude Zarzaur",
-          "name": "Jude Zarzaur",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 5462054,
-          "character": "Rowley (voice)",
-          "popularity": 0.5959,
-          "order": 4,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-3135014",
-          "nameFa": "Gracen Newton",
-          "name": "Gracen Newton",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 3135014,
-          "image": "https://image.tmdb.org/t/p/w342/yyMBocOeMuHujjVnYcAPaNBkgMx.jpg",
-          "character": "Manny (voice)",
-          "popularity": 0.5753,
-          "order": 5,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-177838",
-          "nameFa": "Jill Basey",
-          "name": "Jill Basey",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 177838,
-          "image": "https://image.tmdb.org/t/p/w342/vgUJKzIS8DJE1S5z0B1yFtOO5Wz.jpg",
-          "character": "Mrs. Canfield (voice)",
-          "popularity": 0.8682,
-          "order": 6,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-1241330",
-          "nameFa": "Bashir Salahuddin",
-          "name": "Bashir Salahuddin",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 1241330,
-          "image": "https://image.tmdb.org/t/p/w342/ZL5MRzjd6kWkvQXqh5mgPY1CKP.jpg",
-          "character": "Mr. Warren (voice)",
-          "popularity": 1.323,
-          "order": 7,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-1227552",
-          "nameFa": "William Stanford Davis",
-          "name": "William Stanford Davis",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 1227552,
-          "image": "https://image.tmdb.org/t/p/w342/rCQ0Q7dvG21EhwcrxNPjTFmqfPv.jpg",
-          "character": "Troopmaster Barrett (voice)",
-          "popularity": 0.7467,
-          "order": 8,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-3218467",
-          "nameFa": "Jabari Banks",
-          "name": "Jabari Banks",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 3218467,
-          "image": "https://image.tmdb.org/t/p/w342/nijQjuHduJO3u0J96w0Fv9nZeb2.jpg",
-          "character": "Lenwood (voice)",
-          "popularity": 1.0987,
-          "order": 9,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-1906860",
-          "nameFa": "P.L. Brown",
-          "name": "P.L. Brown",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 1906860,
-          "image": "https://image.tmdb.org/t/p/w342/6sH4laBWYn3rPg6BQSe5mDYJBSe.jpg",
-          "character": "Priest (voice)",
-          "popularity": 0.3126,
-          "order": 10,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-15761",
-          "nameFa": "Grey DeLisle",
-          "name": "Grey DeLisle",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 15761,
-          "image": "https://image.tmdb.org/t/p/w342/vrUHaXe1pG56yZkgH7Hs3LGRLTT.jpg",
-          "character": "Organ Lady (voice)",
-          "popularity": 3.0668,
-          "order": 11,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-2023218",
-          "nameFa": "Dashiell McGaha-Schletter",
-          "name": "Dashiell McGaha-Schletter",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 2023218,
-          "image": "https://image.tmdb.org/t/p/w342/e7tcQuZ9NYX18xOSfaovyLyw95e.jpg",
-          "character": "Ricky Fisher (voice)",
-          "popularity": 0.1372,
-          "order": 12,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-1852297",
-          "nameFa": "Punam Patel",
-          "name": "Punam Patel",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 1852297,
-          "image": "https://image.tmdb.org/t/p/w342/3SjcFZXnHRMS9ZixWKRGlQX3mVJ.jpg",
-          "character": "Mrs. Winsky (voice)",
-          "popularity": 0.5992,
-          "order": 13,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-69803",
-          "nameFa": "Randy Pearlstein",
-          "name": "Randy Pearlstein",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 69803,
-          "image": "https://image.tmdb.org/t/p/w342/aM3CpPbB9jBCNmiUwe8qIFB1XDa.jpg",
-          "character": "Mr. Jefferson (voice)",
-          "popularity": 0.5178,
-          "order": 14,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-2837439",
-          "nameFa": "Talon Warburton",
-          "name": "Talon Warburton",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 2837439,
-          "image": "https://image.tmdb.org/t/p/w342/uJCEouwvWxS5aO9FDyMbukfSAUw.jpg",
-          "character": "Narrator (voice)",
-          "popularity": 0.6019,
-          "order": 15,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-3890899",
-          "nameFa": "Sanjay Rao",
-          "name": "Sanjay Rao",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 3890899,
-          "image": "https://image.tmdb.org/t/p/w342/fLoFMDjX2FyRPAAK5nACiHraUvV.jpg",
-          "character": "Mr. Gupta (voice)",
-          "popularity": 0.3552,
-          "order": 16,
-          "source": "tmdb"
-        },
-        {
-          "id": "actor-tmdb-3743189",
-          "nameFa": "Lila Bahng",
-          "name": "Lila Bahng",
-          "role": "actor",
-          "roleLabel": "بازیگر",
-          "tmdbId": 3743189,
-          "character": "Patty (voice)",
-          "popularity": 0.0653,
-          "order": 17,
-          "source": "tmdb"
-        }
-      ],
-      "poster": "https://thumb.upera.tv/s3/posters/m6WWIuonq1hJjRHb9xUn.jpg",
-      "backdrop": "https://thumb.upera.tv/s3/backdrops/Jk3Y2sNrpwZZk2aB6uef.jpg",
-      "overview": "وقتی گرگِ خونسرد خود را در تضاد با انتظارات بیش از حد پدرش می‌بیند، فشاری برای تغییر رویه‌اش افزایش می‌یابد. پس از یک سری اتفاقات خنده‌دار که نزدیک بود به فاجعه ختم شوند، پدر گرگ به او اولتیماتومی می‌دهد که ممکن است رفتارهای نسنجیده‌اش را برای همیشه به چالش بکشد.",
-      "genres": [
-        "انیمیشن",
-        "کمدی",
-        "درام",
-        "خانوادگی"
-      ],
-      "rate": 5.8,
-      "access": "free",
-      "operatorOnly": false,
-      "streamUrl": "https://aparatchi.upera.tv/3063797-0-hls.m3u8?ref=3580590",
-      "streamMode": "video",
-      "downloads": [
-        {
-          "id": "download-نسخه-اصلی",
-          "title": "نسخه اصلی",
-          "subtitle": "5 کیفیت دانلود مستقیم",
-          "badge": "DL",
-          "files": [
-            {
-              "id": "480p-kjpskd",
-              "quality": "480p",
-              "label": "کیفیت 480",
-              "size": "502.95 MB",
-              "url": "https://aparatchi.upera.tv/3063797-0-480.mp4?ref=3580590",
-              "mode": "download"
-            },
-            {
-              "id": "720p-6k26au",
-              "quality": "720p",
-              "label": "کیفیت 720",
-              "size": "695.88 MB",
-              "url": "https://aparatchi.upera.tv/3063797-0-720.mp4?ref=3580590",
-              "mode": "download"
-            },
-            {
-              "id": "1080p-c25hem",
-              "quality": "1080p",
-              "label": "کیفیت 1080",
-              "size": "1.29 GB",
-              "url": "https://aparatchi.upera.tv/3063797-0-1080.mp4?ref=3580590",
-              "mode": "download"
-            },
-            {
-              "id": "hq-1080p-rzfev2",
-              "quality": "HQ 1080p",
-              "label": "کیفیت HQ_1080",
-              "size": "1.77 GB",
-              "url": "https://aparatchi.upera.tv/3063797-0-HQ_1080.mp4?ref=3580590",
-              "mode": "download"
-            },
-            {
-              "id": "کیفیت-bluray-u80qw6",
-              "quality": "کیفیت BLURAY",
-              "label": "کیفیت BLURAY",
-              "size": "5.02 GB",
-              "url": "https://aparatchi.upera.tv/3063797-0-BLURAY.mp4?ref=3580590",
-              "mode": "download"
-            }
-          ]
-        }
-      ],
-      "createdAt": "2026-07-30T16:12:23.869Z",
-      "updatedAt": "2026-07-30T16:12:23.869Z",
-      "sourceCreatedAt": "2026-07-30T16:12:23.869Z",
-      "sourceUpdatedAt": "2026-07-30T16:12:23.869Z",
-      "firstSeenAt": "2026-07-30T16:12:23.869Z",
-      "lastSyncedAt": "2026-07-30T16:12:23.869Z",
-      "categoryKeys": [
-        "movies",
-        "animation-movies"
-      ],
-      "categoryLabels": [
-        "فیلم‌ها",
-        "انیمیشن سینمایی"
-      ],
-      "contentKind": "animation-movie",
-      "isAnimation": true,
-      "isTalkShow": false,
-      "isDocumentary": false,
-      "updateLabel": "",
-      "source": "upera-backfill",
-      "availableLanguages": [],
-      "tmdb": {
-        "id": 1392796,
-        "mediaType": "movie",
-        "source": "title-search-year"
-      },
-      "tmdbEnrichedAt": "2026-08-02T08:47:50.836Z",
-      "isAnime": false,
-      "tmdbValidationVersion": 5,
-      "countryCodes": [
-        "US",
-        "CA"
-      ],
-      "countryLabels": [
-        "آمریکا",
-        "کانادا"
-      ],
-      "countryNames": [
-        "United States of America",
-        "Canada"
-      ],
-      "originalLanguage": "en",
-      "posterFallback": "https://image.tmdb.org/t/p/w342/emcCjpC289NxAGuVwlItHCTrgT7.jpg",
-      "backdropFallback": "https://image.tmdb.org/t/p/w780/v8tpkxm7AhLu69eaZKJLsNaSL5.jpg"
     },
     {
       "id": "866fa2c0-c780-11f0-a406-35209481b34a",
@@ -120015,12 +119684,14 @@
       "firstSeenAt": "2026-07-29T23:48:19.853Z",
       "lastSyncedAt": "2026-07-29T23:48:19.853Z",
       "categoryKeys": [
-        "movies"
+        "movies",
+        "animation-movies"
       ],
       "categoryLabels": [
-        "فیلم‌ها"
+        "فیلم‌ها",
+        "انیمیشن سینمایی"
       ],
-      "isAnimation": false,
+      "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
       "updateLabel": "",
@@ -120230,7 +119901,8 @@
       ],
       "originalLanguage": "en",
       "posterFallback": "https://image.tmdb.org/t/p/w342/nL4Cw877UJSzplh1HK9sXuWvDnf.jpg",
-      "backdropFallback": "https://image.tmdb.org/t/p/w780/anQBus7AYRHv1dmwWqRUYKsUU4o.jpg"
+      "backdropFallback": "https://image.tmdb.org/t/p/w780/anQBus7AYRHv1dmwWqRUYKsUU4o.jpg",
+      "contentKind": "animation-movie"
     },
     {
       "id": "f2d74480-1df2-11f1-b288-977be529ab79",
@@ -125449,13 +125121,15 @@
       "lastSyncedAt": "2026-07-29T23:47:16.850Z",
       "categoryKeys": [
         "movies",
+        "animation-movies",
         "anime-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
+        "انیمیشن سینمایی",
         "انیمه سینمایی"
       ],
-      "contentKind": "anime-movie",
+      "contentKind": "animation-movie",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -127883,7 +127557,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 2100209,
-          "image": "https://image.tmdb.org/t/p/w342/5NBOKv8f9O0b41NPebgdB0eQ20y.jpg",
+          "image": "assets/media/people/1ef83428500de6401f388a02aac6.webp",
           "character": "Afshan",
           "popularity": 1.7902,
           "order": 1,
@@ -127961,7 +127635,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 2918853,
-          "image": "https://image.tmdb.org/t/p/w342/7KeBm0PHfsWIG8wjyrboUTem2TM.jpg",
+          "image": "assets/media/people/9e96c86c771561d1f6c52575981e.webp",
           "character": "Shilpa Chachi",
           "popularity": 1.4263,
           "order": 7,
@@ -133348,7 +133022,7 @@
           "role": "director",
           "roleLabel": "کارگردان",
           "tmdbId": 1108802,
-          "image": "https://image.tmdb.org/t/p/w342/f5XI2wJs2JPcd5FSECsdcnkyOMW.jpg",
+          "image": "assets/media/people/967aaa4fd6e5715d3824f58cca7a.webp",
           "popularity": 1.4713,
           "order": 1,
           "source": "tmdb"
@@ -133746,13 +133420,15 @@
       "lastSyncedAt": "2026-07-29T20:29:23.198Z",
       "categoryKeys": [
         "movies",
+        "animation-movies",
         "anime-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
+        "انیمیشن سینمایی",
         "انیمه سینمایی"
       ],
-      "contentKind": "anime-movie",
+      "contentKind": "animation-movie",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -138707,17 +138383,15 @@
       "lastSyncedAt": "2026-07-29T20:18:39.936Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies",
-        "documentaries"
+        "foreign-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی",
-        "مستند"
+        "فیلم خارجی"
       ],
       "isAnimation": false,
       "isTalkShow": false,
-      "isDocumentary": true,
+      "isDocumentary": false,
       "updateLabel": "",
       "source": "upera-backfill",
       "availableLanguages": [
@@ -138767,7 +138441,7 @@
       "originalLanguage": "en",
       "posterFallback": "https://image.tmdb.org/t/p/w342/jovDlv8PovRC42gDzKcYSEpgcJz.jpg",
       "backdropFallback": "https://image.tmdb.org/t/p/w500/jovDlv8PovRC42gDzKcYSEpgcJz.jpg",
-      "contentKind": "documentary"
+      "contentKind": "movie"
     },
     {
       "id": "86e72040-45ae-11f1-b1f1-11ee26c3a929",
@@ -142395,12 +142069,14 @@
       "firstSeenAt": "2026-07-29T20:18:04.925Z",
       "lastSyncedAt": "2026-07-29T20:18:08.405Z",
       "categoryKeys": [
-        "movies"
+        "movies",
+        "animation-movies"
       ],
       "categoryLabels": [
-        "فیلم‌ها"
+        "فیلم‌ها",
+        "انیمیشن سینمایی"
       ],
-      "isAnimation": false,
+      "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
       "updateLabel": "",
@@ -142425,7 +142101,8 @@
       ],
       "originalLanguage": "en",
       "posterFallback": "https://image.tmdb.org/t/p/w342/qtW6bWUEqfPLaD6KnetIlSG4adf.jpg",
-      "backdropFallback": "https://image.tmdb.org/t/p/w780/biMJPdS7bGW7HQTQrHvXxMqOqdC.jpg"
+      "backdropFallback": "https://image.tmdb.org/t/p/w780/biMJPdS7bGW7HQTQrHvXxMqOqdC.jpg",
+      "contentKind": "animation-movie"
     },
     {
       "id": "d9d635b0-4fb5-11f1-a0a1-f74594ef6c8d",
@@ -147120,12 +146797,14 @@
       "firstSeenAt": "2026-07-29T19:55:57.418Z",
       "lastSyncedAt": "2026-07-29T19:55:57.418Z",
       "categoryKeys": [
-        "movies"
+        "movies",
+        "animation-movies"
       ],
       "categoryLabels": [
-        "فیلم‌ها"
+        "فیلم‌ها",
+        "انیمیشن سینمایی"
       ],
-      "isAnimation": false,
+      "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
       "updateLabel": "",
@@ -147195,7 +146874,8 @@
       "countryNames": [],
       "posterFallback": "assets/media/posters/090f859d6236cad9e53ad5ff21ac.webp",
       "backdropFallback": "https://image.tmdb.org/t/p/w500/an1dqQfyqgCMIBdwj4LN6u1Si5i.jpg",
-      "posterFallbackActivatedAt": "2026-08-02T20:45:22.853Z"
+      "posterFallbackActivatedAt": "2026-08-02T20:45:22.853Z",
+      "contentKind": "animation-movie"
     },
     {
       "id": "e806fd10-5cd7-11f1-9e0f-0d876395ffc0",
@@ -159082,7 +158762,7 @@
           "role": "director",
           "roleLabel": "کارگردان",
           "tmdbId": 1108802,
-          "image": "https://image.tmdb.org/t/p/w342/f5XI2wJs2JPcd5FSECsdcnkyOMW.jpg",
+          "image": "assets/media/people/967aaa4fd6e5715d3824f58cca7a.webp",
           "popularity": 1.3434,
           "order": 2,
           "source": "tmdb"
@@ -159170,7 +158850,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 2353414,
-          "image": "https://image.tmdb.org/t/p/w342/owFhWHeW4fyc7k6ik8uCvYQCXoy.jpg",
+          "image": "assets/media/people/27dc47ee6e6d421ca9c63cadf2cc.webp",
           "character": "Paulo",
           "popularity": 1.2564,
           "order": 5,
@@ -159838,13 +159518,15 @@
       "lastSyncedAt": "2026-07-29T15:36:45.993Z",
       "categoryKeys": [
         "movies",
+        "animation-movies",
         "anime-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
+        "انیمیشن سینمایی",
         "انیمه سینمایی"
       ],
-      "contentKind": "anime-movie",
+      "contentKind": "animation-movie",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -166302,12 +165984,14 @@
       "firstSeenAt": "2026-07-29T08:10:35.418Z",
       "lastSyncedAt": "2026-07-29T08:10:35.418Z",
       "categoryKeys": [
-        "movies"
+        "movies",
+        "animation-movies"
       ],
       "categoryLabels": [
-        "فیلم‌ها"
+        "فیلم‌ها",
+        "انیمیشن سینمایی"
       ],
-      "isAnimation": false,
+      "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
       "updateLabel": "",
@@ -166548,7 +166232,8 @@
       "originalLanguage": "de",
       "posterFallback": "https://image.tmdb.org/t/p/w342/ctRbBJ35laTEuLnEi6Qj3etxs65.jpg",
       "backdropFallback": "https://image.tmdb.org/t/p/w780/bvHe9JE9IjXp9R1OxhckhQVQE14.jpg",
-      "operatorOnly": false
+      "operatorOnly": false,
+      "contentKind": "animation-movie"
     },
     {
       "id": "dce8e860-e8f6-11f0-b8e0-2d1f62f60e32",
@@ -166623,13 +166308,15 @@
       "lastSyncedAt": "2026-07-29T08:10:31.875Z",
       "categoryKeys": [
         "movies",
+        "animation-movies",
         "anime-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
+        "انیمیشن سینمایی",
         "انیمه سینمایی"
       ],
-      "contentKind": "anime-movie",
+      "contentKind": "animation-movie",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -168084,14 +167771,16 @@
       "categoryKeys": [
         "movies",
         "iranian-movies",
+        "religious",
         "country-ir"
       ],
       "categoryLabels": [
         "فیلم‌ها",
         "فیلم ایرانی",
+        "مذهبی و مناسبتی",
         "ایران"
       ],
-      "contentKind": "movie",
+      "contentKind": "religious-movie",
       "isAnimation": false,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -170424,7 +170113,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 85656,
-          "image": "https://image.tmdb.org/t/p/w342/etiL0ANjzBhTiyvUblZl6vwIog9.jpg",
+          "image": "assets/media/people/ad94fec8617f4399ccc0f53f95c2.webp",
           "character": "Vashishtha Guruji",
           "popularity": 0.8466,
           "order": 10,
@@ -170593,15 +170282,15 @@
       "lastSyncedAt": "2026-07-28T21:53:05.503Z",
       "categoryKeys": [
         "movies",
-        "iranian-movies",
+        "kids",
         "country-ir"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم ایرانی",
+        "کودکان",
         "ایران"
       ],
-      "contentKind": "movie",
+      "contentKind": "children-program",
       "isAnimation": false,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -179480,7 +179169,7 @@
           "role": "director",
           "roleLabel": "کارگردان",
           "tmdbId": 1108802,
-          "image": "https://image.tmdb.org/t/p/w342/f5XI2wJs2JPcd5FSECsdcnkyOMW.jpg",
+          "image": "assets/media/people/967aaa4fd6e5715d3824f58cca7a.webp",
           "popularity": 1.4713,
           "order": 3,
           "source": "tmdb"
@@ -179544,7 +179233,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 85656,
-          "image": "https://image.tmdb.org/t/p/w342/etiL0ANjzBhTiyvUblZl6vwIog9.jpg",
+          "image": "assets/media/people/ad94fec8617f4399ccc0f53f95c2.webp",
           "character": "Harihar",
           "popularity": 0.8466,
           "order": 4,
@@ -181791,19 +181480,17 @@
       "categoryKeys": [
         "movies",
         "iranian-movies",
-        "country-ir",
-        "documentaries"
+        "country-ir"
       ],
       "categoryLabels": [
         "فیلم‌ها",
         "فیلم ایرانی",
-        "ایران",
-        "مستند"
+        "ایران"
       ],
-      "contentKind": "documentary",
+      "contentKind": "movie",
       "isAnimation": false,
       "isTalkShow": false,
-      "isDocumentary": true,
+      "isDocumentary": false,
       "updateLabel": "",
       "source": "upera-backfill",
       "countryCodes": [
@@ -181884,19 +181571,17 @@
       "categoryKeys": [
         "movies",
         "iranian-movies",
-        "country-ir",
-        "documentaries"
+        "country-ir"
       ],
       "categoryLabels": [
         "فیلم‌ها",
         "فیلم ایرانی",
-        "ایران",
-        "مستند"
+        "ایران"
       ],
-      "contentKind": "documentary",
+      "contentKind": "movie",
       "isAnimation": false,
       "isTalkShow": false,
-      "isDocumentary": true,
+      "isDocumentary": false,
       "updateLabel": "",
       "source": "upera-backfill",
       "countryCodes": [
@@ -181977,19 +181662,17 @@
       "categoryKeys": [
         "movies",
         "iranian-movies",
-        "country-ir",
-        "documentaries"
+        "country-ir"
       ],
       "categoryLabels": [
         "فیلم‌ها",
         "فیلم ایرانی",
-        "ایران",
-        "مستند"
+        "ایران"
       ],
-      "contentKind": "documentary",
+      "contentKind": "movie",
       "isAnimation": false,
       "isTalkShow": false,
-      "isDocumentary": true,
+      "isDocumentary": false,
       "updateLabel": "",
       "source": "upera-backfill",
       "countryCodes": [
@@ -182558,15 +182241,17 @@
       "lastSyncedAt": "2026-07-28T18:05:18.459Z",
       "categoryKeys": [
         "movies",
-        "country-ir",
-        "animation-movies"
+        "animation-movies",
+        "kids",
+        "country-ir"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "ایران",
-        "انیمیشن سینمایی"
+        "انیمیشن سینمایی",
+        "کودکان",
+        "ایران"
       ],
-      "contentKind": "animation-movie",
+      "contentKind": "kids",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -188173,7 +187858,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 85656,
-          "image": "https://image.tmdb.org/t/p/w342/etiL0ANjzBhTiyvUblZl6vwIog9.jpg",
+          "image": "assets/media/people/ad94fec8617f4399ccc0f53f95c2.webp",
           "character": "Sinha",
           "popularity": 0.8466,
           "order": 16,
@@ -193106,13 +192791,13 @@
       "lastSyncedAt": "2026-07-28T12:21:07.088Z",
       "categoryKeys": [
         "movies",
-        "foreign-movies"
+        "animation-movies"
       ],
       "categoryLabels": [
         "فیلم‌ها",
-        "فیلم خارجی"
+        "انیمیشن سینمایی"
       ],
-      "isAnimation": false,
+      "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
       "updateLabel": "",
@@ -193419,7 +193104,8 @@
       "originalLanguage": "en",
       "posterFallback": "https://image.tmdb.org/t/p/w342/oRuyGUHdoaQxWP3SDfafGkStxTC.jpg",
       "backdropFallback": "https://image.tmdb.org/t/p/w780/eQySd26OW7UmCuaeBOL7qy6foMn.jpg",
-      "operatorOnly": false
+      "operatorOnly": false,
+      "contentKind": "animation-movie"
     },
     {
       "id": "262b02f0-88c4-11f1-9916-87a22d06c42c",
@@ -194281,7 +193967,7 @@
           "role": "actor",
           "roleLabel": "بازیگر",
           "tmdbId": 2100209,
-          "image": "https://image.tmdb.org/t/p/w342/5NBOKv8f9O0b41NPebgdB0eQ20y.jpg",
+          "image": "assets/media/people/1ef83428500de6401f388a02aac6.webp",
           "character": "Jaya",
           "popularity": 1.7902,
           "order": 1,
@@ -201832,20 +201518,20 @@
       "sourceCreatedAt": "2026-08-03T08:11:53.972Z",
       "sourceUpdatedAt": "2026-01-27T08:01:02.000Z",
       "firstSeenAt": "2026-08-03T08:11:53.972Z",
-      "lastSyncedAt": "2026-08-03T08:11:53.972Z",
+      "lastSyncedAt": "2026-08-05T19:34:11.459Z",
       "categoryKeys": [
         "series",
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
+        "مجموعه‌ها",
         "سریال ایرانی"
       ],
       "contentKind": "series",
       "isAnimation": false,
       "isTalkShow": false,
       "isDocumentary": false,
-      "updateLabel": "قسمت ۲ اضافه شد",
+      "updateLabel": "بروزرسانی شد",
       "source": "upera-iranian-priority",
       "countryCodes": [
         "IR"
@@ -201861,9 +201547,106 @@
       "people": [],
       "originalLanguage": "fa",
       "archiveComplete": false,
-      "archivePendingEpisodeCount": 0,
+      "archivePendingEpisodeCount": 22,
       "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked"
+      "archiveAuditStatus": "checked",
+      "sourceEpisodeCount": 23,
+      "archivePendingEpisodes": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 0
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 0
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 0
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "archiveUnavailableEpisodes": [],
+      "isAiring": false,
+      "archiveEpisodeDiscoveryComplete": true,
+      "archiveEpisodePaginationPagesFetched": 0,
+      "archiveEpisodePaginationErrors": 0,
+      "archiveDiscoveryCheckedAt": "2026-08-05T19:34:11.459Z"
     },
     {
       "id": "4fea0f40-a6e6-11f0-8afc-df3a2ea8758f",
@@ -202893,8 +202676,9 @@
         "foreign-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال خارجی"
+        "مجموعه‌ها",
+        "سریال خارجی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -205551,8 +205335,9 @@
         "animation-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "انیمیشن سریالی"
+        "مجموعه‌ها",
+        "انیمیشن سریالی",
+        "سریال‌ها"
       ],
       "contentKind": "animation-series",
       "isAnimation": true,
@@ -206607,8 +206392,9 @@
         "foreign-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال خارجی"
+        "مجموعه‌ها",
+        "سریال خارجی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -208096,13 +207882,16 @@
       "lastSyncedAt": "2026-07-29T20:12:09.508Z",
       "categoryKeys": [
         "series",
-        "foreign-series"
+        "programs",
+        "reality"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال خارجی"
+        "مجموعه‌ها",
+        "برنامه‌ها و مسابقه‌ها",
+        "مسابقه و رئالیتی‌شو",
+        "سریال‌ها"
       ],
-      "contentKind": "series",
+      "contentKind": "reality-competition",
       "isAnimation": false,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -209160,13 +208949,12 @@
       "lastSyncedAt": "2026-08-03T20:48:29.969Z",
       "categoryKeys": [
         "series",
-        "foreign-series",
         "animation-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال خارجی",
-        "انیمیشن سریالی"
+        "مجموعه‌ها",
+        "انیمیشن سریالی",
+        "سریال‌ها"
       ],
       "contentKind": "animation-series",
       "isAnimation": true,
@@ -211904,8 +211692,9 @@
         "foreign-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال خارجی"
+        "مجموعه‌ها",
+        "سریال خارجی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -213153,8 +212942,9 @@
         "foreign-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال خارجی"
+        "مجموعه‌ها",
+        "سریال خارجی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -213771,15 +213561,16 @@
       "lastSyncedAt": "2026-08-01T11:48:11.747Z",
       "categoryKeys": [
         "series",
-        "foreign-series",
-        "animation-series"
+        "animation-series",
+        "kids"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال خارجی",
-        "انیمیشن سریالی"
+        "مجموعه‌ها",
+        "انیمیشن سریالی",
+        "کودکان",
+        "سریال‌ها"
       ],
-      "contentKind": "animation-series",
+      "contentKind": "kids",
       "isAnimation": true,
       "isAnime": false,
       "isTalkShow": false,
@@ -215391,8 +215182,9 @@
         "korean-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
+        "مجموعه‌ها",
         "سریال خارجی",
+        "سریال‌ها",
         "سریال کره‌ای"
       ],
       "contentKind": "series",
@@ -215649,8 +215441,9 @@
         "foreign-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال خارجی"
+        "مجموعه‌ها",
+        "سریال خارجی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -216431,8 +216224,9 @@
         "korean-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
+        "مجموعه‌ها",
         "سریال خارجی",
+        "سریال‌ها",
         "سریال کره‌ای"
       ],
       "contentKind": "series",
@@ -217150,8 +216944,9 @@
         "foreign-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال خارجی"
+        "مجموعه‌ها",
+        "سریال خارجی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -218498,8 +218293,9 @@
         "foreign-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال خارجی"
+        "مجموعه‌ها",
+        "سریال خارجی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -219252,8 +219048,9 @@
         "foreign-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال خارجی"
+        "مجموعه‌ها",
+        "سریال خارجی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -223316,21 +223113,21 @@
       "sourceCreatedAt": "2026-08-03T08:55:05.063Z",
       "sourceUpdatedAt": "2025-08-31T13:55:03.000Z",
       "firstSeenAt": "2026-08-03T08:55:05.063Z",
-      "lastSyncedAt": "2026-08-04T19:36:03.678Z",
+      "lastSyncedAt": "2026-08-05T19:34:50.975Z",
       "categoryKeys": [
         "series",
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
+        "مجموعه‌ها",
         "سریال ایرانی"
       ],
       "contentKind": "series",
       "isAnimation": false,
       "isTalkShow": false,
       "isDocumentary": false,
-      "updateLabel": "قسمت ۱۴ اضافه شد",
-      "source": "upera-sequential-backfill",
+      "updateLabel": "بروزرسانی شد",
+      "source": "upera-iranian-priority",
       "countryCodes": [
         "IR"
       ],
@@ -223603,11 +223400,15 @@
       },
       "tmdbEnrichedAt": "2026-08-03T09:01:19.840Z",
       "archiveComplete": false,
-      "archivePendingEpisodeCount": 2,
+      "archivePendingEpisodeCount": 3,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "blocked",
       "sourceEpisodeCount": 77,
       "archivePendingEpisodes": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 0
+        },
         {
           "seasonNumber": 1,
           "episodeNumber": 0
@@ -223620,12 +223421,13 @@
       "archiveEpisodeDiscoveryComplete": true,
       "archiveEpisodePaginationPagesFetched": 0,
       "archiveEpisodePaginationErrors": 0,
-      "archiveDiscoveryCheckedAt": "2026-08-04T19:36:03.678Z",
+      "archiveDiscoveryCheckedAt": "2026-08-05T19:34:50.975Z",
       "archiveBlockedReason": "added-or-updated",
       "archiveBlockedAttempts": 3,
       "archiveBlockedMissing": [],
       "archiveBlockedPending": 18,
-      "archiveBlockedAt": "2026-08-04T19:36:03.679Z"
+      "archiveBlockedAt": "2026-08-04T19:36:03.679Z",
+      "archiveUnavailableEpisodes": []
     },
     {
       "id": "e9bddc80-0571-11f0-b295-09ad878b3c23",
@@ -223808,6 +223610,159 @@
           ]
         },
         {
+          "id": "season-1-episode-4-37875f00-08fa-11f0-9618-d9a863f79218",
+          "sourceEpisodeId": "37875f00-08fa-11f0-9618-d9a863f79218",
+          "seasonNumber": 1,
+          "episodeNumber": 4,
+          "title": "فصل ۱ • قسمت ۴",
+          "subtitle": "قسمت 4",
+          "badge": "E4",
+          "sourceUpdatedAt": "2025-04-21T03:18:02.000Z",
+          "files": [
+            {
+              "id": "play-s1-e4",
+              "quality": "پخش آنلاین",
+              "label": "HLS",
+              "url": "https://aparatchi.upera.tv/3029431-0-hls.m3u8?ref=3580590",
+              "mode": "play"
+            },
+            {
+              "id": "s1-e4-480p-h8gx5c",
+              "quality": "480p",
+              "label": "کیفیت 480",
+              "size": "48.67 MB",
+              "url": "https://aparatchi.upera.tv/3029431-0-480.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e4-720p-38tavt",
+              "quality": "720p",
+              "label": "کیفیت 720",
+              "size": "70.23 MB",
+              "url": "https://aparatchi.upera.tv/3029431-0-720.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e4-1080p-jldik5",
+              "quality": "1080p",
+              "label": "کیفیت 1080",
+              "size": "137.8 MB",
+              "url": "https://aparatchi.upera.tv/3029431-0-1080.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e4-hq-1080p-rlkgi7",
+              "quality": "HQ 1080p",
+              "label": "کیفیت HQ_1080",
+              "size": "189.22 MB",
+              "url": "https://aparatchi.upera.tv/3029431-0-HQ_1080.mp4?ref=3580590",
+              "mode": "download"
+            }
+          ]
+        },
+        {
+          "id": "season-1-episode-5-3ea58b70-08fa-11f0-9b71-d7281e8036ee",
+          "sourceEpisodeId": "3ea58b70-08fa-11f0-9b71-d7281e8036ee",
+          "seasonNumber": 1,
+          "episodeNumber": 5,
+          "title": "فصل ۱ • قسمت ۵",
+          "subtitle": "قسمت 5",
+          "badge": "E5",
+          "sourceUpdatedAt": "2025-04-21T03:10:02.000Z",
+          "files": [
+            {
+              "id": "play-s1-e5",
+              "quality": "پخش آنلاین",
+              "label": "HLS",
+              "url": "https://aparatchi.upera.tv/3029432-0-hls.m3u8?ref=3580590",
+              "mode": "play"
+            },
+            {
+              "id": "s1-e5-480p-x7jien",
+              "quality": "480p",
+              "label": "کیفیت 480",
+              "size": "46.71 MB",
+              "url": "https://aparatchi.upera.tv/3029432-0-480.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e5-720p-ntwxay",
+              "quality": "720p",
+              "label": "کیفیت 720",
+              "size": "67.12 MB",
+              "url": "https://aparatchi.upera.tv/3029432-0-720.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e5-1080p-kp9pau",
+              "quality": "1080p",
+              "label": "کیفیت 1080",
+              "size": "130.63 MB",
+              "url": "https://aparatchi.upera.tv/3029432-0-1080.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e5-hq-1080p-bp1qdq",
+              "quality": "HQ 1080p",
+              "label": "کیفیت HQ_1080",
+              "size": "179.52 MB",
+              "url": "https://aparatchi.upera.tv/3029432-0-HQ_1080.mp4?ref=3580590",
+              "mode": "download"
+            }
+          ]
+        },
+        {
+          "id": "season-1-episode-6-45895a40-08fa-11f0-a530-79911bd7f04f",
+          "sourceEpisodeId": "45895a40-08fa-11f0-a530-79911bd7f04f",
+          "seasonNumber": 1,
+          "episodeNumber": 6,
+          "title": "فصل ۱ • قسمت ۶",
+          "subtitle": "قسمت 6",
+          "badge": "E6",
+          "sourceUpdatedAt": "2025-04-21T03:31:01.000Z",
+          "files": [
+            {
+              "id": "play-s1-e6",
+              "quality": "پخش آنلاین",
+              "label": "HLS",
+              "url": "https://aparatchi.upera.tv/3029433-0-hls.m3u8?ref=3580590",
+              "mode": "play"
+            },
+            {
+              "id": "s1-e6-480p-cmfvzi",
+              "quality": "480p",
+              "label": "کیفیت 480",
+              "size": "37.02 MB",
+              "url": "https://aparatchi.upera.tv/3029433-0-480.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e6-720p-qm3i91",
+              "quality": "720p",
+              "label": "کیفیت 720",
+              "size": "52.98 MB",
+              "url": "https://aparatchi.upera.tv/3029433-0-720.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e6-1080p-lt5w1j",
+              "quality": "1080p",
+              "label": "کیفیت 1080",
+              "size": "104.44 MB",
+              "url": "https://aparatchi.upera.tv/3029433-0-1080.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e6-hq-1080p-47gzqr",
+              "quality": "HQ 1080p",
+              "label": "کیفیت HQ_1080",
+              "size": "145.25 MB",
+              "url": "https://aparatchi.upera.tv/3029433-0-HQ_1080.mp4?ref=3580590",
+              "mode": "download"
+            }
+          ]
+        },
+        {
           "id": "season-1-episode-7-4d69f0b0-08fa-11f0-bb92-0f1dd0d6f777",
           "sourceEpisodeId": "4d69f0b0-08fa-11f0-bb92-0f1dd0d6f777",
           "seasonNumber": 1,
@@ -223857,37 +223812,190 @@
               "mode": "download"
             }
           ]
+        },
+        {
+          "id": "season-1-episode-8-52818ea0-08fa-11f0-b111-19bf163ff9dc",
+          "sourceEpisodeId": "52818ea0-08fa-11f0-b111-19bf163ff9dc",
+          "seasonNumber": 1,
+          "episodeNumber": 8,
+          "title": "فصل ۱ • قسمت ۸",
+          "subtitle": "قسمت 8",
+          "badge": "E8",
+          "sourceUpdatedAt": "2025-04-21T03:11:01.000Z",
+          "files": [
+            {
+              "id": "play-s1-e8",
+              "quality": "پخش آنلاین",
+              "label": "HLS",
+              "url": "https://aparatchi.upera.tv/3029435-0-hls.m3u8?ref=3580590",
+              "mode": "play"
+            },
+            {
+              "id": "s1-e8-480p-sjrcus",
+              "quality": "480p",
+              "label": "کیفیت 480",
+              "size": "43.25 MB",
+              "url": "https://aparatchi.upera.tv/3029435-0-480.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e8-720p-ek3ql9",
+              "quality": "720p",
+              "label": "کیفیت 720",
+              "size": "62.21 MB",
+              "url": "https://aparatchi.upera.tv/3029435-0-720.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e8-1080p-o0y9ix",
+              "quality": "1080p",
+              "label": "کیفیت 1080",
+              "size": "121.47 MB",
+              "url": "https://aparatchi.upera.tv/3029435-0-1080.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e8-hq-1080p-z0llzf",
+              "quality": "HQ 1080p",
+              "label": "کیفیت HQ_1080",
+              "size": "167.38 MB",
+              "url": "https://aparatchi.upera.tv/3029435-0-HQ_1080.mp4?ref=3580590",
+              "mode": "download"
+            }
+          ]
+        },
+        {
+          "id": "season-1-episode-9-5829d580-08fa-11f0-8106-230735d88a3a",
+          "sourceEpisodeId": "5829d580-08fa-11f0-8106-230735d88a3a",
+          "seasonNumber": 1,
+          "episodeNumber": 9,
+          "title": "فصل ۱ • قسمت ۹",
+          "subtitle": "قسمت 9",
+          "badge": "E9",
+          "sourceUpdatedAt": "2025-04-21T03:02:02.000Z",
+          "files": [
+            {
+              "id": "play-s1-e9",
+              "quality": "پخش آنلاین",
+              "label": "HLS",
+              "url": "https://aparatchi.upera.tv/3029436-0-hls.m3u8?ref=3580590",
+              "mode": "play"
+            },
+            {
+              "id": "s1-e9-480p-lw92p7",
+              "quality": "480p",
+              "label": "کیفیت 480",
+              "size": "56.41 MB",
+              "url": "https://aparatchi.upera.tv/3029436-0-480.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e9-720p-z57d0e",
+              "quality": "720p",
+              "label": "کیفیت 720",
+              "size": "81.42 MB",
+              "url": "https://aparatchi.upera.tv/3029436-0-720.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e9-1080p-p4ug9m",
+              "quality": "1080p",
+              "label": "کیفیت 1080",
+              "size": "160.61 MB",
+              "url": "https://aparatchi.upera.tv/3029436-0-1080.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e9-hq-1080p-j42vuy",
+              "quality": "HQ 1080p",
+              "label": "کیفیت HQ_1080",
+              "size": "221.67 MB",
+              "url": "https://aparatchi.upera.tv/3029436-0-HQ_1080.mp4?ref=3580590",
+              "mode": "download"
+            }
+          ]
+        },
+        {
+          "id": "season-1-episode-10-5dd0eb80-08fa-11f0-8aac-e936e6c4cbf4",
+          "sourceEpisodeId": "5dd0eb80-08fa-11f0-8aac-e936e6c4cbf4",
+          "seasonNumber": 1,
+          "episodeNumber": 10,
+          "title": "فصل ۱ • قسمت ۱۰",
+          "subtitle": "قسمت 10",
+          "badge": "E10",
+          "sourceUpdatedAt": "2025-04-21T03:00:01.000Z",
+          "files": [
+            {
+              "id": "play-s1-e10",
+              "quality": "پخش آنلاین",
+              "label": "HLS",
+              "url": "https://aparatchi.upera.tv/3029437-0-hls.m3u8?ref=3580590",
+              "mode": "play"
+            },
+            {
+              "id": "s1-e10-480p-1b5ga2",
+              "quality": "480p",
+              "label": "کیفیت 480",
+              "size": "43.36 MB",
+              "url": "https://aparatchi.upera.tv/3029437-0-480.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e10-720p-fat2jl",
+              "quality": "720p",
+              "label": "کیفیت 720",
+              "size": "62.45 MB",
+              "url": "https://aparatchi.upera.tv/3029437-0-720.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e10-1080p-q8qn0b",
+              "quality": "1080p",
+              "label": "کیفیت 1080",
+              "size": "122.69 MB",
+              "url": "https://aparatchi.upera.tv/3029437-0-1080.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e10-hq-1080p-37k5qh",
+              "quality": "HQ 1080p",
+              "label": "کیفیت HQ_1080",
+              "size": "169.08 MB",
+              "url": "https://aparatchi.upera.tv/3029437-0-HQ_1080.mp4?ref=3580590",
+              "mode": "download"
+            }
+          ]
         }
       ],
-      "episodeCount": 4,
+      "episodeCount": 10,
       "seasonCount": 1,
       "latestEpisode": {
-        "id": "4d69f0b0-08fa-11f0-bb92-0f1dd0d6f777",
+        "id": "5dd0eb80-08fa-11f0-8aac-e936e6c4cbf4",
         "seasonNumber": 1,
-        "episodeNumber": 7,
-        "title": "فصل ۱ • قسمت ۷"
+        "episodeNumber": 10,
+        "title": "فصل ۱ • قسمت ۱۰"
       },
       "createdAt": "2026-08-03T08:55:19.105Z",
       "updatedAt": "2025-04-21T03:37:02.000Z",
       "sourceCreatedAt": "2026-08-03T08:55:19.105Z",
       "sourceUpdatedAt": "2025-04-21T03:37:02.000Z",
       "firstSeenAt": "2026-08-03T08:55:19.106Z",
-      "lastSyncedAt": "2026-08-03T08:55:19.106Z",
+      "lastSyncedAt": "2026-08-05T19:35:16.376Z",
       "categoryKeys": [
         "series",
-        "iranian-series",
-        "animation-series"
+        "animation-series",
+        "kids"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی",
-        "انیمیشن سریالی"
+        "مجموعه‌ها",
+        "انیمیشن سریالی",
+        "کودکان"
       ],
-      "contentKind": "animation-series",
+      "contentKind": "kids",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
-      "updateLabel": "قسمت ۷ اضافه شد",
+      "updateLabel": "قسمت ۱۰ اضافه شد",
       "source": "upera-iranian-priority",
       "countryCodes": [
         "IR"
@@ -223903,9 +224011,130 @@
       "people": [],
       "originalLanguage": "fa",
       "archiveComplete": false,
-      "archivePendingEpisodeCount": 0,
+      "archivePendingEpisodeCount": 28,
       "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked"
+      "archiveAuditStatus": "checked",
+      "sourceEpisodeCount": 41,
+      "archivePendingEpisodes": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 0
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 0
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 0
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 6
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 7
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 8
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 9
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 11
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 13
+        }
+      ],
+      "archiveUnavailableEpisodes": [],
+      "isAiring": false,
+      "archiveEpisodeDiscoveryComplete": true,
+      "archiveEpisodePaginationPagesFetched": 0,
+      "archiveEpisodePaginationErrors": 0,
+      "archiveDiscoveryCheckedAt": "2026-08-05T19:35:16.376Z"
     },
     {
       "id": "1cb2a690-d57f-11ef-a1f9-91af443a73a4",
@@ -224896,6 +225125,210 @@
           ]
         },
         {
+          "id": "season-1-episode-25-23fba030-f41c-11ef-877d-7992af162b73",
+          "sourceEpisodeId": "23fba030-f41c-11ef-877d-7992af162b73",
+          "seasonNumber": 1,
+          "episodeNumber": 25,
+          "title": "فصل ۱ • قسمت ۲۵",
+          "subtitle": "قسمت 25",
+          "badge": "E25",
+          "sourceUpdatedAt": "2025-02-27T05:45:04.000Z",
+          "files": [
+            {
+              "id": "play-s1-e25",
+              "quality": "پخش آنلاین",
+              "label": "HLS",
+              "url": "https://aparatchi.upera.tv/3024205-0-hls.m3u8?ref=3580590",
+              "mode": "play"
+            },
+            {
+              "id": "s1-e25-480p-qzf5wa",
+              "quality": "480p",
+              "label": "کیفیت 480",
+              "size": "59.15 MB",
+              "url": "https://aparatchi.upera.tv/3024205-0-480.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e25-720p-czrjmr",
+              "quality": "720p",
+              "label": "کیفیت 720",
+              "size": "85.68 MB",
+              "url": "https://aparatchi.upera.tv/3024205-0-720.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e25-1080p-1ic79b",
+              "quality": "1080p",
+              "label": "کیفیت 1080",
+              "size": "169.14 MB",
+              "url": "https://aparatchi.upera.tv/3024205-0-1080.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e25-hq-1080p-osi8mz",
+              "quality": "HQ 1080p",
+              "label": "کیفیت HQ_1080",
+              "size": "233.77 MB",
+              "url": "https://aparatchi.upera.tv/3024205-0-HQ_1080.mp4?ref=3580590",
+              "mode": "download"
+            }
+          ]
+        },
+        {
+          "id": "season-1-episode-26-6d991970-f41c-11ef-bb02-95e3a49bfdc9",
+          "sourceEpisodeId": "6d991970-f41c-11ef-bb02-95e3a49bfdc9",
+          "seasonNumber": 1,
+          "episodeNumber": 26,
+          "title": "فصل ۱ • قسمت ۲۶",
+          "subtitle": "قسمت 26",
+          "badge": "E26",
+          "sourceUpdatedAt": "2025-02-27T05:45:04.000Z",
+          "files": [
+            {
+              "id": "play-s1-e26",
+              "quality": "پخش آنلاین",
+              "label": "HLS",
+              "url": "https://aparatchi.upera.tv/3024206-0-hls.m3u8?ref=3580590",
+              "mode": "play"
+            },
+            {
+              "id": "s1-e26-480p-ngl9np",
+              "quality": "480p",
+              "label": "کیفیت 480",
+              "size": "57.49 MB",
+              "url": "https://aparatchi.upera.tv/3024206-0-480.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e26-720p-xkv61w",
+              "quality": "720p",
+              "label": "کیفیت 720",
+              "size": "83.21 MB",
+              "url": "https://aparatchi.upera.tv/3024206-0-720.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e26-1080p-2m8e00",
+              "quality": "1080p",
+              "label": "کیفیت 1080",
+              "size": "164.39 MB",
+              "url": "https://aparatchi.upera.tv/3024206-0-1080.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e26-hq-1080p-uc337o",
+              "quality": "HQ 1080p",
+              "label": "کیفیت HQ_1080",
+              "size": "227.39 MB",
+              "url": "https://aparatchi.upera.tv/3024206-0-HQ_1080.mp4?ref=3580590",
+              "mode": "download"
+            }
+          ]
+        },
+        {
+          "id": "season-1-episode-27-7320c3f0-f41c-11ef-b162-cba04e02e22d",
+          "sourceEpisodeId": "7320c3f0-f41c-11ef-b162-cba04e02e22d",
+          "seasonNumber": 1,
+          "episodeNumber": 27,
+          "title": "فصل ۱ • قسمت ۲۷",
+          "subtitle": "قسمت 27",
+          "badge": "E27",
+          "sourceUpdatedAt": "2025-02-27T05:45:04.000Z",
+          "files": [
+            {
+              "id": "play-s1-e27",
+              "quality": "پخش آنلاین",
+              "label": "HLS",
+              "url": "https://aparatchi.upera.tv/3024207-0-hls.m3u8?ref=3580590",
+              "mode": "play"
+            },
+            {
+              "id": "s1-e27-480p-2vhn8k",
+              "quality": "480p",
+              "label": "کیفیت 480",
+              "size": "54.72 MB",
+              "url": "https://aparatchi.upera.tv/3024207-0-480.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e27-720p-gv59i3",
+              "quality": "720p",
+              "label": "کیفیت 720",
+              "size": "79.28 MB",
+              "url": "https://aparatchi.upera.tv/3024207-0-720.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e27-1080p-3q4kqp",
+              "quality": "1080p",
+              "label": "کیفیت 1080",
+              "size": "156.7 MB",
+              "url": "https://aparatchi.upera.tv/3024207-0-1080.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e27-hq-1080p-efkd37",
+              "quality": "HQ 1080p",
+              "label": "کیفیت HQ_1080",
+              "size": "216.98 MB",
+              "url": "https://aparatchi.upera.tv/3024207-0-HQ_1080.mp4?ref=3580590",
+              "mode": "download"
+            }
+          ]
+        },
+        {
+          "id": "season-1-episode-28-76f9c210-f41c-11ef-8500-47dcfdbca504",
+          "sourceEpisodeId": "76f9c210-f41c-11ef-8500-47dcfdbca504",
+          "seasonNumber": 1,
+          "episodeNumber": 28,
+          "title": "فصل ۱ • قسمت ۲۸",
+          "subtitle": "قسمت 28",
+          "badge": "E28",
+          "sourceUpdatedAt": "2025-02-27T05:45:04.000Z",
+          "files": [
+            {
+              "id": "play-s1-e28",
+              "quality": "پخش آنلاین",
+              "label": "HLS",
+              "url": "https://aparatchi.upera.tv/3024208-0-hls.m3u8?ref=3580590",
+              "mode": "play"
+            },
+            {
+              "id": "s1-e28-480p-hplz6l",
+              "quality": "480p",
+              "label": "کیفیت 480",
+              "size": "56.22 MB",
+              "url": "https://aparatchi.upera.tv/3024208-0-480.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e28-720p-3pycx2",
+              "quality": "720p",
+              "label": "کیفیت 720",
+              "size": "81.4 MB",
+              "url": "https://aparatchi.upera.tv/3024208-0-720.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e28-1080p-4u0rhe",
+              "quality": "1080p",
+              "label": "کیفیت 1080",
+              "size": "160.87 MB",
+              "url": "https://aparatchi.upera.tv/3024208-0-1080.mp4?ref=3580590",
+              "mode": "download"
+            },
+            {
+              "id": "s1-e28-hq-1080p-1gyd1a",
+              "quality": "HQ 1080p",
+              "label": "کیفیت HQ_1080",
+              "size": "222.55 MB",
+              "url": "https://aparatchi.upera.tv/3024208-0-HQ_1080.mp4?ref=3580590",
+              "mode": "download"
+            }
+          ]
+        },
+        {
           "id": "season-1-episode-51-69e77060-f41d-11ef-90a2-73e14773e7e5",
           "sourceEpisodeId": "69e77060-f41d-11ef-90a2-73e14773e7e5",
           "seasonNumber": 1,
@@ -225100,7 +225533,7 @@
           ]
         }
       ],
-      "episodeCount": 23,
+      "episodeCount": 27,
       "seasonCount": 1,
       "latestEpisode": {
         "id": "93a38d00-f41d-11ef-8ff7-390bf7a6274e",
@@ -225113,23 +225546,21 @@
       "sourceCreatedAt": "2026-08-03T08:55:33.078Z",
       "sourceUpdatedAt": "2025-04-05T08:29:05.000Z",
       "firstSeenAt": "2026-08-03T08:55:33.078Z",
-      "lastSyncedAt": "2026-08-03T21:46:27.397Z",
+      "lastSyncedAt": "2026-08-05T19:35:48.342Z",
       "categoryKeys": [
         "series",
-        "iranian-series",
         "animation-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی",
+        "مجموعه‌ها",
         "انیمیشن سریالی"
       ],
       "contentKind": "animation-series",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
-      "updateLabel": "قسمت ۲۴ اضافه شد",
-      "source": "upera-gap-repair",
+      "updateLabel": "قسمت ۲۸ اضافه شد",
+      "source": "upera-iranian-priority",
       "countryCodes": [
         "IR"
       ],
@@ -225144,11 +225575,15 @@
       "people": [],
       "originalLanguage": "fa",
       "archiveComplete": false,
-      "archivePendingEpisodeCount": 49,
+      "archivePendingEpisodeCount": 35,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "sourceEpisodeCount": 72,
       "archivePendingEpisodes": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 0
+        },
         {
           "seasonNumber": 1,
           "episodeNumber": 0
@@ -225176,26 +225611,6 @@
         {
           "seasonNumber": 1,
           "episodeNumber": 15
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 15
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 25
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 26
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 27
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 28
         },
         {
           "seasonNumber": 1,
@@ -225306,7 +225721,12 @@
           "episodeNumber": 60
         }
       ],
-      "isAiring": false
+      "isAiring": false,
+      "archiveUnavailableEpisodes": [],
+      "archiveEpisodeDiscoveryComplete": true,
+      "archiveEpisodePaginationPagesFetched": 0,
+      "archiveEpisodePaginationErrors": 0,
+      "archiveDiscoveryCheckedAt": "2026-08-05T19:35:48.342Z"
     },
     {
       "id": "4609c2e0-b53d-11ef-b652-adcde9163814",
@@ -228613,23 +229033,21 @@
       "sourceCreatedAt": "2026-08-03T08:55:47.147Z",
       "sourceUpdatedAt": "2025-03-02T09:39:11.000Z",
       "firstSeenAt": "2026-08-03T08:55:47.147Z",
-      "lastSyncedAt": "2026-08-04T23:00:55.275Z",
+      "lastSyncedAt": "2026-08-05T19:36:11.440Z",
       "categoryKeys": [
         "series",
-        "iranian-series",
         "animation-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی",
+        "مجموعه‌ها",
         "انیمیشن سریالی"
       ],
       "contentKind": "animation-series",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
-      "updateLabel": "قسمت ۶۰ اضافه شد",
-      "source": "upera-sequential-backfill",
+      "updateLabel": "بروزرسانی شد",
+      "source": "upera-iranian-priority",
       "countryCodes": [
         "IR"
       ],
@@ -228644,11 +229062,15 @@
       "people": [],
       "originalLanguage": "fa",
       "archiveComplete": false,
-      "archivePendingEpisodeCount": 2,
+      "archivePendingEpisodeCount": 3,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "blocked",
       "sourceEpisodeCount": 82,
       "archivePendingEpisodes": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 0
+        },
         {
           "seasonNumber": 1,
           "episodeNumber": 0
@@ -228662,12 +229084,13 @@
       "archiveEpisodeDiscoveryComplete": true,
       "archiveEpisodePaginationPagesFetched": 0,
       "archiveEpisodePaginationErrors": 0,
-      "archiveDiscoveryCheckedAt": "2026-08-04T23:00:55.275Z",
+      "archiveDiscoveryCheckedAt": "2026-08-05T19:36:11.440Z",
       "archiveBlockedReason": "added-or-updated",
       "archiveBlockedAttempts": 3,
       "archiveBlockedMissing": [],
       "archiveBlockedPending": 18,
-      "archiveBlockedAt": "2026-08-04T23:00:55.275Z"
+      "archiveBlockedAt": "2026-08-04T23:00:55.275Z",
+      "archiveUnavailableEpisodes": []
     },
     {
       "id": "cfb27d20-e77e-11ef-b8d9-2dd842bea893",
@@ -228944,8 +229367,9 @@
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "سریال ایرانی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -229714,13 +230138,12 @@
       "lastSyncedAt": "2026-08-04T16:30:13.999Z",
       "categoryKeys": [
         "series",
-        "iranian-series",
         "documentaries"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی",
-        "مستند"
+        "مجموعه‌ها",
+        "مستند",
+        "سریال‌ها"
       ],
       "contentKind": "documentary",
       "isAnimation": false,
@@ -230060,13 +230483,12 @@
       "lastSyncedAt": "2026-08-03T08:56:29.168Z",
       "categoryKeys": [
         "series",
-        "iranian-series",
         "documentaries"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی",
-        "مستند"
+        "مجموعه‌ها",
+        "مستند",
+        "سریال‌ها"
       ],
       "contentKind": "documentary",
       "isAnimation": false,
@@ -230536,15 +230958,16 @@
       "lastSyncedAt": "2026-08-03T17:18:55.016Z",
       "categoryKeys": [
         "series",
-        "iranian-series",
-        "animation-series"
+        "animation-series",
+        "kids"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی",
-        "انیمیشن سریالی"
+        "مجموعه‌ها",
+        "انیمیشن سریالی",
+        "کودکان",
+        "سریال‌ها"
       ],
-      "contentKind": "animation-series",
+      "contentKind": "kids",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -230811,8 +231234,9 @@
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "سریال ایرانی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -231900,8 +232324,9 @@
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "سریال ایرانی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -232824,8 +233249,9 @@
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "سریال ایرانی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -233897,8 +234323,9 @@
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "سریال ایرانی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -235099,8 +235526,9 @@
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "سریال ایرانی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -235684,8 +236112,9 @@
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "سریال ایرانی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -237710,8 +238139,9 @@
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "سریال ایرانی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -238117,8 +238547,9 @@
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "سریال ایرانی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -238391,13 +238822,16 @@
       "lastSyncedAt": "2026-08-03T17:48:31.906Z",
       "categoryKeys": [
         "series",
-        "iranian-series"
+        "religious",
+        "quran"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "مذهبی و مناسبتی",
+        "قرآن و ادعیه",
+        "سریال‌ها"
       ],
-      "contentKind": "series",
+      "contentKind": "religious-program",
       "isAnimation": false,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -238665,8 +239099,9 @@
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "سریال ایرانی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -240112,8 +240547,9 @@
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "سریال ایرانی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -241225,8 +241661,9 @@
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "سریال ایرانی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -241572,8 +242009,9 @@
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "سریال ایرانی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -241924,8 +242362,9 @@
         "iranian-series"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "سریال ایرانی",
+        "سریال‌ها"
       ],
       "contentKind": "series",
       "isAnimation": false,
@@ -242367,13 +242806,14 @@
       "lastSyncedAt": "2026-08-03T17:20:19.068Z",
       "categoryKeys": [
         "series",
-        "iranian-series"
+        "kids"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی"
+        "مجموعه‌ها",
+        "کودکان",
+        "سریال‌ها"
       ],
-      "contentKind": "series",
+      "contentKind": "children-program",
       "isAnimation": false,
       "isTalkShow": false,
       "isDocumentary": false,
@@ -242920,15 +243360,16 @@
       "lastSyncedAt": "2026-08-04T22:09:20.039Z",
       "categoryKeys": [
         "series",
-        "iranian-series",
-        "animation-series"
+        "animation-series",
+        "kids"
       ],
       "categoryLabels": [
-        "سریال‌ها",
-        "سریال ایرانی",
-        "انیمیشن سریالی"
+        "مجموعه‌ها",
+        "انیمیشن سریالی",
+        "کودکان",
+        "سریال‌ها"
       ],
-      "contentKind": "animation-series",
+      "contentKind": "kids",
       "isAnimation": true,
       "isTalkShow": false,
       "isDocumentary": false,
