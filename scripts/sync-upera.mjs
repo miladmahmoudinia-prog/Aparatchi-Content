@@ -43,6 +43,79 @@ const seriesPagesPerRun = Math.min(
   positiveInt(process.env.SERIES_PAGES_PER_RUN, 6),
 );
 
+// The first part of every NORMAL run is reserved for actual discovery.
+// These scans always start from the newest archive pages and have isolated
+// affiliate-link quotas, so airing/repair work can never starve new movies.
+const recentMoviePagesPerRun = Math.min(
+  moviePagesPerRun,
+  positiveInt(process.env.UPERA_RECENT_MOVIE_PAGES_PER_RUN, moviePagesPerRun),
+);
+
+const recentSeriesPagesPerRun = Math.min(
+  seriesPagesPerRun,
+  positiveInt(process.env.UPERA_RECENT_SERIES_PAGES_PER_RUN, seriesPagesPerRun),
+);
+
+const recentMovieTitlesPerRun = Math.min(
+  40,
+  positiveInt(process.env.UPERA_RECENT_MOVIE_TITLES_PER_RUN, 18),
+);
+
+const recentSeriesTitlesPerRun = Math.min(
+  16,
+  positiveInt(process.env.UPERA_RECENT_SERIES_TITLES_PER_RUN, 6),
+);
+
+const recentMovieRequestQuota = Math.min(
+  40,
+  positiveInt(process.env.UPERA_RECENT_MOVIE_REQUEST_QUOTA, 18),
+);
+
+const recentSeriesRequestQuota = Math.min(
+  48,
+  positiveInt(process.env.UPERA_RECENT_SERIES_REQUEST_QUOTA, 24),
+);
+
+const recentSeriesEpisodeLimit = Math.min(
+  12,
+  positiveInt(process.env.UPERA_RECENT_SERIES_EPISODES_PER_TITLE, 5),
+);
+
+const incrementalRequestQuota = Math.min(
+  20,
+  positiveInt(process.env.UPERA_INCREMENTAL_REQUEST_QUOTA, 8),
+);
+
+const airingRequestQuota = Math.min(
+  24,
+  positiveInt(process.env.UPERA_AIRING_REQUEST_QUOTA, 10),
+);
+
+const archiveMovieRequestQuota = Math.min(
+  20,
+  positiveInt(process.env.UPERA_ARCHIVE_MOVIE_REQUEST_QUOTA, 8),
+);
+
+const archiveSeriesRequestQuota = Math.min(
+  24,
+  positiveInt(process.env.UPERA_ARCHIVE_SERIES_REQUEST_QUOTA, 8),
+);
+
+const iranianSeriesRequestQuota = Math.min(
+  16,
+  positiveInt(process.env.UPERA_IRANIAN_SERIES_REQUEST_QUOTA, 6),
+);
+
+const operatorMovieRequestQuota = Math.min(
+  16,
+  positiveInt(process.env.UPERA_OPERATOR_MOVIE_REQUEST_QUOTA, 5),
+);
+
+const operatorSeriesRequestQuota = Math.min(
+  20,
+  positiveInt(process.env.UPERA_OPERATOR_SERIES_REQUEST_QUOTA, 6),
+);
+
 const newTitlesHours = positiveInt(
   process.env.NEW_TITLES_HOURS,
   72,
@@ -212,7 +285,7 @@ if (!refId) {
 }
 
 const defaultCatalog = {
-  version: '0.10.4-bounded-sync-operator-and-people',
+  version: '0.10.6-guaranteed-new-content',
   updatedAt: new Date(0).toISOString(),
   items: [],
   iranianSchedule: [],
@@ -329,6 +402,15 @@ let lastAffiliateRequestAt = 0;
 let affiliateRequestsUsed = 0;
 let affiliateBudgetExhausted = false;
 
+// A scoped quota is softer than the global run budget. Reaching it stops only
+// the current phase and lets the next reserved phase continue. This is the key
+// difference from the old implementation, where Iranian/airing maintenance
+// could consume every affiliate request before movie discovery started.
+let affiliateScopeName = '';
+let affiliateScopeStart = 0;
+let affiliateScopeLimit = Number.POSITIVE_INFINITY;
+let affiliateScopeExhausted = false;
+
 const stats = {
   startedAt: new Date().toISOString(),
   runTimeLimitMinutes,
@@ -362,6 +444,16 @@ const stats = {
 
   incrementalCandidates: 0,
   incrementalProcessed: 0,
+  recentMoviePagesScanned: 0,
+  recentMovieCandidates: 0,
+  recentMovieNewCandidates: 0,
+  recentMoviesProcessed: 0,
+  recentSeriesPagesScanned: 0,
+  recentSeriesCandidates: 0,
+  recentSeriesNewCandidates: 0,
+  recentSeriesProcessed: 0,
+  affiliateRequestScopes: {},
+  skippedByScopedBudget: 0,
 
   moviePagesProcessed: 0,
   movieTitlesProcessed: 0,
@@ -468,37 +560,80 @@ if (effectiveSyncMode === 'PEOPLE') {
     await syncAiringSeriesUpdates();
   }
 } else {
-  // New and recently changed titles are always processed first. Older
-  // maintenance passes must never consume the whole request budget before the
-  // hourly incremental feed is checked.
-  await syncIncrementalTitles();
+  // Guaranteed discovery comes first and receives independent request quotas.
+  // Page scans always begin at page 1, so newly published titles are checked
+  // every hour even while the long-running archive cursors continue elsewhere.
+  await withAffiliateRequestScope(
+    'recent-movies',
+    recentMovieRequestQuota,
+    syncRecentMovieDiscovery,
+  );
 
-  if (!affiliateBudgetExhausted) {
-    await syncAiringSeriesUpdates();
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-recent-series', 90000)) {
+    await withAffiliateRequestScope(
+      'recent-series',
+      recentSeriesRequestQuota,
+      syncRecentSeriesDiscovery,
+    );
   }
 
-  if (!affiliateBudgetExhausted) {
-    await syncIranianSeriesArchive();
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-incremental', 75000)) {
+    await withAffiliateRequestScope(
+      'incremental',
+      incrementalRequestQuota,
+      syncIncrementalTitles,
+    );
   }
 
-  if (!affiliateBudgetExhausted) {
-    await syncOperatorSeriesArchive();
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-airing', 70000)) {
+    await withAffiliateRequestScope(
+      'airing-series',
+      airingRequestQuota,
+      syncAiringSeriesUpdates,
+    );
   }
 
-  if (!affiliateBudgetExhausted) {
-    await syncOperatorMovieArchive();
+  // The remaining passes continue the wider catalog crawl, but each one is
+  // fenced by a small quota. None of them can steal the reserved discovery
+  // capacity from the next hourly run.
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-archive-movies', 60000)) {
+    await withAffiliateRequestScope(
+      'archive-movies',
+      archiveMovieRequestQuota,
+      syncMovieArchive,
+    );
   }
 
-  if (!affiliateBudgetExhausted) {
-    await syncSeriesArchive();
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-archive-series', 60000)) {
+    await withAffiliateRequestScope(
+      'archive-series',
+      archiveSeriesRequestQuota,
+      syncSeriesArchive,
+    );
   }
 
-  if (!affiliateBudgetExhausted) {
-    await syncMovieArchive();
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-iranian-series', 55000)) {
+    await withAffiliateRequestScope(
+      'iranian-series',
+      iranianSeriesRequestQuota,
+      syncIranianSeriesArchive,
+    );
   }
 
-  if (!runTimeBudgetReached('normal-people-enrichment', 90000)) {
-    await syncPeopleMetadata({ preferRecent: true, maxTitles: Math.min(4, peopleEnrichmentTitlesPerRun) });
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-operator-movies', 50000)) {
+    await withAffiliateRequestScope(
+      'operator-movies',
+      operatorMovieRequestQuota,
+      syncOperatorMovieArchive,
+    );
+  }
+
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-operator-series', 50000)) {
+    await withAffiliateRequestScope(
+      'operator-series',
+      operatorSeriesRequestQuota,
+      syncOperatorSeriesArchive,
+    );
   }
 }
 
@@ -593,7 +728,7 @@ const now = new Date().toISOString();
 
 const output = {
   ...catalog,
-  version: '0.10.4-bounded-sync-operator-and-people',
+  version: '0.10.6-guaranteed-new-content',
   updatedAt: now,
   items,
   iranianSchedule,
@@ -610,11 +745,129 @@ stats.remainingRunMsAtFinish = Math.max(0, runDeadlineAtMs - Date.now());
 await writeJson(catalogPath, output);
 await writeJson(statePath, state);
 await writeJson(reportPath, stats);
+await writeJson(
+  path.join(root, `sync-report-${effectiveSyncMode.toLowerCase()}.json`),
+  stats,
+);
 await stageMirroredAssets();
 
 console.log(
   `پایان همگام‌سازی؛ ${items.length} عنوان حفظ شد.`,
 );
+
+function candidateSourceTimestamp(candidate) {
+  return Date.parse(
+    candidate?.updated_at ||
+    candidate?.updatedAt ||
+    candidate?.created_at ||
+    candidate?.createdAt ||
+    '',
+  ) || 0;
+}
+
+function existingSourceTimestamp(item) {
+  return Date.parse(
+    item?.sourceUpdatedAt ||
+    item?.updatedAt ||
+    item?.sourceCreatedAt ||
+    item?.createdAt ||
+    '',
+  ) || 0;
+}
+
+function discoveryCandidatePriority(candidate, type) {
+  const existing = findExistingItem(candidate, type);
+  if (!existing) return 0;
+  const sourceTime = candidateSourceTimestamp(candidate);
+  const existingTime = existingSourceTimestamp(existing);
+  if (sourceTime && sourceTime > existingTime + 1000) return 1;
+  if (type === 'movie') {
+    const hasMedia = Boolean(
+      existing?.streamUrl ||
+      (Array.isArray(existing?.downloads) && existing.downloads.some(
+        (section) => Array.isArray(section?.files) && section.files.length > 0,
+      )),
+    );
+    if (!hasMedia) return 2;
+  }
+  return 99;
+}
+
+async function collectRecentPageCandidates(kind, pageCount) {
+  const collected = [];
+  for (let page = 1; page <= pageCount; page += 1) {
+    if (runTimeBudgetReached(`recent-${kind}-page-${page}`, 90000)) break;
+    try {
+      const payload = kind === 'movie'
+        ? await fetchMoviePage(page)
+        : await fetchSeriesPage(page);
+      collected.push(...(payload.items || []));
+      if (kind === 'movie') stats.recentMoviePagesScanned += 1;
+      else stats.recentSeriesPagesScanned += 1;
+      if (page >= positiveInt(payload.lastPage, page)) break;
+    } catch (error) {
+      rememberError(`recent-${kind}-page-${page}`, error);
+      break;
+    }
+  }
+  return dedupeCandidates(collected);
+}
+
+async function syncRecentMovieDiscovery() {
+  const candidates = await collectRecentPageCandidates('movie', recentMoviePagesPerRun);
+  stats.recentMovieCandidates = candidates.length;
+  const selected = candidates
+    .map((candidate) => ({
+      candidate,
+      priority: discoveryCandidatePriority(candidate, 'movie'),
+      timestamp: candidateSourceTimestamp(candidate),
+    }))
+    .filter((entry) => entry.priority < 99)
+    .sort((a, b) => a.priority - b.priority || b.timestamp - a.timestamp)
+    .slice(0, recentMovieTitlesPerRun);
+
+  stats.recentMovieNewCandidates = selected.filter((entry) => entry.priority === 0).length;
+  for (const { candidate } of selected) {
+    if (affiliateBudgetExhausted || affiliateScopeExhausted) break;
+    try {
+      const result = await processMovie(candidate, 'recent-discovery');
+      if (result?.retryLater && affiliateScopeExhausted) break;
+      stats.recentMoviesProcessed += 1;
+    } catch (error) {
+      rememberError(`recent-movie-${candidate?.id || candidate?.t_id || 'unknown'}`, error);
+    }
+  }
+}
+
+async function syncRecentSeriesDiscovery() {
+  const candidates = await collectRecentPageCandidates('series', recentSeriesPagesPerRun);
+  stats.recentSeriesCandidates = candidates.length;
+  const selected = candidates
+    .map((candidate) => ({
+      candidate,
+      priority: discoveryCandidatePriority(candidate, 'series'),
+      timestamp: candidateSourceTimestamp(candidate),
+    }))
+    .filter((entry) => entry.priority < 99)
+    .sort((a, b) => a.priority - b.priority || b.timestamp - a.timestamp)
+    .slice(0, recentSeriesTitlesPerRun);
+
+  stats.recentSeriesNewCandidates = selected.filter((entry) => entry.priority === 0).length;
+  for (const { candidate } of selected) {
+    if (affiliateBudgetExhausted || affiliateScopeExhausted) break;
+    try {
+      const result = await processSeries(candidate, 'recent-discovery', {
+        episodeStrategy: 'latest',
+        episodeLimit: recentSeriesEpisodeLimit,
+        onlyMissing: true,
+      });
+      stats.recentSeriesProcessed += 1;
+      if (result?.retryLater && affiliateScopeExhausted) break;
+    } catch (error) {
+      rememberError(`recent-series-${candidate?.id || candidate?.t_id || 'unknown'}`, error);
+    }
+  }
+}
 
 async function syncIncrementalTitles() {
   try {
@@ -638,11 +891,12 @@ async function syncIncrementalTitles() {
     );
 
     for (const candidate of unique) {
-      if (affiliateBudgetExhausted) break;
+      if (affiliateBudgetExhausted || affiliateScopeExhausted) break;
 
       try {
-        await processCandidate(candidate, 'incremental');
+        const result = await processCandidate(candidate, 'incremental');
         stats.incrementalProcessed += 1;
+        if (result?.retryLater && affiliateScopeExhausted) break;
       } catch (error) {
         rememberError(
           `incremental-${candidate?.id || candidate?.t_id || 'unknown'}`,
@@ -683,7 +937,7 @@ async function syncAiringSeriesUpdates() {
 
   let checked = 0;
   for (const item of selected) {
-    if (affiliateBudgetExhausted) break;
+    if (affiliateBudgetExhausted || affiliateScopeExhausted) break;
     try {
       const result = await processSeries(
         { id: item.id, type: 'series' },
@@ -699,6 +953,7 @@ async function syncAiringSeriesUpdates() {
       if (Number(result?.addedEpisodes || 0) > 0) {
         stats.airingSeriesUpdated += 1;
       }
+      if (result?.retryLater && affiliateScopeExhausted) break;
     } catch (error) {
       rememberError(`airing-series-${item?.id || 'unknown'}`, error);
       checked += 1;
@@ -1400,25 +1655,24 @@ async function processCandidate(candidate, source) {
 
     if (!seriesId) return;
 
-    await processSeries(
+    return processSeries(
       { id: seriesId },
       source,
       {
         onlyEpisodeId: candidate.id,
       },
     );
-
-    return;
   }
 
   if (type === 'series') {
-    await processSeries(candidate, source);
-    return;
+    return processSeries(candidate, source);
   }
 
   if (type === 'movie') {
-    await processMovie(candidate, source);
+    return processMovie(candidate, source);
   }
+
+  return null;
 }
 
 async function processMovie(candidate, source, options = {}) {
@@ -2094,13 +2348,57 @@ async function fetchSeriesDetail(id) {
   };
 }
 
+function affiliateScopeUsed() {
+  return Math.max(0, affiliateRequestsUsed - affiliateScopeStart);
+}
+
+function affiliateScopeLimitReached() {
+  return Number.isFinite(affiliateScopeLimit) && affiliateScopeUsed() >= affiliateScopeLimit;
+}
+
+async function withAffiliateRequestScope(name, limit, task) {
+  const previous = {
+    name: affiliateScopeName,
+    start: affiliateScopeStart,
+    limit: affiliateScopeLimit,
+    exhausted: affiliateScopeExhausted,
+  };
+  affiliateScopeName = String(name || 'unnamed');
+  affiliateScopeStart = affiliateRequestsUsed;
+  affiliateScopeLimit = Math.max(0, nonNegativeInt(limit, 0));
+  affiliateScopeExhausted = false;
+  try {
+    return await task();
+  } finally {
+    stats.affiliateRequestScopes[affiliateScopeName] = {
+      limit: affiliateScopeLimit,
+      used: affiliateScopeUsed(),
+      exhausted: affiliateScopeExhausted,
+    };
+    affiliateScopeName = previous.name;
+    affiliateScopeStart = previous.start;
+    affiliateScopeLimit = previous.limit;
+    affiliateScopeExhausted = previous.exhausted;
+  }
+}
+
 async function fetchAffiliateLinks(
   id,
   type,
 ) {
   if (runTimeBudgetReached('affiliate-request', 30000)) {
     stats.skippedByBudget += 1;
-    return { links: [], skipped: true };
+    return { links: [], skipped: true, reason: 'time-budget' };
+  }
+
+  if (affiliateScopeLimitReached()) {
+    affiliateScopeExhausted = true;
+    stats.skippedByScopedBudget += 1;
+    return {
+      links: [],
+      skipped: true,
+      reason: `scope-budget:${affiliateScopeName || 'unnamed'}`,
+    };
   }
 
   if (
@@ -2113,6 +2411,7 @@ async function fetchAffiliateLinks(
     return {
       links: [],
       skipped: true,
+      reason: 'global-request-budget',
     };
   }
 
@@ -4519,17 +4818,12 @@ function dedupeCandidates(candidates) {
 function candidateSyncPriority(candidate) {
   const type = detectType(candidate);
 
-  if (
-    type === 'series' ||
-    type === 'episode'
-  ) {
-    return 0;
-  }
-
-  if (type === 'movie') {
-    return 1;
-  }
-
+  // Movies used to be placed after every series/episode candidate, so a small
+  // request budget could repeatedly end with zero movie updates. Guaranteed
+  // page discovery already covers both types; this fallback now gives movies
+  // first access to its own small scoped quota.
+  if (type === 'movie') return 0;
+  if (type === 'series' || type === 'episode') return 1;
   return 2;
 }
 
