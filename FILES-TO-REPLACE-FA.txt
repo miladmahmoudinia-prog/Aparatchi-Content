@@ -1,0 +1,16 @@
+فایل‌های تغییرکرده موتور محتوا نسخه 0.11.0
+
+این فایل‌ها را با حفظ مسیر در ریشه مخزن Aparatchi-Content جایگزین کنید:
+
+.github/workflows/sync-upera.yml
+README-AUTO-SYNC.md
+FILES-TO-REPLACE-FA.txt
+sync-upera.mjs
+scripts/sync-upera.mjs
+scripts/tests/mock-sync-fetch.mjs
+scripts/tests/sync-upera-regression.test.mjs
+
+هیچ فایل فعلی نباید حذف شود. catalog.json، sync-state.json و گزارش‌های فعلی عمداً در
+این بسته نیستند؛ گردش‌کار بعدی آن‌ها را با حفظ داده‌های معتبر موجود به‌روزرسانی می‌کند.
+
+پس از جایگزینی، گردش‌کار «Sync Upera Catalog» را یک‌بار به‌صورت دستی اجرا کنید.
