@@ -6,6 +6,7 @@ import { promisify } from 'node:util';
 
 const API_BASE = 'https://seeko.film/api/v1';
 const IRANIAN_SERIES_SCAN_VERSION = 3;
+const CATALOG_VERSION = '0.11.0-sync-recovery';
 
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
@@ -190,8 +191,21 @@ const episodeUnavailableAfterAttempts = Math.min(
   positiveInt(process.env.UPERA_EPISODE_UNAVAILABLE_AFTER_ATTEMPTS, 3),
 );
 
+// An episode that repeatedly has no usable affiliate link must not keep an
+// otherwise complete series hidden forever. It is treated as unavailable and
+// rechecked occasionally (or sooner when the source timestamp changes).
+const unavailableEpisodeRetryHours = Math.min(
+  24 * 30,
+  positiveInt(process.env.UPERA_UNAVAILABLE_EPISODE_RETRY_HOURS, 168),
+);
+
 const retryBlockedBackfill = ['1', 'true', 'yes'].includes(
   String(process.env.UPERA_RETRY_BLOCKED || '').trim().toLowerCase(),
+);
+
+const blockedBackfillRetryHours = Math.min(
+  24 * 30,
+  positiveInt(process.env.UPERA_BLOCKED_RETRY_HOURS, 168),
 );
 
 const maxEpisodePaginationPages = Math.min(
@@ -285,7 +299,7 @@ if (!refId) {
 }
 
 const defaultCatalog = {
-  version: '0.10.6-guaranteed-new-content',
+  version: CATALOG_VERSION,
   updatedAt: new Date(0).toISOString(),
   items: [],
   iranianSchedule: [],
@@ -401,6 +415,8 @@ items = operatorCleanup.items.map((item) => withSeriesPublicationState(item));
 let lastAffiliateRequestAt = 0;
 let affiliateRequestsUsed = 0;
 let affiliateBudgetExhausted = false;
+const affiliateLinkCache = new Map();
+const episodeFailureRegisteredThisRun = new Set();
 
 // A scoped quota is softer than the global run budget. Reaching it stops only
 // the current phase and lets the next reserved phase continue. This is the key
@@ -435,7 +451,7 @@ const stats = {
   episodesMarkedUnavailable: 0,
   backfillNoProgressRuns: 0,
   normalSyncSkippedForBackfill: false,
-  backfillOrdering: 'oldest-to-newest-global',
+  backfillOrdering: 'active-then-nearest-completion',
   backfillNextSeries: null,
   episodePaginationPagesFetched: 0,
   episodePaginationErrors: 0,
@@ -503,6 +519,8 @@ const stats = {
   seriesAddedOrUpdated: 0,
 
   affiliateRequests: 0,
+  affiliateCacheHits: 0,
+  affiliateNotFound: 0,
   rateLimitHits: 0,
   rateLimitWaitMs: 0,
   skippedByBudget: 0,
@@ -577,6 +595,24 @@ if (effectiveSyncMode === 'PEOPLE') {
     );
   }
 
+  // Operator-only links are a first-class discovery target. Run these passes
+  // before maintenance/archive work so the global budget cannot starve them.
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-operator-movies', 80000)) {
+    await withAffiliateRequestScope(
+      'operator-movies',
+      operatorMovieRequestQuota,
+      syncOperatorMovieArchive,
+    );
+  }
+
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-operator-series', 75000)) {
+    await withAffiliateRequestScope(
+      'operator-series',
+      operatorSeriesRequestQuota,
+      syncOperatorSeriesArchive,
+    );
+  }
+
   if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-incremental', 75000)) {
     await withAffiliateRequestScope(
       'incremental',
@@ -620,21 +656,6 @@ if (effectiveSyncMode === 'PEOPLE') {
     );
   }
 
-  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-operator-movies', 50000)) {
-    await withAffiliateRequestScope(
-      'operator-movies',
-      operatorMovieRequestQuota,
-      syncOperatorMovieArchive,
-    );
-  }
-
-  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-operator-series', 50000)) {
-    await withAffiliateRequestScope(
-      'operator-series',
-      operatorSeriesRequestQuota,
-      syncOperatorSeriesArchive,
-    );
-  }
 }
 
 items.sort((a, b) => {
@@ -728,7 +749,7 @@ const now = new Date().toISOString();
 
 const output = {
   ...catalog,
-  version: '0.10.6-guaranteed-new-content',
+  version: CATALOG_VERSION,
   updatedAt: now,
   items,
   iranianSchedule,
@@ -987,16 +1008,13 @@ async function syncSequentialSeriesBackfill() {
       break;
     }
 
-    const startOffset = state.archiveBackfillOffset % queue.length;
-    let active = null;
-    for (let step = 0; step < queue.length; step += 1) {
-      const candidate = queue[(startOffset + step) % queue.length];
+    // The queue is already ordered for visible progress. Always take the first
+    // unvisited entry instead of rotating past almost-complete series.
+    const active = queue.find((candidate) => {
       const candidateId = String(candidate?.item?.id || '');
-      if (!candidateId || visitedThisRun.has(candidateId)) continue;
-      active = candidate;
-      state.archiveBackfillOffset = (startOffset + step + 1) % Math.max(1, queue.length);
-      break;
-    }
+      return candidateId && !visitedThisRun.has(candidateId);
+    });
+    state.archiveBackfillOffset = 0;
 
     // Every currently queued title has already received a fair slice in this run.
     if (!active) break;
@@ -1134,11 +1152,12 @@ function buildSequentialBackfillQueue() {
     }))
     .filter((entry) => {
       const blocked = entry.item?.archiveAuditStatus === 'blocked';
-      if (blocked && !retryBlockedBackfill) return false;
+      if (blocked && !blockedSeriesRetryDue(entry.item)) return false;
       return (
         entry.deficit.total > 0 ||
         entry.item?.publicationStatus !== 'published' ||
-        !hasSeriesArchiveMetadata(entry.item)
+        !hasSeriesArchiveMetadata(entry.item) ||
+        seriesHasUnavailableRetryDue(entry.item)
       );
     })
     .sort((a, b) => {
@@ -1147,14 +1166,31 @@ function buildSequentialBackfillQueue() {
       const bActive = String(b.item?.id || '') === activeId;
       if (aActive !== bActive) return aActive ? -1 : 1;
 
-      // Country never affects the queue. Iranian, Korean, Turkish, American
-      // and every other series are ordered together from oldest to newest.
-      const yearDiff = seriesBackfillYear(a.item) - seriesBackfillYear(b.item);
+      const aNeedsArchive =
+        a.deficit.total > 0 ||
+        a.item?.publicationStatus !== 'published' ||
+        !hasSeriesArchiveMetadata(a.item);
+      const bNeedsArchive =
+        b.deficit.total > 0 ||
+        b.item?.publicationStatus !== 'published' ||
+        !hasSeriesArchiveMetadata(b.item);
+      if (aNeedsArchive !== bNeedsArchive) return aNeedsArchive ? -1 : 1;
+
+      // Finish the closest archive first so each run produces visible results
+      // instead of adding a few episodes to many different series.
+      const deficitDiff = a.deficit.total - b.deficit.total;
+      if (deficitDiff) return deficitDiff;
+
+      const aAiring = Boolean(a.item?.isAiring);
+      const bAiring = Boolean(b.item?.isAiring);
+      if (aAiring !== bAiring) return aAiring ? -1 : 1;
+
+      const yearDiff = seriesBackfillYear(b.item) - seriesBackfillYear(a.item);
       if (yearDiff) return yearDiff;
 
       const dateDiff =
-        seriesBackfillTimestamp(a.item) -
-        seriesBackfillTimestamp(b.item);
+        seriesBackfillTimestamp(b.item) -
+        seriesBackfillTimestamp(a.item);
       if (dateDiff) return dateDiff;
 
       const titleDiff = String(a.item?.nameFa || a.item?.name || '').localeCompare(
@@ -1758,6 +1794,42 @@ function existingUnavailableEpisodeMap(seriesId, existing) {
   return map;
 }
 
+function unavailableEpisodeRetryDue(entry, sourceEpisode = null) {
+  if (!entry) return true;
+
+  const markedAtMs = Date.parse(String(entry.markedAt || ''));
+  const sourceUpdatedMs = Date.parse(String(
+    sourceEpisode?.updated_at ||
+    sourceEpisode?.updatedAt ||
+    sourceEpisode?.created_at ||
+    sourceEpisode?.createdAt ||
+    '',
+  ));
+  if (
+    Number.isFinite(sourceUpdatedMs) &&
+    (!Number.isFinite(markedAtMs) || sourceUpdatedMs > markedAtMs)
+  ) {
+    return true;
+  }
+
+  if (!Number.isFinite(markedAtMs)) return true;
+  return Date.now() - markedAtMs >= unavailableEpisodeRetryHours * 60 * 60 * 1000;
+}
+
+function seriesHasUnavailableRetryDue(item) {
+  return (Array.isArray(item?.archiveUnavailableEpisodes)
+    ? item.archiveUnavailableEpisodes
+    : []
+  ).some((entry) => unavailableEpisodeRetryDue(entry));
+}
+
+function blockedSeriesRetryDue(item) {
+  if (retryBlockedBackfill) return true;
+  const blockedAtMs = Date.parse(String(item?.archiveBlockedAt || ''));
+  if (!Number.isFinite(blockedAtMs)) return true;
+  return Date.now() - blockedAtMs >= blockedBackfillRetryHours * 60 * 60 * 1000;
+}
+
 function clearArchiveEpisodeFailure(seriesId, episode, unavailableMap) {
   const key = archiveEpisodeKey(seriesId, episode);
   delete state.archiveEpisodeFailures[key];
@@ -1766,11 +1838,15 @@ function clearArchiveEpisodeFailure(seriesId, episode, unavailableMap) {
 
 function registerArchiveEpisodeFailure(seriesId, episode, reason, unavailableMap) {
   const key = archiveEpisodeKey(seriesId, episode);
+  if (episodeFailureRegisteredThisRun.has(key)) return false;
+  episodeFailureRegisteredThisRun.add(key);
+
   const attempts = nonNegativeInt(state.archiveEpisodeFailures[key], 0) + 1;
   state.archiveEpisodeFailures[key] = attempts;
   if (attempts < episodeUnavailableAfterAttempts) return false;
 
-  if (!unavailableMap.has(key)) stats.episodesMarkedUnavailable += 1;
+  const wasUnavailable = unavailableMap.has(key);
+  if (!wasUnavailable) stats.episodesMarkedUnavailable += 1;
   unavailableMap.set(key, {
     sourceEpisodeId: cleanText(episode?.id || episode?.sourceEpisodeId || ''),
     seasonNumber: episodeSeasonNumber(episode),
@@ -1779,7 +1855,7 @@ function registerArchiveEpisodeFailure(seriesId, episode, reason, unavailableMap
     attempts,
     markedAt: new Date().toISOString(),
   });
-  return true;
+  return !wasUnavailable;
 }
 
 async function processSeries(
@@ -1832,6 +1908,10 @@ async function processSeries(
 
   const missingEpisodes = episodes
     .filter((episode) => !findEpisodeGroup(previousGroups, episode))
+    .filter((episode) => {
+      const unavailable = unavailableEpisodeMap.get(archiveEpisodeKey(id, episode));
+      return !unavailable || unavailableEpisodeRetryDue(unavailable, episode);
+    })
     .sort(compareEpisodes);
   const changedExistingEpisodes = episodes
     .filter((episode) => findEpisodeGroup(previousGroups, episode))
@@ -1986,11 +2066,13 @@ async function processSeries(
     updateLabel = 'بروزرسانی شد';
   }
 
-  // A source episode without a usable file remains missing. Failure markers are
-  // diagnostic only; they must not allow an incomplete old series to be
-  // published, and the episode is retried on later hourly runs.
+  // A repeatedly unavailable source episode is excluded from the publishability
+  // deficit and retried on a bounded schedule. This prevents a permanent 404
+  // from hiding an otherwise complete series forever.
   const remainingSourceEpisodes = episodes.filter(
-    (episode) => !findEpisodeGroup(mergedGroups, episode),
+    (episode) =>
+      !findEpisodeGroup(mergedGroups, episode) &&
+      !unavailableEpisodeMap.has(archiveEpisodeKey(id, episode)),
   );
   const isAiring = inferSeriesAiring(series, existing);
   const archiveComplete =
@@ -2386,6 +2468,12 @@ async function fetchAffiliateLinks(
   id,
   type,
 ) {
+  const cacheKey = `${String(type || '')}:${String(id || '')}`;
+  if (affiliateLinkCache.has(cacheKey)) {
+    stats.affiliateCacheHits += 1;
+    return affiliateLinkCache.get(cacheKey);
+  }
+
   if (runTimeBudgetReached('affiliate-request', 30000)) {
     stats.skippedByBudget += 1;
     return { links: [], skipped: true, reason: 'time-budget' };
@@ -2431,22 +2519,39 @@ async function fetchAffiliateLinks(
     token,
   });
 
-  const json = await fetchJson(
-    url,
-    { method: 'POST' },
-  );
+  try {
+    const json = await fetchJson(
+      url,
+      { method: 'POST' },
+    );
 
-  const links =
-    json?.data?.links ??
-    json?.links ??
-    [];
-
-  return {
-    links: Array.isArray(links)
-      ? links
-      : [],
-    skipped: false,
-  };
+    const links =
+      json?.data?.links ??
+      json?.links ??
+      [];
+    const result = {
+      links: Array.isArray(links)
+        ? links
+        : [],
+      skipped: false,
+    };
+    affiliateLinkCache.set(cacheKey, result);
+    return result;
+  } catch (error) {
+    // The affiliate endpoint uses 404 for an existing title/episode that has
+    // no affiliate files. It is a normal empty result, not a retryable outage.
+    if (Number(error?.status) === 404) {
+      stats.affiliateNotFound += 1;
+      const result = {
+        links: [],
+        skipped: false,
+        notFound: true,
+      };
+      affiliateLinkCache.set(cacheKey, result);
+      return result;
+    }
+    throw error;
+  }
 }
 
 async function throttleAffiliateRequest() {
@@ -2955,6 +3060,26 @@ async function enrichPeopleFromImdb(item) {
   return people.length ? { people, source: 'imdb' } : null;
 }
 
+async function enrichPeopleFromSource(item) {
+  let detail = null;
+  if (item?.type === 'movie') {
+    detail = await fetchMovieDetail(item.id);
+  } else if (item?.type === 'series') {
+    const url = new URL(
+      `${API_BASE}/ghost/get/series/${encodeURIComponent(item.id)}`,
+    );
+    url.searchParams.set('affiliate', '1');
+    const json = await fetchJson(url);
+    const data = json?.data ?? json;
+    if (data?.series && !Array.isArray(data.series)) detail = data.series;
+    else if (Array.isArray(data?.series)) detail = data.series[0] || null;
+    else if (data?.type === 'series') detail = data;
+  }
+
+  const people = extractSourcePeople(detail);
+  return people.length ? { people, source: 'upera' } : null;
+}
+
 function peopleRetryAllowed(item, nowMs = Date.now()) {
   const next = Date.parse(item?.peopleEnrichmentNextRetryAt || '') || 0;
   return next <= nowMs;
@@ -3009,17 +3134,45 @@ async function syncPeopleMetadata(options = {}) {
     stats.peopleEnrichmentProcessed += 1;
     const id = String(item.id || '');
     try {
-      let result = null;
-      if (tmdbBearerToken) result = await enrichPeopleFromTmdb(item);
-      if (!result) result = await enrichPeopleFromImdb(item);
+      let sourceResult = null;
+      try {
+        sourceResult = await enrichPeopleFromSource(item);
+      } catch {
+        // External sources below can still complete the record.
+      }
+
+      const sourcePeople = sourceResult?.people || [];
+      const sourceHasDirector = sourcePeople.some((person) => person.role === 'director');
+      const sourceComplete = sourcePeople.length >= 3 && sourceHasDirector;
+      let externalResult = null;
+      if (!sourceComplete && tmdbBearerToken) externalResult = await enrichPeopleFromTmdb(item);
+      if (!sourceComplete && !externalResult) externalResult = await enrichPeopleFromImdb(item);
+
+      const people = mergePeople(sourcePeople, externalResult?.people || []);
+      const result = people.length
+        ? {
+            people,
+            source: externalResult?.source || sourceResult?.source || 'upera',
+            ...(externalResult?.tmdbId ? { tmdbId: externalResult.tmdbId } : {}),
+          }
+        : null;
 
       if (!result?.people?.length) throw new Error('فهرست عوامل معتبری پیدا نشد.');
       const before = Array.isArray(item.people) ? item.people.length : 0;
       item.people = mergePeople(item.people, result.people).slice(0, peopleEnrichmentMaxPeople);
-      item.peopleEnrichmentStatus = item.people.length >= 3 ? 'complete' : 'partial';
+      const hasDirector = item.people.some((person) => person.role === 'director');
+      item.peopleEnrichmentStatus = item.people.length >= 3 && hasDirector
+        ? 'complete'
+        : 'partial';
       item.peopleEnrichmentCheckedAt = new Date().toISOString();
       item.peopleEnrichmentSource = result.source;
-      delete item.peopleEnrichmentNextRetryAt;
+      if (item.peopleEnrichmentStatus === 'complete') {
+        delete item.peopleEnrichmentNextRetryAt;
+      } else {
+        item.peopleEnrichmentNextRetryAt = new Date(
+          Date.now() + peopleEnrichmentRetryHours * 60 * 60 * 1000,
+        ).toISOString();
+      }
       if (result.tmdbId) item.tmdbId = result.tmdbId;
       delete state.peopleEnrichmentFailures[id];
       stats.peopleEnrichmentSucceeded += 1;
@@ -4349,9 +4502,25 @@ function seriesArchiveDeficit(item) {
   }
 
   const groups = Array.isArray(item.downloads) ? item.downloads : [];
-  const missing = episodeGapsForGroups(groups);
+  const availableCoordinates = new Set(
+    groups.map((group) => archiveEpisodeCoordinateKey(group)),
+  );
+  const unavailableCoordinates = new Set(
+    (Array.isArray(item.archiveUnavailableEpisodes)
+      ? item.archiveUnavailableEpisodes
+      : []
+    )
+      .map((entry) => archiveEpisodeCoordinateKey(entry))
+      .filter((coordinate) => !availableCoordinates.has(coordinate)),
+  );
+  const missing = episodeGapsForGroups(groups).filter(
+    (episode) => !unavailableCoordinates.has(archiveEpisodeCoordinateKey(episode)),
+  );
   const sourceEpisodeCount = nonNegativeInt(item.sourceEpisodeCount, 0);
-  const pendingFromCount = Math.max(0, sourceEpisodeCount - groups.length);
+  const pendingFromCount = Math.max(
+    0,
+    sourceEpisodeCount - availableCoordinates.size - unavailableCoordinates.size,
+  );
   const hasExplicitPendingList = Array.isArray(item.archivePendingEpisodes);
   const auditedDiscoveryComplete = Boolean(
     item.archiveAuditStatus === 'checked' &&
@@ -4361,10 +4530,12 @@ function seriesArchiveDeficit(item) {
     hasExplicitPendingList,
   );
   const explicitPendingCount = hasExplicitPendingList
-    ? item.archivePendingEpisodes.length
+    ? item.archivePendingEpisodes.filter(
+        (episode) => !unavailableCoordinates.has(archiveEpisodeCoordinateKey(episode)),
+      ).length
     : 0;
   const pending = auditedDiscoveryComplete
-    ? explicitPendingCount
+    ? Math.max(pendingFromCount, explicitPendingCount)
     : Math.max(
         pendingFromCount,
         nonNegativeInt(item.archivePendingEpisodeCount, 0),
@@ -4377,6 +4548,10 @@ function seriesArchiveDeficit(item) {
     pending,
     total: Math.max(missing.length, pending),
   };
+}
+
+function archiveEpisodeCoordinateKey(episode) {
+  return `s${episodeSeasonNumber(episode)}e${episodeNumberValue(episode)}`;
 }
 
 function hasSeriesArchiveMetadata(item) {
@@ -4409,7 +4584,11 @@ function withSeriesPublicationState(item) {
     };
   }
 
-  if (item.archiveAuditStatus === 'blocked' && !retryBlockedBackfill) {
+  if (
+    item.archiveAuditStatus === 'blocked' &&
+    deficit.total > 0 &&
+    !blockedSeriesRetryDue(item)
+  ) {
     return {
       ...item,
       archiveComplete: false,
@@ -5049,6 +5228,8 @@ async function fetchJson(
           response.status === 408 ||
           response.status === 425 ||
           response.status >= 500;
+        error.status = response.status;
+        error.retryable = retryable;
 
         if (
           retryable &&
@@ -5087,6 +5268,10 @@ async function fetchJson(
         throw createRunTimeBudgetError('fetch-json-catch');
       }
       lastError = error;
+
+      if (error?.retryable === false) {
+        break;
+      }
 
       if (attempt >= maxAttempts) {
         break;
@@ -5129,23 +5314,49 @@ function operatorPortalDetails(value) {
     if (url.protocol !== 'https:') return null;
 
     const isUpera = /(^|\.)upera\.tv$/i.test(url.hostname);
-    if (!isUpera) return null;
+    const isShortLink = /(^|\.)redl\.ink$/i.test(url.hostname);
+    if (!isUpera && !isShortLink) return null;
 
     const pathText = decodeURIComponent(url.pathname || '');
+    if (isShortLink) {
+      return pathText && pathText !== '/'
+        ? {
+            action: '',
+            mediaType: '',
+            resourceId: '',
+            hostname: url.hostname,
+            pathname: url.pathname,
+            shortLink: true,
+            exactStream: false,
+          }
+        : null;
+    }
 
-    // لینک ویژه همراه فقط همین دو شکل معتبر را دارد:
-    // /stream/movie/<id> و /stream/episode/<id>
-    // این سخت‌گیری مانع برچسب‌خوردن اشتباه همه آثار ایرانی می‌شود.
     const streamMatch = pathText.match(/^\/stream\/(movie|episode)\/([^/?#]+)\/?$/i);
-    if (!streamMatch) return null;
+    if (streamMatch) {
+      return {
+        action: 'stream',
+        mediaType: String(streamMatch[1] || '').toLowerCase(),
+        resourceId: String(streamMatch[2] || ''),
+        hostname: url.hostname,
+        pathname: url.pathname,
+        shortLink: false,
+        exactStream: true,
+      };
+    }
+
+    const actionMatch = pathText.match(/\/(watch|play|download)(?:\/|$)/i);
+    const mediaMatch = pathText.match(/\/(movie|series|episode)(?:\/|$)/i);
+    if (!actionMatch || !mediaMatch) return null;
 
     return {
-      action: 'stream',
-      mediaType: String(streamMatch[1] || '').toLowerCase(),
-      resourceId: String(streamMatch[2] || ''),
+      action: String(actionMatch[1] || '').toLowerCase(),
+      mediaType: String(mediaMatch[1] || '').toLowerCase(),
+      resourceId: '',
       hostname: url.hostname,
       pathname: url.pathname,
       shortLink: false,
+      exactStream: false,
     };
   } catch {
     return null;
@@ -5190,18 +5401,20 @@ function isOperatorAccessLink(link) {
   const explicitText = /ویژه\s*(?:اینترنت\s*)?(?:همراه|اپراتور)|همراه\s*اول|ایرانسل|رایتل|شاتل\s*موبایل|mobile\s*(?:operator|internet|data)|cellular\s*(?:only|access)|operator[-_\s]*(?:only|play|download)/i.test(text);
 
   if (!portal) return false;
-
-  // مسیر معتبر آپرا به‌تنهایی برای تشخیص کافی است. فلگ و متن فقط
-  // برای گزارش و سازگاری داده نگه داشته می‌شوند، نه برای برچسب‌زنی عمومی.
-  void explicitFlag;
-  void explicitText;
+  if (portal.shortLink) return explicitFlag || explicitText;
   return true;
 }
 
 function operatorModeForLink(link) {
-  // لینک‌های ویژه همراه در آپرا صفحه پخش هستند، نه فایل دانلودی.
-  // حتی اگر عنوان لینک واژه «دانلود» داشته باشد، مسیر /stream/... باید پخش شود.
-  return operatorPortalDetails(link?.link) ? 'operator-play' : null;
+  const portal = operatorPortalDetails(link?.link);
+  if (!portal) return null;
+  if (portal.exactStream) return 'operator-play';
+
+  const text = scalarLinkText(link);
+  if (portal.action === 'download' || /دانلود|دریافت|download|save/i.test(text)) {
+    return 'operator-download';
+  }
+  return 'operator-play';
 }
 
 function supportedOperatorsForLink(link) {
@@ -5234,18 +5447,21 @@ function toOperatorFile(link) {
     link.title ||
     link.label ||
     link.name ||
-    (portal?.mediaType === 'episode'
-      ? 'پخش قسمت با اینترنت همراه'
-      : 'پخش فیلم با اینترنت همراه'),
+    (mode === 'operator-download'
+      ? 'دانلود با اینترنت همراه'
+      : portal?.mediaType === 'episode'
+        ? 'پخش قسمت با اینترنت همراه'
+        : 'پخش فیلم با اینترنت همراه'),
   );
   const supportedOperators = supportedOperatorsForLink(link);
 
   return {
-    id: `operator-play-${simpleHash(link.link)}`,
-    quality: 'پخش آنلاین',
+    id: `operator-${mode === 'operator-play' ? 'play' : 'download'}-${simpleHash(link.link)}`,
+    quality: mode === 'operator-play' ? 'پخش آنلاین' : qualityLabel(label || 'دانلود'),
     label,
+    ...(link.size && Number(link.size) !== 0 ? { size: String(link.size) } : {}),
     url: link.link,
-    mode: 'operator-play',
+    mode,
     operatorOnly: true,
     ...(supportedOperators.length ? { supportedOperators } : {}),
   };
@@ -5270,7 +5486,7 @@ function groupsHaveOperatorLinks(groups) {
 }
 
 function isValidStoredOperatorFile(file) {
-  if (!file || file.mode !== 'operator-play') return false;
+  if (!file || !['operator-play', 'operator-download'].includes(file.mode)) return false;
   return Boolean(operatorPortalDetails(file.url));
 }
 
@@ -5866,7 +6082,7 @@ async function persistSyncCheckpoint(reason = 'checkpoint') {
     .map((item) => withSeriesPublicationState(item));
   const checkpointOutput = {
     ...catalog,
-    version: '0.10.4-bounded-sync-operator-and-people',
+    version: CATALOG_VERSION,
     updatedAt: now,
     items: checkpointItems,
     iranianSchedule: Array.isArray(catalog.iranianSchedule) ? catalog.iranianSchedule : [],
