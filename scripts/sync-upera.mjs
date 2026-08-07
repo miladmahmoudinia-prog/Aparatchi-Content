@@ -6,10 +6,11 @@ import { promisify } from 'node:util';
 
 const API_BASE = 'https://seeko.film/api/v1';
 const IRANIAN_SERIES_SCAN_VERSION = 3;
-const CATALOG_VERSION = '0.12.0-imdb-top-and-media-ui';
+const CATALOG_VERSION = '0.13.0-manifest-episode-artwork';
 
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
+const catalogManifestPath = path.join(root, 'catalog-manifest.json');
 const statePath = path.join(root, 'sync-state.json');
 const reportPath = path.join(root, 'sync-report.json');
 const mediaRoot = path.join(root, 'assets', 'media');
@@ -32,6 +33,16 @@ const peopleEnrichmentMaxPeople = Math.min(
 const peopleEnrichmentRetryHours = Math.min(
   168,
   positiveInt(process.env.APARATCHI_PEOPLE_RETRY_HOURS, 12),
+);
+
+const episodeArtworkSeriesPerRun = Math.min(
+  12,
+  positiveInt(process.env.APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN, 6),
+);
+
+const episodeArtworkMirrorPerRun = Math.min(
+  36,
+  nonNegativeInt(process.env.APARATCHI_EPISODE_ARTWORK_MIRROR_PER_RUN, 12),
 );
 
 const moviePagesPerRun = Math.min(
@@ -328,6 +339,7 @@ const defaultState = {
   archiveEpisodeFailures: {},
   peopleEnrichmentOffset: 0,
   peopleEnrichmentFailures: {},
+  episodeArtworkOffset: 0,
   lastPeopleEnrichmentAt: null,
   lastSyncAt: null,
 };
@@ -352,6 +364,7 @@ state.operatorMoviePage = positiveInt(state.operatorMoviePage, 1);
 state.operatorMovieOffset = nonNegativeInt(state.operatorMovieOffset, 0);
 state.airingSeriesOffset = nonNegativeInt(state.airingSeriesOffset, 0);
 state.peopleEnrichmentOffset = nonNegativeInt(state.peopleEnrichmentOffset, 0);
+state.episodeArtworkOffset = nonNegativeInt(state.episodeArtworkOffset, 0);
 if (
   !state.peopleEnrichmentFailures ||
   typeof state.peopleEnrichmentFailures !== 'object' ||
@@ -513,6 +526,10 @@ const stats = {
   catalogEpisodeGapDiagnostics: [],
   episodesDiscovered: 0,
   episodeGroupsAdded: 0,
+  episodeArtworkCandidates: 0,
+  episodeArtworkSeriesChecked: 0,
+  episodeArtworkAdded: 0,
+  episodeArtworkMirrored: 0,
   episodesRejectedNoLinks: 0,
 
   moviesAddedOrUpdated: 0,
@@ -562,7 +579,12 @@ stats.effectiveSyncMode = effectiveSyncMode;
 console.log(`حالت اجرا: ${effectiveSyncMode}`);
 
 if (effectiveSyncMode === 'PEOPLE') {
-  await syncPeopleMetadata();
+  // Fill episode artwork first so this user-visible repair cannot be starved
+  // by slower external cast lookups. Remaining time continues cast enrichment.
+  await syncEpisodeArtworkMetadata();
+  if (!runTimeBudgetReached('before-people-metadata', 60000)) {
+    await syncPeopleMetadata();
+  }
 } else if (effectiveSyncMode === 'BACKFILL') {
   // The archive queue is intentionally exclusive: one series is completed
   // as far as the request budget allows before the next series is selected.
@@ -740,6 +762,7 @@ if (
   maxMirroredImagesPerRun > 0 &&
   !runTimeBudgetReached('image-mirroring', imageMirroringReserveMs)
 ) {
+  await mirrorCatalogEpisodeImages(items, episodeArtworkMirrorPerRun);
   await mirrorCatalogPeopleImages(items, catalog.featuredPeople);
 } else {
   stats.imageMirroringSkipped = true;
@@ -763,7 +786,7 @@ stats.finalCount = items.length;
 stats.affiliateRequests = affiliateRequestsUsed;
 stats.remainingRunMsAtFinish = Math.max(0, runDeadlineAtMs - Date.now());
 
-await writeJson(catalogPath, output);
+await writeCatalogAndManifest(output);
 await writeJson(statePath, state);
 await writeJson(reportPath, stats);
 await writeJson(
@@ -1902,6 +1925,7 @@ async function processSeries(
     ? existing.downloads
     : [];
   const mergedGroups = [...previousGroups];
+  stats.episodeArtworkAdded += hydrateEpisodeGroupArtwork(mergedGroups, episodes);
 
   let selectedEpisodes = [];
   let cursor = 0;
@@ -3099,6 +3123,61 @@ function peopleCandidateTimestamp(item) {
   ) || 0;
 }
 
+async function fetchSeriesEpisodeArtworkMetadata(id) {
+  const url = new URL(`${API_BASE}/ghost/get/series/${encodeURIComponent(id)}`);
+  url.searchParams.set('affiliate', '1');
+  const json = await fetchJson(url);
+  const data = json?.data ?? json;
+  return dedupeEpisodes(collectEpisodes(data)).sort(compareEpisodes);
+}
+
+async function syncEpisodeArtworkMetadata(options = {}) {
+  const maxTitles = Math.max(1, Math.min(
+    episodeArtworkSeriesPerRun,
+    positiveInt(options.maxTitles, episodeArtworkSeriesPerRun),
+  ));
+  const candidates = items
+    .filter((item) => item?.type === 'series')
+    .filter((item) => (Array.isArray(item.downloads) ? item.downloads : []).some((group) =>
+      Number(group?.episodeNumber || 0) > 0 &&
+      cleanText(group?.sourceEpisodeId) &&
+      !cleanText(group?.artwork),
+    ))
+    .sort((a, b) => {
+      const checkedDifference = (Date.parse(String(a?.episodeArtworkCheckedAt || '')) || 0) -
+        (Date.parse(String(b?.episodeArtworkCheckedAt || '')) || 0);
+      return checkedDifference || peopleCandidateTimestamp(b) - peopleCandidateTimestamp(a);
+    });
+
+  stats.episodeArtworkCandidates = candidates.length;
+  if (!candidates.length) {
+    state.episodeArtworkOffset = 0;
+    return;
+  }
+
+  const start = state.episodeArtworkOffset % candidates.length;
+  const selected = Array.from(
+    { length: Math.min(maxTitles, candidates.length) },
+    (_, index) => candidates[(start + index) % candidates.length],
+  );
+  let visited = 0;
+  for (const item of selected) {
+    if (runTimeBudgetReached('episode-artwork-metadata', 45000)) break;
+    visited += 1;
+    stats.episodeArtworkSeriesChecked += 1;
+    item.episodeArtworkCheckedAt = new Date().toISOString();
+    try {
+      const episodes = await fetchSeriesEpisodeArtworkMetadata(item.id);
+      stats.episodeArtworkAdded += hydrateEpisodeGroupArtwork(item.downloads, episodes);
+    } catch (error) {
+      rememberError(`episode-artwork-${item.id}`, error);
+    }
+  }
+  state.episodeArtworkOffset = candidates.length
+    ? (start + visited) % candidates.length
+    : 0;
+}
+
 async function syncPeopleMetadata(options = {}) {
   const nowMs = Date.now();
   const maxTitles = Math.max(1, Math.min(
@@ -3354,6 +3433,52 @@ function mergeDuplicateCatalogItems(sourceItems) {
   return { items: result, merged };
 }
 
+function nestedImageValue(value, depth = 0) {
+  if (depth > 4 || value == null) return '';
+  if (typeof value === 'string' || typeof value === 'number') {
+    const text = cleanText(value);
+    if (!text || /\.(?:mp4|m3u8|mkv|avi)(?:$|[?#])/i.test(text)) return '';
+    return text;
+  }
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      const candidate = nestedImageValue(entry, depth + 1);
+      if (candidate) return candidate;
+    }
+    return '';
+  }
+  if (typeof value !== 'object') return '';
+  for (const key of [
+    'backdrop', 'still', 'thumbnail', 'thumb', 'video_thumbnail', 'videoThumbnail',
+    'image', 'image_url', 'imageUrl', 'episode_image', 'episodeImage',
+    'poster', 'poster_url', 'posterUrl', 'episode_poster', 'episodePoster',
+    'cover', 'original', 'large', 'medium', 'url', 'src', 'path', 'file', 'filename',
+  ]) {
+    if (!(key in value)) continue;
+    const candidate = nestedImageValue(value[key], depth + 1);
+    if (candidate) return candidate;
+  }
+  return '';
+}
+
+function episodeArtworkUrl(episode) {
+  for (const [value, folder] of [
+    [episode?.backdrop, 'backdrops'],
+    [episode?.still, 'backdrops'],
+    [episode?.thumbnail, 'backdrops'],
+    [episode?.thumb, 'backdrops'],
+    [episode?.video_thumbnail ?? episode?.videoThumbnail, 'backdrops'],
+    [episode?.image ?? episode?.episode_image ?? episode?.episodeImage, 'backdrops'],
+    [episode?.poster ?? episode?.episode_poster ?? episode?.episodePoster, 'posters'],
+    [episode?.cover, 'posters'],
+    [episode?.images ?? episode?.media ?? episode?.attachments, 'backdrops'],
+  ]) {
+    const raw = nestedImageValue(value);
+    if (raw) return imageUrl(raw, folder);
+  }
+  return '';
+}
+
 function episodeGroup(episode, media) {
   const season = episodeSeasonNumber(episode);
 
@@ -3399,14 +3524,7 @@ function episodeGroup(episode, media) {
     episode.created_at,
     new Date().toISOString(),
   );
-  const artworkValue = episode?.backdrop || episode?.thumbnail || episode?.thumb ||
-    episode?.image || episode?.poster || episode?.cover || episode?.still;
-  const artworkRaw = artworkValue && typeof artworkValue === 'object'
-    ? artworkValue.url || artworkValue.imageUrl || artworkValue.src || artworkValue.path
-    : artworkValue;
-  const artwork = cleanText(artworkRaw)
-    ? imageUrl(cleanText(artworkRaw), episode?.poster && artworkValue === episode.poster ? 'posters' : 'backdrops')
-    : '';
+  const artwork = episodeArtworkUrl(episode);
 
   return {
     id:
@@ -4231,6 +4349,19 @@ function findEpisodeGroup(
       );
     }) || null
   );
+}
+
+function hydrateEpisodeGroupArtwork(groups, episodes) {
+  let added = 0;
+  for (const episode of Array.isArray(episodes) ? episodes : []) {
+    const group = findEpisodeGroup(groups, episode);
+    if (!group || cleanText(group.artwork)) continue;
+    const artwork = episodeArtworkUrl(episode);
+    if (!artwork) continue;
+    group.artwork = artwork;
+    added += 1;
+  }
+  return added;
 }
 
 function upsertEpisodeGroup(
@@ -5814,6 +5945,44 @@ async function mirrorCatalogItemImages(item) {
   }
 }
 
+async function mirrorCatalogEpisodeImages(catalogItems, requestedLimit) {
+  const limit = Math.max(0, Math.min(requestedLimit, maxMirroredImagesPerRun));
+  if (!limit || maxMirroredImagesPerRun <= 0) return;
+  const targetsByUrl = new Map();
+  for (const item of Array.isArray(catalogItems) ? catalogItems : []) {
+    for (const group of Array.isArray(item?.downloads) ? item.downloads : []) {
+      if (Number(group?.episodeNumber || 0) <= 0) continue;
+      const value = cleanText(group?.artwork);
+      if (!value || /^(?:\.\/)?assets\/media\//i.test(value) || !/^https?:\/\//i.test(value)) continue;
+      const target = targetsByUrl.get(value) || { setters: [], updatedAt: '' };
+      target.setters.push((next) => { group.artwork = next; });
+      target.updatedAt = maxDate(target.updatedAt, group?.sourceUpdatedAt, item?.sourceUpdatedAt, item?.updatedAt);
+      targetsByUrl.set(value, target);
+    }
+  }
+
+  const targets = [...targetsByUrl.entries()].sort(([, a], [, b]) =>
+    String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')),
+  );
+  let reserved = 0;
+  for (let offset = 0; offset < targets.length && reserved < limit && mirroredImagesUsed < maxMirroredImagesPerRun; offset += imageMirrorConcurrency) {
+    const available = Math.min(
+      imageMirrorConcurrency,
+      limit - reserved,
+      maxMirroredImagesPerRun - mirroredImagesUsed,
+    );
+    const batch = targets.slice(offset, offset + available);
+    reserved += batch.length;
+    mirroredImagesUsed += batch.length;
+    await Promise.all(batch.map(async ([url, target]) => {
+      const next = await mirrorImageUrl(url, 'episodes');
+      if (!next || next === url) return;
+      for (const setter of target.setters) setter(next);
+      stats.episodeArtworkMirrored += 1;
+    }));
+  }
+}
+
 async function mirrorCatalogPeopleImages(catalogItems, featuredPeople) {
   if (maxMirroredImagesPerRun <= 0) return;
 
@@ -6104,7 +6273,7 @@ async function persistSyncCheckpoint(reason = 'checkpoint') {
   stats.affiliateRequests = affiliateRequestsUsed;
   stats.finalCount = checkpointItems.length;
   stats.remainingRunMsAtCheckpoint = Math.max(0, runDeadlineAtMs - Date.now());
-  await writeJson(catalogPath, checkpointOutput);
+  await writeCatalogAndManifest(checkpointOutput);
   await writeJson(statePath, state);
   await writeJson(reportPath, stats);
 }
@@ -6141,4 +6310,17 @@ async function writeJson(
     `${JSON.stringify(value, null, 2)}\n`,
     'utf8',
   );
+}
+
+async function writeCatalogAndManifest(value) {
+  const serialized = `${JSON.stringify(value, null, 2)}\n`;
+  const manifest = {
+    schemaVersion: 1,
+    revision: createHash('sha256').update(serialized).digest('hex'),
+    catalogVersion: cleanText(value?.version || CATALOG_VERSION),
+    catalogUpdatedAt: cleanText(value?.updatedAt || ''),
+    sizeBytes: Buffer.byteLength(serialized),
+  };
+  await fs.writeFile(catalogPath, serialized, 'utf8');
+  await writeJson(catalogManifestPath, manifest);
 }

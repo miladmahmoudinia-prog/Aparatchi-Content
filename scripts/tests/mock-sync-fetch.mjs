@@ -114,7 +114,11 @@ globalThis.fetch = async (input) => {
             series_id: 'series-1',
             season_number: 1,
             episode_number: 2,
-            thumbnail: 'https://example.test/episode-2.jpg',
+            thumbnail: {
+              image: {
+                url: 'https://example.test/episode-2.jpg',
+              },
+            },
             show: 1,
           },
         ],

@@ -127,6 +127,7 @@ async function runSync(cwd, options = {}) {
   );
   return {
     catalog: JSON.parse(await fs.readFile(path.join(cwd, 'catalog.json'), 'utf8')),
+    manifest: JSON.parse(await fs.readFile(path.join(cwd, 'catalog-manifest.json'), 'utf8')),
     state: JSON.parse(await fs.readFile(path.join(cwd, 'sync-state.json'), 'utf8')),
     report: JSON.parse(await fs.readFile(path.join(cwd, 'sync-report.json'), 'utf8')),
   };
@@ -177,6 +178,10 @@ test('episode artwork is stored with a newly discovered playable episode', async
     );
     assert.equal(secondEpisode?.artwork, 'https://example.test/episode-2.jpg');
     assert.ok(secondEpisode?.files.some((file) => file.url === 'https://cdn.example.test/episode-2.mp4'));
+    assert.equal(result.manifest.catalogVersion, result.catalog.version);
+    assert.equal(result.manifest.catalogUpdatedAt, result.catalog.updatedAt);
+    assert.match(result.manifest.revision, /^[a-f0-9]{64}$/);
+    assert.ok(result.manifest.sizeBytes > 0);
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }

@@ -52,12 +52,20 @@ test('IMDb ranking keeps all 100 entries and only links titles available in the 
       },
     });
     const result = JSON.parse(await fs.readFile(path.join(fixtureDirectory, 'catalog.json'), 'utf8'));
+    const manifest = JSON.parse(await fs.readFile(path.join(fixtureDirectory, 'catalog-manifest.json'), 'utf8'));
     assert.equal(result.imdbTop100.source, 'imdb-ratings-dataset');
+    assert.equal(result.imdbTop100.formatVersion, 2);
     assert.equal(result.imdbTop100.movies.length, 100);
     assert.equal(result.imdbTop100.series.length, 100);
     assert.equal(result.imdbTop100.movies.find((entry) => entry.imdb === 'tt1000000')?.itemId, 'movie-in-app');
     assert.equal(result.imdbTop100.series.find((entry) => entry.imdb === 'tt2000000')?.itemId, 'series-in-app');
     assert.equal(result.imdbTop100.movies.find((entry) => entry.imdb === 'tt1000001')?.itemId, undefined);
+    assert.equal(result.imdbTop100.movies.find((entry) => entry.imdb === 'tt1000000')?.title, 'Movie 0');
+    assert.equal(result.imdbTop100.movies.find((entry) => entry.imdb === 'tt1000000')?.titleFa, 'فیلم موجود');
+    assert.equal(manifest.catalogVersion, result.version);
+    assert.equal(manifest.catalogUpdatedAt, result.updatedAt);
+    assert.match(manifest.revision, /^[a-f0-9]{64}$/);
+    assert.ok(manifest.sizeBytes > 0);
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }

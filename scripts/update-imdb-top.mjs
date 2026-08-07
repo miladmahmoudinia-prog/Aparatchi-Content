@@ -1,4 +1,5 @@
 import { createReadStream } from 'node:fs';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import readline from 'node:readline';
@@ -7,6 +8,7 @@ import { createGunzip } from 'node:zlib';
 
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
+const catalogManifestPath = path.join(root, 'catalog-manifest.json');
 const cachePath = path.join(root, 'imdb-top-cache.json');
 const ratingsUrl = String(
   process.env.IMDB_RATINGS_URL || 'https://datasets.imdbws.com/title.ratings.tsv.gz',
@@ -19,6 +21,10 @@ const basicsFile = String(process.env.IMDB_BASICS_FILE || '').trim();
 const tmdbToken = String(process.env.TMDB_READ_ACCESS_TOKEN || '').trim();
 const refreshHours = positiveNumber(process.env.IMDB_TOP_REFRESH_HOURS, 20);
 const force = /^(?:1|true|yes)$/i.test(String(process.env.IMDB_TOP_FORCE || ''));
+const posterMirrorConcurrency = Math.max(1, Math.min(
+  12,
+  positiveInt(process.env.IMDB_POSTER_MIRROR_CONCURRENCY, 6),
+));
 
 const catalog = JSON.parse(await fs.readFile(catalogPath, 'utf8'));
 if (!catalog || !Array.isArray(catalog.items)) {
@@ -30,20 +36,24 @@ const previousUpdatedAt = Date.parse(String(previous?.updatedAt || ''));
 if (
   !force &&
   previous?.source === 'imdb-ratings-dataset' &&
+  Number(previous?.formatVersion || 0) >= 2 &&
   Array.isArray(previous.movies) && previous.movies.length >= 100 &&
   Array.isArray(previous.series) && previous.series.length >= 100 &&
   Number.isFinite(previousUpdatedAt) &&
   Date.now() - previousUpdatedAt < refreshHours * 60 * 60 * 1_000
 ) {
   console.log('IMDb Top 100 هنوز تازه است؛ نیازی به دریافت دوباره نیست.');
+  const postersChanged = await mirrorRankingPosters(previous);
+  if (postersChanged) catalog.updatedAt = new Date().toISOString();
+  await writeCatalogAndManifest(catalog);
   process.exit(0);
 }
 
-const cache = await readJson(cachePath, { version: 1, posters: {} });
-if (Number(cache.version || 0) !== 1 || !cache.posters || typeof cache.posters !== 'object') {
-  cache.version = 1;
+const cache = await readJson(cachePath, { version: 2, posters: {} });
+if (!cache.posters || typeof cache.posters !== 'object') {
   cache.posters = {};
 }
+cache.version = 2;
 
 let rawMovies = [];
 let rawSeries = [];
@@ -67,6 +77,9 @@ try {
     Array.isArray(previous.series) && previous.series.length > 0
   ) {
     console.warn(`IMDb refresh skipped; previous ranking kept: ${error instanceof Error ? error.message : String(error)}`);
+    const postersChanged = await mirrorRankingPosters(previous);
+    if (postersChanged) catalog.updatedAt = new Date().toISOString();
+    await writeCatalogAndManifest(catalog);
     process.exit(0);
   }
   console.warn(`IMDb datasets unavailable; catalog ranking used: ${error instanceof Error ? error.message : String(error)}`);
@@ -81,8 +94,11 @@ const series = officialLoaded
   ? await materializeRanking(rawSeries, 'series', catalogIndex, cache)
   : buildCatalogFallback(catalog.items, 'series');
 
+await mirrorRankingPosters({ movies, series });
+
 const updatedAt = new Date().toISOString();
 catalog.imdbTop100 = {
+  formatVersion: 2,
   updatedAt,
   source: officialLoaded ? 'imdb-ratings-dataset' : 'catalog',
   movies,
@@ -92,7 +108,7 @@ catalog.updatedAt = updatedAt;
 cache.updatedAt = updatedAt;
 
 await Promise.all([
-  fs.writeFile(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`, 'utf8'),
+  writeCatalogAndManifest(catalog),
   fs.writeFile(cachePath, `${JSON.stringify(cache, null, 2)}\n`, 'utf8'),
 ]);
 
@@ -216,12 +232,20 @@ async function materializeRanking(entries, type, catalogIndex, posterCache) {
       item.imdbVotes = entry.votes;
       catalogIndex.byImdb.set(entry.imdb, item);
     }
-    const poster = cleanText(item?.poster) || await tmdbPoster(entry.imdb, type, posterCache);
+    const itemTitle = cleanText(item?.name);
+    const itemTitleFa = cleanText(item?.nameFa);
+    const tmdb = !cleanText(item?.poster) || !itemTitleFa
+      ? await tmdbMetadata(entry.imdb, type, posterCache)
+      : {};
+    const poster = cleanText(item?.poster) || cleanText(tmdb.poster);
+    const title = itemTitle || entry.title;
+    const titleFa = itemTitleFa || cleanText(tmdb.titleFa);
     result.push({
       rank: index + 1,
       ...(item ? { itemId: String(item.id) } : {}),
       type,
-      title: cleanText(item?.nameFa) || entry.title,
+      title,
+      ...(titleFa && normalizeTitle(titleFa) !== normalizeTitle(title) ? { titleFa } : {}),
       imdb: entry.imdb,
       ...(entry.year > 0 ? { year: entry.year } : {}),
       rating: entry.rating,
@@ -232,17 +256,30 @@ async function materializeRanking(entries, type, catalogIndex, posterCache) {
   return result;
 }
 
-async function tmdbPoster(imdb, type, posterCache) {
+async function tmdbMetadata(imdb, type, posterCache) {
   const cached = posterCache.posters[imdb];
   const cachedAt = Date.parse(String(cached?.fetchedAt || ''));
-  if (cached && Number.isFinite(cachedAt) && Date.now() - cachedAt < 60 * 86400000) {
-    return cleanText(cached.poster);
+  if (
+    cached &&
+    cached.localized === true &&
+    Number.isFinite(cachedAt) &&
+    Date.now() - cachedAt < 60 * 86400000
+  ) {
+    return {
+      poster: cleanText(cached.poster),
+      titleFa: cleanText(cached.titleFa),
+    };
   }
-  if (!tmdbToken) return cleanText(cached?.poster);
+  if (!tmdbToken) {
+    return {
+      poster: cleanText(cached?.poster),
+      titleFa: cleanText(cached?.titleFa),
+    };
+  }
   try {
     await sleep(70);
     const response = await fetch(
-      `https://api.themoviedb.org/3/find/${encodeURIComponent(imdb)}?external_source=imdb_id&language=en-US`,
+      `https://api.themoviedb.org/3/find/${encodeURIComponent(imdb)}?external_source=imdb_id&language=fa-IR`,
       {
         headers: {
           accept: 'application/json',
@@ -251,15 +288,34 @@ async function tmdbPoster(imdb, type, posterCache) {
         signal: AbortSignal.timeout(8_000),
       },
     );
-    if (!response.ok) return cleanText(cached?.poster);
+    if (!response.ok) {
+      return {
+        poster: cleanText(cached?.poster),
+        titleFa: cleanText(cached?.titleFa),
+      };
+    }
     const payload = await response.json();
     const candidates = type === 'series' ? payload?.tv_results : payload?.movie_results;
-    const posterPath = cleanText(Array.isArray(candidates) ? candidates[0]?.poster_path : '');
+    const candidate = Array.isArray(candidates) ? candidates[0] : null;
+    const posterPath = cleanText(candidate?.poster_path);
     const poster = posterPath ? `https://image.tmdb.org/t/p/w342/${posterPath.replace(/^\/+/, '')}` : '';
-    posterCache.posters[imdb] = { poster, fetchedAt: new Date().toISOString() };
-    return poster;
+    const localizedTitle = cleanText(candidate?.title || candidate?.name);
+    const titleFa = containsPersian(localizedTitle) ? localizedTitle : '';
+    posterCache.posters[imdb] = {
+      poster: poster || cleanText(cached?.poster),
+      ...(titleFa ? { titleFa } : {}),
+      localized: true,
+      fetchedAt: new Date().toISOString(),
+    };
+    return {
+      poster: cleanText(posterCache.posters[imdb].poster),
+      titleFa,
+    };
   } catch {
-    return cleanText(cached?.poster);
+    return {
+      poster: cleanText(cached?.poster),
+      titleFa: cleanText(cached?.titleFa),
+    };
   }
 }
 
@@ -276,13 +332,92 @@ function buildCatalogFallback(items, type) {
       rank: index + 1,
       itemId: String(item.id),
       type,
-      title: String(item.nameFa || item.name || ''),
+      title: String(item.name || item.nameFa || ''),
+      ...(item.nameFa && normalizeTitle(item.nameFa) !== normalizeTitle(item.name)
+        ? { titleFa: String(item.nameFa) }
+        : {}),
       ...(normalizeImdbId(item.imdb) ? { imdb: normalizeImdbId(item.imdb) } : {}),
       year: Number(item.year || 0),
       rating: Number(item.rate),
       ...(Number(item.imdbVotes || 0) > 0 ? { votes: Number(item.imdbVotes) } : {}),
       ...(item.poster ? { poster: item.poster } : {}),
     }));
+}
+
+async function mirrorRankingPosters(ranking) {
+  const entries = [
+    ...(Array.isArray(ranking?.movies) ? ranking.movies : []),
+    ...(Array.isArray(ranking?.series) ? ranking.series : []),
+  ];
+  const targets = entries.filter((entry) =>
+    /^https?:\/\/image\.tmdb\.org\//i.test(cleanText(entry?.poster)),
+  );
+  let changed = false;
+  for (let offset = 0; offset < targets.length; offset += posterMirrorConcurrency) {
+    const batch = targets.slice(offset, offset + posterMirrorConcurrency);
+    const results = await Promise.all(batch.map(async (entry) => ({
+      entry,
+      poster: await mirrorTmdbPoster(entry.poster),
+    })));
+    for (const result of results) {
+      if (!result.poster || result.poster === result.entry.poster) continue;
+      result.entry.poster = result.poster;
+      changed = true;
+    }
+  }
+  if (targets.length) {
+    console.log(`IMDb poster mirror: ${targets.length} تصویر بررسی شد.`);
+  }
+  return changed;
+}
+
+async function mirrorTmdbPoster(value) {
+  const url = cleanText(value);
+  if (!/^https?:\/\/image\.tmdb\.org\//i.test(url)) return url;
+  const hash = createHash('sha256').update(url).digest('hex').slice(0, 32);
+  const extension = /\.png(?:$|[?#])/i.test(url) ? '.png' : '.jpg';
+  const relative = `assets/media/imdb/${hash}${extension}`;
+  const absolute = path.join(root, ...relative.split('/'));
+  try {
+    const stat = await fs.stat(absolute);
+    if (stat.isFile() && stat.size >= 512) return relative;
+  } catch {
+    // Download the image below.
+  }
+  try {
+    const response = await fetch(url, {
+      headers: {
+        accept: 'image/avif,image/webp,image/png,image/jpeg,image/*;q=0.8',
+        'user-agent': 'Aparatchi-IMDb-Poster-Mirror/1.0',
+      },
+      signal: AbortSignal.timeout(12_000),
+    });
+    if (!response.ok) return url;
+    const contentType = cleanText(response.headers.get('content-type')).toLowerCase();
+    if (contentType && !contentType.startsWith('image/')) return url;
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (buffer.length < 512 || buffer.length > 10 * 1024 * 1024) return url;
+    await fs.mkdir(path.dirname(absolute), { recursive: true });
+    await fs.writeFile(absolute, buffer);
+    return relative;
+  } catch {
+    return url;
+  }
+}
+
+async function writeCatalogAndManifest(value) {
+  const serialized = `${JSON.stringify(value, null, 2)}\n`;
+  const manifest = {
+    schemaVersion: 1,
+    revision: createHash('sha256').update(serialized).digest('hex'),
+    catalogVersion: cleanText(value?.version),
+    catalogUpdatedAt: cleanText(value?.updatedAt),
+    sizeBytes: Buffer.byteLength(serialized),
+  };
+  await Promise.all([
+    fs.writeFile(catalogPath, serialized, 'utf8'),
+    fs.writeFile(catalogManifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8'),
+  ]);
 }
 
 async function readJson(file, fallback) {
@@ -317,6 +452,10 @@ function normalizeTitle(value) {
 
 function cleanText(value) {
   return String(value ?? '').replace(/\s+/g, ' ').trim();
+}
+
+function containsPersian(value) {
+  return /[\u0600-\u06FF]/.test(cleanText(value));
 }
 
 function positiveInt(value, fallback = 1) {
