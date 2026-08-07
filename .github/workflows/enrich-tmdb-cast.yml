@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   workflow_run:
     workflows:
-      - Sync Upera Free Catalog
+      - Sync Upera Catalog
     types:
       - completed
 
@@ -47,16 +47,22 @@ jobs:
       - name: Enrich cast, countries and anime classification
         env:
           TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
-          TMDB_MAX_TITLES_PER_RUN: '700'
+          TMDB_MAX_TITLES_PER_RUN: '1000'
           TMDB_REQUEST_DELAY_MS: '300'
           TMDB_REFRESH_DAYS: '30'
         run: node scripts/enrich-tmdb.mjs
+
+      - name: Refresh IMDb Top 100 rankings
+        env:
+          IMDB_TOP_REFRESH_HOURS: '20'
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+        run: node scripts/update-imdb-top.mjs
 
       - name: Commit enriched catalog
         run: |
           git config user.name "aparatchi-content-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add catalog.json tmdb-cache.json tmdb-enrichment-report.json
+          git add catalog.json tmdb-cache.json tmdb-enrichment-report.json imdb-top-cache.json
           if git diff --cached --quiet; then
             echo "No TMDB enrichment changes to commit."
             exit 0

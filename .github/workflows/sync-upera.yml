@@ -43,7 +43,7 @@ jobs:
           node-version: '22'
 
       - name: Run sync regression tests
-        run: node --test scripts/tests/sync-upera-regression.test.mjs
+        run: node --test scripts/tests/*.test.mjs
 
       - name: Resolve sync settings
         shell: bash
@@ -121,7 +121,7 @@ jobs:
         env:
           UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
           UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
-          TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN }}
+          TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN || secrets.TMDB_READ_ACCESS_TOKEN }}
           UPERA_SYNC_MODE: 'PEOPLE'
           APARATCHI_RUN_TIME_LIMIT_MINUTES: '4'
           APARATCHI_CHECKPOINT_RESERVE_MS: '30000'
