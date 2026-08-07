@@ -1,27 +1,42 @@
 {
-  "startedAt": "2026-08-07T21:44:46.323Z",
-  "runTimeLimitMinutes": 6,
-  "runDeadlineAt": "2026-08-07T21:50:46.188Z",
+  "startedAt": "2026-08-07T21:45:15.365Z",
+  "runTimeLimitMinutes": 18,
+  "runDeadlineAt": "2026-08-07T22:03:15.234Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 334027,
-  "imageMirroringSkipped": false,
+  "remainingRunMsAtFinish": 1077725,
+  "imageMirroringSkipped": true,
   "originalCount": 847,
   "finalCount": 847,
-  "requestedSyncMode": "PEOPLE",
-  "effectiveSyncMode": "PEOPLE",
-  "backfillQueueTotal": 71,
-  "backfillBacklogRemaining": 71,
-  "backfillBlockedTotal": 4,
-  "backfillActiveSeries": null,
+  "requestedSyncMode": "BACKFILL",
+  "effectiveSyncMode": "BACKFILL",
+  "backfillQueueTotal": 75,
+  "backfillBacklogRemaining": 74,
+  "backfillBlockedTotal": 1,
+  "backfillActiveSeries": {
+    "id": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
+    "title": "آن:به دری خوش آمدید",
+    "year": 2025,
+    "country": "",
+    "missingBefore": [],
+    "pendingBefore": 9,
+    "noProgressRuns": 5
+  },
   "backfillSeriesCompletedThisRun": [],
-  "backfillSeriesBlockedThisRun": [],
+  "backfillSeriesBlockedThisRun": [
+    {
+      "id": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
+      "title": "آن:به دری خوش آمدید",
+      "reason": "added-or-updated",
+      "attempts": 6
+    }
+  ],
   "backfillEpisodesAdded": 0,
-  "backfillSeriesVisited": 0,
-  "backfillCheckpoints": 0,
+  "backfillSeriesVisited": 1,
+  "backfillCheckpoints": 1,
   "episodesMarkedUnavailable": 0,
-  "backfillNoProgressRuns": 0,
-  "normalSyncSkippedForBackfill": false,
+  "backfillNoProgressRuns": 6,
+  "normalSyncSkippedForBackfill": true,
   "backfillOrdering": "active-then-nearest-completion",
   "backfillNextSeries": null,
   "episodePaginationPagesFetched": 0,
@@ -46,12 +61,12 @@
   "movieTitlesProcessed": 0,
   "seriesPagesProcessed": 0,
   "seriesTitlesProcessed": 0,
-  "airingSeriesCandidates": 0,
-  "airingSeriesChecked": 0,
+  "airingSeriesCandidates": 3,
+  "airingSeriesChecked": 3,
   "airingSeriesUpdated": 0,
-  "incompleteSeriesCandidates": 0,
+  "incompleteSeriesCandidates": 75,
   "incompleteSeriesRepaired": 0,
-  "incompleteSeriesStillMissing": 0,
+  "incompleteSeriesStillMissing": 1,
   "seriesHiddenUntilComplete": 0,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
@@ -76,7 +91,143 @@
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
+      "title": "آن:به دری خوش آمدید",
+      "source": "fast-backfill",
+      "discoveredEpisodeCount": 26,
+      "catalogEpisodeCount": 8,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
+      "title": "آن:به دری خوش آمدید",
+      "source": "fast-backfill-summary",
+      "missingBefore": [],
+      "pendingBefore": 9,
+      "missingAfter": [],
+      "pendingAfter": 9,
+      "publicationStatus": "published",
+      "result": "no-progress",
+      "addedEpisodes": 0,
+      "unavailableMarked": 0
+    },
+    {
+      "seriesId": "9dcad570-cdf0-11f0-a0a0-eddd96259c2c",
+      "title": "ناینیای قدرتمند",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 26,
+      "catalogEpisodeCount": 8,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "f1d2c790-8af6-11f0-a76c-419a5ead0764",
+      "title": "روزنامه",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 28,
+      "catalogEpisodeCount": 10,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "6f4a5550-90cb-11f1-b74a-f34817502b6d",
@@ -443,7 +594,7 @@
       "title": "آن:به دری خوش آمدید",
       "missing": [],
       "pendingEpisodeCount": 9,
-      "publicationStatus": "published",
+      "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": true
     },
@@ -928,54 +1079,45 @@
       "isAiring": true
     }
   ],
-  "episodesDiscovered": 0,
+  "episodesDiscovered": 80,
   "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 14,
-  "episodeArtworkSeriesChecked": 12,
-  "episodeArtworkAdded": 77,
-  "episodeArtworkMirrored": 10,
+  "episodeArtworkCandidates": 0,
+  "episodeArtworkSeriesChecked": 0,
+  "episodeArtworkAdded": 0,
+  "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
+  "seriesAddedOrUpdated": 3,
   "affiliateRequests": 0,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
-  "imagesMirrored": 34,
-  "imageMirrorErrors": 2,
-  "peopleEnrichmentCandidates": 69,
-  "peopleEnrichmentProcessed": 12,
-  "peopleEnrichmentSucceeded": 11,
-  "peopleEnrichmentFailed": 1,
-  "peopleEnrichmentSkippedFresh": 63,
+  "imagesMirrored": 0,
+  "imageMirrorErrors": 0,
+  "peopleEnrichmentCandidates": 0,
+  "peopleEnrichmentProcessed": 0,
+  "peopleEnrichmentSucceeded": 0,
+  "peopleEnrichmentFailed": 0,
+  "peopleEnrichmentSkippedFresh": 0,
   "peopleEnrichmentFromSource": 0,
-  "peopleEnrichmentFromTmdb": 11,
+  "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
-  "peopleAdded": 131,
-  "tmdbRequests": 23,
-  "imdbRequests": 3,
+  "peopleAdded": 0,
+  "tmdbRequests": 0,
+  "imdbRequests": 0,
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
-      "scope": "episode-artwork-fbb54130-89c7-11ee-b35e-63f53dbb63af",
+      "scope": "airing-series-fbb54130-89c7-11ee-b35e-63f53dbb63af",
       "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/fbb54130-89c7-11ee-b35e-63f53dbb63af?affiliate=1"
-    },
-    {
-      "scope": "people-d586e570-235f-11f0-a5f7-018aa989daed",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 48,
-  "finishedAt": "2026-08-07T21:45:12.161Z"
+  "apiRequests": 4,
+  "lastCheckpointAt": "2026-08-07T21:45:16.248Z",
+  "lastCheckpointReason": "backfill-paused-4feeeb30-b7dc-11f0-a6fc-79902a83e715",
+  "remainingRunMsAtCheckpoint": 1078925,
+  "finishedAt": "2026-08-07T21:45:17.509Z"
 }
