@@ -9,7 +9,7 @@ import test from 'node:test';
 
 const execFileAsync = promisify(execFile);
 const testDirectory = path.dirname(fileURLToPath(import.meta.url));
-const syncScript = path.resolve(testDirectory, '..', '..', 'sync-upera.mjs');
+const syncScript = path.resolve(testDirectory, '..', 'sync-upera.mjs');
 const fetchMock = path.join(testDirectory, 'mock-sync-fetch.mjs');
 
 const initialCatalog = () => ({
@@ -91,7 +91,7 @@ async function runSync(cwd, options = {}) {
         UPERA_REQUEST_DELAY_MS: '1',
         UPERA_MAX_REQUESTS_PER_RUN: '20',
         UPERA_BACKFILL_EPISODES_PER_RUN: '20',
-        UPERA_BACKFILL_SERIES_PER_RUN: '1',
+        UPERA_BACKFILL_SERIES_PER_RUN: String(options.backfillSeriesPerRun || 1),
         UPERA_BACKFILL_EPISODES_PER_SERIES: '10',
         MOVIE_PAGES_PER_RUN: '1',
         SERIES_PAGES_PER_RUN: '1',
@@ -161,6 +161,89 @@ test('a permanent affiliate 404 is tried once per run, then stops blocking publi
     const idleResult = await runSync(fixtureDirectory);
     assert.equal(Number(idleResult.report.apiRequests || 0), 0, 'fresh unavailable marker is not retried hourly');
     assert.equal(idleResult.catalog.items[0].publicationStatus, 'published');
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+test('a new episode on a published airing series becomes the newest meaningful update', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-airing-update-'));
+  const fixture = initialCatalog();
+  const item = fixture.items[0];
+  item.sourceEpisodeCount = 1;
+  item.archivePendingEpisodeCount = 0;
+  item.archivePendingEpisodes = [];
+  item.archiveComplete = true;
+  item.publicationStatus = 'published';
+  item.isAiring = true;
+  delete item.meaningfulUpdatedAt;
+  item.updateLabel = '';
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), fixture);
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), {});
+
+  try {
+    const before = Date.now();
+    const result = await runSync(fixtureDirectory, { scenario: 'airing-update' });
+    const updated = result.catalog.items.find((entry) => entry.id === 'series-1');
+
+    assert.equal(updated?.publicationStatus, 'published');
+    assert.equal(updated?.downloads.length, 2);
+    assert.equal(updated?.updateLabel, 'قسمت ۲ اضافه شد');
+    assert.ok(Date.parse(updated?.meaningfulUpdatedAt || '') >= before);
+    assert.equal(result.report.airingSeriesUpdated, 1);
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+test('archive backfill never starts a second incomplete series in the same run', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-sequential-series-'));
+  const fixture = initialCatalog();
+  fixture.items.push({
+    ...structuredClone(fixture.items[0]),
+    id: 'series-2',
+    slug: 'series-series-2',
+    name: 'Regression Series Two',
+    nameFa: 'سریال آزمون دو',
+    downloads: [
+      {
+        id: 'series2-episode-1',
+        sourceEpisodeId: 'series2-episode-1',
+        seasonNumber: 1,
+        episodeNumber: 1,
+        title: 'قسمت ۱',
+        files: [
+          {
+            id: 'series2-episode-1-720',
+            quality: '720p',
+            label: '720p',
+            url: 'https://cdn.example.test/series2-episode-1.mp4',
+            mode: 'download',
+          },
+        ],
+      },
+    ],
+    archivePendingEpisodes: [{ seasonNumber: 1, episodeNumber: 2 }],
+  });
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), fixture);
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), {
+    archiveBackfillSeriesId: 'series-1',
+    archiveBackfillSeriesTitle: 'سریال آزمون',
+  });
+
+  try {
+    const result = await runSync(fixtureDirectory, {
+      scenario: 'sequential-series',
+      backfillSeriesPerRun: 6,
+    });
+    const first = result.catalog.items.find((item) => item.id === 'series-1');
+    const second = result.catalog.items.find((item) => item.id === 'series-2');
+
+    assert.equal(first?.publicationStatus, 'published');
+    assert.equal(first?.downloads.length, 2);
+    assert.equal(second?.publicationStatus, 'building-archive');
+    assert.equal(second?.downloads.length, 1, 'second series must remain untouched until the next run');
+    assert.equal(result.report.backfillSeriesVisited, 1);
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }
