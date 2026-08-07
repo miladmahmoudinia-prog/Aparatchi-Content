@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-08-07T06:20:26.597Z",
+  "startedAt": "2026-08-07T10:13:40.036Z",
   "runTimeLimitMinutes": 18,
-  "runDeadlineAt": "2026-08-07T06:38:26.490Z",
+  "runDeadlineAt": "2026-08-07T10:31:39.923Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 1058506,
+  "remainingRunMsAtFinish": 1055735,
   "imageMirroringSkipped": true,
-  "originalCount": 756,
-  "finalCount": 756,
+  "originalCount": 771,
+  "finalCount": 771,
   "requestedSyncMode": "BACKFILL",
   "effectiveSyncMode": "BACKFILL",
-  "backfillQueueTotal": 55,
-  "backfillBacklogRemaining": 55,
+  "backfillQueueTotal": 61,
+  "backfillBacklogRemaining": 61,
   "backfillBlockedTotal": 4,
   "backfillActiveSeries": {
     "id": "9dcad570-cdf0-11f0-a0a0-eddd96259c2c",
@@ -20,15 +20,15 @@
     "country": "",
     "missingBefore": [],
     "pendingBefore": 18,
-    "noProgressRuns": 0
+    "noProgressRuns": 1
   },
   "backfillSeriesCompletedThisRun": [],
   "backfillSeriesBlockedThisRun": [],
   "backfillEpisodesAdded": 0,
   "backfillSeriesVisited": 6,
   "backfillCheckpoints": 6,
-  "episodesMarkedUnavailable": 16,
-  "backfillNoProgressRuns": 1,
+  "episodesMarkedUnavailable": 17,
+  "backfillNoProgressRuns": 2,
   "normalSyncSkippedForBackfill": true,
   "backfillOrdering": "active-then-nearest-completion",
   "backfillNextSeries": null,
@@ -55,7 +55,7 @@
   "airingSeriesCandidates": 1,
   "airingSeriesChecked": 1,
   "airingSeriesUpdated": 0,
-  "incompleteSeriesCandidates": 55,
+  "incompleteSeriesCandidates": 61,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 6,
   "seriesHiddenUntilComplete": 3,
@@ -63,7 +63,7 @@
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 3,
-  "episodesProcessed": 57,
+  "episodesProcessed": 41,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
@@ -83,6 +83,57 @@
   "iranianSeriesDiagnostics": [],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "89546ca0-34d6-11ed-804f-2daa476fafb8",
+      "title": "احضار",
+      "source": "fast-backfill",
+      "discoveredEpisodeCount": 29,
+      "catalogEpisodeCount": 11,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "89546ca0-34d6-11ed-804f-2daa476fafb8",
+      "title": "احضار",
+      "source": "fast-backfill-summary",
+      "missingBefore": [],
+      "pendingBefore": 10,
+      "missingAfter": [],
+      "pendingAfter": 10,
+      "publicationStatus": "published",
+      "result": "advanced",
+      "addedEpisodes": 0,
+      "unavailableMarked": 0
+    },
     {
       "seriesId": "c2a92640-d1b4-11ef-bc92-859265d622d0",
       "title": "بیا آشتی کنیم",
@@ -127,94 +178,6 @@
       "unavailableMarked": 0
     },
     {
-      "seriesId": "89546ca0-34d6-11ed-804f-2daa476fafb8",
-      "title": "احضار",
-      "source": "fast-backfill",
-      "discoveredEpisodeCount": 29,
-      "catalogEpisodeCount": 11,
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 12
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 13
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 14
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 15
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 18
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 20
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 22
-        }
-      ],
-      "rejectedEpisodes": [
-        {
-          "id": "da7bbe30-c629-11f0-a062-ed284b0e9fd8",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "6a3891a0-be51-11f0-8f57-5b13bfa71465",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "132053f0-d387-11f0-9b0a-65d68e4f69fd",
-          "seasonNumber": 1,
-          "episodeNumber": 20,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "5ddab3a0-d130-11f0-bd64-1ba19d1d22f0",
-          "seasonNumber": 1,
-          "episodeNumber": 20,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "a74ad510-ab0f-11f0-9ad0-0f49e7b62786",
-          "seasonNumber": 1,
-          "episodeNumber": 20,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "c8c7bfe0-8dee-11f0-a322-05750ae92848",
-          "seasonNumber": 1,
-          "episodeNumber": 22,
-          "reason": "no-usable-links"
-        }
-      ]
-    },
-    {
-      "seriesId": "89546ca0-34d6-11ed-804f-2daa476fafb8",
-      "title": "احضار",
-      "source": "fast-backfill-summary",
-      "missingBefore": [],
-      "pendingBefore": 12,
-      "missingAfter": [],
-      "pendingAfter": 10,
-      "publicationStatus": "published",
-      "result": "advanced",
-      "addedEpisodes": 0,
-      "unavailableMarked": 6
-    },
-    {
       "seriesId": "f9274ea0-632b-11e9-9c3c-070e21c5b5be",
       "title": "سالهای دور از خانه",
       "source": "fast-backfill",
@@ -234,45 +197,20 @@
           "episodeNumber": 22
         }
       ],
-      "rejectedEpisodes": [
-        {
-          "id": "132053f0-d387-11f0-9b0a-65d68e4f69fd",
-          "seasonNumber": 1,
-          "episodeNumber": 20,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "5ddab3a0-d130-11f0-bd64-1ba19d1d22f0",
-          "seasonNumber": 1,
-          "episodeNumber": 20,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "a74ad510-ab0f-11f0-9ad0-0f49e7b62786",
-          "seasonNumber": 1,
-          "episodeNumber": 20,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "c8c7bfe0-8dee-11f0-a322-05750ae92848",
-          "seasonNumber": 1,
-          "episodeNumber": 22,
-          "reason": "no-usable-links"
-        }
-      ]
+      "rejectedEpisodes": []
     },
     {
       "seriesId": "f9274ea0-632b-11e9-9c3c-070e21c5b5be",
       "title": "سالهای دور از خانه",
       "source": "fast-backfill-summary",
       "missingBefore": [],
-      "pendingBefore": 16,
+      "pendingBefore": 14,
       "missingAfter": [],
       "pendingAfter": 14,
       "publicationStatus": "published",
       "result": "advanced",
       "addedEpisodes": 0,
-      "unavailableMarked": 4
+      "unavailableMarked": 0
     },
     {
       "seriesId": "f1d2c790-8af6-11f0-a76c-419a5ead0764",
@@ -312,42 +250,6 @@
       ],
       "rejectedEpisodes": [
         {
-          "id": "9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
-          "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "45c86e00-d02a-11ec-9953-a31100034ade",
-          "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "a67dabc0-72a8-11f0-b8c2-b15ba2316020",
-          "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "8a2c7c70-1a21-11f1-ae10-4f7a3c2190bf",
-          "seasonNumber": 1,
-          "episodeNumber": 12,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "14613be0-5f67-11f1-be9f-87496992859e",
-          "seasonNumber": 1,
-          "episodeNumber": 13,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "4b9424f0-e7f4-11f0-b3e6-33cffeab9913",
-          "seasonNumber": 1,
-          "episodeNumber": 13,
-          "reason": "no-usable-links"
-        },
-        {
           "id": "fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2",
           "seasonNumber": 1,
           "episodeNumber": 14,
@@ -408,13 +310,13 @@
       "title": "روزنامه",
       "source": "fast-backfill-summary",
       "missingBefore": [],
-      "pendingBefore": 18,
+      "pendingBefore": 15,
       "missingAfter": [],
-      "pendingAfter": 15,
+      "pendingAfter": 13,
       "publicationStatus": "building-archive",
       "result": "advanced",
       "addedEpisodes": 0,
-      "unavailableMarked": 6
+      "unavailableMarked": 2
     },
     {
       "seriesId": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
@@ -562,11 +464,11 @@
       "missingBefore": [],
       "pendingBefore": 18,
       "missingAfter": [],
-      "pendingAfter": 18,
+      "pendingAfter": 14,
       "publicationStatus": "building-archive",
       "result": "advanced",
       "addedEpisodes": 0,
-      "unavailableMarked": 0
+      "unavailableMarked": 7
     },
     {
       "seriesId": "9dcad570-cdf0-11f0-a0a0-eddd96259c2c",
@@ -714,14 +616,32 @@
       "missingBefore": [],
       "pendingBefore": 18,
       "missingAfter": [],
-      "pendingAfter": 18,
+      "pendingAfter": 13,
       "publicationStatus": "building-archive",
       "result": "advanced",
       "addedEpisodes": 0,
-      "unavailableMarked": 0
+      "unavailableMarked": 8
     }
   ],
   "catalogEpisodeGapDiagnostics": [
+    {
+      "seriesId": "6f4a5550-90cb-11f1-b74a-f34817502b6d",
+      "title": "وستی ها",
+      "missing": [],
+      "pendingEpisodeCount": 18,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
+      "seriesId": "50ff4640-90cb-11f1-856c-a97013d9972d",
+      "title": "قصر شرقی",
+      "missing": [],
+      "pendingEpisodeCount": 19,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
     {
       "seriesId": "d1fece20-90c8-11f1-aec9-fb38be46e40d",
       "title": "زندگی یک جادوگر در مغولستان",
@@ -876,6 +796,15 @@
       "isAiring": false
     },
     {
+      "seriesId": "6bfa8440-dc26-11ed-b29f-116993ac97e6",
+      "title": "بهشت جهنمیان: جیگوکوراکو",
+      "missing": [],
+      "pendingEpisodeCount": 42,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
       "seriesId": "43affc50-6329-11f1-98b2-f13408133c36",
       "title": "حقیقت پنهان",
       "missing": [],
@@ -910,6 +839,15 @@
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": true
+    },
+    {
+      "seriesId": "c289ea80-573e-11f1-a968-1b623cae7bb0",
+      "title": "مزرعه داتون",
+      "missing": [],
+      "pendingEpisodeCount": 26,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
     },
     {
       "seriesId": "ff31b0e0-d66b-11f0-b3dd-d75c38a77a73",
@@ -960,7 +898,7 @@
       "seriesId": "9dcad570-cdf0-11f0-a0a0-eddd96259c2c",
       "title": "ناینیای قدرتمند",
       "missing": [],
-      "pendingEpisodeCount": 18,
+      "pendingEpisodeCount": 13,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": true
@@ -978,7 +916,7 @@
       "seriesId": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
       "title": "آن:به دری خوش آمدید",
       "missing": [],
-      "pendingEpisodeCount": 18,
+      "pendingEpisodeCount": 14,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": true
@@ -1002,6 +940,15 @@
       "isAiring": true
     },
     {
+      "seriesId": "6f632250-e61f-11f0-838b-6f95efda9909",
+      "title": "هاپوهای ماجراجو",
+      "missing": [],
+      "pendingEpisodeCount": 72,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
       "seriesId": "30887d00-2202-11ed-8278-39539c2baf45",
       "title": "پرنسس النا",
       "missing": [],
@@ -1011,10 +958,24 @@
       "isAiring": false
     },
     {
+      "seriesId": "d5eaa7e0-97ac-11f0-a4bd-5dc777850b2e",
+      "title": "هتل تسخیر شده",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        }
+      ],
+      "pendingEpisodeCount": 24,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
       "seriesId": "f1d2c790-8af6-11f0-a76c-419a5ead0764",
       "title": "روزنامه",
       "missing": [],
-      "pendingEpisodeCount": 15,
+      "pendingEpisodeCount": 13,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": true
@@ -1425,11 +1386,11 @@
   ],
   "episodesDiscovered": 173,
   "episodeGroupsAdded": 0,
-  "episodesRejectedNoLinks": 57,
+  "episodesRejectedNoLinks": 41,
   "moviesAddedOrUpdated": 0,
   "seriesAddedOrUpdated": 6,
   "affiliateRequests": 16,
-  "affiliateCacheHits": 41,
+  "affiliateCacheHits": 25,
   "affiliateNotFound": 16,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
@@ -1456,8 +1417,8 @@
   ],
   "errorsTruncated": 0,
   "apiRequests": 23,
-  "lastCheckpointAt": "2026-08-07T06:20:47.394Z",
+  "lastCheckpointAt": "2026-08-07T10:14:03.540Z",
   "lastCheckpointReason": "backfill-9dcad570-cdf0-11f0-a0a0-eddd96259c2c",
-  "remainingRunMsAtCheckpoint": 1059032,
-  "finishedAt": "2026-08-07T06:20:47.984Z"
+  "remainingRunMsAtCheckpoint": 1056325,
+  "finishedAt": "2026-08-07T10:14:04.188Z"
 }
