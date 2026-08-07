@@ -6,7 +6,7 @@ import { promisify } from 'node:util';
 
 const API_BASE = 'https://seeko.film/api/v1';
 const IRANIAN_SERIES_SCAN_VERSION = 3;
-const CATALOG_VERSION = '0.11.0-sync-recovery';
+const CATALOG_VERSION = '0.12.0-imdb-top-and-media-ui';
 
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
@@ -3399,6 +3399,14 @@ function episodeGroup(episode, media) {
     episode.created_at,
     new Date().toISOString(),
   );
+  const artworkValue = episode?.backdrop || episode?.thumbnail || episode?.thumb ||
+    episode?.image || episode?.poster || episode?.cover || episode?.still;
+  const artworkRaw = artworkValue && typeof artworkValue === 'object'
+    ? artworkValue.url || artworkValue.imageUrl || artworkValue.src || artworkValue.path
+    : artworkValue;
+  const artwork = cleanText(artworkRaw)
+    ? imageUrl(cleanText(artworkRaw), episode?.poster && artworkValue === episode.poster ? 'posters' : 'backdrops')
+    : '';
 
   return {
     id:
@@ -3422,6 +3430,7 @@ function episodeGroup(episode, media) {
       ),
 
     badge: `E${number}`,
+    ...(artwork ? { artwork } : {}),
     sourceUpdatedAt,
     files,
   };

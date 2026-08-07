@@ -27,6 +27,15 @@ const initialCatalog = () => ({
       backdrop: 'https://example.test/backdrop.jpg',
       overview: 'Regression fixture',
       genres: ['درام'],
+      people: [
+        {
+          id: 'legacy-director-1',
+          name: 'Legacy Director',
+          nameFa: 'کارگردان قدیمی',
+          role: 'director',
+          source: 'upera',
+        },
+      ],
       downloads: [
         {
           id: 'episode-1',
@@ -137,6 +146,7 @@ test('a permanent affiliate 404 is tried once per run, then stops blocking publi
       assert.equal(result.report.errors.length, 0);
 
       const item = result.catalog.items[0];
+      assert.ok(item.people.some((person) => person.id === 'legacy-director-1'), 'previous cast and crew is preserved');
       if (run < 3) {
         assert.equal(item.publicationStatus, 'building-archive');
       } else {
@@ -150,6 +160,23 @@ test('a permanent affiliate 404 is tried once per run, then stops blocking publi
     const idleResult = await runSync(fixtureDirectory);
     assert.equal(Number(idleResult.report.apiRequests || 0), 0, 'fresh unavailable marker is not retried hourly');
     assert.equal(idleResult.catalog.items[0].publicationStatus, 'published');
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+test('episode artwork is stored with a newly discovered playable episode', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-episode-artwork-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), {});
+
+  try {
+    const result = await runSync(fixtureDirectory, { scenario: 'episode-artwork' });
+    const secondEpisode = result.catalog.items[0].downloads.find(
+      (group) => group.sourceEpisodeId === 'episode-2',
+    );
+    assert.equal(secondEpisode?.artwork, 'https://example.test/episode-2.jpg');
+    assert.ok(secondEpisode?.files.some((file) => file.url === 'https://cdn.example.test/episode-2.mp4'));
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }

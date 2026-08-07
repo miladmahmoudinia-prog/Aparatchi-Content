@@ -114,6 +114,7 @@ globalThis.fetch = async (input) => {
             series_id: 'series-1',
             season_number: 1,
             episode_number: 2,
+            thumbnail: 'https://example.test/episode-2.jpg',
             show: 1,
           },
         ],
@@ -122,6 +123,23 @@ globalThis.fetch = async (input) => {
   }
 
   if (url.pathname.endsWith('/ghost/get/getaffiliatelinks')) {
+    if (
+      scenario === 'episode-artwork' &&
+      url.searchParams.get('id') === 'episode-2'
+    ) {
+      return jsonResponse({
+        status: 'success',
+        data: {
+          links: [
+            {
+              amount: 0,
+              link: 'https://cdn.example.test/episode-2.mp4',
+              title: '720p',
+            },
+          ],
+        },
+      });
+    }
     return jsonResponse({ message: 'No affiliate files' }, 404);
   }
 

@@ -103,14 +103,14 @@ if (!catalog || !Array.isArray(catalog.items)) {
 }
 
 const cache = await readJson(cachePath, {
-  version: 11,
+  version: 12,
   updatedAt: null,
   items: {},
 });
-if (Number(cache.version || 0) !== 11 || !cache.items || typeof cache.items !== 'object' || Array.isArray(cache.items)) {
+if (Number(cache.version || 0) !== 12 || !cache.items || typeof cache.items !== 'object' || Array.isArray(cache.items)) {
   cache.items = {};
 }
-cache.version = 11;
+cache.version = 12;
 if (!cache.people || typeof cache.people !== 'object' || Array.isArray(cache.people)) cache.people = {};
 if (!cache.posterChecks || typeof cache.posterChecks !== 'object' || Array.isArray(cache.posterChecks)) cache.posterChecks = {};
 
@@ -255,10 +255,6 @@ for (const item of catalog.items) {
 
     const tmdbPeople = await enrichLocalPeopleImages(buildTmdbPeople(details, match.mediaType));
     const metadata = buildTmdbMetadata(details, match.mediaType, item);
-    if (match.mediaType === 'tv') {
-      const scheduleMetadata = await resolveTvMazeSchedule(item, details);
-      if (scheduleMetadata) Object.assign(metadata, scheduleMetadata);
-    }
     const localPeople = removeTmdbPeople(item.people);
     const merged = mergeTmdbPeople(localPeople, tmdbPeople);
     const peopleChanged = !deepEqualPeople(item.people, merged);
@@ -298,10 +294,9 @@ for (const item of catalog.items) {
   }
 }
 
-const rebuiltWeeklySchedule = buildWeeklySchedule(catalog.items, catalog.weeklySchedule);
-report.weeklyScheduleEntries = rebuiltWeeklySchedule.length;
-if (JSON.stringify(Array.isArray(catalog.weeklySchedule) ? catalog.weeklySchedule : []) !== JSON.stringify(rebuiltWeeklySchedule)) {
-  catalog.weeklySchedule = rebuiltWeeklySchedule;
+report.weeklyScheduleEntries = 0;
+if (Array.isArray(catalog.weeklySchedule) && catalog.weeklySchedule.length > 0) {
+  catalog.weeklySchedule = [];
   catalogChanged = true;
 }
 
@@ -411,13 +406,13 @@ async function fetchTitleDetails(mediaType, id) {
   if (mediaType === 'tv') {
     return tmdbGet(`/tv/${id}`, {
       language: 'en-US',
-      append_to_response: 'aggregate_credits,keywords,images',
+      append_to_response: 'aggregate_credits,keywords,images,external_ids',
       include_image_language: 'null,en,fa',
     });
   }
   return tmdbGet(`/movie/${id}`, {
     language: 'en-US',
-    append_to_response: 'credits,keywords,images',
+    append_to_response: 'credits,keywords,images,external_ids',
     include_image_language: 'null,en,fa',
   });
 }
@@ -444,6 +439,9 @@ function buildTmdbMetadata(details, mediaType, item) {
       .filter(([code]) => Boolean(code)),
   );
   const originalLanguage = cleanText(details?.original_language || item?.originalLanguage).toLowerCase();
+  const imdb = normalizeImdbId(
+    details?.imdb_id || details?.external_ids?.imdb_id || item?.imdb,
+  );
   const posterPath = cleanText(details?.poster_path) || bestTmdbImagePath(details?.images?.posters, 'poster');
   const backdropPath = cleanText(details?.backdrop_path) || bestTmdbImagePath(details?.images?.backdrops, 'backdrop');
   const posterFallback =
@@ -509,6 +507,7 @@ function buildTmdbMetadata(details, mediaType, item) {
     countryLabels: countryCodes.map((code) => COUNTRY_LABELS_FA[code] || namesByCode.get(code) || code),
     countryNames: countryCodes.map((code) => namesByCode.get(code) || COUNTRY_NAMES_EN[code] || code),
     originalLanguage,
+    ...(imdb ? { imdb } : {}),
     ...(posterFallback ? { posterFallback } : {}),
     ...(backdropFallback ? { backdropFallback } : {}),
     isAnimation,
@@ -577,6 +576,7 @@ function applyTmdbMetadata(item, metadataValue) {
       );
 
   const before = JSON.stringify({
+    imdb: item.imdb,
     countryCodes: item.countryCodes,
     countryLabels: item.countryLabels,
     countryNames: item.countryNames,
@@ -608,6 +608,8 @@ function applyTmdbMetadata(item, metadataValue) {
     cleanText(metadata.countryNames?.[index]) || COUNTRY_NAMES_EN[code] || code,
   );
   if (originalLanguage) item.originalLanguage = originalLanguage;
+  const imdb = normalizeImdbId(metadata.imdb);
+  if (imdb) item.imdb = imdb;
   item.ir = trustedClassification
     ? effectiveCodes.includes('IR') || originalLanguage === 'fa'
     : effectiveCodes.includes('IR') || item.ir === true;
@@ -693,6 +695,7 @@ function applyTmdbMetadata(item, metadataValue) {
   const languageTagsChanged = normalizeIranianLanguageTags(item);
 
   const after = JSON.stringify({
+    imdb: item.imdb,
     countryCodes: item.countryCodes,
     countryLabels: item.countryLabels,
     countryNames: item.countryNames,
