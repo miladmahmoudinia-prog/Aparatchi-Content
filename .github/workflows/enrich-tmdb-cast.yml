@@ -19,7 +19,8 @@ jobs:
   enrich:
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
+      github.event.workflow_run.conclusion != 'cancelled' &&
+      github.event.workflow_run.conclusion != 'skipped'
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -47,10 +48,17 @@ jobs:
       - name: Enrich cast, countries and anime classification
         env:
           TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
-          TMDB_MAX_TITLES_PER_RUN: '1000'
+          TMDB_MAX_TITLES_PER_RUN: '2500'
           TMDB_REQUEST_DELAY_MS: '300'
           TMDB_REFRESH_DAYS: '30'
         run: node scripts/enrich-tmdb.mjs
+
+      - name: Repair missing Persian titles and posters
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          PERSIAN_TITLE_MAX_TITLES_PER_RUN: '1200'
+          PERSIAN_TITLE_REQUEST_DELAY_MS: '90'
+        run: node scripts/enrich-persian-titles.mjs
 
       - name: Refresh IMDb Top 100 rankings
         env:
@@ -62,7 +70,7 @@ jobs:
         run: |
           git config user.name "aparatchi-content-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add catalog.json catalog-manifest.json tmdb-cache.json tmdb-enrichment-report.json imdb-top-cache.json
+          git add catalog.json catalog-manifest.json tmdb-cache.json tmdb-enrichment-report.json persian-title-cache.json imdb-top-cache.json
           if [ -d assets/media ]; then
             git add assets/media
           fi
