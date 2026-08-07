@@ -31,14 +31,14 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 42
+    timeout-minutes: 46
 
     steps:
       - name: Checkout content repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -103,7 +103,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add catalog.json sync-state.json sync-report*.json
+          git add catalog.json catalog-manifest.json sync-state.json sync-report*.json
           if [ -d assets/media ]; then
             git add assets/media
           fi
@@ -123,13 +123,15 @@ jobs:
           UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
           TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN || secrets.TMDB_READ_ACCESS_TOKEN }}
           UPERA_SYNC_MODE: 'PEOPLE'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '4'
+          APARATCHI_RUN_TIME_LIMIT_MINUTES: '6'
           APARATCHI_CHECKPOINT_RESERVE_MS: '30000'
           APARATCHI_REQUEST_TIMEOUT_MS: '12000'
           APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
           APARATCHI_PEOPLE_TITLES_PER_RUN: '12'
           APARATCHI_PEOPLE_MAX_PER_TITLE: '12'
           APARATCHI_PEOPLE_RETRY_HOURS: '12'
+          APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN: '12'
+          APARATCHI_EPISODE_ARTWORK_MIRROR_PER_RUN: '12'
           APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '36'
           APARATCHI_IMAGE_MIRROR_CONCURRENCY: '4'
         run: node scripts/sync-upera.mjs
@@ -141,7 +143,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add catalog.json sync-state.json sync-report*.json
+          git add catalog.json catalog-manifest.json sync-state.json sync-report*.json
           if [ -d assets/media ]; then
             git add assets/media
           fi
@@ -185,7 +187,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add catalog.json sync-state.json sync-report*.json
+          git add catalog.json catalog-manifest.json sync-state.json sync-report*.json
 
           if git diff --cached --quiet; then
             echo "No archive changes."
