@@ -6,7 +6,7 @@ import { promisify } from 'node:util';
 
 const API_BASE = 'https://seeko.film/api/v1';
 const IRANIAN_SERIES_SCAN_VERSION = 3;
-const CATALOG_VERSION = '0.14.0-sequential-series-queue';
+const CATALOG_VERSION = '0.15.0-hourly-series-queue';
 
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
@@ -69,62 +69,62 @@ const recentSeriesPagesPerRun = Math.min(
 );
 
 const recentMovieTitlesPerRun = Math.min(
-  40,
+  500,
   positiveInt(process.env.UPERA_RECENT_MOVIE_TITLES_PER_RUN, 18),
 );
 
 const recentSeriesTitlesPerRun = Math.min(
-  16,
+  500,
   positiveInt(process.env.UPERA_RECENT_SERIES_TITLES_PER_RUN, 6),
 );
 
 const recentMovieRequestQuota = Math.min(
-  40,
+  240,
   positiveInt(process.env.UPERA_RECENT_MOVIE_REQUEST_QUOTA, 18),
 );
 
 const recentSeriesRequestQuota = Math.min(
-  48,
+  240,
   positiveInt(process.env.UPERA_RECENT_SERIES_REQUEST_QUOTA, 24),
 );
 
 const recentSeriesEpisodeLimit = Math.min(
-  12,
+  60,
   positiveInt(process.env.UPERA_RECENT_SERIES_EPISODES_PER_TITLE, 5),
 );
 
 const incrementalRequestQuota = Math.min(
-  20,
+  240,
   positiveInt(process.env.UPERA_INCREMENTAL_REQUEST_QUOTA, 8),
 );
 
 const airingRequestQuota = Math.min(
-  24,
+  240,
   positiveInt(process.env.UPERA_AIRING_REQUEST_QUOTA, 10),
 );
 
 const archiveMovieRequestQuota = Math.min(
-  20,
+  240,
   positiveInt(process.env.UPERA_ARCHIVE_MOVIE_REQUEST_QUOTA, 8),
 );
 
 const archiveSeriesRequestQuota = Math.min(
-  24,
+  240,
   positiveInt(process.env.UPERA_ARCHIVE_SERIES_REQUEST_QUOTA, 8),
 );
 
 const iranianSeriesRequestQuota = Math.min(
-  16,
+  240,
   positiveInt(process.env.UPERA_IRANIAN_SERIES_REQUEST_QUOTA, 6),
 );
 
 const operatorMovieRequestQuota = Math.min(
-  16,
+  240,
   positiveInt(process.env.UPERA_OPERATOR_MOVIE_REQUEST_QUOTA, 5),
 );
 
 const operatorSeriesRequestQuota = Math.min(
-  20,
+  240,
   positiveInt(process.env.UPERA_OPERATOR_SERIES_REQUEST_QUOTA, 6),
 );
 
@@ -193,7 +193,7 @@ const backfillSeriesPerRun = Math.min(
 );
 
 const backfillEpisodesPerSeries = Math.min(
-  30,
+  120,
   positiveInt(process.env.UPERA_BACKFILL_EPISODES_PER_SERIES, 12),
 );
 
@@ -236,7 +236,7 @@ const seriesTitlesPerRun = positiveInt(
 
 
 const airingSeriesTitlesPerRun = Math.min(
-  12,
+  500,
   positiveInt(process.env.UPERA_AIRING_SERIES_TITLES_PER_RUN, 6),
 );
 
@@ -602,14 +602,23 @@ if (effectiveSyncMode === 'PEOPLE') {
     await syncAiringSeriesUpdates();
   }
 } else {
-  // Guaranteed discovery comes first and receives independent request quotas.
-  // Page scans always begin at page 1, so newly published titles are checked
-  // every hour even while the long-running archive cursors continue elsewhere.
+  // Published, currently-airing series are checked first. A newly released
+  // episode must be visible in this hourly run before broader discovery spends
+  // the request budget. Discovery then scans movies and the next sequential
+  // series archive from page 1.
   await withAffiliateRequestScope(
-    'recent-movies',
-    recentMovieRequestQuota,
-    syncRecentMovieDiscovery,
+    'airing-series',
+    airingRequestQuota,
+    syncAiringSeriesUpdates,
   );
+
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-recent-movies', 90000)) {
+    await withAffiliateRequestScope(
+      'recent-movies',
+      recentMovieRequestQuota,
+      syncRecentMovieDiscovery,
+    );
+  }
 
   if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-recent-series', 90000)) {
     await withAffiliateRequestScope(
@@ -646,14 +655,6 @@ if (effectiveSyncMode === 'PEOPLE') {
       'incremental',
       incrementalRequestQuota,
       syncIncrementalTitles,
-    );
-  }
-
-  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-airing', 70000)) {
-    await withAffiliateRequestScope(
-      'airing-series',
-      airingRequestQuota,
-      syncAiringSeriesUpdates,
     );
   }
 
@@ -1042,14 +1043,14 @@ async function syncAiringSeriesUpdates() {
 
   let checked = 0;
   for (const item of selected) {
-    if (affiliateBudgetExhausted || affiliateScopeExhausted) break;
+    if (affiliateBudgetExhausted || affiliateScopeExhausted || runTimeBudgetReached('airing-series-refresh', 60000)) break;
     try {
       const result = await processSeries(
         { id: item.id, type: 'series' },
         'airing-refresh',
         {
           episodeStrategy: 'latest',
-          episodeLimit: 6,
+          episodeLimit: 12,
           onlyMissing: true,
         },
       );

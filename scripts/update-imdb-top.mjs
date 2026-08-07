@@ -32,6 +32,11 @@ if (!catalog || !Array.isArray(catalog.items)) {
 }
 
 const previous = catalog.imdbTop100;
+const cache = await readJson(cachePath, { version: 2, posters: {} });
+if (!cache.posters || typeof cache.posters !== 'object') {
+  cache.posters = {};
+}
+cache.version = 2;
 const previousUpdatedAt = Date.parse(String(previous?.updatedAt || ''));
 if (
   !force &&
@@ -42,18 +47,19 @@ if (
   Number.isFinite(previousUpdatedAt) &&
   Date.now() - previousUpdatedAt < refreshHours * 60 * 60 * 1_000
 ) {
-  console.log('IMDb Top 100 هنوز تازه است؛ نیازی به دریافت دوباره نیست.');
-  const postersChanged = await mirrorRankingPosters(previous);
-  if (postersChanged) catalog.updatedAt = new Date().toISOString();
-  await writeCatalogAndManifest(catalog);
+  console.log('IMDb Top 100 هنوز تازه است؛ رتبه‌ها حفظ و متادیتای ناقص ترمیم می‌شود.');
+  const catalogIndex = createCatalogIndex(catalog.items);
+  const hydrated = await hydrateExistingRankingMetadata(previous, catalogIndex, cache);
+  catalog.imdbTop100 = hydrated.ranking;
+  const postersChanged = await mirrorRankingPosters(catalog.imdbTop100);
+  if (hydrated.changed || postersChanged) catalog.updatedAt = new Date().toISOString();
+  cache.updatedAt = new Date().toISOString();
+  await Promise.all([
+    writeCatalogAndManifest(catalog),
+    fs.writeFile(cachePath, `${JSON.stringify(cache, null, 2)}\n`, 'utf8'),
+  ]);
   process.exit(0);
 }
-
-const cache = await readJson(cachePath, { version: 2, posters: {} });
-if (!cache.posters || typeof cache.posters !== 'object') {
-  cache.posters = {};
-}
-cache.version = 2;
 
 let rawMovies = [];
 let rawSeries = [];
@@ -77,9 +83,16 @@ try {
     Array.isArray(previous.series) && previous.series.length > 0
   ) {
     console.warn(`IMDb refresh skipped; previous ranking kept: ${error instanceof Error ? error.message : String(error)}`);
-    const postersChanged = await mirrorRankingPosters(previous);
-    if (postersChanged) catalog.updatedAt = new Date().toISOString();
-    await writeCatalogAndManifest(catalog);
+    const catalogIndex = createCatalogIndex(catalog.items);
+    const hydrated = await hydrateExistingRankingMetadata(previous, catalogIndex, cache);
+    catalog.imdbTop100 = hydrated.ranking;
+    const postersChanged = await mirrorRankingPosters(catalog.imdbTop100);
+    if (hydrated.changed || postersChanged) catalog.updatedAt = new Date().toISOString();
+    cache.updatedAt = new Date().toISOString();
+    await Promise.all([
+      writeCatalogAndManifest(catalog),
+      fs.writeFile(cachePath, `${JSON.stringify(cache, null, 2)}\n`, 'utf8'),
+    ]);
     process.exit(0);
   }
   console.warn(`IMDb datasets unavailable; catalog ranking used: ${error instanceof Error ? error.message : String(error)}`);
@@ -221,6 +234,58 @@ function findCatalogItem(entry, type, index) {
   return null;
 }
 
+async function hydrateExistingRankingMetadata(ranking, catalogIndex, posterCache) {
+  let changed = false;
+
+  const hydrateList = async (entries, type) => {
+    const result = [];
+    for (const rawEntry of Array.isArray(entries) ? entries : []) {
+      const entry = { ...rawEntry };
+      const normalized = {
+        imdb: normalizeImdbId(entry.imdb),
+        title: cleanText(entry.title),
+        originalTitle: cleanText(entry.originalTitle),
+        year: positiveInt(entry.year, 0),
+      };
+      const item = findCatalogItem(normalized, type, catalogIndex);
+      const itemTitle = cleanText(item?.name);
+      const itemTitleFa = containsPersian(item?.nameFa) ? cleanText(item.nameFa) : '';
+      const currentTitleFa = containsPersian(entry.titleFa) ? cleanText(entry.titleFa) : '';
+      const currentPoster = cleanText(entry.poster);
+      let tmdb = {};
+      if ((!currentPoster && !cleanText(item?.poster)) || (!currentTitleFa && !itemTitleFa)) {
+        tmdb = await tmdbMetadata(normalized.imdb, type, posterCache);
+      }
+
+      const title = itemTitle || cleanText(entry.title);
+      const titleFa = itemTitleFa || currentTitleFa || cleanText(tmdb.titleFa);
+      const poster = cleanText(item?.poster) || currentPoster || cleanText(tmdb.poster);
+      const next = {
+        ...entry,
+        ...(item ? { itemId: String(item.id) } : {}),
+        ...(title ? { title } : {}),
+        ...(titleFa && normalizeTitle(titleFa) !== normalizeTitle(title) ? { titleFa } : {}),
+        ...(poster ? { poster } : {}),
+      };
+      if (!titleFa) delete next.titleFa;
+      if (!poster) delete next.poster;
+
+      if (item && titleFa && !containsPersian(item.nameFa)) item.nameFa = titleFa;
+      if (item && poster && !cleanText(item.poster)) item.poster = poster;
+      if (JSON.stringify(next) !== JSON.stringify(rawEntry)) changed = true;
+      result.push(next);
+    }
+    return result;
+  };
+
+  const movies = await hydrateList(ranking?.movies, 'movie');
+  const series = await hydrateList(ranking?.series, 'series');
+  return {
+    ranking: { ...ranking, movies, series },
+    changed,
+  };
+}
+
 async function materializeRanking(entries, type, catalogIndex, posterCache) {
   const result = [];
   for (let index = 0; index < entries.length; index += 1) {
@@ -297,10 +362,56 @@ async function tmdbMetadata(imdb, type, posterCache) {
     const payload = await response.json();
     const candidates = type === 'series' ? payload?.tv_results : payload?.movie_results;
     const candidate = Array.isArray(candidates) ? candidates[0] : null;
-    const posterPath = cleanText(candidate?.poster_path);
+    let posterPath = cleanText(candidate?.poster_path);
+    let localizedTitle = cleanText(candidate?.title || candidate?.name);
+    let titleFa = containsPersian(localizedTitle) ? localizedTitle : '';
+
+    if (candidate?.id && (!titleFa || !posterPath)) {
+      const mediaPath = type === 'series' ? 'tv' : 'movie';
+      try {
+        await sleep(55);
+        const detailResponse = await fetch(
+          `https://api.themoviedb.org/3/${mediaPath}/${candidate.id}?language=fa-IR`,
+          {
+            headers: { accept: 'application/json', authorization: `Bearer ${tmdbToken}` },
+            signal: AbortSignal.timeout(8_000),
+          },
+        );
+        if (detailResponse.ok) {
+          const detail = await detailResponse.json();
+          posterPath = posterPath || cleanText(detail?.poster_path);
+          localizedTitle = cleanText(detail?.title || detail?.name);
+          if (containsPersian(localizedTitle)) titleFa = localizedTitle;
+        }
+      } catch {
+        // The find response may still provide a usable poster.
+      }
+    }
+
+    if (candidate?.id && !titleFa) {
+      const mediaPath = type === 'series' ? 'tv' : 'movie';
+      try {
+        await sleep(55);
+        const translationsResponse = await fetch(
+          `https://api.themoviedb.org/3/${mediaPath}/${candidate.id}/translations`,
+          {
+            headers: { accept: 'application/json', authorization: `Bearer ${tmdbToken}` },
+            signal: AbortSignal.timeout(8_000),
+          },
+        );
+        if (translationsResponse.ok) {
+          const translationsPayload = await translationsResponse.json();
+          const translations = Array.isArray(translationsPayload?.translations) ? translationsPayload.translations : [];
+          const persian = translations.find((entry) => String(entry?.iso_639_1 || '').toLowerCase() === 'fa');
+          const translated = cleanText(persian?.data?.title || persian?.data?.name);
+          if (containsPersian(translated)) titleFa = translated;
+        }
+      } catch {
+        // Missing translation is non-fatal.
+      }
+    }
+
     const poster = posterPath ? `https://image.tmdb.org/t/p/w342/${posterPath.replace(/^\/+/, '')}` : '';
-    const localizedTitle = cleanText(candidate?.title || candidate?.name);
-    const titleFa = containsPersian(localizedTitle) ? localizedTitle : '';
     posterCache.posters[imdb] = {
       poster: poster || cleanText(cached?.poster),
       ...(titleFa ? { titleFa } : {}),
@@ -309,7 +420,7 @@ async function tmdbMetadata(imdb, type, posterCache) {
     };
     return {
       poster: cleanText(posterCache.posters[imdb].poster),
-      titleFa,
+      titleFa: cleanText(posterCache.posters[imdb].titleFa),
     };
   } catch {
     return {

@@ -164,6 +164,35 @@ globalThis.fetch = async (input) => {
     });
   }
 
+  if (
+    scenario === 'multi-episode-series' &&
+    url.pathname.endsWith('/ghost/get/series/series-1')
+  ) {
+    return jsonResponse({
+      status: 'success',
+      data: {
+        series: {
+          id: 'series-1',
+          type: 'series',
+          name: 'Regression Series',
+          name_fa: 'سریال آزمون',
+          year: 2025,
+          status: 'ended',
+          poster: 'https://example.test/poster.jpg',
+          backdrop: 'https://example.test/backdrop.jpg',
+        },
+        episodes: Array.from({ length: 7 }, (_, index) => ({
+          id: `episode-${index + 1}`,
+          type: 'episode',
+          series_id: 'series-1',
+          season_number: 1,
+          episode_number: index + 1,
+          show: 1,
+        })),
+      },
+    });
+  }
+
   if (url.pathname.endsWith('/ghost/get/series/series-1')) {
     return jsonResponse({
       status: 'success',
@@ -239,6 +268,24 @@ globalThis.fetch = async (input) => {
           ],
         },
       });
+    }
+    if (scenario === 'multi-episode-series') {
+      const match = String(url.searchParams.get('id') || '').match(/^episode-(\d+)$/);
+      const number = Number(match?.[1] || 0);
+      if (number >= 2 && number <= 7) {
+        return jsonResponse({
+          status: 'success',
+          data: {
+            links: [
+              {
+                amount: 0,
+                link: `https://cdn.example.test/episode-${number}.mp4`,
+                title: '720p',
+              },
+            ],
+          },
+        });
+      }
     }
     return jsonResponse({ message: 'No affiliate files' }, 404);
   }

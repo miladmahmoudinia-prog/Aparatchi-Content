@@ -70,3 +70,88 @@ test('IMDb ranking keeps all 100 entries and only links titles available in the 
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }
 });
+
+
+test('fresh IMDb ranking repairs missing Persian title and poster metadata without rebuilding ranks', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-imdb-hydrate-'));
+  const now = new Date().toISOString();
+  const movies = Array.from({ length: 100 }, (_, index) => ({
+    rank: index + 1,
+    type: 'movie',
+    title: `Movie ${index}`,
+    imdb: `tt${String(3_000_000 + index)}`,
+    year: 2022,
+    rating: 9 - index / 100,
+    votes: 100_000 - index,
+  }));
+  const series = Array.from({ length: 100 }, (_, index) => ({
+    rank: index + 1,
+    type: 'series',
+    title: `Series ${index}`,
+    imdb: `tt${String(4_000_000 + index)}`,
+    year: 2023,
+    rating: 9 - index / 100,
+    votes: 90_000 - index,
+  }));
+  const catalog = {
+    version: 'test-fresh',
+    updatedAt: now,
+    items: [
+      {
+        id: 'movie-fresh',
+        type: 'movie',
+        name: 'Movie 0',
+        nameFa: 'فیلم فارسی تازه',
+        year: 2022,
+        imdb: 'tt3000000',
+        poster: 'https://example.test/fresh-movie.jpg',
+      },
+      {
+        id: 'series-fresh',
+        type: 'series',
+        name: 'Series 0',
+        nameFa: 'سریال فارسی تازه',
+        year: 2023,
+        imdb: 'tt4000000',
+        poster: 'https://example.test/fresh-series.jpg',
+      },
+    ],
+    imdbTop100: {
+      formatVersion: 2,
+      source: 'imdb-ratings-dataset',
+      updatedAt: now,
+      movies,
+      series,
+    },
+  };
+
+  await fs.writeFile(path.join(fixtureDirectory, 'catalog.json'), `${JSON.stringify(catalog)}\n`, 'utf8');
+  try {
+    await execFileAsync(process.execPath, [rankingScript], {
+      cwd: fixtureDirectory,
+      env: {
+        ...process.env,
+        IMDB_TOP_REFRESH_HOURS: '20',
+        IMDB_TOP_FORCE: '',
+        TMDB_READ_ACCESS_TOKEN: '',
+      },
+    });
+    const result = JSON.parse(await fs.readFile(path.join(fixtureDirectory, 'catalog.json'), 'utf8'));
+    const firstMovie = result.imdbTop100.movies[0];
+    const firstSeries = result.imdbTop100.series[0];
+    assert.equal(firstMovie.rank, 1);
+    assert.equal(firstMovie.itemId, 'movie-fresh');
+    assert.equal(firstMovie.titleFa, 'فیلم فارسی تازه');
+    assert.equal(firstMovie.poster, 'https://example.test/fresh-movie.jpg');
+    assert.equal(firstSeries.rank, 1);
+    assert.equal(firstSeries.itemId, 'series-fresh');
+    assert.equal(firstSeries.titleFa, 'سریال فارسی تازه');
+    assert.equal(firstSeries.poster, 'https://example.test/fresh-series.jpg');
+    assert.equal(result.imdbTop100.movies.length, 100);
+    assert.equal(result.imdbTop100.series.length, 100);
+    const cache = JSON.parse(await fs.readFile(path.join(fixtureDirectory, 'imdb-top-cache.json'), 'utf8'));
+    assert.equal(cache.version, 2);
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});

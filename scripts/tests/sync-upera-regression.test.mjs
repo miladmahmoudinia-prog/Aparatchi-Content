@@ -249,6 +249,37 @@ test('archive backfill never starts a second incomplete series in the same run',
   }
 });
 
+
+test('one hourly backfill spends its budget on the same series until every discovered episode is complete', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-multi-episode-series-'));
+  const fixture = initialCatalog();
+  fixture.items[0].sourceEpisodeCount = 7;
+  fixture.items[0].archivePendingEpisodeCount = 6;
+  fixture.items[0].archivePendingEpisodes = Array.from({ length: 6 }, (_, index) => ({
+    seasonNumber: 1,
+    episodeNumber: index + 2,
+  }));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), fixture);
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), {
+    archiveBackfillSeriesId: 'series-1',
+    archiveBackfillSeriesTitle: 'سریال آزمون',
+  });
+
+  try {
+    const result = await runSync(fixtureDirectory, { scenario: 'multi-episode-series' });
+    const item = result.catalog.items.find((entry) => entry.id === 'series-1');
+    assert.equal(item?.downloads.length, 7);
+    assert.equal(item?.publicationStatus, 'published');
+    assert.equal(item?.archiveComplete, true);
+    assert.equal(item?.archivePendingEpisodeCount, 0);
+    assert.equal(result.report.backfillSeriesVisited, 1);
+    assert.equal(result.report.backfillEpisodesAdded, 6);
+    assert.equal(result.state.archiveBackfillSeriesId, '');
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
 test('episode artwork is stored with a newly discovered playable episode', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-episode-artwork-'));
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());
