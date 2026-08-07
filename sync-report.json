@@ -1,35 +1,27 @@
 {
-  "startedAt": "2026-08-07T15:51:20.270Z",
-  "runTimeLimitMinutes": 18,
-  "runDeadlineAt": "2026-08-07T16:09:20.144Z",
+  "startedAt": "2026-08-07T15:55:08.435Z",
+  "runTimeLimitMinutes": 11,
+  "runDeadlineAt": "2026-08-07T16:06:08.312Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 1074551,
+  "remainingRunMsAtFinish": 615676,
   "imageMirroringSkipped": true,
   "originalCount": 799,
-  "finalCount": 799,
-  "requestedSyncMode": "BACKFILL",
-  "effectiveSyncMode": "BACKFILL",
+  "finalCount": 805,
+  "requestedSyncMode": "NORMAL",
+  "effectiveSyncMode": "NORMAL",
   "backfillQueueTotal": 71,
   "backfillBacklogRemaining": 71,
   "backfillBlockedTotal": 4,
-  "backfillActiveSeries": {
-    "id": "f9274ea0-632b-11e9-9c3c-070e21c5b5be",
-    "title": "سالهای دور از خانه",
-    "year": 2019,
-    "country": "IR",
-    "missingBefore": [],
-    "pendingBefore": 14,
-    "noProgressRuns": 3
-  },
+  "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
   "backfillSeriesBlockedThisRun": [],
   "backfillEpisodesAdded": 0,
-  "backfillSeriesVisited": 6,
-  "backfillCheckpoints": 6,
+  "backfillSeriesVisited": 0,
+  "backfillCheckpoints": 0,
   "episodesMarkedUnavailable": 0,
-  "backfillNoProgressRuns": 5,
-  "normalSyncSkippedForBackfill": true,
+  "backfillNoProgressRuns": 0,
+  "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "active-then-nearest-completion",
   "backfillNextSeries": null,
   "episodePaginationPagesFetched": 0,
@@ -37,32 +29,65 @@
   "episodePaginationTruncated": 0,
   "episodeDiscoveryIncomplete": 0,
   "incrementalCandidates": 0,
+  "incrementalSeriesDeferred": 0,
   "incrementalProcessed": 0,
-  "recentMoviePagesScanned": 0,
-  "recentMovieCandidates": 0,
-  "recentMovieNewCandidates": 0,
-  "recentMoviesProcessed": 0,
-  "recentSeriesPagesScanned": 0,
-  "recentSeriesCandidates": 0,
+  "recentMoviePagesScanned": 8,
+  "recentMovieCandidates": 288,
+  "recentMovieNewCandidates": 10,
+  "recentMoviesProcessed": 10,
+  "recentSeriesPagesScanned": 8,
+  "recentSeriesCandidates": 288,
   "recentSeriesNewCandidates": 0,
   "recentSeriesProcessed": 0,
-  "affiliateRequestScopes": {},
-  "skippedByScopedBudget": 0,
+  "recentSeriesDeferredByArchiveQueue": 288,
+  "affiliateRequestScopes": {
+    "recent-movies": {
+      "limit": 16,
+      "used": 10,
+      "exhausted": false
+    },
+    "recent-series": {
+      "limit": 24,
+      "used": 0,
+      "exhausted": false
+    },
+    "operator-movies": {
+      "limit": 6,
+      "used": 6,
+      "exhausted": false
+    },
+    "incremental": {
+      "limit": 6,
+      "used": 0,
+      "exhausted": false
+    },
+    "airing-series": {
+      "limit": 8,
+      "used": 0,
+      "exhausted": false
+    },
+    "archive-movies": {
+      "limit": 6,
+      "used": 6,
+      "exhausted": true
+    }
+  },
+  "skippedByScopedBudget": 1,
   "moviePagesProcessed": 0,
-  "movieTitlesProcessed": 0,
+  "movieTitlesProcessed": 6,
   "seriesPagesProcessed": 0,
   "seriesTitlesProcessed": 0,
   "airingSeriesCandidates": 4,
   "airingSeriesChecked": 4,
   "airingSeriesUpdated": 0,
-  "incompleteSeriesCandidates": 71,
+  "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
-  "incompleteSeriesStillMissing": 6,
+  "incompleteSeriesStillMissing": 0,
   "seriesHiddenUntilComplete": 0,
-  "seriesPublishedAfterCompletion": 3,
+  "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 3,
+  "iranianSeriesProcessed": 0,
   "episodesProcessed": 0,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
@@ -74,305 +99,64 @@
   "operatorSeriesAddedOrUpdated": 0,
   "operatorSeriesRejectedNoOperatorLink": 0,
   "operatorMoviePagesProcessed": 0,
-  "operatorMovieCandidates": 0,
+  "operatorMovieCandidates": 6,
   "operatorMoviesAddedOrUpdated": 0,
-  "operatorMoviesRejectedNoOperatorLink": 0,
+  "operatorMoviesRejectedNoOperatorLink": 6,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [],
-  "operatorDiagnostics": [],
+  "operatorDiagnostics": [
+    {
+      "type": "movie",
+      "id": "7e9273c0-6ca3-11f1-8b78-598d9a21fa64",
+      "title": "یک روز ترک کن",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "55931ee0-672f-11f1-96e3-2ddb04ea2f52",
+      "title": "مربای شیرین",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "2e992000-6725-11f1-9312-4140832e05b2",
+      "title": "گیلدا",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "39bd5150-6c85-11f1-bf62-890c716ad3cd",
+      "title": "ماراما",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "547bbde0-6b4d-11f1-bbfd-95c372696716",
+      "title": "لاک پشت",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "8322b280-6b4c-11f1-860d-a91531ebef0b",
+      "title": "لاله کبود",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    }
+  ],
   "seriesEpisodeDiagnostics": [
-    {
-      "seriesId": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-      "title": "آن:به دری خوش آمدید",
-      "source": "fast-backfill",
-      "discoveredEpisodeCount": 26,
-      "catalogEpisodeCount": 8,
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 10
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 12
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 13
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 14
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 15
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 18
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 20
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 22
-        }
-      ],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-      "title": "آن:به دری خوش آمدید",
-      "source": "fast-backfill-summary",
-      "missingBefore": [],
-      "pendingBefore": 9,
-      "missingAfter": [],
-      "pendingAfter": 9,
-      "publicationStatus": "published",
-      "result": "advanced",
-      "addedEpisodes": 0,
-      "unavailableMarked": 0
-    },
-    {
-      "seriesId": "9dcad570-cdf0-11f0-a0a0-eddd96259c2c",
-      "title": "ناینیای قدرتمند",
-      "source": "fast-backfill",
-      "discoveredEpisodeCount": 26,
-      "catalogEpisodeCount": 8,
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 10
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 12
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 13
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 14
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 15
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 18
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 20
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 22
-        }
-      ],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "9dcad570-cdf0-11f0-a0a0-eddd96259c2c",
-      "title": "ناینیای قدرتمند",
-      "source": "fast-backfill-summary",
-      "missingBefore": [],
-      "pendingBefore": 9,
-      "missingAfter": [],
-      "pendingAfter": 9,
-      "publicationStatus": "published",
-      "result": "advanced",
-      "addedEpisodes": 0,
-      "unavailableMarked": 0
-    },
-    {
-      "seriesId": "f1d2c790-8af6-11f0-a76c-419a5ead0764",
-      "title": "روزنامه",
-      "source": "fast-backfill",
-      "discoveredEpisodeCount": 28,
-      "catalogEpisodeCount": 10,
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 12
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 13
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 14
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 15
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 18
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 20
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 22
-        }
-      ],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "f1d2c790-8af6-11f0-a76c-419a5ead0764",
-      "title": "روزنامه",
-      "source": "fast-backfill-summary",
-      "missingBefore": [],
-      "pendingBefore": 10,
-      "missingAfter": [],
-      "pendingAfter": 10,
-      "publicationStatus": "published",
-      "result": "advanced",
-      "addedEpisodes": 0,
-      "unavailableMarked": 0
-    },
-    {
-      "seriesId": "89546ca0-34d6-11ed-804f-2daa476fafb8",
-      "title": "احضار",
-      "source": "fast-backfill",
-      "discoveredEpisodeCount": 29,
-      "catalogEpisodeCount": 11,
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 12
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 13
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 14
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 15
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 18
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 20
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 22
-        }
-      ],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "89546ca0-34d6-11ed-804f-2daa476fafb8",
-      "title": "احضار",
-      "source": "fast-backfill-summary",
-      "missingBefore": [],
-      "pendingBefore": 10,
-      "missingAfter": [],
-      "pendingAfter": 10,
-      "publicationStatus": "published",
-      "result": "advanced",
-      "addedEpisodes": 0,
-      "unavailableMarked": 0
-    },
-    {
-      "seriesId": "c2a92640-d1b4-11ef-bc92-859265d622d0",
-      "title": "بیا آشتی کنیم",
-      "source": "fast-backfill",
-      "discoveredEpisodeCount": 31,
-      "catalogEpisodeCount": 13,
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 14
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 15
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 18
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 20
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 22
-        }
-      ],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "c2a92640-d1b4-11ef-bc92-859265d622d0",
-      "title": "بیا آشتی کنیم",
-      "source": "fast-backfill-summary",
-      "missingBefore": [],
-      "pendingBefore": 12,
-      "missingAfter": [],
-      "pendingAfter": 12,
-      "publicationStatus": "published",
-      "result": "advanced",
-      "addedEpisodes": 0,
-      "unavailableMarked": 0
-    },
-    {
-      "seriesId": "f9274ea0-632b-11e9-9c3c-070e21c5b5be",
-      "title": "سالهای دور از خانه",
-      "source": "fast-backfill",
-      "discoveredEpisodeCount": 33,
-      "catalogEpisodeCount": 15,
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 18
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 20
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 22
-        }
-      ],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "f9274ea0-632b-11e9-9c3c-070e21c5b5be",
-      "title": "سالهای دور از خانه",
-      "source": "fast-backfill-summary",
-      "missingBefore": [],
-      "pendingBefore": 14,
-      "missingAfter": [],
-      "pendingAfter": 14,
-      "publicationStatus": "published",
-      "result": "advanced",
-      "addedEpisodes": 0,
-      "unavailableMarked": 0
-    },
     {
       "seriesId": "9dcad570-cdf0-11f0-a0a0-eddd96259c2c",
       "title": "ناینیای قدرتمند",
@@ -1347,18 +1131,18 @@
       "isAiring": true
     }
   ],
-  "episodesDiscovered": 253,
+  "episodesDiscovered": 80,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
-  "episodeArtworkAdded": 39,
+  "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
-  "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 9,
-  "affiliateRequests": 0,
+  "moviesAddedOrUpdated": 6,
+  "seriesAddedOrUpdated": 3,
+  "affiliateRequests": 22,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 0,
+  "affiliateNotFound": 12,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1383,9 +1167,6 @@
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 10,
-  "lastCheckpointAt": "2026-08-07T15:51:24.084Z",
-  "lastCheckpointReason": "backfill-f9274ea0-632b-11e9-9c3c-070e21c5b5be",
-  "remainingRunMsAtCheckpoint": 1076009,
-  "finishedAt": "2026-08-07T15:51:25.593Z"
+  "apiRequests": 45,
+  "finishedAt": "2026-08-07T15:55:52.636Z"
 }
