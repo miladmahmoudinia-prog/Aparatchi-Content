@@ -1,35 +1,27 @@
 {
-  "startedAt": "2026-08-07T15:56:30.151Z",
-  "runTimeLimitMinutes": 18,
-  "runDeadlineAt": "2026-08-07T16:14:30.027Z",
+  "startedAt": "2026-08-07T18:05:19.423Z",
+  "runTimeLimitMinutes": 11,
+  "runDeadlineAt": "2026-08-07T18:16:19.291Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 1077456,
+  "remainingRunMsAtFinish": 614330,
   "imageMirroringSkipped": true,
   "originalCount": 805,
-  "finalCount": 805,
-  "requestedSyncMode": "BACKFILL",
-  "effectiveSyncMode": "BACKFILL",
+  "finalCount": 811,
+  "requestedSyncMode": "NORMAL",
+  "effectiveSyncMode": "NORMAL",
   "backfillQueueTotal": 71,
   "backfillBacklogRemaining": 71,
   "backfillBlockedTotal": 4,
-  "backfillActiveSeries": {
-    "id": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-    "title": "آن:به دری خوش آمدید",
-    "year": 2025,
-    "country": "",
-    "missingBefore": [],
-    "pendingBefore": 9,
-    "noProgressRuns": 2
-  },
+  "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
   "backfillSeriesBlockedThisRun": [],
   "backfillEpisodesAdded": 0,
-  "backfillSeriesVisited": 1,
-  "backfillCheckpoints": 1,
+  "backfillSeriesVisited": 0,
+  "backfillCheckpoints": 0,
   "episodesMarkedUnavailable": 0,
-  "backfillNoProgressRuns": 3,
-  "normalSyncSkippedForBackfill": true,
+  "backfillNoProgressRuns": 0,
+  "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "active-then-nearest-completion",
   "backfillNextSeries": null,
   "episodePaginationPagesFetched": 0,
@@ -39,27 +31,58 @@
   "incrementalCandidates": 0,
   "incrementalSeriesDeferred": 0,
   "incrementalProcessed": 0,
-  "recentMoviePagesScanned": 0,
-  "recentMovieCandidates": 0,
-  "recentMovieNewCandidates": 0,
-  "recentMoviesProcessed": 0,
-  "recentSeriesPagesScanned": 0,
-  "recentSeriesCandidates": 0,
+  "recentMoviePagesScanned": 8,
+  "recentMovieCandidates": 288,
+  "recentMovieNewCandidates": 10,
+  "recentMoviesProcessed": 10,
+  "recentSeriesPagesScanned": 8,
+  "recentSeriesCandidates": 288,
   "recentSeriesNewCandidates": 0,
   "recentSeriesProcessed": 0,
-  "recentSeriesDeferredByArchiveQueue": 0,
-  "affiliateRequestScopes": {},
-  "skippedByScopedBudget": 0,
+  "recentSeriesDeferredByArchiveQueue": 288,
+  "affiliateRequestScopes": {
+    "recent-movies": {
+      "limit": 16,
+      "used": 10,
+      "exhausted": false
+    },
+    "recent-series": {
+      "limit": 24,
+      "used": 0,
+      "exhausted": false
+    },
+    "operator-movies": {
+      "limit": 6,
+      "used": 6,
+      "exhausted": false
+    },
+    "incremental": {
+      "limit": 6,
+      "used": 0,
+      "exhausted": false
+    },
+    "airing-series": {
+      "limit": 8,
+      "used": 0,
+      "exhausted": false
+    },
+    "archive-movies": {
+      "limit": 6,
+      "used": 6,
+      "exhausted": true
+    }
+  },
+  "skippedByScopedBudget": 1,
   "moviePagesProcessed": 0,
-  "movieTitlesProcessed": 0,
+  "movieTitlesProcessed": 6,
   "seriesPagesProcessed": 0,
   "seriesTitlesProcessed": 0,
   "airingSeriesCandidates": 4,
   "airingSeriesChecked": 4,
   "airingSeriesUpdated": 0,
-  "incompleteSeriesCandidates": 71,
+  "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
-  "incompleteSeriesStillMissing": 1,
+  "incompleteSeriesStillMissing": 0,
   "seriesHiddenUntilComplete": 0,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
@@ -76,70 +99,64 @@
   "operatorSeriesAddedOrUpdated": 0,
   "operatorSeriesRejectedNoOperatorLink": 0,
   "operatorMoviePagesProcessed": 0,
-  "operatorMovieCandidates": 0,
+  "operatorMovieCandidates": 6,
   "operatorMoviesAddedOrUpdated": 0,
-  "operatorMoviesRejectedNoOperatorLink": 0,
+  "operatorMoviesRejectedNoOperatorLink": 6,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [],
-  "operatorDiagnostics": [],
+  "operatorDiagnostics": [
+    {
+      "type": "movie",
+      "id": "f17301f0-6b4b-11f1-8ea0-35adbc85dce4",
+      "title": "سال گربه",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "7e6661b0-688c-11f1-a98f-b19fd45a90ca",
+      "title": "نفوذ",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "2d809ef0-696a-11f1-ad74-6d8e08cc6fbc",
+      "title": "پناهگاه",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "80450260-6891-11f1-b107-892421cc230f",
+      "title": "آغاز یک ماجرا",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "90ae7f30-688c-11f1-835b-fb15ca82381c",
+      "title": "شانه به شانه",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "ed3e2370-6991-11f1-aab2-7d04402a9d2b",
+      "title": "خواب آلود",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    }
+  ],
   "seriesEpisodeDiagnostics": [
-    {
-      "seriesId": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-      "title": "آن:به دری خوش آمدید",
-      "source": "fast-backfill",
-      "discoveredEpisodeCount": 26,
-      "catalogEpisodeCount": 8,
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 10
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 12
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 13
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 14
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 15
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 18
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 20
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 22
-        }
-      ],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-      "title": "آن:به دری خوش آمدید",
-      "source": "fast-backfill-summary",
-      "missingBefore": [],
-      "pendingBefore": 9,
-      "missingAfter": [],
-      "pendingAfter": 9,
-      "publicationStatus": "published",
-      "result": "no-progress",
-      "addedEpisodes": 0,
-      "unavailableMarked": 0
-    },
     {
       "seriesId": "9dcad570-cdf0-11f0-a0a0-eddd96259c2c",
       "title": "ناینیای قدرتمند",
@@ -1114,18 +1131,18 @@
       "isAiring": true
     }
   ],
-  "episodesDiscovered": 106,
+  "episodesDiscovered": 80,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
-  "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 4,
-  "affiliateRequests": 0,
+  "moviesAddedOrUpdated": 6,
+  "seriesAddedOrUpdated": 3,
+  "affiliateRequests": 22,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 0,
+  "affiliateNotFound": 11,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1150,9 +1167,6 @@
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 5,
-  "lastCheckpointAt": "2026-08-07T15:56:31.163Z",
-  "lastCheckpointReason": "backfill-paused-4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-  "remainingRunMsAtCheckpoint": 1078805,
-  "finishedAt": "2026-08-07T15:56:32.571Z"
+  "apiRequests": 45,
+  "finishedAt": "2026-08-07T18:06:04.961Z"
 }
