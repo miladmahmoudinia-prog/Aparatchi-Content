@@ -1,13 +1,13 @@
 {
-  "startedAt": "2026-08-08T18:02:38.128Z",
+  "startedAt": "2026-08-08T19:01:18.115Z",
   "runTimeLimitMinutes": 6,
-  "runDeadlineAt": "2026-08-08T18:08:37.950Z",
+  "runDeadlineAt": "2026-08-08T19:07:17.939Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 342008,
+  "remainingRunMsAtFinish": 338048,
   "imageMirroringSkipped": false,
-  "originalCount": 1158,
-  "finalCount": 1158,
+  "originalCount": 1189,
+  "finalCount": 1189,
   "requestedSyncMode": "PEOPLE",
   "effectiveSyncMode": "PEOPLE",
   "backfillQueueTotal": 72,
@@ -73,7 +73,7 @@
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 1,
+  "duplicateCatalogItemsMerged": 2,
   "iranianSeriesDiagnostics": [],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [],
@@ -187,6 +187,15 @@
       "isAiring": true
     },
     {
+      "seriesId": "c8caa550-94ea-11ec-865b-cd6bf1f34bc1",
+      "title": "از سوی",
+      "missing": [],
+      "pendingEpisodeCount": 10,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
       "seriesId": "b6fdc6a0-8a7e-11f1-a153-d7d22f964623",
       "title": "تو را پیدا خواهم کرد",
       "missing": [],
@@ -221,6 +230,20 @@
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": false
+    },
+    {
+      "seriesId": "d37fbe40-6009-11ed-b713-8d57f0175080",
+      "title": "بلیز و ماشین های هیولایی",
+      "missing": [
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 16
+        }
+      ],
+      "pendingEpisodeCount": 55,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
     },
     {
       "seriesId": "556caba0-7d17-11f1-8dbb-b57b65a3e3f8",
@@ -263,15 +286,6 @@
       "title": "زندانی",
       "missing": [],
       "pendingEpisodeCount": 9,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "c8caa550-94ea-11ec-865b-cd6bf1f34bc1",
-      "title": "از سوی",
-      "missing": [],
-      "pendingEpisodeCount": 18,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
@@ -361,7 +375,7 @@
       "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
       "title": "سایه باز",
       "missing": [],
-      "pendingEpisodeCount": 13,
+      "pendingEpisodeCount": 9,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
@@ -785,15 +799,6 @@
       "isAiring": false
     },
     {
-      "seriesId": "d37fbe40-6009-11ed-b713-8d57f0175080",
-      "title": "بلیز و ماشین های هیولایی",
-      "missing": [],
-      "pendingEpisodeCount": 67,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
       "seriesId": "0211f520-f2b9-11eb-8904-6179943b9168",
       "title": "گنج مظفر",
       "missing": [],
@@ -925,8 +930,8 @@
   ],
   "episodesDiscovered": 0,
   "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 4,
-  "episodeArtworkSeriesChecked": 4,
+  "episodeArtworkCandidates": 5,
+  "episodeArtworkSeriesChecked": 5,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 1,
   "episodesRejectedNoLinks": 0,
@@ -944,19 +949,23 @@
   "episodeFrameErrors": 0,
   "seriesKeptVisibleDuringBackfill": 0,
   "seriesRestoredByMonotonicGuard": 0,
-  "peopleEnrichmentCandidates": 108,
+  "peopleEnrichmentCandidates": 116,
   "peopleEnrichmentProcessed": 12,
-  "peopleEnrichmentSucceeded": 3,
-  "peopleEnrichmentFailed": 9,
-  "peopleEnrichmentSkippedFresh": 39,
+  "peopleEnrichmentSucceeded": 1,
+  "peopleEnrichmentFailed": 11,
+  "peopleEnrichmentSkippedFresh": 51,
   "peopleEnrichmentFromSource": 0,
-  "peopleEnrichmentFromTmdb": 3,
+  "peopleEnrichmentFromTmdb": 1,
   "peopleEnrichmentFromImdb": 0,
-  "peopleAdded": 0,
-  "tmdbRequests": 16,
-  "imdbRequests": 13,
+  "peopleAdded": 10,
+  "tmdbRequests": 13,
+  "imdbRequests": 15,
   "removedWithoutFreeLinks": 0,
   "errors": [
+    {
+      "scope": "episode-artwork-c8caa550-94ea-11ec-865b-cd6bf1f34bc1",
+      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
+    },
     {
       "scope": "episode-artwork-f9b3d300-0922-11f1-abc6-6b384876b292",
       "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
@@ -974,39 +983,47 @@
       "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/fbb54130-89c7-11ee-b35e-63f53dbb63af?affiliate=1"
     },
     {
-      "scope": "people-ed099290-af38-11ec-8d60-39da22fea12e",
+      "scope": "people-967b2da0-d713-11ef-98dc-0b8705f2a8f5",
       "message": "فهرست عوامل معتبری پیدا نشد."
     },
     {
-      "scope": "people-bbaef570-b060-11ec-b36f-c1f0b9436cc8",
+      "scope": "people-de484ef0-eea0-11ef-8d78-890634fe0786",
       "message": "فهرست عوامل معتبری پیدا نشد."
     },
     {
-      "scope": "people-59272440-3b96-11f0-80ae-e95ba3406c78",
+      "scope": "people-fe83c9c0-dd73-11ee-b274-5702b5ddf8af",
       "message": "فهرست عوامل معتبری پیدا نشد."
     },
     {
-      "scope": "people-1d277c50-45e1-11f0-9228-abfe0f871c54",
+      "scope": "people-fe2131d0-dd73-11ee-bc79-27eec26e0b76",
       "message": "فهرست عوامل معتبری پیدا نشد."
     },
     {
-      "scope": "people-19749a00-cc1d-11ef-9b62-29ec6b06311e",
+      "scope": "people-86594560-eea0-11ef-8736-0fa33f0c54eb",
       "message": "فهرست عوامل معتبری پیدا نشد."
     },
     {
-      "scope": "people-710c8f90-405c-11f0-84f6-4bc107b2762a",
+      "scope": "people-3756a640-dd74-11ee-9099-e3bcd7757a89",
       "message": "فهرست عوامل معتبری پیدا نشد."
     },
     {
-      "scope": "people-d586e570-235f-11f0-a5f7-018aa989daed",
+      "scope": "people-125827b0-dd74-11ee-aa2e-038ed8457d61",
       "message": "فهرست عوامل معتبری پیدا نشد."
     },
     {
-      "scope": "people-24c3b1a0-74f4-11f0-8da8-7508e07f538a",
+      "scope": "people-de05e360-2f1c-11f0-839c-8d8920100bdb",
       "message": "فهرست عوامل معتبری پیدا نشد."
     },
     {
-      "scope": "people-97f01e60-56a0-11f1-be3a-85e89eed5724",
+      "scope": "people-1007ef10-7696-11f0-b2b5-832fabff1294",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-1bd652e0-7a94-11f0-8e6c-271671cf1eec",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-1e6f0fb0-7b64-11f0-bb2c-8be347f45a69",
       "message": "فهرست عوامل معتبری پیدا نشد."
     },
     {
@@ -1056,5 +1073,5 @@
   ],
   "errorsTruncated": 0,
   "apiRequests": 41,
-  "finishedAt": "2026-08-08T18:02:55.942Z"
+  "finishedAt": "2026-08-08T19:01:39.891Z"
 }
