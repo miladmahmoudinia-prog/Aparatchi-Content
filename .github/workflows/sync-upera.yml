@@ -116,6 +116,14 @@ jobs:
             git push
           fi
 
+      - name: Ensure ffmpeg for episode thumbnails
+        shell: bash
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+
       - name: Complete missing cast and crew metadata
         id: people_sync
         continue-on-error: true
@@ -133,6 +141,7 @@ jobs:
           APARATCHI_PEOPLE_RETRY_HOURS: '12'
           APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN: '12'
           APARATCHI_EPISODE_ARTWORK_MIRROR_PER_RUN: '12'
+          APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN: '8'
           APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '36'
           APARATCHI_IMAGE_MIRROR_CONCURRENCY: '4'
         run: node scripts/sync-upera.mjs
