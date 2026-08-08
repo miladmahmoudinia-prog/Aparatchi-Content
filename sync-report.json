@@ -1,42 +1,27 @@
 {
-  "startedAt": "2026-08-08T04:37:13.029Z",
-  "runTimeLimitMinutes": 18,
-  "runDeadlineAt": "2026-08-08T04:55:12.894Z",
+  "startedAt": "2026-08-08T05:37:51.543Z",
+  "runTimeLimitMinutes": 14,
+  "runDeadlineAt": "2026-08-08T05:51:51.444Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 1076348,
+  "remainingRunMsAtFinish": 750475,
   "imageMirroringSkipped": true,
   "originalCount": 909,
-  "finalCount": 909,
-  "requestedSyncMode": "BACKFILL",
-  "effectiveSyncMode": "BACKFILL",
-  "backfillQueueTotal": 75,
+  "finalCount": 941,
+  "requestedSyncMode": "NORMAL",
+  "effectiveSyncMode": "NORMAL",
+  "backfillQueueTotal": 74,
   "backfillBacklogRemaining": 74,
   "backfillBlockedTotal": 1,
-  "backfillActiveSeries": {
-    "id": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-    "title": "آن:به دری خوش آمدید",
-    "year": 2025,
-    "country": "",
-    "missingBefore": [],
-    "pendingBefore": 9,
-    "noProgressRuns": 7
-  },
+  "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
-  "backfillSeriesBlockedThisRun": [
-    {
-      "id": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-      "title": "آن:به دری خوش آمدید",
-      "reason": "added-or-updated",
-      "attempts": 8
-    }
-  ],
+  "backfillSeriesBlockedThisRun": [],
   "backfillEpisodesAdded": 0,
-  "backfillSeriesVisited": 1,
-  "backfillCheckpoints": 1,
+  "backfillSeriesVisited": 0,
+  "backfillCheckpoints": 0,
   "episodesMarkedUnavailable": 0,
-  "backfillNoProgressRuns": 8,
-  "normalSyncSkippedForBackfill": true,
+  "backfillNoProgressRuns": 0,
+  "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "active-then-nearest-completion",
   "backfillNextSeries": null,
   "episodePaginationPagesFetched": 0,
@@ -46,29 +31,60 @@
   "incrementalCandidates": 0,
   "incrementalSeriesDeferred": 0,
   "incrementalProcessed": 0,
-  "recentMoviePagesScanned": 0,
-  "recentMovieCandidates": 0,
-  "recentMovieNewCandidates": 0,
-  "recentMoviesProcessed": 0,
-  "recentSeriesPagesScanned": 0,
-  "recentSeriesCandidates": 0,
+  "recentMoviePagesScanned": 8,
+  "recentMovieCandidates": 288,
+  "recentMovieNewCandidates": 10,
+  "recentMoviesProcessed": 10,
+  "recentSeriesPagesScanned": 8,
+  "recentSeriesCandidates": 288,
   "recentSeriesNewCandidates": 0,
   "recentSeriesProcessed": 0,
-  "recentSeriesDeferredByArchiveQueue": 0,
-  "affiliateRequestScopes": {},
-  "skippedByScopedBudget": 0,
-  "moviePagesProcessed": 0,
-  "movieTitlesProcessed": 0,
+  "recentSeriesDeferredByArchiveQueue": 288,
+  "affiliateRequestScopes": {
+    "airing-series": {
+      "limit": 48,
+      "used": 0,
+      "exhausted": false
+    },
+    "recent-movies": {
+      "limit": 110,
+      "used": 10,
+      "exhausted": false
+    },
+    "recent-series": {
+      "limit": 72,
+      "used": 0,
+      "exhausted": false
+    },
+    "operator-movies": {
+      "limit": 24,
+      "used": 24,
+      "exhausted": true
+    },
+    "incremental": {
+      "limit": 32,
+      "used": 0,
+      "exhausted": false
+    },
+    "archive-movies": {
+      "limit": 32,
+      "used": 32,
+      "exhausted": true
+    }
+  },
+  "skippedByScopedBudget": 2,
+  "moviePagesProcessed": 1,
+  "movieTitlesProcessed": 32,
   "seriesPagesProcessed": 0,
   "seriesTitlesProcessed": 0,
   "airingSeriesCandidates": 3,
   "airingSeriesChecked": 3,
   "airingSeriesUpdated": 0,
-  "incompleteSeriesCandidates": 75,
+  "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
-  "incompleteSeriesStillMissing": 1,
+  "incompleteSeriesStillMissing": 0,
   "seriesHiddenUntilComplete": 0,
-  "seriesPublishedAfterCompletion": 1,
+  "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 0,
@@ -82,71 +98,249 @@
   "operatorSeriesCandidates": 0,
   "operatorSeriesAddedOrUpdated": 0,
   "operatorSeriesRejectedNoOperatorLink": 0,
-  "operatorMoviePagesProcessed": 0,
-  "operatorMovieCandidates": 0,
+  "operatorMoviePagesProcessed": 1,
+  "operatorMovieCandidates": 29,
   "operatorMoviesAddedOrUpdated": 0,
-  "operatorMoviesRejectedNoOperatorLink": 0,
+  "operatorMoviesRejectedNoOperatorLink": 28,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [],
-  "operatorDiagnostics": [],
+  "operatorDiagnostics": [
+    {
+      "type": "movie",
+      "id": "4843cfb0-5db3-11f1-ac68-1dc0070d5f78",
+      "title": "دیو و دلبر",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "794209a0-6124-11f1-9a30-4b9553131257",
+      "title": "ریه آهنی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "a128dd20-5db1-11f1-bdc1-4713cb75dfa1",
+      "title": "زن امروز",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "6e6d5ba0-5db1-11f1-be36-459e530fb871",
+      "title": "رقص پا",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "3ae22590-5db1-11f1-9f8f-e5ad93b280dd",
+      "title": "رسم عاشق کشی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "d9bd3490-5cda-11f1-877f-69526e516b4c",
+      "title": "افسانه ماراکودا",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "21ac55a0-5db1-11f1-96df-a5e98b8a37f1",
+      "title": "رأی باز",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "56b1dee0-5cd8-11f1-8b3d-293caa151142",
+      "title": "دو دادستان",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "424c4220-5cd8-11f1-813d-dd29c21e65d8",
+      "title": "زتا",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "2bc4a1f0-5cd8-11f1-b78d-b1bc511c1383",
+      "title": "پانجی جمجمه",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "15725d80-5cd8-11f1-9108-fb906b3d0258",
+      "title": "لاک‌ پشت بوبی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "b0cdd090-5a9e-11f1-b49a-a7e6bddf71ba",
+      "title": "باید از روی جنازه‌ام رد شوی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "3a3125a0-490e-11f1-9842-853eb8c3b59a",
+      "title": "مزخرفات",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "806486f0-5433-11f1-a219-3714e7414043",
+      "title": "در منطقه خاکستری",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "aeb705a0-5d95-11f1-a465-ff1d32212fd5",
+      "title": "راه آبی ابریشم",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "56b5dcd0-5d95-11f1-8961-f1ed3db4922e",
+      "title": "دیده بان",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "44edc750-5d95-11f1-a317-93217d093972",
+      "title": "دوئل",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "ba5ed280-555b-11f1-a377-b15a7bced7ac",
+      "title": "جک رایان: جنگ ارواح",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "b31f6bb0-5cde-11f1-b193-db4c973aca7b",
+      "title": "دستیار مرده شور خانه",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "8497b340-5cde-11f1-a650-35e63136171c",
+      "title": "ورود ممنوع",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "d442a5d0-5a9e-11f1-8b56-d183e1da51fd",
+      "title": "فیوز",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "1f9ac1c0-5dcb-11f1-bccf-8d8c81ec826b",
+      "title": "مادر مری",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "39b58300-5cdf-11f1-b63c-ad38c4d0889d",
+      "title": "محافظ",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "6555b1f0-5423-11f1-968b-73f017ca1e85",
+      "title": "جاده های سرد",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "44eed310-5423-11f1-bfd5-fb798a086049",
+      "title": "درخت گلابی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "29307200-5423-11f1-a0e6-01c75e0dd48a",
+      "title": "در سکوت",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "09a77570-5423-11f1-9493-a183c83e77de",
+      "title": "چهره",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "b9c3a530-05a7-11f1-aff9-fba19fcfb4be",
+      "title": "هلندی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "e806fd10-5cd7-11f1-9e0f-0d876395ffc0",
+      "title": "اولیویا و زلزله نامرئی",
+      "result": "rejected",
+      "reason": "request-budget",
+      "retryLater": true
+    }
+  ],
   "seriesEpisodeDiagnostics": [
-    {
-      "seriesId": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-      "title": "آن:به دری خوش آمدید",
-      "source": "fast-backfill",
-      "discoveredEpisodeCount": 26,
-      "catalogEpisodeCount": 8,
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 10
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 12
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 13
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 14
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 15
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 18
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 20
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 22
-        }
-      ],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-      "title": "آن:به دری خوش آمدید",
-      "source": "fast-backfill-summary",
-      "missingBefore": [],
-      "pendingBefore": 9,
-      "missingAfter": [],
-      "pendingAfter": 9,
-      "publicationStatus": "published",
-      "result": "no-progress",
-      "addedEpisodes": 0,
-      "unavailableMarked": 0
-    },
     {
       "seriesId": "9dcad570-cdf0-11f0-a0a0-eddd96259c2c",
       "title": "ناینیای قدرتمند",
@@ -1079,18 +1273,18 @@
       "isAiring": true
     }
   ],
-  "episodesDiscovered": 80,
+  "episodesDiscovered": 54,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
-  "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 3,
-  "affiliateRequests": 0,
-  "affiliateCacheHits": 0,
-  "affiliateNotFound": 0,
+  "moviesAddedOrUpdated": 32,
+  "seriesAddedOrUpdated": 2,
+  "affiliateRequests": 66,
+  "affiliateCacheHits": 4,
+  "affiliateNotFound": 10,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1115,9 +1309,6 @@
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 4,
-  "lastCheckpointAt": "2026-08-08T04:37:14.823Z",
-  "lastCheckpointReason": "backfill-paused-4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-  "remainingRunMsAtCheckpoint": 1077998,
-  "finishedAt": "2026-08-08T04:37:16.546Z"
+  "apiRequests": 90,
+  "finishedAt": "2026-08-08T05:39:20.969Z"
 }
