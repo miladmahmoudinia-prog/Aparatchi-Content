@@ -2,6 +2,7 @@ import { createReadStream } from 'node:fs';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { writeClientCatalogArtifacts } from './client-catalog.mjs';
 import readline from 'node:readline';
 import { Readable } from 'node:stream';
 import { createGunzip } from 'node:zlib';
@@ -559,12 +560,17 @@ async function mirrorTmdbPoster(value) {
 
 async function writeCatalogAndManifest(value) {
   const serialized = `${JSON.stringify(value, null, 2)}\n`;
+  const clientArtifacts = await writeClientCatalogArtifacts(root, value);
   const manifest = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     revision: createHash('sha256').update(serialized).digest('hex'),
+    clientRevision: clientArtifacts.clientRevision,
     catalogVersion: cleanText(value?.version),
     catalogUpdatedAt: cleanText(value?.updatedAt),
     sizeBytes: Buffer.byteLength(serialized),
+    clientSizeBytes: clientArtifacts.clientSizeBytes,
+    clientIndex: 'catalog-index.json',
+    detailBase: 'catalog-items/',
   };
   await Promise.all([
     fs.writeFile(catalogPath, serialized, 'utf8'),

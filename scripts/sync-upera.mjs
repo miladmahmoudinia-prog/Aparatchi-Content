@@ -3,10 +3,11 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { writeClientCatalogArtifacts } from './client-catalog.mjs';
 
 const API_BASE = 'https://seeko.film/api/v1';
 const IRANIAN_SERIES_SCAN_VERSION = 3;
-const CATALOG_VERSION = '0.16.0-monotonic-series-fast-artwork';
+const CATALOG_VERSION = '0.17.0-stability-client-index';
 
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
@@ -416,11 +417,64 @@ let items = Array.isArray(catalog.items)
   ? catalog.items.filter(Boolean)
   : [];
 
-const originalSeriesById = new Map(
-  items
-    .filter((item) => item?.type === 'series' && item?.id)
-    .map((item) => [String(item.id), structuredClone(item)]),
-);
+// Repair damage from older destructive sync revisions once. The workflow now
+// fetches recent history, so any series that used to be visible but vanished
+// from catalog.json can be restored before the monotonic guard takes over.
+if (!state.historicalVisibleSeriesRecoveryCompleted) {
+  try {
+    const { stdout: historyOutput } = await execFileAsync(
+      'git',
+      ['log', '--format=%H', '-n', '40', '--', 'catalog.json'],
+      { cwd: root, maxBuffer: 2 * 1024 * 1024 },
+    );
+    const commits = String(historyOutput || '').split(/\r?\n/).map((value) => value.trim()).filter(Boolean);
+    if (commits.length > 1) {
+      const knownIds = new Set(items.filter((item) => item?.type === 'series' && item?.id).map((item) => String(item.id)));
+      let recovered = 0;
+      for (const commit of commits.slice(1)) {
+        if (recovered >= 120) break;
+        let historicalCatalog;
+        try {
+          const { stdout } = await execFileAsync(
+            'git',
+            ['show', `${commit}:catalog.json`],
+            { cwd: root, maxBuffer: 64 * 1024 * 1024 },
+          );
+          historicalCatalog = JSON.parse(stdout);
+        } catch {
+          continue;
+        }
+        for (const historicalItem of Array.isArray(historicalCatalog?.items) ? historicalCatalog.items : []) {
+          if (historicalItem?.type !== 'series' || !historicalItem?.id) continue;
+          const id = String(historicalItem.id);
+          if (knownIds.has(id)) continue;
+          const downloads = Array.isArray(historicalItem.downloads) ? historicalItem.downloads : [];
+          const hadVisibleMedia = downloads.some((group) => Array.isArray(group?.files) && group.files.length > 0);
+          const explicitlyVisible = Boolean(
+            historicalItem.visibilityLocked ||
+            historicalItem.publicationStatus === 'published',
+          );
+          const predatesPublicationGate = historicalItem.publicationStatus === undefined;
+          if (!hadVisibleMedia || (!explicitlyVisible && !predatesPublicationGate)) continue;
+          items.push({
+            ...historicalItem,
+            visibilityLocked: true,
+            publicationStatus: 'published',
+          });
+          knownIds.add(id);
+          recovered += 1;
+          if (recovered >= 120) break;
+        }
+      }
+      state.historicalVisibleSeriesRecoveryCompleted = true;
+      state.historicalVisibleSeriesRecoveredCount = recovered;
+      if (recovered > 0) console.log(`بازیابی تاریخی: ${recovered} سریال حذف‌شده دوباره به کاتالوگ برگشت.`);
+    }
+  } catch {
+    // Local/test environments may have no git history. Do not mark migration
+    // complete there; the GitHub workflow will retry with fetched history.
+  }
+}
 
 // One-time compatibility migration: series that already existed before this
 // patch were visible to users. Keep those titles visible while their archive is
@@ -440,6 +494,14 @@ if (!state.legacySeriesVisibilityMigrationCompleted) {
   ));
   state.legacySeriesVisibilityMigrationCompleted = true;
 }
+
+// Snapshot the post-migration visibility state. This is the exact set of series
+// the current run is forbidden to remove or hide.
+const originalSeriesById = new Map(
+  items
+    .filter((item) => item?.type === 'series' && item?.id)
+    .map((item) => [String(item.id), structuredClone(item)]),
+);
 
 // Operator access is recomputed from validated files on every run. This
 // removes stale badges/categories created by older, overly broad matching.
@@ -730,21 +792,41 @@ if (effectiveSyncMode === 'PEOPLE') {
 }
 
 // Existing series are append/update-only. No hourly sync stage is allowed to
-// make the series library smaller because a source endpoint temporarily missed
-// an item or a broad dedupe rule collapsed two concrete IDs.
-const currentSeriesIds = new Set(
-  items.filter((item) => item?.type === 'series').map((item) => String(item.id)),
+// remove a concrete series ID. More importantly, a series that was visible at
+// the START of this run can never become hidden because a later API response
+// was partial. Building archives remain hidden until genuinely publishable.
+const currentSeriesById = new Map(
+  items
+    .filter((item) => item?.type === 'series' && item?.id)
+    .map((item) => [String(item.id), item]),
 );
 for (const [id, originalSeries] of originalSeriesById.entries()) {
-  if (currentSeriesIds.has(id)) continue;
-  const restored = {
-    ...originalSeries,
-    visibilityLocked: true,
-    publicationStatus: 'published',
-  };
-  items.push(restored);
-  currentSeriesIds.add(id);
-  stats.seriesRestoredByMonotonicGuard += 1;
+  const wasVisible = Boolean(
+    originalSeries.visibilityLocked ||
+    originalSeries.publicationStatus === 'published',
+  );
+  const current = currentSeriesById.get(id);
+  if (!current) {
+    const restored = wasVisible
+      ? { ...originalSeries, visibilityLocked: true, publicationStatus: 'published' }
+      : originalSeries;
+    items.push(restored);
+    currentSeriesById.set(id, restored);
+    stats.seriesRestoredByMonotonicGuard += 1;
+    continue;
+  }
+
+  if (wasVisible && current.publicationStatus !== 'published') {
+    const index = items.indexOf(current);
+    const restoredVisibility = {
+      ...current,
+      visibilityLocked: true,
+      publicationStatus: 'published',
+    };
+    if (index >= 0) items[index] = restoredVisibility;
+    currentSeriesById.set(id, restoredVisibility);
+    stats.seriesRestoredByMonotonicGuard += 1;
+  }
 }
 
 items.sort((a, b) => {
@@ -4181,6 +4263,11 @@ function normalizeSeries(
         : [],
     archiveComplete: Boolean(archiveMeta.archiveComplete),
     publicationStatus: archiveMeta.publicationStatus || 'building-archive',
+    visibilityLocked: Boolean(
+      existing?.visibilityLocked ||
+      existing?.publicationStatus === 'published' ||
+      archiveMeta.publicationStatus === 'published'
+    ),
     isAiring: Boolean(archiveMeta.isAiring),
     archiveEpisodeDiscoveryComplete:
       archiveMeta.episodeDiscoveryComplete !== false,
@@ -5008,10 +5095,16 @@ function withSeriesPublicationState(item) {
 
   const deficit = seriesArchiveDeficit(item);
   const hasArchiveMetadata = hasSeriesArchiveMetadata(item);
+  const hasEpisodes = (Array.isArray(item.downloads) ? item.downloads.length : 0) > 0;
+  const visibilityLocked = Boolean(
+    item.visibilityLocked ||
+    (item.publicationStatus === 'published' && hasEpisodes)
+  );
 
-  if (item.visibilityLocked && (Array.isArray(item.downloads) ? item.downloads.length : 0) > 0) {
+  if (visibilityLocked && hasEpisodes) {
     return {
       ...item,
+      visibilityLocked: true,
       archiveComplete:
         deficit.total === 0 &&
         item.archiveEpisodeDiscoveryComplete !== false &&
@@ -6626,12 +6719,17 @@ async function writeJson(
 
 async function writeCatalogAndManifest(value) {
   const serialized = `${JSON.stringify(value, null, 2)}\n`;
+  const clientArtifacts = await writeClientCatalogArtifacts(root, value);
   const manifest = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     revision: createHash('sha256').update(serialized).digest('hex'),
+    clientRevision: clientArtifacts.clientRevision,
     catalogVersion: cleanText(value?.version || CATALOG_VERSION),
     catalogUpdatedAt: cleanText(value?.updatedAt || ''),
     sizeBytes: Buffer.byteLength(serialized),
+    clientSizeBytes: clientArtifacts.clientSizeBytes,
+    clientIndex: 'catalog-index.json',
+    detailBase: 'catalog-items/',
   };
   await fs.writeFile(catalogPath, serialized, 'utf8');
   await writeJson(catalogManifestPath, manifest);
