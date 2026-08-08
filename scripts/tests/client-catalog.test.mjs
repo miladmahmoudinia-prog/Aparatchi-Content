@@ -58,3 +58,44 @@ test('client index never exposes building archive series, but never drops a lock
   const artifacts = buildClientCatalogArtifacts(catalog);
   assert.deepEqual(artifacts.index.items.map((item) => item.id), ['locked', 'published', 'movie']);
 });
+
+test('client summary carries lightweight dubbing and subtitle badges without media payloads', () => {
+  const item = {
+    id: 'movie-language', type: 'movie', nameFa: 'نمونه', name: 'Sample',
+    downloads: [
+      { id: 'dub', title: 'دوبله فارسی', files: [{ id: 'd', label: 'کیفیت 720 دوبله', url: 'https://cdn.test/d.mp4' }] },
+      { id: 'sub', title: 'زیرنویس فارسی', files: [{ id: 's', label: '1080 subtitle', url: 'https://cdn.test/s.mp4' }] },
+    ],
+  };
+  const { summary } = clientSummaryForItem(item);
+  assert.deepEqual(summary.availableLanguages, ['dubbed', 'subtitled']);
+  assert.equal('downloads' in summary, false);
+});
+
+test('client summary recognizes language from lightweight file metadata and carries collection identity', () => {
+  const item = {
+    id: 'collection-language', type: 'movie', nameFa: 'نمونه کالکشن', name: 'Collection Sample',
+    collectionId: 'tmdb:42', collectionNameFa: 'مجموعه نمونه', collectionName: 'Sample Collection',
+    downloads: [
+      { id: 'dub', files: [{ id: 'd', language: 'dubbed', url: 'https://cdn.test/d.mp4' }] },
+      { id: 'sub', files: [{ id: 's', language: 'subtitled', url: 'https://cdn.test/s.mp4' }] },
+    ],
+  };
+  const { summary } = clientSummaryForItem(item);
+  assert.deepEqual(summary.availableLanguages, ['dubbed', 'subtitled']);
+  assert.equal(summary.collectionId, 'tmdb:42');
+  assert.equal(summary.collectionNameFa, 'مجموعه نمونه');
+});
+
+test('confirmed unavailable movies are hidden from the client index but kept server-side', () => {
+  const catalog = {
+    version: '1', updatedAt: 'now',
+    items: [
+      { id: 'dead', type: 'movie', nameFa: 'خراب', name: 'Dead', mediaAuditStatus: 'confirmed-unavailable' },
+      { id: 'retry', type: 'movie', nameFa: 'در حال بررسی', name: 'Retry', mediaAuditStatus: 'broken-links' },
+    ],
+  };
+  const artifacts = buildClientCatalogArtifacts(catalog);
+  assert.deepEqual(artifacts.index.items.map((item) => item.id), ['retry']);
+  assert.equal(catalog.items.length, 2);
+});

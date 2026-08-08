@@ -13,7 +13,7 @@ const SUMMARY_FIELDS = [
   'archivePendingEpisodeCount', 'sourceEpisodeCount', 'archiveAuditStatus',
   'archiveEpisodeDiscoveryComplete', 'updateLabel', 'meaningfulUpdatedAt',
   'categoryKeys', 'categoryLabels', 'contentKind', 'isAnimation', 'isAnime', 'isTalkShow',
-  'isDocumentary', 'createdAt', 'updatedAt', 'sourceCreatedAt', 'sourceUpdatedAt',
+  'isDocumentary', 'mediaAuditStatus', 'createdAt', 'updatedAt', 'sourceCreatedAt', 'sourceUpdatedAt',
   'tmdbValidationVersion',
 ];
 
@@ -32,6 +32,22 @@ export function clientSummaryForItem(item) {
     if (Object.prototype.hasOwnProperty.call(item || {}, field)) summary[field] = item[field];
   }
   if (summary.overview) summary.overview = truncateOverview(summary.overview);
+  if (!Array.isArray(summary.availableLanguages) || !summary.availableLanguages.length) {
+    const text = (Array.isArray(item?.downloads) ? item.downloads : [])
+      .flatMap((section) => [
+        section?.title,
+        section?.badge,
+        ...(Array.isArray(section?.files)
+          ? section.files.flatMap((file) => [file?.label, file?.language])
+          : []),
+      ])
+      .filter(Boolean)
+      .join(' ');
+    summary.availableLanguages = [
+      /دوبله|dubbed|\bdub\b/i.test(text) ? 'dubbed' : '',
+      /زیر\s*نویس|subtitle|subbed|\bsub\b/i.test(text) ? 'subtitled' : '',
+    ].filter(Boolean);
+  }
 
   const identityHash = digest(`${item?.type || 'item'}:${item?.id || ''}`, 12);
   const detailSerialized = `${stableJson(item)}\n`;
@@ -42,6 +58,7 @@ export function clientSummaryForItem(item) {
 
 const isClientVisibleItem = (item) => {
   if (!item || !item.id || !item.type) return false;
+  if (item.type === 'movie' && item.mediaAuditStatus === 'confirmed-unavailable') return false;
   if (item.type !== 'series') return true;
   // Building archive series stay server-side until they are publishable. Once a
   // series has ever been visible, visibilityLocked keeps it in the client index

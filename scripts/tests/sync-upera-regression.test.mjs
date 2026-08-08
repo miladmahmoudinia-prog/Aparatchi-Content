@@ -133,7 +133,7 @@ async function runSync(cwd, options = {}) {
   };
 }
 
-test('a permanent affiliate 404 is tried once per run, then stops blocking publication', async () => {
+test('a permanent affiliate 404 never falsely completes a gapped archive', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-sync-regression-'));
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());
   await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
@@ -148,19 +148,19 @@ test('a permanent affiliate 404 is tried once per run, then stops blocking publi
 
       const item = result.catalog.items[0];
       assert.ok(item.people.some((person) => person.id === 'legacy-director-1'), 'previous cast and crew is preserved');
-      if (run < 3) {
-        assert.equal(item.publicationStatus, 'building-archive');
-      } else {
-        assert.equal(item.publicationStatus, 'published');
-        assert.equal(item.archiveComplete, true);
-        assert.equal(item.archiveUnavailableEpisodes.length, 1);
-        assert.equal(item.archivePendingEpisodeCount, 0);
-      }
+      assert.equal(item.publicationStatus, 'building-archive');
+      assert.equal(item.archiveComplete, false);
+      assert.equal(item.archivePendingEpisodeCount, 1);
+      if (run < 3) assert.equal(item.archiveUnavailableEpisodes.length, 0);
+      else assert.equal(item.archiveUnavailableEpisodes.length, 1, 'failure marker is diagnostic only, not completeness');
+      assert.equal(result.state.archiveBackfillSeriesId, 'series-1', 'same archive stays active while it is retryable');
     }
 
-    const idleResult = await runSync(fixtureDirectory);
-    assert.equal(Number(idleResult.report.apiRequests || 0), 0, 'fresh unavailable marker is not retried hourly');
-    assert.equal(idleResult.catalog.items[0].publicationStatus, 'published');
+    const coolingDown = await runSync(fixtureDirectory);
+    assert.equal(Number(coolingDown.report.apiRequests || 0), 0, 'fresh unavailable marker observes retry cooldown');
+    assert.equal(coolingDown.catalog.items[0].publicationStatus, 'building-archive');
+    assert.equal(coolingDown.catalog.items[0].archiveComplete, false);
+    assert.equal(coolingDown.catalog.items[0].archivePendingEpisodeCount, 1);
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }

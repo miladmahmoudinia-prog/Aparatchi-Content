@@ -7,7 +7,7 @@ import { writeClientCatalogArtifacts } from './client-catalog.mjs';
 
 const API_BASE = 'https://seeko.film/api/v1';
 const IRANIAN_SERIES_SCAN_VERSION = 3;
-const CATALOG_VERSION = '0.17.0-stability-client-index';
+const CATALOG_VERSION = '0.18.0-stability-categories-media';
 
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
@@ -208,9 +208,9 @@ const episodeUnavailableAfterAttempts = Math.min(
   positiveInt(process.env.UPERA_EPISODE_UNAVAILABLE_AFTER_ATTEMPTS, 3),
 );
 
-// An episode that repeatedly has no usable affiliate link must not keep an
-// otherwise complete series hidden forever. It is treated as unavailable and
-// rechecked occasionally (or sooner when the source timestamp changes).
+// Repeatedly unavailable source episodes are tracked for diagnostics and
+// retry scheduling, but they still count as missing. Archive backfill stays on
+// the same series until every discoverable source episode has usable media.
 const unavailableEpisodeRetryHours = Math.min(
   24 * 30,
   positiveInt(process.env.UPERA_UNAVAILABLE_EPISODE_RETRY_HOURS, 168),
@@ -346,6 +346,9 @@ const defaultState = {
   peopleEnrichmentOffset: 0,
   peopleEnrichmentFailures: {},
   episodeArtworkOffset: 0,
+  mediaRepairOffset: 0,
+  mediaHealthOffset: 0,
+  mediaRepairFailures: {},
   lastPeopleEnrichmentAt: null,
   lastSyncAt: null,
 };
@@ -371,6 +374,9 @@ state.operatorMovieOffset = nonNegativeInt(state.operatorMovieOffset, 0);
 state.airingSeriesOffset = nonNegativeInt(state.airingSeriesOffset, 0);
 state.peopleEnrichmentOffset = nonNegativeInt(state.peopleEnrichmentOffset, 0);
 state.episodeArtworkOffset = nonNegativeInt(state.episodeArtworkOffset, 0);
+state.mediaRepairOffset = nonNegativeInt(state.mediaRepairOffset, 0);
+state.mediaHealthOffset = nonNegativeInt(state.mediaHealthOffset, 0);
+if (!state.mediaRepairFailures || typeof state.mediaRepairFailures !== 'object' || Array.isArray(state.mediaRepairFailures)) state.mediaRepairFailures = {};
 if (
   !state.peopleEnrichmentFailures ||
   typeof state.peopleEnrichmentFailures !== 'object' ||
@@ -653,6 +659,17 @@ const stats = {
   tmdbRequests: 0,
   imdbRequests: 0,
 
+  mediaRepairCandidates: 0,
+  mediaRepairChecked: 0,
+  mediaRepairRecovered: 0,
+  mediaRepairStillMissing: 0,
+  mediaRepairHiddenConfirmed: 0,
+  mediaHealthCandidates: 0,
+  mediaHealthChecked: 0,
+  mediaHealthHealthy: 0,
+  mediaHealthDead: 0,
+  mediaHealthUnknown: 0,
+  mediaHealthRecovered: 0,
   removedWithoutFreeLinks: 0,
   errors: [],
   errorsTruncated: 0,
@@ -713,6 +730,22 @@ if (effectiveSyncMode === 'PEOPLE') {
       'recent-movies',
       recentMovieRequestQuota,
       syncRecentMovieDiscovery,
+    );
+  }
+
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-media-repair', 80000)) {
+    await withAffiliateRequestScope(
+      'media-repair',
+      Math.min(30, recentMovieRequestQuota),
+      syncIncompleteMovieMedia,
+    );
+  }
+
+  if (!runTimeBudgetReached('before-media-health-audit', 70000)) {
+    await withAffiliateRequestScope(
+      'media-health-audit',
+      Math.min(12, recentMovieRequestQuota),
+      syncMovieMediaHealthAudit,
     );
   }
 
@@ -1004,6 +1037,185 @@ async function collectRecentPageCandidates(kind, pageCount) {
     }
   }
   return dedupeCandidates(collected);
+}
+
+function movieHasUsableMedia(item) {
+  if (isDirectMediaUrl(item?.streamUrl)) return true;
+  return (Array.isArray(item?.downloads) ? item.downloads : []).some(
+    (section) => (Array.isArray(section?.files) ? section.files : []).some((file) =>
+      isDirectMediaUrl(file?.url) || isValidStoredOperatorFile(file),
+    ),
+  );
+}
+
+function movieRepresentativeDirectUrl(item) {
+  if (isDirectMediaUrl(item?.streamUrl)) return cleanText(item.streamUrl);
+  for (const section of Array.isArray(item?.downloads) ? item.downloads : []) {
+    for (const file of Array.isArray(section?.files) ? section.files : []) {
+      if (isDirectMediaUrl(file?.url)) return cleanText(file.url);
+    }
+  }
+  return '';
+}
+
+async function probeDirectMediaUrl(urlValue) {
+  const url = cleanText(urlValue);
+  if (!isDirectMediaUrl(url)) return 'unknown';
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      redirect: 'follow',
+      signal: controller.signal,
+      headers: /\.mp4(?:$|[?#])/i.test(url)
+        ? { Range: 'bytes=0-1', Accept: '*/*' }
+        : { Range: 'bytes=0-2047', Accept: '*/*' },
+    });
+    const status = Number(response.status || 0);
+    try { await response.body?.cancel(); } catch { /* no-op */ }
+    if (status === 200 || status === 206) return 'healthy';
+    if (status === 404 || status === 410) return 'dead';
+    return 'unknown';
+  } catch {
+    return 'unknown';
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function syncMovieMediaHealthAudit() {
+  const nowMs = Date.now();
+  const healthyRetryMs = 7 * 24 * 60 * 60 * 1000;
+  const suspectRetryMs = 12 * 60 * 60 * 1000;
+  const candidates = items.filter((item) => {
+    if (item?.type !== 'movie' || !movieHasUsableMedia(item)) return false;
+    const url = movieRepresentativeDirectUrl(item);
+    if (!url) return false; // Operator portal links are validated structurally elsewhere.
+    const last = Date.parse(String(item?.mediaAuditCheckedAt || '')) || 0;
+    const retryMs = ['broken-links', 'missing-links', 'confirmed-unavailable'].includes(String(item?.mediaAuditStatus || ''))
+      ? suspectRetryMs
+      : healthyRetryMs;
+    return !last || nowMs - last >= retryMs;
+  });
+  stats.mediaHealthCandidates = candidates.length;
+  if (!candidates.length) { state.mediaHealthOffset = 0; return; }
+
+  const limit = Math.min(24, candidates.length);
+  const start = state.mediaHealthOffset % candidates.length;
+  const selected = Array.from({ length: limit }, (_, step) => candidates[(start + step) % candidates.length]);
+  const results = [];
+  for (let offset = 0; offset < selected.length; offset += 4) {
+    if (runTimeBudgetReached('media-health-probe', 50000)) break;
+    const batch = selected.slice(offset, offset + 4);
+    results.push(...await Promise.all(batch.map(async (item) => ({
+      item,
+      status: await probeDirectMediaUrl(movieRepresentativeDirectUrl(item)),
+    }))));
+  }
+
+  let repairsUsed = 0;
+  for (const result of results) {
+    const item = result.item;
+    const id = String(item.id);
+    const current = items.find((entry) => entry?.type === 'movie' && String(entry?.id) === id);
+    if (!current) continue;
+    let target = current;
+    stats.mediaHealthChecked += 1;
+    target.mediaAuditCheckedAt = new Date().toISOString();
+
+    if (result.status === 'healthy') {
+      target.mediaAuditStatus = 'ok';
+      delete state.mediaRepairFailures[id];
+      stats.mediaHealthHealthy += 1;
+      continue;
+    }
+    if (result.status !== 'dead') {
+      stats.mediaHealthUnknown += 1;
+      continue;
+    }
+
+    stats.mediaHealthDead += 1;
+    const failure = state.mediaRepairFailures[id] || { count: 0, firstAt: new Date().toISOString() };
+    failure.count = nonNegativeInt(failure.count, 0) + 1;
+    failure.lastAt = new Date().toISOString();
+    state.mediaRepairFailures[id] = failure;
+    target.mediaAuditStatus = 'broken-links';
+
+    // A dead CDN URL can often be repaired by refreshing the affiliate payload.
+    // Bound this expensive path so catalog health checks never starve discovery.
+    if (repairsUsed < 6 && !affiliateBudgetExhausted && !affiliateScopeExhausted) {
+      repairsUsed += 1;
+      const beforeUrl = movieRepresentativeDirectUrl(target);
+      const refreshed = await processMovie(target, 'media-health-repair', { replaceMedia: true });
+      const refreshedItem = items.find((entry) => entry?.type === 'movie' && String(entry?.id) === id);
+      const afterUrl = movieRepresentativeDirectUrl(refreshedItem);
+      if (refreshed?.added && refreshedItem && afterUrl) {
+        target = refreshedItem;
+        const recheck = await probeDirectMediaUrl(afterUrl);
+        refreshedItem.mediaAuditCheckedAt = new Date().toISOString();
+        if (recheck === 'healthy') {
+          refreshedItem.mediaAuditStatus = 'ok';
+          delete state.mediaRepairFailures[id];
+          stats.mediaHealthRecovered += 1;
+          continue;
+        }
+        // If the source returned the same dead URL, preserve the failure count.
+        if (afterUrl !== beforeUrl && recheck === 'unknown') {
+          refreshedItem.mediaAuditStatus = 'missing-links';
+          continue;
+        }
+      }
+    }
+
+    const spanMs = Date.now() - (Date.parse(failure.firstAt) || Date.now());
+    if (failure.count >= 3 && spanMs >= 20 * 60 * 60 * 1000) {
+      target.mediaAuditStatus = 'confirmed-unavailable';
+      stats.mediaRepairHiddenConfirmed += 1;
+    }
+  }
+
+  state.mediaHealthOffset = (start + Math.max(1, stats.mediaHealthChecked)) % Math.max(1, candidates.length);
+}
+
+async function syncIncompleteMovieMedia() {
+  const nowMs = Date.now();
+  const retryMs = 12 * 60 * 60 * 1000;
+  const candidates = items.filter((item) => {
+    if (item?.type !== 'movie' || movieHasUsableMedia(item)) return false;
+    const last = Date.parse(String(item?.mediaAuditCheckedAt || '')) || 0;
+    return !last || nowMs - last >= retryMs;
+  });
+  stats.mediaRepairCandidates = candidates.length;
+  if (!candidates.length) { state.mediaRepairOffset = 0; return; }
+  const limit = Math.min(24, candidates.length);
+  const start = state.mediaRepairOffset % candidates.length;
+  for (let step = 0; step < limit; step += 1) {
+    if (affiliateBudgetExhausted || affiliateScopeExhausted || runTimeBudgetReached('media-repair', 70000)) break;
+    const item = candidates[(start + step) % candidates.length];
+    const id = String(item.id);
+    stats.mediaRepairChecked += 1;
+    const result = await processMovie(item, 'media-repair');
+    const current = items.find((entry) => entry?.type === 'movie' && String(entry?.id) === id);
+    if (result?.added && current && movieHasUsableMedia(current)) {
+      current.mediaAuditStatus = 'ok';
+      current.mediaAuditCheckedAt = new Date().toISOString();
+      delete state.mediaRepairFailures[id];
+      stats.mediaRepairRecovered += 1;
+    } else if (current && result?.reason === 'no-usable-links') {
+      const failure = state.mediaRepairFailures[id] || { count: 0, firstAt: new Date().toISOString() };
+      failure.count = nonNegativeInt(failure.count, 0) + 1;
+      failure.lastAt = new Date().toISOString();
+      state.mediaRepairFailures[id] = failure;
+      current.mediaAuditStatus = failure.count >= 3 && (Date.now() - (Date.parse(failure.firstAt) || Date.now())) >= 20 * 60 * 60 * 1000
+        ? 'confirmed-unavailable'
+        : 'missing-links';
+      current.mediaAuditCheckedAt = failure.lastAt;
+      if (current.mediaAuditStatus === 'confirmed-unavailable') stats.mediaRepairHiddenConfirmed += 1;
+      else stats.mediaRepairStillMissing += 1;
+    }
+  }
+  state.mediaRepairOffset = (start + Math.max(1, stats.mediaRepairChecked)) % Math.max(1, candidates.length);
 }
 
 async function syncRecentMovieDiscovery() {
@@ -1355,7 +1567,10 @@ async function syncSequentialSeriesBackfill() {
         reason: result?.reason || 'no-progress',
         attempts: noProgressRuns,
       });
-      clearActiveBackfillSeries();
+      // Keep the active id locked. The next hourly BACKFILL retries this exact
+      // series instead of advancing to a different archive with a visible gap.
+      state.archiveBackfillSeriesId = id;
+      state.archiveBackfillSeriesTitle = title;
     }
 
     await persistSyncCheckpoint(`backfill-paused-${id}`);
@@ -1983,7 +2198,7 @@ async function processMovie(candidate, source, options = {}) {
   }
 
   const existing = findExistingItem(movie, 'movie');
-  const mergedMedia = mergeMovieMedia(existing, media);
+  const mergedMedia = options.replaceMedia === true ? media : mergeMovieMedia(existing, media);
   const normalized = normalizeMovie(movie, mergedMedia, source, existing);
 
   replaceItem(normalized);
@@ -2305,13 +2520,11 @@ async function processSeries(
     updateLabel = 'بروزرسانی شد';
   }
 
-  // A repeatedly unavailable source episode is excluded from the publishability
-  // deficit and retried on a bounded schedule. This prevents a permanent 404
-  // from hiding an otherwise complete series forever.
+  // Every source episode without a matching usable group stays in the archive
+  // deficit, even after repeated failures. This is what keeps the backfill queue
+  // on the same series instead of silently publishing a gapped archive.
   const remainingSourceEpisodes = episodes.filter(
-    (episode) =>
-      !findEpisodeGroup(mergedGroups, episode) &&
-      !unavailableEpisodeMap.has(archiveEpisodeKey(id, episode)),
+    (episode) => !findEpisodeGroup(mergedGroups, episode),
   );
   const archiveComplete =
     episodeDiscoveryComplete &&
@@ -3733,7 +3946,7 @@ function mergeDuplicateCatalogPair(current, incoming) {
     countryLabels: uniqueStrings([...(current.countryLabels || []), ...(incoming.countryLabels || [])]),
     countryNames: uniqueStrings([...(current.countryNames || []), ...(incoming.countryNames || [])]),
     people: mergePeople(current.people, incoming.people),
-    availableLanguages: uniqueStrings([...(current.availableLanguages || []), ...(incoming.availableLanguages || [])]),
+    availableLanguages: uniqueStrings([...(Array.isArray(current.availableLanguages) ? current.availableLanguages : []), ...(Array.isArray(incoming.availableLanguages) ? incoming.availableLanguages : [])]),
     categoryKeys: uniqueStrings([...(current.categoryKeys || []), ...(incoming.categoryKeys || [])]),
     categoryLabels: uniqueStrings([...(current.categoryLabels || []), ...(incoming.categoryLabels || [])]),
     downloads,
@@ -4380,17 +4593,32 @@ function classifyContent(
   const existing = metadata.existing || {};
   const existingKind = normalizeClassificationText(existing.contentKind);
   const allowExistingFallback = normalizedGenres.length === 0;
+  const trustedExistingClassification = Number(existing.tmdbValidationVersion || 0) >= 3;
 
-  const isAnimation = normalizedGenres.some((genre) =>
-    genre.includes('انیمیشن') || genre.includes('animation'),
-  ) || Boolean(allowExistingFallback && existing.isAnimation);
+  const forcedLiveAction = hasClassificationTerm(titleText, [
+    'عشق احتمالی', 'muhtemel ask', 'muhtemel aşk',
+    'خاله نسرین', 'aunt nasrin', 'ترانه های کودکانه خاله نسرین',
+  ]);
+  const genreSaysAnimation = normalizedGenres.some((genre) => genre.includes('انیمیشن') || genre.includes('animation'));
+  const isAnimation = !forcedLiveAction && (
+    trustedExistingClassification
+      ? existing.isAnimation === true
+      : genreSaysAnimation || Boolean(allowExistingFallback && existing.isAnimation)
+  );
 
-  const knownNarrativeWhistle = hasClassificationTerm(titleText, ['سوت', 'whistle']) &&
-    hasClassificationTerm(genreText, ['ترسناک', 'وحشت', 'هیجان انگیز', 'horror', 'thriller', 'drama']);
-  const isDocumentary = !knownNarrativeWhistle && (
-    normalizedGenres.some((genre) =>
-      genre.includes('مستند') || genre.includes('documentary'),
-    ) || Boolean(allowExistingFallback && existingKind === 'documentary')
+  const narrativeGenre = hasClassificationTerm(genreText, [
+    'درام', 'ترسناک', 'وحشت', 'هیجان انگیز', 'اکشن', 'کمدی', 'عاشقانه', 'خانوادگی',
+    'drama', 'horror', 'thriller', 'action', 'comedy', 'romance', 'family',
+  ]);
+  const documentaryGenre = normalizedGenres.some((genre) =>
+    genre.includes('مستند') || genre.includes('documentary'),
+  );
+  const knownNarrativeWhistle = hasClassificationTerm(titleText, ['سوت', 'whistle']);
+  const knownNarrativeFather = hasClassificationTerm(titleText, ['پدر', 'father']) && narrativeGenre;
+  const isDocumentary = !knownNarrativeWhistle && !knownNarrativeFather && (
+    trustedExistingClassification
+      ? existing.isDocumentary === true
+      : (documentaryGenre && !narrativeGenre) || Boolean(allowExistingFallback && existingKind === 'documentary')
   );
 
   const adultOrHeavy = hasClassificationTerm(genreText, [
@@ -4509,6 +4737,11 @@ function classifyContent(
   if (isDocumentary) {
     categoryKeys.push('documentaries');
     categoryLabels.push('مستند');
+    const wildlifeText = `${titleText} ${genreText}`;
+    if (hasClassificationTerm(wildlifeText, ['حیات وحش', 'طبیعت', 'جانوران', 'حیوانات', 'زیست بوم', 'اقیانوس', 'wildlife', 'nature', 'animals', 'natural history', 'ocean', 'planet earth'])) {
+      categoryKeys.push('wildlife');
+      categoryLabels.push('حیات وحش');
+    }
   }
 
   let contentKind = type;
@@ -4533,16 +4766,20 @@ function classifyContent(
 function isManagedCategoryKey(value) {
   return [
     'movies', 'series', 'iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series',
-    'animation-movies', 'animation-series', 'kids', 'religious', 'quran',
-    'programs', 'talk-shows', 'reality', 'documentaries',
+    'animation-movies', 'animation-series', 'anime-movies', 'anime-series',
+    'korean-movies', 'korean-series', 'indian-movies', 'japanese-movies',
+    'kids', 'religious', 'quran', 'programs', 'talk-shows', 'reality',
+    'documentaries', 'wildlife', 'collections',
   ].includes(String(value));
 }
 
 function isManagedCategoryLabel(value) {
   return [
     'فیلم‌ها', 'مجموعه‌ها', 'فیلم ایرانی', 'فیلم خارجی', 'سریال ایرانی', 'سریال خارجی',
-    'انیمیشن سینمایی', 'انیمیشن سریالی', 'کودکان', 'مذهبی و مناسبتی', 'قرآن و ادعیه',
-    'برنامه‌ها و مسابقه‌ها', 'تاک‌شو', 'مسابقه و رئالیتی‌شو', 'مستند',
+    'انیمیشن سینمایی', 'انیمیشن سریالی', 'انیمه سینمایی', 'انیمه سریالی',
+    'فیلم کره‌ای', 'سریال کره‌ای', 'فیلم هندی', 'فیلم ژاپنی',
+    'کودکان', 'مذهبی و مناسبتی', 'قرآن و ادعیه', 'برنامه‌ها و مسابقه‌ها',
+    'تاک‌شو', 'مسابقه و رئالیتی‌شو', 'مستند', 'حیات وحش', 'کالکشن',
   ].includes(String(value));
 }
 
@@ -4552,17 +4789,76 @@ function reclassifyCatalogItem(item) {
     item.type,
     Boolean(item.ir),
     Array.isArray(item.genres) ? item.genres : [],
-    { nameFa: item.nameFa, name: item.name, existing: {} },
+    { nameFa: item.nameFa, name: item.name, existing: item },
   );
   const preservedKeys = (Array.isArray(item.categoryKeys) ? item.categoryKeys : [])
     .filter((key) => !isManagedCategoryKey(key));
   const preservedLabels = (Array.isArray(item.categoryLabels) ? item.categoryLabels : [])
     .filter((label) => !isManagedCategoryLabel(label));
+  const directLanguages = uniqueStrings((Array.isArray(item.downloads) ? item.downloads : [])
+    .flatMap((section) => [section?.title, section?.badge, ...(Array.isArray(section?.files) ? section.files.map((file) => `${file?.label || ''} ${file?.language || ''}`) : [])])
+    .map((value) => {
+      const text = cleanText(value || '');
+      if (/دوبله|dubbed|\bdub\b/i.test(text)) return 'dubbed';
+      if (/زیر\s*نویس|subtitle|subbed|\bsub\b/i.test(text)) return 'subtitled';
+      return '';
+    }).filter(Boolean));
+
+  const categoryKeys = [...classification.categoryKeys, ...preservedKeys];
+  const categoryLabels = [...classification.categoryLabels, ...preservedLabels];
+  let contentKind = classification.contentKind;
+  const isAnime = Boolean(classification.isAnimation && item.isAnime === true);
+
+  if (classification.isAnimation && isAnime) {
+    const genericKey = item.type === 'movie' ? 'animation-movies' : 'animation-series';
+    const genericLabel = item.type === 'movie' ? 'انیمیشن سینمایی' : 'انیمیشن سریالی';
+    const keyIndex = categoryKeys.indexOf(genericKey);
+    if (keyIndex >= 0) categoryKeys.splice(keyIndex, 1);
+    const labelIndex = categoryLabels.indexOf(genericLabel);
+    if (labelIndex >= 0) categoryLabels.splice(labelIndex, 1);
+    categoryKeys.push(item.type === 'movie' ? 'anime-movies' : 'anime-series');
+    categoryLabels.push(item.type === 'movie' ? 'انیمه سینمایی' : 'انیمه سریالی');
+    contentKind = item.type === 'movie' ? 'anime-movie' : 'anime-series';
+  }
+
+  const originalLanguage = cleanText(item.originalLanguage).toLowerCase();
+  const countryCodes = (Array.isArray(item.countryCodes) ? item.countryCodes : [])
+    .map((code) => cleanText(code).toUpperCase())
+    .filter(Boolean);
+  const primaryCountry = countryCodes[0] || '';
+  const regionalEligible = !classification.isAnimation && !classification.isDocumentary &&
+    !classification.categoryKeys.includes('kids') && !classification.categoryKeys.includes('programs') &&
+    contentKind !== 'religious-program';
+  const koreanIdentity = originalLanguage === 'ko' || primaryCountry === 'KR';
+  const indianIdentity = originalLanguage === 'hi' || primaryCountry === 'IN';
+  const japaneseIdentity = originalLanguage === 'ja' || primaryCountry === 'JP';
+
+  if (regionalEligible && item.type === 'movie' && koreanIdentity) {
+    categoryKeys.push('korean-movies'); categoryLabels.push('فیلم کره‌ای');
+  }
+  if (regionalEligible && item.type === 'series' && koreanIdentity) {
+    categoryKeys.push('korean-series'); categoryLabels.push('سریال کره‌ای');
+  }
+  if (regionalEligible && item.type === 'movie' && indianIdentity) {
+    categoryKeys.push('indian-movies'); categoryLabels.push('فیلم هندی');
+  }
+  if (regionalEligible && item.type === 'movie' && japaneseIdentity) {
+    categoryKeys.push('japanese-movies'); categoryLabels.push('فیلم ژاپنی');
+  }
+  if (item.type === 'movie' && item.collectionId) {
+    categoryKeys.push('collections');
+    categoryLabels.push('کالکشن');
+  }
+
+  const previousLanguages = Array.isArray(item.availableLanguages) ? item.availableLanguages : [];
   return {
     ...item,
     ...classification,
-    categoryKeys: uniqueStrings([...classification.categoryKeys, ...preservedKeys]),
-    categoryLabels: uniqueStrings([...classification.categoryLabels, ...preservedLabels]),
+    contentKind,
+    isAnime,
+    availableLanguages: uniqueStrings([...previousLanguages, ...directLanguages]),
+    categoryKeys: uniqueStrings(categoryKeys),
+    categoryLabels: uniqueStrings(categoryLabels),
   };
 }
 
@@ -5031,21 +5327,14 @@ function seriesArchiveDeficit(item) {
   const availableCoordinates = new Set(
     groups.map((group) => archiveEpisodeCoordinateKey(group)),
   );
-  const unavailableCoordinates = new Set(
-    (Array.isArray(item.archiveUnavailableEpisodes)
-      ? item.archiveUnavailableEpisodes
-      : []
-    )
-      .map((entry) => archiveEpisodeCoordinateKey(entry))
-      .filter((coordinate) => !availableCoordinates.has(coordinate)),
-  );
-  const missing = episodeGapsForGroups(groups).filter(
-    (episode) => !unavailableCoordinates.has(archiveEpisodeCoordinateKey(episode)),
-  );
+  // `archiveUnavailableEpisodes` is diagnostic/retry metadata only. It must
+  // never erase a real source episode from the completeness deficit; otherwise
+  // a 404 can turn a visibly gapped archive into `archiveComplete: true`.
+  const missing = episodeGapsForGroups(groups);
   const sourceEpisodeCount = nonNegativeInt(item.sourceEpisodeCount, 0);
   const pendingFromCount = Math.max(
     0,
-    sourceEpisodeCount - availableCoordinates.size - unavailableCoordinates.size,
+    sourceEpisodeCount - availableCoordinates.size,
   );
   const hasExplicitPendingList = Array.isArray(item.archivePendingEpisodes);
   const auditedDiscoveryComplete = Boolean(
@@ -5056,9 +5345,7 @@ function seriesArchiveDeficit(item) {
     hasExplicitPendingList,
   );
   const explicitPendingCount = hasExplicitPendingList
-    ? item.archivePendingEpisodes.filter(
-        (episode) => !unavailableCoordinates.has(archiveEpisodeCoordinateKey(episode)),
-      ).length
+    ? item.archivePendingEpisodes.length
     : 0;
   const pending = auditedDiscoveryComplete
     ? Math.max(pendingFromCount, explicitPendingCount)
