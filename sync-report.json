@@ -1,27 +1,42 @@
 {
-  "startedAt": "2026-08-08T19:54:05.816Z",
-  "runTimeLimitMinutes": 6,
-  "runDeadlineAt": "2026-08-08T20:00:05.629Z",
+  "startedAt": "2026-08-08T19:54:33.561Z",
+  "runTimeLimitMinutes": 18,
+  "runDeadlineAt": "2026-08-08T20:12:33.371Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 336213,
-  "imageMirroringSkipped": false,
+  "remainingRunMsAtFinish": 1065030,
+  "imageMirroringSkipped": true,
   "originalCount": 1220,
   "finalCount": 1220,
-  "requestedSyncMode": "PEOPLE",
-  "effectiveSyncMode": "PEOPLE",
-  "backfillQueueTotal": 71,
-  "backfillBacklogRemaining": 71,
+  "requestedSyncMode": "BACKFILL",
+  "effectiveSyncMode": "BACKFILL",
+  "backfillQueueTotal": 74,
+  "backfillBacklogRemaining": 73,
   "backfillBlockedTotal": 4,
-  "backfillActiveSeries": null,
+  "backfillActiveSeries": {
+    "id": "b176b920-8d84-11f1-8c30-4dd713abdb61",
+    "title": "لاکی",
+    "year": 2026,
+    "country": "",
+    "missingBefore": [],
+    "pendingBefore": 8,
+    "noProgressRuns": 3
+  },
   "backfillSeriesCompletedThisRun": [],
-  "backfillSeriesBlockedThisRun": [],
+  "backfillSeriesBlockedThisRun": [
+    {
+      "id": "b176b920-8d84-11f1-8c30-4dd713abdb61",
+      "title": "لاکی",
+      "reason": "added-or-updated",
+      "attempts": 4
+    }
+  ],
   "backfillEpisodesAdded": 0,
-  "backfillSeriesVisited": 0,
-  "backfillCheckpoints": 0,
+  "backfillSeriesVisited": 1,
+  "backfillCheckpoints": 1,
   "episodesMarkedUnavailable": 0,
-  "backfillNoProgressRuns": 0,
-  "normalSyncSkippedForBackfill": false,
+  "backfillNoProgressRuns": 4,
+  "normalSyncSkippedForBackfill": true,
   "backfillOrdering": "active-then-nearest-completion",
   "backfillNextSeries": null,
   "episodePaginationPagesFetched": 0,
@@ -46,18 +61,18 @@
   "movieTitlesProcessed": 0,
   "seriesPagesProcessed": 0,
   "seriesTitlesProcessed": 0,
-  "airingSeriesCandidates": 0,
-  "airingSeriesChecked": 0,
-  "airingSeriesUpdated": 0,
-  "incompleteSeriesCandidates": 0,
+  "airingSeriesCandidates": 23,
+  "airingSeriesChecked": 6,
+  "airingSeriesUpdated": 1,
+  "incompleteSeriesCandidates": 74,
   "incompleteSeriesRepaired": 0,
-  "incompleteSeriesStillMissing": 0,
+  "incompleteSeriesStillMissing": 1,
   "seriesHiddenUntilComplete": 0,
   "seriesPublishedAfterCompletion": 0,
-  "airingSeriesKeptPublished": 0,
+  "airingSeriesKeptPublished": 1,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 0,
-  "episodesProcessed": 0,
+  "episodesProcessed": 12,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
@@ -73,10 +88,330 @@
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 2,
+  "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "b176b920-8d84-11f1-8c30-4dd713abdb61",
+      "title": "لاکی",
+      "source": "fast-backfill",
+      "discoveredEpisodeCount": 22,
+      "catalogEpisodeCount": 4,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "b176b920-8d84-11f1-8c30-4dd713abdb61",
+      "title": "لاکی",
+      "source": "fast-backfill-summary",
+      "missingBefore": [],
+      "pendingBefore": 8,
+      "missingAfter": [],
+      "pendingAfter": 8,
+      "publicationStatus": "published",
+      "result": "no-progress",
+      "addedEpisodes": 0,
+      "unavailableMarked": 0
+    },
+    {
+      "seriesId": "6ee7a320-90c0-11f1-936c-e7983f454a7b",
+      "title": "قهرمانان کوانتومی داینوستر",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 25,
+      "catalogEpisodeCount": 7,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "f499d7e0-8295-11f1-bd3d-314904460dcd",
+      "title": "عملیات آپارتمان",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 24,
+      "catalogEpisodeCount": 6,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "f9b3d300-0922-11f1-abc6-6b384876b292",
+      "title": "خانواده یک آزمون است",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 36,
+      "catalogEpisodeCount": 18,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "c8caa550-94ea-11ec-865b-cd6bf1f34bc1",
+      "title": "از سوی",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 58,
+      "catalogEpisodeCount": 40,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "d37fbe40-6009-11ed-b713-8d57f0175080",
+      "title": "بلیز و ماشین های هیولایی",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 116,
+      "catalogEpisodeCount": 82,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 6
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 7
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 8
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 9
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 11
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 16
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 19
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 20
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "c289ea80-573e-11f1-a968-1b623cae7bb0",
+      "title": "مزرعه داتون",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 27,
+      "catalogEpisodeCount": 9,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "c31e83d0-ec57-11ed-a4b1-9700540c04df",
@@ -240,7 +575,7 @@
           "episodeNumber": 16
         }
       ],
-      "pendingEpisodeCount": 43,
+      "pendingEpisodeCount": 31,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
@@ -928,146 +1263,44 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 0,
-  "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 5,
-  "episodeArtworkSeriesChecked": 5,
+  "episodesDiscovered": 308,
+  "episodeGroupsAdded": 12,
+  "episodeArtworkCandidates": 0,
+  "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
-  "episodeArtworkMirrored": 1,
+  "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
-  "affiliateRequests": 0,
+  "seriesAddedOrUpdated": 7,
+  "affiliateRequests": 12,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
-  "imagesMirrored": 1,
-  "imageMirrorErrors": 11,
+  "imagesMirrored": 0,
+  "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
   "episodeFrameErrors": 0,
-  "seriesKeptVisibleDuringBackfill": 0,
-  "seriesRestoredByMonotonicGuard": 0,
-  "peopleEnrichmentCandidates": 105,
-  "peopleEnrichmentProcessed": 12,
-  "peopleEnrichmentSucceeded": 2,
-  "peopleEnrichmentFailed": 10,
-  "peopleEnrichmentSkippedFresh": 63,
+  "seriesKeptVisibleDuringBackfill": 1,
+  "seriesRestoredByMonotonicGuard": 1,
+  "peopleEnrichmentCandidates": 0,
+  "peopleEnrichmentProcessed": 0,
+  "peopleEnrichmentSucceeded": 0,
+  "peopleEnrichmentFailed": 0,
+  "peopleEnrichmentSkippedFresh": 0,
   "peopleEnrichmentFromSource": 0,
-  "peopleEnrichmentFromTmdb": 2,
+  "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
-  "peopleAdded": 12,
-  "tmdbRequests": 15,
-  "imdbRequests": 17,
+  "peopleAdded": 0,
+  "tmdbRequests": 0,
+  "imdbRequests": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [
-    {
-      "scope": "episode-artwork-c8caa550-94ea-11ec-865b-cd6bf1f34bc1",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-f9b3d300-0922-11f1-abc6-6b384876b292",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-0d106700-5dc6-11f1-8eee-25008b011db9",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-c289ea80-573e-11f1-a968-1b623cae7bb0",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-fbb54130-89c7-11ee-b35e-63f53dbb63af",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/fbb54130-89c7-11ee-b35e-63f53dbb63af?affiliate=1"
-    },
-    {
-      "scope": "people-f9b3d300-0922-11f1-abc6-6b384876b292",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-08f6b5e0-8809-11f1-b107-8380eb916de3",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-deecda90-5361-11f1-87dc-37789e8516dd",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-11d635d0-5419-11f1-aa16-612588af74c5",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-25a964d0-5419-11f1-9755-21b9875b8787",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-7afa8a10-8bfc-11f1-8242-e9d2d61cc65a",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-65c6eac0-6f92-11f1-9ffe-2d42a7552daf",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-09a77570-5423-11f1-9493-a183c83e77de",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-9b5c0e20-8899-11f0-ab39-1bd28a40a59f",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-0211f520-f2b9-11eb-8904-6179943b9168",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    }
-  ],
+  "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 41,
-  "finishedAt": "2026-08-08T19:54:29.416Z"
+  "apiRequests": 19,
+  "lastCheckpointAt": "2026-08-08T19:54:33.934Z",
+  "lastCheckpointReason": "backfill-paused-b176b920-8d84-11f1-8c30-4dd713abdb61",
+  "remainingRunMsAtCheckpoint": 1079340,
+  "finishedAt": "2026-08-08T19:54:48.341Z"
 }
