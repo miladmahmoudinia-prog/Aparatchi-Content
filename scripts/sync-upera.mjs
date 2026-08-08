@@ -6,7 +6,7 @@ import { promisify } from 'node:util';
 
 const API_BASE = 'https://seeko.film/api/v1';
 const IRANIAN_SERIES_SCAN_VERSION = 3;
-const CATALOG_VERSION = '0.15.0-hourly-series-queue';
+const CATALOG_VERSION = '0.16.0-monotonic-series-fast-artwork';
 
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
@@ -43,6 +43,11 @@ const episodeArtworkSeriesPerRun = Math.min(
 const episodeArtworkMirrorPerRun = Math.min(
   36,
   nonNegativeInt(process.env.APARATCHI_EPISODE_ARTWORK_MIRROR_PER_RUN, 12),
+);
+
+const episodeFrameCapturesPerRun = Math.min(
+  8,
+  nonNegativeInt(process.env.APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN, 6),
 );
 
 const moviePagesPerRun = Math.min(
@@ -411,6 +416,31 @@ let items = Array.isArray(catalog.items)
   ? catalog.items.filter(Boolean)
   : [];
 
+const originalSeriesById = new Map(
+  items
+    .filter((item) => item?.type === 'series' && item?.id)
+    .map((item) => [String(item.id), structuredClone(item)]),
+);
+
+// One-time compatibility migration: series that already existed before this
+// patch were visible to users. Keep those titles visible while their archive is
+// audited/backfilled. Newly discovered series after this migration still wait
+// until completion before publication.
+if (!state.legacySeriesVisibilityMigrationCompleted) {
+  items = items.map((item) => (
+    item?.type === 'series' &&
+    Array.isArray(item.downloads) &&
+    item.downloads.length > 0
+      ? {
+          ...item,
+          visibilityLocked: true,
+          publicationStatus: 'published',
+        }
+      : item
+  ));
+  state.legacySeriesVisibilityMigrationCompleted = true;
+}
+
 // Operator access is recomputed from validated files on every run. This
 // removes stale badges/categories created by older, overly broad matching.
 // Existing duplicate rows (for example direct + operator versions of one title)
@@ -545,6 +575,10 @@ const stats = {
   skippedByBudget: 0,
   imagesMirrored: 0,
   imageMirrorErrors: 0,
+  episodeFramesGenerated: 0,
+  episodeFrameErrors: 0,
+  seriesKeptVisibleDuringBackfill: 0,
+  seriesRestoredByMonotonicGuard: 0,
   peopleEnrichmentCandidates: 0,
   peopleEnrichmentProcessed: 0,
   peopleEnrichmentSucceeded: 0,
@@ -693,6 +727,24 @@ if (effectiveSyncMode === 'PEOPLE') {
     );
   }
 
+}
+
+// Existing series are append/update-only. No hourly sync stage is allowed to
+// make the series library smaller because a source endpoint temporarily missed
+// an item or a broad dedupe rule collapsed two concrete IDs.
+const currentSeriesIds = new Set(
+  items.filter((item) => item?.type === 'series').map((item) => String(item.id)),
+);
+for (const [id, originalSeries] of originalSeriesById.entries()) {
+  if (currentSeriesIds.has(id)) continue;
+  const restored = {
+    ...originalSeries,
+    visibilityLocked: true,
+    publicationStatus: 'published',
+  };
+  items.push(restored);
+  currentSeriesIds.add(id);
+  stats.seriesRestoredByMonotonicGuard += 1;
 }
 
 items.sort((a, b) => {
@@ -2192,8 +2244,12 @@ async function processSeries(
     existing?.publicationStatus === 'published' &&
     historicalMissing.length === 0,
   );
+  const keepPreviouslyVisible = Boolean(
+    existing?.visibilityLocked &&
+    mergedGroups.length > 0,
+  );
   const publicationStatus =
-    archiveComplete || keepPublishedWhileAiring
+    archiveComplete || keepPublishedWhileAiring || keepPreviouslyVisible
       ? 'published'
       : 'building-archive';
 
@@ -2204,6 +2260,9 @@ async function processSeries(
   }
   if (keepPublishedWhileAiring && !archiveComplete) {
     stats.airingSeriesKeptPublished += 1;
+  }
+  if (keepPreviouslyVisible && !archiveComplete) {
+    stats.seriesKeptVisibleDuringBackfill += 1;
   }
 
   rememberSeriesEpisodeDiagnostic(
@@ -2872,7 +2931,7 @@ function sourcePersonToCatalog(person, fallbackRole = 'actor', order = 0) {
   let image = peopleImageValue(
     person.image || person.photo || person.avatar || person.profile || person.profile_path,
   );
-  if (image && image.startsWith('/')) image = `https://image.tmdb.org/t/p/w500${image}`;
+  if (image && image.startsWith('/')) image = `https://image.tmdb.org/t/p/w185${image}`;
   if (image && !/^https?:\/\//i.test(image) && !/^(?:\.\/)?assets\/media\//i.test(image)) image = '';
 
   return {
@@ -2934,7 +2993,7 @@ function tmdbProfileUrl(profilePath) {
   const value = cleanText(profilePath);
   if (!value) return '';
   if (/^https?:\/\//i.test(value)) return value;
-  return `https://image.tmdb.org/t/p/w500/${value.replace(/^\/+/, '')}`;
+  return `https://image.tmdb.org/t/p/w185/${value.replace(/^\/+/, '')}`;
 }
 
 function tmdbCreditPerson(person, role, order = 0) {
@@ -3214,6 +3273,149 @@ async function fetchSeriesEpisodeArtworkMetadata(id) {
   return dedupeEpisodes(collectEpisodes(data)).sort(compareEpisodes);
 }
 
+
+let episodeFrameCapturesUsed = 0;
+
+function episodeFrameSource(group) {
+  const files = Array.isArray(group?.files) ? group.files : [];
+  const direct = files
+    .filter((file) =>
+      file &&
+      /^https?:\/\//i.test(cleanText(file.url)) &&
+      (file.mode === 'play' || file.mode === 'download') &&
+      /\.(?:mp4|m3u8)(?:$|[?#])/i.test(cleanText(file.url)),
+    )
+    .sort((a, b) => {
+      const aMp4 = /\.mp4(?:$|[?#])/i.test(cleanText(a.url)) ? 0 : 1;
+      const bMp4 = /\.mp4(?:$|[?#])/i.test(cleanText(b.url)) ? 0 : 1;
+      return aMp4 - bMp4;
+    });
+  return cleanText(direct[0]?.url);
+}
+
+function normalizedEpisodeArtworkIdentity(value) {
+  return cleanText(value)
+    .replace(/^https?:\/\//i, '')
+    .replace(/[?#].*$/, '')
+    .toLowerCase();
+}
+
+function episodeArtworkUsage(item) {
+  const counts = new Map();
+  for (const group of Array.isArray(item?.downloads) ? item.downloads : []) {
+    if (Number(group?.episodeNumber || 0) <= 0) continue;
+    const key = normalizedEpisodeArtworkIdentity(group?.artwork);
+    if (!key) continue;
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  return counts;
+}
+
+function episodeGroupNeedsGeneratedFrame(item, group, usage = episodeArtworkUsage(item)) {
+  if (!group || Number(group?.episodeNumber || 0) <= 0) return false;
+  const artwork = cleanText(group.artwork);
+  if (!artwork) return true;
+  if (/^(?:\.\/)?assets\/media\/episodes\//i.test(artwork)) return false;
+
+  const key = normalizedEpisodeArtworkIdentity(artwork);
+  const posterKey = normalizedEpisodeArtworkIdentity(item?.poster);
+  const backdropKey = normalizedEpisodeArtworkIdentity(item?.backdrop);
+  if (key && (key === posterKey || key === backdropKey)) return true;
+
+  // If two different episode rows point at exactly the same source image, the
+  // source almost always supplied the series poster/backdrop rather than an
+  // episode still. Replace it with a frame captured from each episode video.
+  return Boolean(key && (usage.get(key) || 0) > 1);
+}
+
+async function generateEpisodeFrameArtwork(item, group, options = {}) {
+  const force = options.force === true;
+  if (
+    episodeFrameCapturesUsed >= episodeFrameCapturesPerRun ||
+    (!force && cleanText(group?.artwork))
+  ) {
+    return false;
+  }
+
+  const source = episodeFrameSource(group);
+  if (!source) return false;
+
+  const fingerprint = createHash('sha1')
+    .update(`${item?.id || 'series'}|${group?.sourceEpisodeId || group?.id || ''}|${source}`)
+    .digest('hex')
+    .slice(0, 24);
+  const relative = relativeMediaPath('episodes', `${fingerprint}.jpg`);
+  const absolute = path.join(root, ...relative.split('/'));
+
+  try {
+    episodeFrameCapturesUsed += 1;
+    await fs.mkdir(path.dirname(absolute), { recursive: true });
+
+    try {
+      const existing = await fs.stat(absolute);
+      if (existing.size > 512) {
+        group.artwork = relative;
+        return true;
+      }
+    } catch {
+      // Create the frame below.
+    }
+
+    await execFileAsync(
+      'ffmpeg',
+      [
+        '-hide_banner',
+        '-loglevel', 'error',
+        '-ss', '00:00:08',
+        '-i', source,
+        '-frames:v', '1',
+        '-vf', 'scale=640:-2',
+        '-q:v', '5',
+        '-y',
+        absolute,
+      ],
+      {
+        timeout: 18000,
+        maxBuffer: 1024 * 1024,
+      },
+    );
+
+    const info = await fs.stat(absolute);
+    if (info.size <= 512) {
+      await fs.rm(absolute, { force: true });
+      return false;
+    }
+
+    group.artwork = relative;
+    stats.episodeFramesGenerated += 1;
+    return true;
+  } catch (error) {
+    stats.episodeFrameErrors += 1;
+    try {
+      await fs.rm(absolute, { force: true });
+    } catch {
+      // Ignore cleanup failures.
+    }
+    rememberError(
+      `episode-frame-${item?.id || 'unknown'}-${group?.episodeNumber || 0}`,
+      error,
+    );
+    return false;
+  }
+}
+
+async function generateMissingEpisodeFrames(item) {
+  if (!item || episodeFrameCapturesUsed >= episodeFrameCapturesPerRun) return;
+  const usage = episodeArtworkUsage(item);
+  const groups = (Array.isArray(item.downloads) ? item.downloads : [])
+    .filter((group) => episodeGroupNeedsGeneratedFrame(item, group, usage))
+    .sort(compareEpisodeGroups);
+  for (const group of groups) {
+    if (episodeFrameCapturesUsed >= episodeFrameCapturesPerRun) break;
+    await generateEpisodeFrameArtwork(item, group, { force: Boolean(cleanText(group?.artwork)) });
+  }
+}
+
 async function syncEpisodeArtworkMetadata(options = {}) {
   const maxTitles = Math.max(1, Math.min(
     episodeArtworkSeriesPerRun,
@@ -3221,11 +3423,14 @@ async function syncEpisodeArtworkMetadata(options = {}) {
   ));
   const candidates = items
     .filter((item) => item?.type === 'series')
-    .filter((item) => (Array.isArray(item.downloads) ? item.downloads : []).some((group) =>
-      Number(group?.episodeNumber || 0) > 0 &&
-      cleanText(group?.sourceEpisodeId) &&
-      !cleanText(group?.artwork),
-    ))
+    .filter((item) => {
+      const usage = episodeArtworkUsage(item);
+      return (Array.isArray(item.downloads) ? item.downloads : []).some((group) =>
+        Number(group?.episodeNumber || 0) > 0 &&
+        cleanText(group?.sourceEpisodeId) &&
+        episodeGroupNeedsGeneratedFrame(item, group, usage),
+      );
+    })
     .sort((a, b) => {
       const checkedDifference = (Date.parse(String(a?.episodeArtworkCheckedAt || '')) || 0) -
         (Date.parse(String(b?.episodeArtworkCheckedAt || '')) || 0);
@@ -3252,6 +3457,7 @@ async function syncEpisodeArtworkMetadata(options = {}) {
     try {
       const episodes = await fetchSeriesEpisodeArtworkMetadata(item.id);
       stats.episodeArtworkAdded += hydrateEpisodeGroupArtwork(item.downloads, episodes);
+      await generateMissingEpisodeFrames(item);
     } catch (error) {
       rememberError(`episode-artwork-${item.id}`, error);
     }
@@ -4339,7 +4545,9 @@ function findExistingItem(
         return true;
       }
 
+      const itemId = cleanText(item?.id);
       return Boolean(
+        (!id || !itemId) &&
         item.type === type &&
         namesOverlap(candidate, item) &&
         yearsAreCompatible(year, item.year),
@@ -4366,7 +4574,10 @@ function replaceItem(next) {
       return false;
     }
 
+    const itemId = cleanText(item?.id);
+    const nextId = cleanText(next?.id);
     return !(
+      (!itemId || !nextId) &&
       item.type === next.type &&
       namesOverlap(item, next) &&
       yearsAreCompatible(item.year, next.year)
@@ -4798,7 +5009,20 @@ function withSeriesPublicationState(item) {
   const deficit = seriesArchiveDeficit(item);
   const hasArchiveMetadata = hasSeriesArchiveMetadata(item);
 
-  // Strict publication rule: a legacy series is hidden until its source
+  if (item.visibilityLocked && (Array.isArray(item.downloads) ? item.downloads.length : 0) > 0) {
+    return {
+      ...item,
+      archiveComplete:
+        deficit.total === 0 &&
+        item.archiveEpisodeDiscoveryComplete !== false &&
+        Boolean(item.downloads?.length),
+      archivePendingEpisodeCount: deficit.pending,
+      publicationStatus: 'published',
+      archiveAuditStatus: hasArchiveMetadata ? (item.archiveAuditStatus || 'checked') : 'pending',
+    };
+  }
+
+  // Strict publication rule: a newly discovered series is hidden until its source
   // episode list has been audited. This prevents an apparently continuous but
   // truncated archive (for example only episodes 1-6 of a 30-episode season)
   // from being published merely because there is no numeric gap yet.

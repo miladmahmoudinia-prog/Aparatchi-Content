@@ -136,7 +136,7 @@ async function runSync(cwd, options = {}) {
 test('a permanent affiliate 404 is tried once per run, then stops blocking publication', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-sync-regression-'));
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());
-  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), {});
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
 
   try {
     for (let run = 1; run <= 3; run += 1) {
@@ -166,6 +166,33 @@ test('a permanent affiliate 404 is tried once per run, then stops blocking publi
   }
 });
 
+test('legacy visible series never disappear while archive backfill is incomplete', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-visible-series-'));
+  const fixture = initialCatalog();
+  // Simulate an old catalog created before publication-state metadata existed.
+  delete fixture.items[0].publicationStatus;
+  delete fixture.items[0].archiveAuditStatus;
+  delete fixture.items[0].archiveComplete;
+  delete fixture.items[0].archivePendingEpisodes;
+  delete fixture.items[0].archivePendingEpisodeCount;
+  delete fixture.items[0].sourceEpisodeCount;
+  delete fixture.items[0].archiveEpisodeDiscoveryComplete;
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), fixture);
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), {});
+
+  try {
+    const result = await runSync(fixtureDirectory, { scenario: 'missing-episode' });
+    const item = result.catalog.items.find((entry) => entry.id === 'series-1');
+    assert.ok(item, 'pre-existing series remains in catalog');
+    assert.equal(item.visibilityLocked, true);
+    assert.equal(item.publicationStatus, 'published');
+    assert.ok(item.downloads.length >= 1);
+    assert.equal(result.state.legacySeriesVisibilityMigrationCompleted, true);
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
 test('a new episode on a published airing series becomes the newest meaningful update', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-airing-update-'));
   const fixture = initialCatalog();
@@ -179,7 +206,7 @@ test('a new episode on a published airing series becomes the newest meaningful u
   delete item.meaningfulUpdatedAt;
   item.updateLabel = '';
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), fixture);
-  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), {});
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
 
   try {
     const before = Date.now();
@@ -227,6 +254,7 @@ test('archive backfill never starts a second incomplete series in the same run',
   });
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), fixture);
   await writeJson(path.join(fixtureDirectory, 'sync-state.json'), {
+    legacySeriesVisibilityMigrationCompleted: true,
     archiveBackfillSeriesId: 'series-1',
     archiveBackfillSeriesTitle: 'سریال آزمون',
   });
@@ -261,6 +289,7 @@ test('one hourly backfill spends its budget on the same series until every disco
   }));
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), fixture);
   await writeJson(path.join(fixtureDirectory, 'sync-state.json'), {
+    legacySeriesVisibilityMigrationCompleted: true,
     archiveBackfillSeriesId: 'series-1',
     archiveBackfillSeriesTitle: 'سریال آزمون',
   });
@@ -283,7 +312,7 @@ test('one hourly backfill spends its budget on the same series until every disco
 test('episode artwork is stored with a newly discovered playable episode', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-episode-artwork-'));
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());
-  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), {});
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
 
   try {
     const result = await runSync(fixtureDirectory, { scenario: 'episode-artwork' });
@@ -310,7 +339,7 @@ test('an explicit redl operator link is preserved as operator-only content', asy
     iranianSchedule: [],
     weeklySchedule: [],
   });
-  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), {});
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
 
   try {
     const result = await runSync(fixtureDirectory, {
@@ -341,7 +370,7 @@ test('a blocked series observes its cooldown and then re-enters the queue', asyn
   fixture.items[0].archiveAuditStatus = 'blocked';
   fixture.items[0].archiveBlockedAt = new Date().toISOString();
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), fixture);
-  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), {});
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
 
   try {
     const coolingDown = await runSync(fixtureDirectory);
@@ -382,7 +411,7 @@ test('people enrichment uses cast and director data from the source API', async 
     iranianSchedule: [],
     weeklySchedule: [],
   });
-  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), {});
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
 
   try {
     const result = await runSync(fixtureDirectory, {
