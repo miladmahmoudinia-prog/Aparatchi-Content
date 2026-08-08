@@ -26,13 +26,13 @@ on:
       new_hours:
         description: 'بررسی تغییرات چند ساعت اخیر'
         required: false
-        default: '168'
+        default: '24'
 
 permissions:
   contents: write
 
 concurrency:
-  group: upera-catalog-sync
+  group: aparatchi-content-writer
   cancel-in-progress: false
 
 jobs:
@@ -63,7 +63,7 @@ jobs:
 
           echo "MOVIE_PAGES_PER_RUN=${MOVIE_PAGES:-8}" >> "$GITHUB_ENV"
           echo "SERIES_PAGES_PER_RUN=${SERIES_PAGES:-8}" >> "$GITHUB_ENV"
-          echo "NEW_TITLES_HOURS=${NEW_HOURS:-168}" >> "$GITHUB_ENV"
+          echo "NEW_TITLES_HOURS=${NEW_HOURS:-24}" >> "$GITHUB_ENV"
 
       - name: Discover new movies and series first
         id: normal_sync
@@ -121,7 +121,8 @@ jobs:
             echo "No new-content changes."
           else
             git commit -m "chore: discover new movies and series"
-            git push
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi
 
       - name: Ensure ffmpeg for episode thumbnails
@@ -144,12 +145,12 @@ jobs:
           APARATCHI_CHECKPOINT_RESERVE_MS: '30000'
           APARATCHI_REQUEST_TIMEOUT_MS: '12000'
           APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
-          APARATCHI_PEOPLE_TITLES_PER_RUN: '12'
+          APARATCHI_PEOPLE_TITLES_PER_RUN: '20'
           APARATCHI_PEOPLE_MAX_PER_TITLE: '12'
           APARATCHI_PEOPLE_RETRY_HOURS: '12'
           APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN: '12'
           APARATCHI_EPISODE_ARTWORK_MIRROR_PER_RUN: '12'
-          APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN: '8'
+          APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN: '12'
           APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '36'
           APARATCHI_IMAGE_MIRROR_CONCURRENCY: '4'
         run: node scripts/sync-upera.mjs
@@ -170,7 +171,8 @@ jobs:
             echo "No cast/crew changes."
           else
             git commit -m "chore: enrich cast and crew metadata"
-            git push
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi
 
       - name: Advance incomplete series archives
@@ -190,10 +192,10 @@ jobs:
           UPERA_BACKFILL_EPISODES_PER_SERIES: '60'
           UPERA_MAX_EPISODE_PAGES: '50'
           UPERA_BACKFILL_MAX_NO_PROGRESS_RUNS: '3'
-          UPERA_EPISODE_UNAVAILABLE_AFTER_ATTEMPTS: '3'
-          UPERA_UNAVAILABLE_EPISODE_RETRY_HOURS: '24'
+          UPERA_EPISODE_UNAVAILABLE_AFTER_ATTEMPTS: '8'
+          UPERA_UNAVAILABLE_EPISODE_RETRY_HOURS: '1'
           UPERA_BLOCKED_RETRY_HOURS: '1'
-          UPERA_RETRY_BLOCKED: 'false'
+          UPERA_RETRY_BLOCKED: 'true'
           UPERA_REQUEST_DELAY_MS: '650'
           APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
         run: node scripts/sync-upera.mjs
@@ -211,7 +213,8 @@ jobs:
             echo "No archive changes."
           else
             git commit -m "chore: advance incomplete series archives"
-            git push
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi
 
       - name: Report sync failure
