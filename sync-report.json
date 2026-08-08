@@ -1,27 +1,42 @@
 {
-  "startedAt": "2026-08-08T14:20:41.905Z",
-  "runTimeLimitMinutes": 6,
-  "runDeadlineAt": "2026-08-08T14:26:41.719Z",
+  "startedAt": "2026-08-08T14:20:58.156Z",
+  "runTimeLimitMinutes": 18,
+  "runDeadlineAt": "2026-08-08T14:38:57.978Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 347089,
-  "imageMirroringSkipped": false,
+  "remainingRunMsAtFinish": 1058828,
+  "imageMirroringSkipped": true,
   "originalCount": 1095,
   "finalCount": 1095,
-  "requestedSyncMode": "PEOPLE",
-  "effectiveSyncMode": "PEOPLE",
-  "backfillQueueTotal": 73,
-  "backfillBacklogRemaining": 73,
-  "backfillBlockedTotal": 2,
-  "backfillActiveSeries": null,
+  "requestedSyncMode": "BACKFILL",
+  "effectiveSyncMode": "BACKFILL",
+  "backfillQueueTotal": 75,
+  "backfillBacklogRemaining": 74,
+  "backfillBlockedTotal": 3,
+  "backfillActiveSeries": {
+    "id": "b176b920-8d84-11f1-8c30-4dd713abdb61",
+    "title": "لاکی",
+    "year": 2026,
+    "country": "",
+    "missingBefore": [],
+    "pendingBefore": 8,
+    "noProgressRuns": 2
+  },
   "backfillSeriesCompletedThisRun": [],
-  "backfillSeriesBlockedThisRun": [],
+  "backfillSeriesBlockedThisRun": [
+    {
+      "id": "b176b920-8d84-11f1-8c30-4dd713abdb61",
+      "title": "لاکی",
+      "reason": "added-or-updated",
+      "attempts": 3
+    }
+  ],
   "backfillEpisodesAdded": 0,
-  "backfillSeriesVisited": 0,
-  "backfillCheckpoints": 0,
-  "episodesMarkedUnavailable": 0,
-  "backfillNoProgressRuns": 0,
-  "normalSyncSkippedForBackfill": false,
+  "backfillSeriesVisited": 1,
+  "backfillCheckpoints": 1,
+  "episodesMarkedUnavailable": 19,
+  "backfillNoProgressRuns": 3,
+  "normalSyncSkippedForBackfill": true,
   "backfillOrdering": "active-then-nearest-completion",
   "backfillNextSeries": null,
   "episodePaginationPagesFetched": 0,
@@ -46,18 +61,18 @@
   "movieTitlesProcessed": 0,
   "seriesPagesProcessed": 0,
   "seriesTitlesProcessed": 0,
-  "airingSeriesCandidates": 0,
-  "airingSeriesChecked": 0,
-  "airingSeriesUpdated": 0,
-  "incompleteSeriesCandidates": 0,
+  "airingSeriesCandidates": 23,
+  "airingSeriesChecked": 6,
+  "airingSeriesUpdated": 2,
+  "incompleteSeriesCandidates": 75,
   "incompleteSeriesRepaired": 0,
-  "incompleteSeriesStillMissing": 0,
+  "incompleteSeriesStillMissing": 1,
   "seriesHiddenUntilComplete": 0,
   "seriesPublishedAfterCompletion": 0,
-  "airingSeriesKeptPublished": 0,
+  "airingSeriesKeptPublished": 5,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 0,
-  "episodesProcessed": 0,
+  "episodesProcessed": 37,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
@@ -73,11 +88,484 @@
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 3,
+  "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "b176b920-8d84-11f1-8c30-4dd713abdb61",
+      "title": "لاکی",
+      "source": "fast-backfill",
+      "discoveredEpisodeCount": 22,
+      "catalogEpisodeCount": 4,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "b176b920-8d84-11f1-8c30-4dd713abdb61",
+      "title": "لاکی",
+      "source": "fast-backfill-summary",
+      "missingBefore": [],
+      "pendingBefore": 8,
+      "missingAfter": [],
+      "pendingAfter": 8,
+      "publicationStatus": "published",
+      "result": "no-progress",
+      "addedEpisodes": 0,
+      "unavailableMarked": 0
+    },
+    {
+      "seriesId": "f499d7e0-8295-11f1-bd3d-314904460dcd",
+      "title": "عملیات آپارتمان",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 24,
+      "catalogEpisodeCount": 6,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "132053f0-d387-11f0-9b0a-65d68e4f69fd",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "5ddab3a0-d130-11f0-bd64-1ba19d1d22f0",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "a74ad510-ab0f-11f0-9ad0-0f49e7b62786",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "c8c7bfe0-8dee-11f0-a322-05750ae92848",
+          "seasonNumber": 1,
+          "episodeNumber": 22,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "f9b3d300-0922-11f1-abc6-6b384876b292",
+      "title": "خانواده یک آزمون است",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 36,
+      "catalogEpisodeCount": 18,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "132053f0-d387-11f0-9b0a-65d68e4f69fd",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "5ddab3a0-d130-11f0-bd64-1ba19d1d22f0",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "a74ad510-ab0f-11f0-9ad0-0f49e7b62786",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "c8c7bfe0-8dee-11f0-a322-05750ae92848",
+          "seasonNumber": 1,
+          "episodeNumber": 22,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "c31e83d0-ec57-11ed-a4b1-9700540c04df",
+      "title": "سیلو",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 44,
+      "catalogEpisodeCount": 17,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 8
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 9
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 6
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "6a3891a0-be51-11f0-8f57-5b13bfa71465",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "132053f0-d387-11f0-9b0a-65d68e4f69fd",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "5ddab3a0-d130-11f0-bd64-1ba19d1d22f0",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "a74ad510-ab0f-11f0-9ad0-0f49e7b62786",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "c8c7bfe0-8dee-11f0-a322-05750ae92848",
+          "seasonNumber": 1,
+          "episodeNumber": 22,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "1b6a7520-d19d-11ee-83f7-8fa6588a44cd",
+      "title": "آواتار: آخرین باد افزار",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 33,
+      "catalogEpisodeCount": 15,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "132053f0-d387-11f0-9b0a-65d68e4f69fd",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "5ddab3a0-d130-11f0-bd64-1ba19d1d22f0",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "a74ad510-ab0f-11f0-9ad0-0f49e7b62786",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "c8c7bfe0-8dee-11f0-a322-05750ae92848",
+          "seasonNumber": 1,
+          "episodeNumber": 22,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "c289ea80-573e-11f1-a968-1b623cae7bb0",
+      "title": "مزرعه داتون",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 27,
+      "catalogEpisodeCount": 9,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "a74ad510-ab0f-11f0-9ad0-0f49e7b62786",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "c8c7bfe0-8dee-11f0-a322-05750ae92848",
+          "seasonNumber": 1,
+          "episodeNumber": 22,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "50848dc0-7d18-11f1-8bba-515f2a1f1c99",
+      "title": "سوفیای اول: جادوی سلطنتی",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 26,
+      "catalogEpisodeCount": 8,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "132053f0-d387-11f0-9b0a-65d68e4f69fd",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "5ddab3a0-d130-11f0-bd64-1ba19d1d22f0",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "a74ad510-ab0f-11f0-9ad0-0f49e7b62786",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "c8c7bfe0-8dee-11f0-a322-05750ae92848",
+          "seasonNumber": 1,
+          "episodeNumber": 22,
+          "reason": "no-usable-links"
+        }
+      ]
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
+    {
+      "seriesId": "1b6a7520-d19d-11ee-83f7-8fa6588a44cd",
+      "title": "آواتار: آخرین باد افزار",
+      "missing": [],
+      "pendingEpisodeCount": 10,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
     {
       "seriesId": "6f4a5550-90cb-11f1-b74a-f34817502b6d",
       "title": "وستی ها",
@@ -145,7 +633,7 @@
       "seriesId": "f499d7e0-8295-11f1-bd3d-314904460dcd",
       "title": "عملیات آپارتمان",
       "missing": [],
-      "pendingEpisodeCount": 11,
+      "pendingEpisodeCount": 10,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
@@ -163,7 +651,7 @@
       "seriesId": "f9b3d300-0922-11f1-abc6-6b384876b292",
       "title": "خانواده یک آزمون است",
       "missing": [],
-      "pendingEpisodeCount": 17,
+      "pendingEpisodeCount": 15,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
@@ -172,7 +660,7 @@
       "seriesId": "c31e83d0-ec57-11ed-a4b1-9700540c04df",
       "title": "سیلو",
       "missing": [],
-      "pendingEpisodeCount": 28,
+      "pendingEpisodeCount": 19,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
@@ -194,15 +682,6 @@
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": false
-    },
-    {
-      "seriesId": "1b6a7520-d19d-11ee-83f7-8fa6588a44cd",
-      "title": "آواتار: آخرین باد افزار",
-      "missing": [],
-      "pendingEpisodeCount": 18,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
     },
     {
       "seriesId": "9e685640-803f-11f1-bffe-c790198ac400",
@@ -244,7 +723,7 @@
       "seriesId": "50848dc0-7d18-11f1-8bba-515f2a1f1c99",
       "title": "سوفیای اول: جادوی سلطنتی",
       "missing": [],
-      "pendingEpisodeCount": 11,
+      "pendingEpisodeCount": 10,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
@@ -923,82 +1402,44 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 0,
-  "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 4,
-  "episodeArtworkSeriesChecked": 4,
+  "episodesDiscovered": 212,
+  "episodeGroupsAdded": 14,
+  "episodeArtworkCandidates": 0,
+  "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
-  "episodeArtworkMirrored": 6,
-  "episodesRejectedNoLinks": 0,
+  "episodeArtworkMirrored": 0,
+  "episodesRejectedNoLinks": 23,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
-  "affiliateRequests": 0,
-  "affiliateCacheHits": 0,
-  "affiliateNotFound": 0,
+  "seriesAddedOrUpdated": 7,
+  "affiliateRequests": 19,
+  "affiliateCacheHits": 18,
+  "affiliateNotFound": 5,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
-  "imagesMirrored": 28,
-  "imageMirrorErrors": 6,
+  "imagesMirrored": 0,
+  "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
   "episodeFrameErrors": 0,
-  "seriesKeptVisibleDuringBackfill": 0,
+  "seriesKeptVisibleDuringBackfill": 5,
   "seriesRestoredByMonotonicGuard": 0,
-  "peopleEnrichmentCandidates": 89,
-  "peopleEnrichmentProcessed": 12,
-  "peopleEnrichmentSucceeded": 12,
+  "peopleEnrichmentCandidates": 0,
+  "peopleEnrichmentProcessed": 0,
+  "peopleEnrichmentSucceeded": 0,
   "peopleEnrichmentFailed": 0,
-  "peopleEnrichmentSkippedFresh": 55,
+  "peopleEnrichmentSkippedFresh": 0,
   "peopleEnrichmentFromSource": 0,
-  "peopleEnrichmentFromTmdb": 12,
+  "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
-  "peopleAdded": 142,
-  "tmdbRequests": 24,
+  "peopleAdded": 0,
+  "tmdbRequests": 0,
   "imdbRequests": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [
-    {
-      "scope": "episode-artwork-f9b3d300-0922-11f1-abc6-6b384876b292",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-0d106700-5dc6-11f1-8eee-25008b011db9",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-c289ea80-573e-11f1-a968-1b623cae7bb0",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-fbb54130-89c7-11ee-b35e-63f53dbb63af",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/fbb54130-89c7-11ee-b35e-63f53dbb63af?affiliate=1"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    }
-  ],
+  "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 40,
-  "finishedAt": "2026-08-08T14:20:54.630Z"
+  "apiRequests": 26,
+  "lastCheckpointAt": "2026-08-08T14:20:58.735Z",
+  "lastCheckpointReason": "backfill-paused-b176b920-8d84-11f1-8c30-4dd713abdb61",
+  "remainingRunMsAtCheckpoint": 1079155,
+  "finishedAt": "2026-08-08T14:21:19.150Z"
 }
