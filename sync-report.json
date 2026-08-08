@@ -1,42 +1,27 @@
 {
-  "startedAt": "2026-08-07T21:45:15.365Z",
-  "runTimeLimitMinutes": 18,
-  "runDeadlineAt": "2026-08-07T22:03:15.234Z",
+  "startedAt": "2026-08-08T00:03:06.680Z",
+  "runTimeLimitMinutes": 14,
+  "runDeadlineAt": "2026-08-08T00:17:06.549Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 1077725,
+  "remainingRunMsAtFinish": 752563,
   "imageMirroringSkipped": true,
   "originalCount": 847,
-  "finalCount": 847,
-  "requestedSyncMode": "BACKFILL",
-  "effectiveSyncMode": "BACKFILL",
-  "backfillQueueTotal": 75,
+  "finalCount": 877,
+  "requestedSyncMode": "NORMAL",
+  "effectiveSyncMode": "NORMAL",
+  "backfillQueueTotal": 74,
   "backfillBacklogRemaining": 74,
   "backfillBlockedTotal": 1,
-  "backfillActiveSeries": {
-    "id": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-    "title": "آن:به دری خوش آمدید",
-    "year": 2025,
-    "country": "",
-    "missingBefore": [],
-    "pendingBefore": 9,
-    "noProgressRuns": 5
-  },
+  "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
-  "backfillSeriesBlockedThisRun": [
-    {
-      "id": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-      "title": "آن:به دری خوش آمدید",
-      "reason": "added-or-updated",
-      "attempts": 6
-    }
-  ],
+  "backfillSeriesBlockedThisRun": [],
   "backfillEpisodesAdded": 0,
-  "backfillSeriesVisited": 1,
-  "backfillCheckpoints": 1,
+  "backfillSeriesVisited": 0,
+  "backfillCheckpoints": 0,
   "episodesMarkedUnavailable": 0,
-  "backfillNoProgressRuns": 6,
-  "normalSyncSkippedForBackfill": true,
+  "backfillNoProgressRuns": 0,
+  "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "active-then-nearest-completion",
   "backfillNextSeries": null,
   "episodePaginationPagesFetched": 0,
@@ -46,27 +31,58 @@
   "incrementalCandidates": 0,
   "incrementalSeriesDeferred": 0,
   "incrementalProcessed": 0,
-  "recentMoviePagesScanned": 0,
-  "recentMovieCandidates": 0,
-  "recentMovieNewCandidates": 0,
-  "recentMoviesProcessed": 0,
-  "recentSeriesPagesScanned": 0,
-  "recentSeriesCandidates": 0,
+  "recentMoviePagesScanned": 8,
+  "recentMovieCandidates": 288,
+  "recentMovieNewCandidates": 10,
+  "recentMoviesProcessed": 10,
+  "recentSeriesPagesScanned": 8,
+  "recentSeriesCandidates": 288,
   "recentSeriesNewCandidates": 0,
   "recentSeriesProcessed": 0,
-  "recentSeriesDeferredByArchiveQueue": 0,
-  "affiliateRequestScopes": {},
-  "skippedByScopedBudget": 0,
-  "moviePagesProcessed": 0,
-  "movieTitlesProcessed": 0,
+  "recentSeriesDeferredByArchiveQueue": 288,
+  "affiliateRequestScopes": {
+    "airing-series": {
+      "limit": 48,
+      "used": 0,
+      "exhausted": false
+    },
+    "recent-movies": {
+      "limit": 110,
+      "used": 10,
+      "exhausted": false
+    },
+    "recent-series": {
+      "limit": 72,
+      "used": 0,
+      "exhausted": false
+    },
+    "operator-movies": {
+      "limit": 24,
+      "used": 24,
+      "exhausted": true
+    },
+    "incremental": {
+      "limit": 32,
+      "used": 0,
+      "exhausted": false
+    },
+    "archive-movies": {
+      "limit": 32,
+      "used": 32,
+      "exhausted": true
+    }
+  },
+  "skippedByScopedBudget": 2,
+  "moviePagesProcessed": 1,
+  "movieTitlesProcessed": 32,
   "seriesPagesProcessed": 0,
   "seriesTitlesProcessed": 0,
   "airingSeriesCandidates": 3,
   "airingSeriesChecked": 3,
   "airingSeriesUpdated": 0,
-  "incompleteSeriesCandidates": 75,
+  "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
-  "incompleteSeriesStillMissing": 1,
+  "incompleteSeriesStillMissing": 0,
   "seriesHiddenUntilComplete": 0,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
@@ -82,71 +98,217 @@
   "operatorSeriesCandidates": 0,
   "operatorSeriesAddedOrUpdated": 0,
   "operatorSeriesRejectedNoOperatorLink": 0,
-  "operatorMoviePagesProcessed": 0,
-  "operatorMovieCandidates": 0,
+  "operatorMoviePagesProcessed": 1,
+  "operatorMovieCandidates": 25,
   "operatorMoviesAddedOrUpdated": 0,
-  "operatorMoviesRejectedNoOperatorLink": 0,
+  "operatorMoviesRejectedNoOperatorLink": 24,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [],
-  "operatorDiagnostics": [],
+  "operatorDiagnostics": [
+    {
+      "type": "movie",
+      "id": "a43b5df0-672a-11f1-98c5-9d89001efad5",
+      "title": "مادیان",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "1d7fc940-67da-11f1-821f-91e047804a3e",
+      "title": "قرمز یواش",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "d76b2500-672c-11f1-95aa-d78bb33a8c22",
+      "title": "محرمانه تهران",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "c7cacda0-672c-11f1-b91a-77fc87c3f73b",
+      "title": "ماهی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "bd2215c0-672a-11f1-91c3-2518554272e1",
+      "title": "ماهی ها عاشق می شوند",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "f717cb00-670d-11f1-892f-bf2b82dbe2d5",
+      "title": "نو ساختن",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "d464d600-670d-11f1-a03c-9f6588954ad7",
+      "title": "سوت زن",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "ae2bd5d0-670b-11f1-b5d1-6b5f7a8258ef",
+      "title": "مردانی 3",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "99ea93b0-670b-11f1-9eaf-d7673079cb0f",
+      "title": "موتور سوار",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "769baf20-67d8-11f1-88ce-d3e50aee31ef",
+      "title": "تابستانی که برف آمد",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "71d8edf0-5117-11f1-8cb1-bb57e8acc028",
+      "title": "موجودات فوق العاده باهوش",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "fd52fe50-63fb-11f1-8e1e-137e412c4b02",
+      "title": "دی جی احمد",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "91f54a00-64d4-11f1-b8f5-db6f1ca650e8",
+      "title": "جهان شکن",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "ad1e0680-64d4-11f1-a37e-bd2f30a5d3f7",
+      "title": "زندگی خصوصی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "1e66faf0-64d5-11f1-9361-af9c71fe8d1e",
+      "title": "فقط می‌تونم تصورشو کنم ۲",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "21aa1690-656d-11f1-911e-750b5e034455",
+      "title": "عشق در دفتر کار",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
+      "title": "صددام",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "7f979420-640f-11f1-9a54-7d2d408fc7b8",
+      "title": "هفت تک تیرانداز",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "ae25cbd0-c582-11ee-a086-65a97b65ce90",
+      "title": "خیزش سرباز پیاده انتقام",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "1579f090-1d17-11ee-aafd-a7ec5a0bf039",
+      "title": "مردان سفیدپوست نمی توانند بپرند",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "ba560230-4729-11f1-918e-9136edb7e3b4",
+      "title": "مایکل",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "f7b2d040-6261-11f1-9e2b-7fa1be7ca203",
+      "title": "یدک‌ کش",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "4606f9a0-623d-11f1-9e33-3d8427a89a8c",
+      "title": "عروس آتش",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "20d95de0-6262-11f1-8b4d-e5b11d18fa97",
+      "title": "ماری و گل جادوگر",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "caadaff0-619a-11f1-81be-4907745ef85b",
+      "title": "عقاب صحرا",
+      "result": "rejected",
+      "reason": "request-budget",
+      "retryLater": true
+    }
+  ],
   "seriesEpisodeDiagnostics": [
-    {
-      "seriesId": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-      "title": "آن:به دری خوش آمدید",
-      "source": "fast-backfill",
-      "discoveredEpisodeCount": 26,
-      "catalogEpisodeCount": 8,
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 10
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 12
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 13
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 14
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 15
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 18
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 20
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 22
-        }
-      ],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-      "title": "آن:به دری خوش آمدید",
-      "source": "fast-backfill-summary",
-      "missingBefore": [],
-      "pendingBefore": 9,
-      "missingAfter": [],
-      "pendingAfter": 9,
-      "publicationStatus": "published",
-      "result": "no-progress",
-      "addedEpisodes": 0,
-      "unavailableMarked": 0
-    },
     {
       "seriesId": "9dcad570-cdf0-11f0-a0a0-eddd96259c2c",
       "title": "ناینیای قدرتمند",
@@ -1079,18 +1241,18 @@
       "isAiring": true
     }
   ],
-  "episodesDiscovered": 80,
+  "episodesDiscovered": 54,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
-  "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 3,
-  "affiliateRequests": 0,
+  "moviesAddedOrUpdated": 32,
+  "seriesAddedOrUpdated": 2,
+  "affiliateRequests": 66,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 0,
+  "affiliateNotFound": 13,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1115,9 +1277,6 @@
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 4,
-  "lastCheckpointAt": "2026-08-07T21:45:16.248Z",
-  "lastCheckpointReason": "backfill-paused-4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-  "remainingRunMsAtCheckpoint": 1078925,
-  "finishedAt": "2026-08-07T21:45:17.509Z"
+  "apiRequests": 90,
+  "finishedAt": "2026-08-08T00:04:33.986Z"
 }
