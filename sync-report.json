@@ -1,27 +1,42 @@
 {
-  "startedAt": "2026-08-08T19:01:18.115Z",
-  "runTimeLimitMinutes": 6,
-  "runDeadlineAt": "2026-08-08T19:07:17.939Z",
+  "startedAt": "2026-08-08T19:01:43.623Z",
+  "runTimeLimitMinutes": 18,
+  "runDeadlineAt": "2026-08-08T19:19:43.447Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 338048,
-  "imageMirroringSkipped": false,
+  "remainingRunMsAtFinish": 1077388,
+  "imageMirroringSkipped": true,
   "originalCount": 1189,
   "finalCount": 1189,
-  "requestedSyncMode": "PEOPLE",
-  "effectiveSyncMode": "PEOPLE",
-  "backfillQueueTotal": 72,
-  "backfillBacklogRemaining": 72,
-  "backfillBlockedTotal": 3,
-  "backfillActiveSeries": null,
+  "requestedSyncMode": "BACKFILL",
+  "effectiveSyncMode": "BACKFILL",
+  "backfillQueueTotal": 75,
+  "backfillBacklogRemaining": 74,
+  "backfillBlockedTotal": 4,
+  "backfillActiveSeries": {
+    "id": "d1fece20-90c8-11f1-aec9-fb38be46e40d",
+    "title": "زندگی یک جادوگر در مغولستان",
+    "year": 2026,
+    "country": "",
+    "missingBefore": [],
+    "pendingBefore": 8,
+    "noProgressRuns": 2
+  },
   "backfillSeriesCompletedThisRun": [],
-  "backfillSeriesBlockedThisRun": [],
+  "backfillSeriesBlockedThisRun": [
+    {
+      "id": "d1fece20-90c8-11f1-aec9-fb38be46e40d",
+      "title": "زندگی یک جادوگر در مغولستان",
+      "reason": "added-or-updated",
+      "attempts": 3
+    }
+  ],
   "backfillEpisodesAdded": 0,
-  "backfillSeriesVisited": 0,
-  "backfillCheckpoints": 0,
+  "backfillSeriesVisited": 1,
+  "backfillCheckpoints": 1,
   "episodesMarkedUnavailable": 0,
-  "backfillNoProgressRuns": 0,
-  "normalSyncSkippedForBackfill": false,
+  "backfillNoProgressRuns": 3,
+  "normalSyncSkippedForBackfill": true,
   "backfillOrdering": "active-then-nearest-completion",
   "backfillNextSeries": null,
   "episodePaginationPagesFetched": 0,
@@ -46,17 +61,17 @@
   "movieTitlesProcessed": 0,
   "seriesPagesProcessed": 0,
   "seriesTitlesProcessed": 0,
-  "airingSeriesCandidates": 0,
-  "airingSeriesChecked": 0,
+  "airingSeriesCandidates": 23,
+  "airingSeriesChecked": 6,
   "airingSeriesUpdated": 0,
-  "incompleteSeriesCandidates": 0,
+  "incompleteSeriesCandidates": 75,
   "incompleteSeriesRepaired": 0,
-  "incompleteSeriesStillMissing": 0,
+  "incompleteSeriesStillMissing": 1,
   "seriesHiddenUntilComplete": 0,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
+  "iranianSeriesProcessed": 3,
   "episodesProcessed": 0,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
@@ -73,10 +88,278 @@
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 2,
+  "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "d1fece20-90c8-11f1-aec9-fb38be46e40d",
+      "title": "زندگی یک جادوگر در مغولستان",
+      "source": "fast-backfill",
+      "discoveredEpisodeCount": 22,
+      "catalogEpisodeCount": 4,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "d1fece20-90c8-11f1-aec9-fb38be46e40d",
+      "title": "زندگی یک جادوگر در مغولستان",
+      "source": "fast-backfill-summary",
+      "missingBefore": [],
+      "pendingBefore": 8,
+      "missingAfter": [],
+      "pendingAfter": 8,
+      "publicationStatus": "published",
+      "result": "no-progress",
+      "addedEpisodes": 0,
+      "unavailableMarked": 0
+    },
+    {
+      "seriesId": "cfb27d20-e77e-11ef-b8d9-2dd842bea893",
+      "title": "دیو و ماه پیشونی",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 33,
+      "catalogEpisodeCount": 15,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "d050f480-f474-11e8-9836-b77ecb64ceab",
+      "title": "عاشقانه",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 35,
+      "catalogEpisodeCount": 17,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "6afe97f0-e084-11ea-a506-71b2dd673e04",
+      "title": "ریکاوری",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 26,
+      "catalogEpisodeCount": 8,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "c31e83d0-ec57-11ed-a4b1-9700540c04df",
+      "title": "سیلو",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 44,
+      "catalogEpisodeCount": 26,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "1b6a7520-d19d-11ee-83f7-8fa6588a44cd",
+      "title": "آواتار: آخرین باد افزار",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 33,
+      "catalogEpisodeCount": 15,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "6ee7a320-90c0-11f1-936c-e7983f454a7b",
+      "title": "قهرمانان کوانتومی داینوستر",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 25,
+      "catalogEpisodeCount": 7,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "c31e83d0-ec57-11ed-a4b1-9700540c04df",
@@ -928,150 +1211,44 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 0,
+  "episodesDiscovered": 218,
   "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 5,
-  "episodeArtworkSeriesChecked": 5,
+  "episodeArtworkCandidates": 0,
+  "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
-  "episodeArtworkMirrored": 1,
+  "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
+  "seriesAddedOrUpdated": 7,
   "affiliateRequests": 0,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
-  "imagesMirrored": 1,
-  "imageMirrorErrors": 11,
+  "imagesMirrored": 0,
+  "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
   "episodeFrameErrors": 0,
   "seriesKeptVisibleDuringBackfill": 0,
-  "seriesRestoredByMonotonicGuard": 0,
-  "peopleEnrichmentCandidates": 116,
-  "peopleEnrichmentProcessed": 12,
-  "peopleEnrichmentSucceeded": 1,
-  "peopleEnrichmentFailed": 11,
-  "peopleEnrichmentSkippedFresh": 51,
+  "seriesRestoredByMonotonicGuard": 1,
+  "peopleEnrichmentCandidates": 0,
+  "peopleEnrichmentProcessed": 0,
+  "peopleEnrichmentSucceeded": 0,
+  "peopleEnrichmentFailed": 0,
+  "peopleEnrichmentSkippedFresh": 0,
   "peopleEnrichmentFromSource": 0,
-  "peopleEnrichmentFromTmdb": 1,
+  "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
-  "peopleAdded": 10,
-  "tmdbRequests": 13,
-  "imdbRequests": 15,
+  "peopleAdded": 0,
+  "tmdbRequests": 0,
+  "imdbRequests": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [
-    {
-      "scope": "episode-artwork-c8caa550-94ea-11ec-865b-cd6bf1f34bc1",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-f9b3d300-0922-11f1-abc6-6b384876b292",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-0d106700-5dc6-11f1-8eee-25008b011db9",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-c289ea80-573e-11f1-a968-1b623cae7bb0",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-fbb54130-89c7-11ee-b35e-63f53dbb63af",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/fbb54130-89c7-11ee-b35e-63f53dbb63af?affiliate=1"
-    },
-    {
-      "scope": "people-967b2da0-d713-11ef-98dc-0b8705f2a8f5",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-de484ef0-eea0-11ef-8d78-890634fe0786",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-fe83c9c0-dd73-11ee-b274-5702b5ddf8af",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-fe2131d0-dd73-11ee-bc79-27eec26e0b76",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-86594560-eea0-11ef-8736-0fa33f0c54eb",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-3756a640-dd74-11ee-9099-e3bcd7757a89",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-125827b0-dd74-11ee-aa2e-038ed8457d61",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-de05e360-2f1c-11f0-839c-8d8920100bdb",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-1007ef10-7696-11f0-b2b5-832fabff1294",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-1bd652e0-7a94-11f0-8e6c-271671cf1eec",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-1e6f0fb0-7b64-11f0-bb2c-8be347f45a69",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    }
-  ],
+  "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 41,
-  "finishedAt": "2026-08-08T19:01:39.891Z"
+  "apiRequests": 7,
+  "lastCheckpointAt": "2026-08-08T19:01:44.305Z",
+  "lastCheckpointReason": "backfill-paused-d1fece20-90c8-11f1-aec9-fb38be46e40d",
+  "remainingRunMsAtCheckpoint": 1079051,
+  "finishedAt": "2026-08-08T19:01:46.059Z"
 }
