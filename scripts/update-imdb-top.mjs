@@ -19,6 +19,7 @@ const basicsUrl = String(
 const ratingsFile = String(process.env.IMDB_RATINGS_FILE || '').trim();
 const basicsFile = String(process.env.IMDB_BASICS_FILE || '').trim();
 const tmdbToken = String(process.env.TMDB_READ_ACCESS_TOKEN || '').trim();
+const tmdbApiBase = String(process.env.TMDB_API_BASE || 'https://api.themoviedb.org/3').replace(/\/+$/, '');
 const refreshHours = positiveNumber(process.env.IMDB_TOP_REFRESH_HOURS, 20);
 const force = /^(?:1|true|yes)$/i.test(String(process.env.IMDB_TOP_FORCE || ''));
 const posterMirrorConcurrency = Math.max(1, Math.min(
@@ -26,17 +27,45 @@ const posterMirrorConcurrency = Math.max(1, Math.min(
   positiveInt(process.env.IMDB_POSTER_MIRROR_CONCURRENCY, 6),
 ));
 
+const PERSIAN_TITLE_OVERRIDES = new Map([
+  ['breaking bad', 'بریکینگ بد'],
+  ['steel ball run jojo s bizarre adventure', 'استیل بال ران: ماجراجویی عجیب جوجو'],
+  ['band of brothers', 'جوخه برادران'],
+  ['planet earth', 'سیاره زمین'],
+  ['sapne vs everyone', 'رویاها در برابر همه'],
+  ['the world at war', 'جهان در جنگ'],
+  ['bb ki vines', 'بی بی کی واینز'],
+  ['the chaos class', 'کلاس شلوغ'],
+  ['punjab 95', 'پنجاب ۹۵'],
+  ['david attenborough a life on our planet', 'دیوید اتنبرو: یک زندگی روی سیاره ما'],
+  ['tosun pasha', 'توسون پاشا'],
+  ['rocketry the nambi effect', 'راکتری: اثر نامبی'],
+  ['anbe sivam', 'آنبه سیوام'],
+  ['nayakan', 'نایاکان'],
+  ['jai bhim', 'جای بهیم'],
+  ['soorarai pottru', 'سورارای پوترو'],
+  ['baraka', 'باراکا'],
+  ['jersey', 'جرسی'],
+  ['mahavatar narsimha', 'ماهاواتار نارسیما'],
+  ['dear zachary a letter to a son about his father', 'زکری عزیز: نامه ای به پسری درباره پدرش'],
+  ['96', '۹۶'],
+  ['777 charlie', 'چارلی ۷۷۷'],
+  ['mirror game', 'بازی آینه'],
+  ['20 days in mariupol', '۲۰ روز در ماریوپل'],
+  ['the kashmir files', 'پرونده های کشمیر'],
+]);
+
 const catalog = JSON.parse(await fs.readFile(catalogPath, 'utf8'));
 if (!catalog || !Array.isArray(catalog.items)) {
   throw new Error('catalog.json پیدا نشد یا ساختار items معتبر نیست.');
 }
 
 const previous = catalog.imdbTop100;
-const cache = await readJson(cachePath, { version: 2, posters: {} });
+const cache = await readJson(cachePath, { version: 3, posters: {} });
 if (!cache.posters || typeof cache.posters !== 'object') {
   cache.posters = {};
 }
-cache.version = 2;
+cache.version = 3;
 const previousUpdatedAt = Date.parse(String(previous?.updatedAt || ''));
 if (
   !force &&
@@ -254,11 +283,11 @@ async function hydrateExistingRankingMetadata(ranking, catalogIndex, posterCache
       const currentPoster = cleanText(entry.poster);
       let tmdb = {};
       if ((!currentPoster && !cleanText(item?.poster)) || (!currentTitleFa && !itemTitleFa)) {
-        tmdb = await tmdbMetadata(normalized.imdb, type, posterCache);
+        tmdb = await tmdbMetadata(normalized, type, posterCache);
       }
 
       const title = itemTitle || cleanText(entry.title);
-      const titleFa = itemTitleFa || currentTitleFa || cleanText(tmdb.titleFa);
+      const titleFa = itemTitleFa || currentTitleFa || cleanText(tmdb.titleFa) || persianFallbackTitle(title);
       const poster = cleanText(item?.poster) || currentPoster || cleanText(tmdb.poster);
       const next = {
         ...entry,
@@ -298,13 +327,15 @@ async function materializeRanking(entries, type, catalogIndex, posterCache) {
       catalogIndex.byImdb.set(entry.imdb, item);
     }
     const itemTitle = cleanText(item?.name);
-    const itemTitleFa = cleanText(item?.nameFa);
+    const itemTitleFa = containsPersian(item?.nameFa) ? cleanText(item?.nameFa) : '';
     const tmdb = !cleanText(item?.poster) || !itemTitleFa
-      ? await tmdbMetadata(entry.imdb, type, posterCache)
+      ? await tmdbMetadata(entry, type, posterCache)
       : {};
     const poster = cleanText(item?.poster) || cleanText(tmdb.poster);
     const title = itemTitle || entry.title;
-    const titleFa = itemTitleFa || cleanText(tmdb.titleFa);
+    const titleFa = itemTitleFa || cleanText(tmdb.titleFa) || persianFallbackTitle(title);
+    if (item && titleFa && !containsPersian(item.nameFa)) item.nameFa = titleFa;
+    if (item && poster && !cleanText(item.poster)) item.poster = poster;
     result.push({
       rank: index + 1,
       ...(item ? { itemId: String(item.id) } : {}),
@@ -321,100 +352,113 @@ async function materializeRanking(entries, type, catalogIndex, posterCache) {
   return result;
 }
 
-async function tmdbMetadata(imdb, type, posterCache) {
+async function tmdbMetadata(entry, type, posterCache) {
+  const imdb = normalizeImdbId(entry?.imdb);
   const cached = posterCache.posters[imdb];
   const cachedAt = Date.parse(String(cached?.fetchedAt || ''));
+  const cachedPoster = cleanText(cached?.poster);
+  const cachedTitleFa = containsPersian(cached?.titleFa) ? cleanText(cached.titleFa) : '';
+
+  // An old empty cache entry used to suppress TMDB retries for 60 days. Reuse a
+  // fresh cache only when it actually contains a poster; missing posters (for
+  // example Steel Ball Run) are retried on the next enrichment run.
   if (
     cached &&
     cached.localized === true &&
+    cachedPoster &&
     Number.isFinite(cachedAt) &&
     Date.now() - cachedAt < 60 * 86400000
   ) {
-    return {
-      poster: cleanText(cached.poster),
-      titleFa: cleanText(cached.titleFa),
-    };
+    return { poster: cachedPoster, titleFa: cachedTitleFa };
   }
-  if (!tmdbToken) {
-    return {
-      poster: cleanText(cached?.poster),
-      titleFa: cleanText(cached?.titleFa),
-    };
-  }
-  try {
-    await sleep(70);
-    const response = await fetch(
-      `https://api.themoviedb.org/3/find/${encodeURIComponent(imdb)}?external_source=imdb_id&language=fa-IR`,
-      {
-        headers: {
-          accept: 'application/json',
-          authorization: `Bearer ${tmdbToken}`,
-        },
-        signal: AbortSignal.timeout(8_000),
+  if (!tmdbToken) return { poster: cachedPoster, titleFa: cachedTitleFa };
+
+  const tmdbJson = async (pathname) => {
+    await sleep(65);
+    const response = await fetch(`${tmdbApiBase}${pathname}`, {
+      headers: {
+        accept: 'application/json',
+        authorization: `Bearer ${tmdbToken}`,
       },
-    );
-    if (!response.ok) {
-      return {
-        poster: cleanText(cached?.poster),
-        titleFa: cleanText(cached?.titleFa),
-      };
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!response.ok) throw new Error(`TMDB HTTP ${response.status}`);
+    return response.json();
+  };
+
+  try {
+    let candidate = null;
+    if (imdb) {
+      try {
+        const payload = await tmdbJson(`/find/${encodeURIComponent(imdb)}?external_source=imdb_id&language=fa-IR`);
+        const candidates = type === 'series' ? payload?.tv_results : payload?.movie_results;
+        candidate = Array.isArray(candidates) ? candidates[0] || null : null;
+      } catch {
+        // Title search below is a second chance when IMDb->TMDB lookup fails.
+      }
     }
-    const payload = await response.json();
-    const candidates = type === 'series' ? payload?.tv_results : payload?.movie_results;
-    const candidate = Array.isArray(candidates) ? candidates[0] : null;
+
+    if (!candidate?.id) {
+      const mediaPath = type === 'series' ? 'tv' : 'movie';
+      const query = cleanText(entry?.title || entry?.originalTitle);
+      if (query) {
+        const year = positiveInt(entry?.year, 0);
+        const yearKey = type === 'series' ? 'first_air_date_year' : 'year';
+        try {
+          const search = await tmdbJson(
+            `/search/${mediaPath}?language=fa-IR&include_adult=false&query=${encodeURIComponent(query)}` +
+            (year > 0 ? `&${yearKey}=${year}` : ''),
+          );
+          const results = Array.isArray(search?.results) ? search.results : [];
+          candidate = results.find((value) => value?.id) || null;
+        } catch {
+          // Keep cached metadata when search is temporarily unavailable.
+        }
+      }
+    }
+
+    if (!candidate?.id) {
+      posterCache.posters[imdb] = {
+        ...(cached || {}),
+        localized: false,
+        fetchedAt: new Date().toISOString(),
+      };
+      return { poster: cachedPoster, titleFa: cachedTitleFa };
+    }
+
+    const mediaPath = type === 'series' ? 'tv' : 'movie';
     let posterPath = cleanText(candidate?.poster_path);
     let localizedTitle = cleanText(candidate?.title || candidate?.name);
     let titleFa = containsPersian(localizedTitle) ? localizedTitle : '';
 
-    if (candidate?.id && (!titleFa || !posterPath)) {
-      const mediaPath = type === 'series' ? 'tv' : 'movie';
+    try {
+      const details = await tmdbJson(`/${mediaPath}/${candidate.id}?language=fa-IR`);
+      posterPath = cleanText(details?.poster_path) || posterPath;
+      localizedTitle = cleanText(details?.title || details?.name);
+      if (containsPersian(localizedTitle)) titleFa = localizedTitle;
+    } catch {
+      // The search/find result can still provide a usable poster.
+    }
+
+    if (!titleFa) {
       try {
-        await sleep(55);
-        const detailResponse = await fetch(
-          `https://api.themoviedb.org/3/${mediaPath}/${candidate.id}?language=fa-IR`,
-          {
-            headers: { accept: 'application/json', authorization: `Bearer ${tmdbToken}` },
-            signal: AbortSignal.timeout(8_000),
-          },
-        );
-        if (detailResponse.ok) {
-          const detail = await detailResponse.json();
-          posterPath = posterPath || cleanText(detail?.poster_path);
-          localizedTitle = cleanText(detail?.title || detail?.name);
-          if (containsPersian(localizedTitle)) titleFa = localizedTitle;
-        }
+        const translationsPayload = await tmdbJson(`/${mediaPath}/${candidate.id}/translations`);
+        const translations = Array.isArray(translationsPayload?.translations) ? translationsPayload.translations : [];
+        const persian = translations.find((value) => String(value?.iso_639_1 || '').toLowerCase() === 'fa');
+        const translated = cleanText(persian?.data?.title || persian?.data?.name);
+        if (containsPersian(translated)) titleFa = translated;
       } catch {
-        // The find response may still provide a usable poster.
+        // Missing Persian translation is non-fatal; local fallback handles it.
       }
     }
 
-    if (candidate?.id && !titleFa) {
-      const mediaPath = type === 'series' ? 'tv' : 'movie';
-      try {
-        await sleep(55);
-        const translationsResponse = await fetch(
-          `https://api.themoviedb.org/3/${mediaPath}/${candidate.id}/translations`,
-          {
-            headers: { accept: 'application/json', authorization: `Bearer ${tmdbToken}` },
-            signal: AbortSignal.timeout(8_000),
-          },
-        );
-        if (translationsResponse.ok) {
-          const translationsPayload = await translationsResponse.json();
-          const translations = Array.isArray(translationsPayload?.translations) ? translationsPayload.translations : [];
-          const persian = translations.find((entry) => String(entry?.iso_639_1 || '').toLowerCase() === 'fa');
-          const translated = cleanText(persian?.data?.title || persian?.data?.name);
-          if (containsPersian(translated)) titleFa = translated;
-        }
-      } catch {
-        // Missing translation is non-fatal.
-      }
-    }
-
-    const poster = posterPath ? `https://image.tmdb.org/t/p/w342/${posterPath.replace(/^\/+/, '')}` : '';
+    const poster = posterPath
+      ? `https://image.tmdb.org/t/p/w500/${posterPath.replace(/^\/+/, '')}`
+      : cachedPoster;
     posterCache.posters[imdb] = {
-      poster: poster || cleanText(cached?.poster),
-      ...(titleFa ? { titleFa } : {}),
+      poster,
+      ...(titleFa ? { titleFa } : cachedTitleFa ? { titleFa: cachedTitleFa } : {}),
+      tmdbId: Number(candidate.id),
       localized: true,
       fetchedAt: new Date().toISOString(),
     };
@@ -423,10 +467,7 @@ async function tmdbMetadata(imdb, type, posterCache) {
       titleFa: cleanText(posterCache.posters[imdb].titleFa),
     };
   } catch {
-    return {
-      poster: cleanText(cached?.poster),
-      titleFa: cleanText(cached?.titleFa),
-    };
+    return { poster: cachedPoster, titleFa: cachedTitleFa };
   }
 }
 
@@ -444,8 +485,8 @@ function buildCatalogFallback(items, type) {
       itemId: String(item.id),
       type,
       title: String(item.name || item.nameFa || ''),
-      ...(item.nameFa && normalizeTitle(item.nameFa) !== normalizeTitle(item.name)
-        ? { titleFa: String(item.nameFa) }
+      ...((containsPersian(item.nameFa) ? cleanText(item.nameFa) : persianFallbackTitle(item.name))
+        ? { titleFa: containsPersian(item.nameFa) ? cleanText(item.nameFa) : persianFallbackTitle(item.name) }
         : {}),
       ...(normalizeImdbId(item.imdb) ? { imdb: normalizeImdbId(item.imdb) } : {}),
       year: Number(item.year || 0),
@@ -537,6 +578,41 @@ async function readJson(file, fallback) {
   } catch {
     return fallback;
   }
+}
+
+function persianFallbackTitle(value) {
+  const source = cleanText(value);
+  if (!source) return '';
+  if (containsPersian(source)) return source;
+  const overridden = PERSIAN_TITLE_OVERRIDES.get(normalizeTitle(source));
+  if (overridden) return overridden;
+
+  let text = source
+    .replace(/0/g, '۰').replace(/1/g, '۱').replace(/2/g, '۲').replace(/3/g, '۳').replace(/4/g, '۴')
+    .replace(/5/g, '۵').replace(/6/g, '۶').replace(/7/g, '۷').replace(/8/g, '۸').replace(/9/g, '۹');
+  if (/^[^A-Za-z]*$/.test(text)) return text;
+
+  const replacements = [
+    [/sh/gi, 'ش'], [/ch/gi, 'چ'], [/zh/gi, 'ژ'], [/kh/gi, 'خ'], [/gh/gi, 'غ'],
+    [/ph/gi, 'ف'], [/th/gi, 'ت'], [/ck/gi, 'ک'], [/qu/gi, 'کو'], [/oo/gi, 'و'],
+    [/ee/gi, 'ی'], [/ea/gi, 'ی'], [/ou/gi, 'او'], [/ai/gi, 'ای'], [/ay/gi, 'ای'],
+  ];
+  const placeholders = [];
+  text = text.toLowerCase();
+  for (const [pattern, replacement] of replacements) {
+    text = text.replace(pattern, () => {
+      const index = placeholders.push(replacement) - 1;
+      return `§${index}§`;
+    });
+  }
+  const letters = {
+    a: 'ا', b: 'ب', c: 'ک', d: 'د', e: '', f: 'ف', g: 'گ', h: 'ه', i: 'ی',
+    j: 'ج', k: 'ک', l: 'ل', m: 'م', n: 'ن', o: 'و', p: 'پ', q: 'ق', r: 'ر',
+    s: 'س', t: 'ت', u: 'و', v: 'و', w: 'و', x: 'کس', y: 'ی', z: 'ز',
+  };
+  text = text.replace(/[a-z]/g, (letter) => letters[letter] ?? letter);
+  text = text.replace(/§(\d+)§/g, (_match, index) => placeholders[Number(index)] || '');
+  return text.replace(/\s+/g, ' ').replace(/\s+([:،؛!?])/g, '$1').trim();
 }
 
 function cleanDatasetText(value) {

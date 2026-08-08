@@ -62,6 +62,8 @@ test('IMDb ranking keeps all 100 entries and only links titles available in the 
     assert.equal(result.imdbTop100.movies.find((entry) => entry.imdb === 'tt1000001')?.itemId, undefined);
     assert.equal(result.imdbTop100.movies.find((entry) => entry.imdb === 'tt1000000')?.title, 'Movie 0');
     assert.equal(result.imdbTop100.movies.find((entry) => entry.imdb === 'tt1000000')?.titleFa, 'فیلم موجود');
+    assert.ok(result.imdbTop100.movies.every((entry) => /[\u0600-\u06FF]/.test(String(entry.titleFa || ''))));
+    assert.ok(result.imdbTop100.series.every((entry) => /[\u0600-\u06FF]/.test(String(entry.titleFa || ''))));
     assert.equal(manifest.catalogVersion, result.version);
     assert.equal(manifest.catalogUpdatedAt, result.updatedAt);
     assert.match(manifest.revision, /^[a-f0-9]{64}$/);
@@ -150,7 +152,7 @@ test('fresh IMDb ranking repairs missing Persian title and poster metadata witho
     assert.equal(result.imdbTop100.movies.length, 100);
     assert.equal(result.imdbTop100.series.length, 100);
     const cache = JSON.parse(await fs.readFile(path.join(fixtureDirectory, 'imdb-top-cache.json'), 'utf8'));
-    assert.equal(cache.version, 2);
+    assert.equal(cache.version, 3);
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }
