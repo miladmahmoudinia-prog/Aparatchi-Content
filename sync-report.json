@@ -1,43 +1,28 @@
 {
-  "startedAt": "2026-08-09T20:03:26.931Z",
-  "runTimeLimitMinutes": 18,
-  "runDeadlineAt": "2026-08-09T20:21:26.714Z",
+  "startedAt": "2026-08-09T21:23:20.621Z",
+  "runTimeLimitMinutes": 14,
+  "runDeadlineAt": "2026-08-09T21:37:20.390Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 1061679,
+  "remainingRunMsAtFinish": 668660,
   "imageMirroringSkipped": true,
   "originalCount": 1552,
-  "finalCount": 1552,
-  "requestedSyncMode": "BACKFILL",
-  "effectiveSyncMode": "BACKFILL",
-  "backfillQueueTotal": 83,
-  "backfillBacklogRemaining": 83,
+  "finalCount": 1620,
+  "requestedSyncMode": "NORMAL",
+  "effectiveSyncMode": "NORMAL",
+  "backfillQueueTotal": 1547,
+  "backfillBacklogRemaining": 1615,
   "backfillBlockedTotal": 5,
-  "backfillActiveSeries": {
-    "id": "0d106700-5dc6-11f1-8eee-25008b011db9",
-    "title": "شهر ستارگان",
-    "year": 2026,
-    "country": "",
-    "missingBefore": [],
-    "pendingBefore": 18,
-    "noProgressRuns": 9
-  },
+  "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
-  "backfillSeriesBlockedThisRun": [
-    {
-      "id": "0d106700-5dc6-11f1-8eee-25008b011db9",
-      "title": "شهر ستارگان",
-      "reason": "added-or-updated",
-      "attempts": 10
-    }
-  ],
+  "backfillSeriesBlockedThisRun": [],
   "backfillEpisodesAdded": 0,
-  "backfillSeriesVisited": 1,
-  "backfillCheckpoints": 1,
-  "episodesMarkedUnavailable": 0,
-  "backfillNoProgressRuns": 10,
-  "normalSyncSkippedForBackfill": true,
-  "backfillOrdering": "active-then-nearest-completion",
+  "backfillSeriesVisited": 0,
+  "backfillCheckpoints": 0,
+  "episodesMarkedUnavailable": 15,
+  "backfillNoProgressRuns": 0,
+  "normalSyncSkippedForBackfill": false,
+  "backfillOrdering": "oldest-production-year-then-one-active-title",
   "backfillNextSeries": null,
   "episodePaginationPagesFetched": 0,
   "episodePaginationErrors": 0,
@@ -46,33 +31,74 @@
   "incrementalCandidates": 0,
   "incrementalSeriesDeferred": 0,
   "incrementalProcessed": 0,
-  "recentMoviePagesScanned": 0,
-  "recentMovieCandidates": 0,
-  "recentMovieNewCandidates": 0,
-  "recentMoviesProcessed": 0,
-  "recentSeriesPagesScanned": 0,
-  "recentSeriesCandidates": 0,
+  "recentMoviePagesScanned": 12,
+  "recentMovieCandidates": 432,
+  "recentMovieNewCandidates": 46,
+  "recentMoviesProcessed": 46,
+  "recentSeriesPagesScanned": 12,
+  "recentSeriesCandidates": 432,
   "recentSeriesNewCandidates": 0,
   "recentSeriesProcessed": 0,
-  "recentSeriesDeferredByArchiveQueue": 0,
-  "affiliateRequestScopes": {},
-  "skippedByScopedBudget": 0,
-  "moviePagesProcessed": 0,
-  "movieTitlesProcessed": 0,
+  "recentSeriesDeferredByArchiveQueue": 432,
+  "affiliateRequestScopes": {
+    "airing-series": {
+      "limit": 48,
+      "used": 1,
+      "exhausted": false
+    },
+    "recent-movies": {
+      "limit": 110,
+      "used": 46,
+      "exhausted": false
+    },
+    "media-repair": {
+      "limit": 30,
+      "used": 0,
+      "exhausted": false
+    },
+    "media-health-audit": {
+      "limit": 12,
+      "used": 0,
+      "exhausted": false
+    },
+    "recent-series": {
+      "limit": 72,
+      "used": 0,
+      "exhausted": false
+    },
+    "operator-movies": {
+      "limit": 24,
+      "used": 24,
+      "exhausted": true
+    },
+    "incremental": {
+      "limit": 32,
+      "used": 0,
+      "exhausted": false
+    },
+    "archive-movies": {
+      "limit": 32,
+      "used": 32,
+      "exhausted": true
+    }
+  },
+  "skippedByScopedBudget": 2,
+  "moviePagesProcessed": 1,
+  "movieTitlesProcessed": 32,
   "seriesPagesProcessed": 0,
   "seriesTitlesProcessed": 0,
-  "airingSeriesCandidates": 24,
-  "airingSeriesChecked": 6,
+  "airingSeriesCandidates": 25,
+  "airingSeriesChecked": 25,
   "airingSeriesUpdated": 0,
-  "incompleteSeriesCandidates": 83,
+  "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
-  "incompleteSeriesStillMissing": 1,
+  "incompleteSeriesStillMissing": 0,
   "seriesHiddenUntilComplete": 0,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 3,
-  "episodesProcessed": 82,
+  "iranianSeriesProcessed": 4,
+  "episodesProcessed": 15,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
@@ -82,20 +108,278 @@
   "operatorSeriesCandidates": 0,
   "operatorSeriesAddedOrUpdated": 0,
   "operatorSeriesRejectedNoOperatorLink": 0,
-  "operatorMoviePagesProcessed": 0,
-  "operatorMovieCandidates": 0,
+  "operatorMoviePagesProcessed": 1,
+  "operatorMovieCandidates": 25,
   "operatorMoviesAddedOrUpdated": 0,
-  "operatorMoviesRejectedNoOperatorLink": 0,
-  "operatorLinksFound": 0,
+  "operatorMoviesRejectedNoOperatorLink": 24,
+  "operatorLinksFound": 1,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [],
-  "operatorDiagnostics": [],
+  "operatorDiagnostics": [
+    {
+      "type": "movie",
+      "id": "0ff6c700-5afa-11ea-a6a9-afc53246ce05",
+      "title": "دم سرخ ها",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "35336e30-e9e4-11ed-97f8-0deee757f801",
+      "title": "گیسوم",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "be8bb4e0-7186-11e9-975c-733e64676e91",
+      "title": "کفشهایم کو",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "4b0c1490-9537-11f0-a01d-0d8358061b7a",
+      "title": "تخته جادوگری",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "6e3293c0-952d-11f0-95a6-e3978bf14d90",
+      "title": "دراکولا: یک داستان عاشقانه",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "9bd92fc0-84ff-11f0-a210-6f9aa6afaef0",
+      "title": "آمریکانا",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "0ca61de0-87f6-11f0-9f2a-259a5689a43c",
+      "title": "رله",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "e70aff20-edad-11ed-808c-29096c246f0d",
+      "title": "بی نامی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "12795570-d1e5-11e8-ab94-916ba10bf6ce",
+      "title": "به آهستگی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "55bfa470-e538-11ee-af2a-8d4c28fe92aa",
+      "title": "بادیگارد",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "8453f9c0-65f5-11f0-9d0a-dfdebd4efe19",
+      "title": "مسیر نمک",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "fe9bd8d0-608e-11f0-ae21-179fac05ef7c",
+      "title": "تیغ و ترمه",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "e99a4d50-9397-11f0-a3e4-594a1e2fb773",
+      "title": "اشباح",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "6282e800-9397-11f0-8cd2-bfbf2956d904",
+      "title": "آدم برفی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "853925c0-93b7-11f0-b54e-03c5d71ffc3a",
+      "title": "برون مرزی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "3badfc50-93bb-11f0-b0fb-97e08e10ca29",
+      "title": "جدایی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "b2bf3b40-60ae-11f0-bdbc-412c622d81a9",
+      "title": "خانه پروانه‌ای",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "dcc8e0d0-60b7-11f0-80c4-6754107a25f6",
+      "title": "آجر",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "d08184e0-6237-11f0-afb1-c38935a72610",
+      "title": "راه قدیمی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "e2d90910-6559-11f0-8714-7bd478cfa35c",
+      "title": "روزگار ما",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "f85f32e0-9301-11f0-a67b-59614bca47b3",
+      "title": "جنگ داخلی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "7b608910-92d4-11f0-a6cc-9fcb4a9e7a76",
+      "title": "فرزندان",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "cd6942c0-92ea-11f0-8c10-c7bc5ec857bf",
+      "title": "زیر آتش",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "796f52f0-65e4-11f0-aa4c-9fb09bc87c3f",
+      "title": "سوپرمن",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "ad5de500-67a0-11f0-8377-bb4801a367a3",
+      "title": "گمشده در نور ستارگان",
+      "result": "rejected",
+      "reason": "request-budget",
+      "retryLater": true
+    }
+  ],
   "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "0d106700-5dc6-11f1-8eee-25008b011db9",
-      "title": "شهر ستارگان",
-      "source": "fast-backfill",
+      "seriesId": "d1fece20-90c8-11f1-aec9-fb38be46e40d",
+      "title": "زندگی یک جادوگر در مغولستان",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 22,
+      "catalogEpisodeCount": 4,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
+          "seasonNumber": 1,
+          "episodeNumber": 17,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "6ee7a320-90c0-11f1-936c-e7983f454a7b",
+      "title": "قهرمانان کوانتومی داینوستر",
+      "source": "airing-refresh",
       "discoveredEpisodeCount": 25,
       "catalogEpisodeCount": 7,
       "missing": [
@@ -138,93 +422,416 @@
       ],
       "rejectedEpisodes": [
         {
-          "id": "9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
+          "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
           "seasonNumber": 1,
-          "episodeNumber": 0,
+          "episodeNumber": 17,
           "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "b176b920-8d84-11f1-8c30-4dd713abdb61",
+      "title": "لاکی",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 22,
+      "catalogEpisodeCount": 4,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 5
         },
         {
-          "id": "45c86e00-d02a-11ec-9953-a31100034ade",
           "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
+          "episodeNumber": 10
         },
         {
-          "id": "0fe8c940-6e52-11f1-b8dc-a5993cc534d7",
           "seasonNumber": 1,
-          "episodeNumber": 10,
-          "reason": "no-usable-links"
+          "episodeNumber": 12
         },
         {
-          "id": "8a2c7c70-1a21-11f1-ae10-4f7a3c2190bf",
           "seasonNumber": 1,
-          "episodeNumber": 12,
-          "reason": "no-usable-links"
+          "episodeNumber": 13
         },
         {
-          "id": "14613be0-5f67-11f1-be9f-87496992859e",
           "seasonNumber": 1,
-          "episodeNumber": 13,
-          "reason": "no-usable-links"
+          "episodeNumber": 14
         },
         {
-          "id": "4b9424f0-e7f4-11f0-b3e6-33cffeab9913",
           "seasonNumber": 1,
-          "episodeNumber": 13,
-          "reason": "no-usable-links"
+          "episodeNumber": 15
         },
         {
-          "id": "fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2",
           "seasonNumber": 1,
-          "episodeNumber": 14,
-          "reason": "no-usable-links"
+          "episodeNumber": 17
         },
         {
-          "id": "5f8394b0-89eb-11f1-a5d5-f5268777e2e0",
           "seasonNumber": 1,
-          "episodeNumber": 15,
-          "reason": "no-usable-links"
+          "episodeNumber": 18
         },
         {
-          "id": "7c1448e0-d532-11f0-aebf-7f020b8689ca",
           "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
+          "episodeNumber": 20
         },
         {
-          "id": "da7bbe30-c629-11f0-a062-ed284b0e9fd8",
           "seasonNumber": 1,
-          "episodeNumber": 18,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
+          "seasonNumber": 1,
+          "episodeNumber": 17,
           "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "d18049a0-82a9-11f1-bce2-1b4c21485bf7",
+      "title": "رؤیایی برای تو",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 24,
+      "catalogEpisodeCount": 6,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
         },
         {
-          "id": "6a3891a0-be51-11f0-8f57-5b13bfa71465",
           "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
+          "episodeNumber": 12
         },
         {
-          "id": "132053f0-d387-11f0-9b0a-65d68e4f69fd",
           "seasonNumber": 1,
-          "episodeNumber": 20,
-          "reason": "no-usable-links"
+          "episodeNumber": 13
         },
         {
-          "id": "5ddab3a0-d130-11f0-bd64-1ba19d1d22f0",
           "seasonNumber": 1,
-          "episodeNumber": 20,
-          "reason": "no-usable-links"
+          "episodeNumber": 14
         },
         {
-          "id": "a74ad510-ab0f-11f0-9ad0-0f49e7b62786",
           "seasonNumber": 1,
-          "episodeNumber": 20,
-          "reason": "no-usable-links"
+          "episodeNumber": 15
         },
         {
-          "id": "c8c7bfe0-8dee-11f0-a322-05750ae92848",
           "seasonNumber": 1,
-          "episodeNumber": 22,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
+          "seasonNumber": 1,
+          "episodeNumber": 17,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "f499d7e0-8295-11f1-bd3d-314904460dcd",
+      "title": "عملیات آپارتمان",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 24,
+      "catalogEpisodeCount": 6,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
+          "seasonNumber": 1,
+          "episodeNumber": 17,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "f9b3d300-0922-11f1-abc6-6b384876b292",
+      "title": "خانواده یک آزمون است",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 36,
+      "catalogEpisodeCount": 18,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "c8caa550-94ea-11ec-865b-cd6bf1f34bc1",
+      "title": "از سوی",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 58,
+      "catalogEpisodeCount": 40,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
+          "seasonNumber": 1,
+          "episodeNumber": 17,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "d37fbe40-6009-11ed-b713-8d57f0175080",
+      "title": "بلیز و ماشین های هیولایی",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 116,
+      "catalogEpisodeCount": 97,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "c289ea80-573e-11f1-a968-1b623cae7bb0",
+      "title": "مزرعه داتون",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 27,
+      "catalogEpisodeCount": 9,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
+          "seasonNumber": 1,
+          "episodeNumber": 17,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "50848dc0-7d18-11f1-8bba-515f2a1f1c99",
+      "title": "سوفیای اول: جادوی سلطنتی",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 26,
+      "catalogEpisodeCount": 8,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
+          "seasonNumber": 1,
+          "episodeNumber": 17,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "b8b4f9a0-6896-11f1-87c8-c1c309accaac",
+      "title": "زندانی",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 24,
+      "catalogEpisodeCount": 6,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
+          "seasonNumber": 1,
+          "episodeNumber": 17,
           "reason": "no-usable-links"
         }
       ]
@@ -232,15 +839,375 @@
     {
       "seriesId": "0d106700-5dc6-11f1-8eee-25008b011db9",
       "title": "شهر ستارگان",
-      "source": "fast-backfill-summary",
-      "missingBefore": [],
-      "pendingBefore": 18,
-      "missingAfter": [],
-      "pendingAfter": 18,
-      "publicationStatus": "published",
-      "result": "no-progress",
-      "addedEpisodes": 0,
-      "unavailableMarked": 0
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 25,
+      "catalogEpisodeCount": 7,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "title": "سایه باز",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 38,
+      "catalogEpisodeCount": 8,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 6
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 7
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 8
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 9
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 11
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 12
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
+          "seasonNumber": 1,
+          "episodeNumber": 17,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "9dcad570-cdf0-11f0-a0a0-eddd96259c2c",
+      "title": "ناینیای قدرتمند",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 26,
+      "catalogEpisodeCount": 8,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "1af21e70-46db-11ec-8281-67b7f87ff6c0",
+      "title": "شهردار کینگزتاون",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 58,
+      "catalogEpisodeCount": 40,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
+      "title": "آن:به دری خوش آمدید",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 26,
+      "catalogEpisodeCount": 8,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "84de3060-d8d8-11f0-a8df-41ebc832fd3d",
+      "title": "قبرستان",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 30,
+      "catalogEpisodeCount": 12,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "d5eaa7e0-97ac-11f0-a4bd-5dc777850b2e",
+      "title": "هتل تسخیر شده",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 28,
+      "catalogEpisodeCount": 10,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": []
     },
     {
       "seriesId": "f1d2c790-8af6-11f0-a76c-419a5ead0764",
@@ -284,75 +1251,9 @@
       ],
       "rejectedEpisodes": [
         {
-          "id": "9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
-          "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "45c86e00-d02a-11ec-9953-a31100034ade",
-          "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "8a2c7c70-1a21-11f1-ae10-4f7a3c2190bf",
-          "seasonNumber": 1,
-          "episodeNumber": 12,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "14613be0-5f67-11f1-be9f-87496992859e",
-          "seasonNumber": 1,
-          "episodeNumber": 13,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "4b9424f0-e7f4-11f0-b3e6-33cffeab9913",
-          "seasonNumber": 1,
-          "episodeNumber": 13,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2",
-          "seasonNumber": 1,
-          "episodeNumber": 14,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "5f8394b0-89eb-11f1-a5d5-f5268777e2e0",
-          "seasonNumber": 1,
-          "episodeNumber": 15,
-          "reason": "no-usable-links"
-        },
-        {
           "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
           "seasonNumber": 1,
           "episodeNumber": 17,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "7c1448e0-d532-11f0-aebf-7f020b8689ca",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "da7bbe30-c629-11f0-a062-ed284b0e9fd8",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "6a3891a0-be51-11f0-8f57-5b13bfa71465",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "132053f0-d387-11f0-9b0a-65d68e4f69fd",
-          "seasonNumber": 1,
-          "episodeNumber": 20,
           "reason": "no-usable-links"
         }
       ]
@@ -383,63 +1284,9 @@
       ],
       "rejectedEpisodes": [
         {
-          "id": "9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
-          "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "45c86e00-d02a-11ec-9953-a31100034ade",
-          "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
-        },
-        {
           "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
           "seasonNumber": 1,
           "episodeNumber": 17,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "7c1448e0-d532-11f0-aebf-7f020b8689ca",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "da7bbe30-c629-11f0-a062-ed284b0e9fd8",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "6a3891a0-be51-11f0-8f57-5b13bfa71465",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "132053f0-d387-11f0-9b0a-65d68e4f69fd",
-          "seasonNumber": 1,
-          "episodeNumber": 20,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "5ddab3a0-d130-11f0-bd64-1ba19d1d22f0",
-          "seasonNumber": 1,
-          "episodeNumber": 20,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "a74ad510-ab0f-11f0-9ad0-0f49e7b62786",
-          "seasonNumber": 1,
-          "episodeNumber": 20,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "c8c7bfe0-8dee-11f0-a322-05750ae92848",
-          "seasonNumber": 1,
-          "episodeNumber": 22,
           "reason": "no-usable-links"
         }
       ]
@@ -464,62 +1311,7 @@
           "episodeNumber": 22
         }
       ],
-      "rejectedEpisodes": [
-        {
-          "id": "9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
-          "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "45c86e00-d02a-11ec-9953-a31100034ade",
-          "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "7c1448e0-d532-11f0-aebf-7f020b8689ca",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "da7bbe30-c629-11f0-a062-ed284b0e9fd8",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "6a3891a0-be51-11f0-8f57-5b13bfa71465",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "132053f0-d387-11f0-9b0a-65d68e4f69fd",
-          "seasonNumber": 1,
-          "episodeNumber": 20,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "5ddab3a0-d130-11f0-bd64-1ba19d1d22f0",
-          "seasonNumber": 1,
-          "episodeNumber": 20,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "a74ad510-ab0f-11f0-9ad0-0f49e7b62786",
-          "seasonNumber": 1,
-          "episodeNumber": 20,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "c8c7bfe0-8dee-11f0-a322-05750ae92848",
-          "seasonNumber": 1,
-          "episodeNumber": 22,
-          "reason": "no-usable-links"
-        }
-      ]
+      "rejectedEpisodes": []
     },
     {
       "seriesId": "6afe97f0-e084-11ea-a506-71b2dd673e04",
@@ -567,75 +1359,9 @@
       ],
       "rejectedEpisodes": [
         {
-          "id": "9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
-          "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "45c86e00-d02a-11ec-9953-a31100034ade",
-          "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "0fe8c940-6e52-11f1-b8dc-a5993cc534d7",
-          "seasonNumber": 1,
-          "episodeNumber": 10,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "8a2c7c70-1a21-11f1-ae10-4f7a3c2190bf",
-          "seasonNumber": 1,
-          "episodeNumber": 12,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "14613be0-5f67-11f1-be9f-87496992859e",
-          "seasonNumber": 1,
-          "episodeNumber": 13,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "4b9424f0-e7f4-11f0-b3e6-33cffeab9913",
-          "seasonNumber": 1,
-          "episodeNumber": 13,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2",
-          "seasonNumber": 1,
-          "episodeNumber": 14,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "5f8394b0-89eb-11f1-a5d5-f5268777e2e0",
-          "seasonNumber": 1,
-          "episodeNumber": 15,
-          "reason": "no-usable-links"
-        },
-        {
           "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
           "seasonNumber": 1,
           "episodeNumber": 17,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "7c1448e0-d532-11f0-aebf-7f020b8689ca",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "da7bbe30-c629-11f0-a062-ed284b0e9fd8",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "6a3891a0-be51-11f0-8f57-5b13bfa71465",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
           "reason": "no-usable-links"
         }
       ]
@@ -682,75 +1408,9 @@
       ],
       "rejectedEpisodes": [
         {
-          "id": "9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
-          "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "45c86e00-d02a-11ec-9953-a31100034ade",
-          "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "8a2c7c70-1a21-11f1-ae10-4f7a3c2190bf",
-          "seasonNumber": 1,
-          "episodeNumber": 12,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "14613be0-5f67-11f1-be9f-87496992859e",
-          "seasonNumber": 1,
-          "episodeNumber": 13,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "4b9424f0-e7f4-11f0-b3e6-33cffeab9913",
-          "seasonNumber": 1,
-          "episodeNumber": 13,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2",
-          "seasonNumber": 1,
-          "episodeNumber": 14,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "5f8394b0-89eb-11f1-a5d5-f5268777e2e0",
-          "seasonNumber": 1,
-          "episodeNumber": 15,
-          "reason": "no-usable-links"
-        },
-        {
           "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
           "seasonNumber": 1,
           "episodeNumber": 17,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "7c1448e0-d532-11f0-aebf-7f020b8689ca",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "da7bbe30-c629-11f0-a062-ed284b0e9fd8",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "6a3891a0-be51-11f0-8f57-5b13bfa71465",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "132053f0-d387-11f0-9b0a-65d68e4f69fd",
-          "seasonNumber": 1,
-          "episodeNumber": 20,
           "reason": "no-usable-links"
         }
       ]
@@ -801,75 +1461,9 @@
       ],
       "rejectedEpisodes": [
         {
-          "id": "9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
-          "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "45c86e00-d02a-11ec-9953-a31100034ade",
-          "seasonNumber": 1,
-          "episodeNumber": 0,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "0fe8c940-6e52-11f1-b8dc-a5993cc534d7",
-          "seasonNumber": 1,
-          "episodeNumber": 10,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "8a2c7c70-1a21-11f1-ae10-4f7a3c2190bf",
-          "seasonNumber": 1,
-          "episodeNumber": 12,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "14613be0-5f67-11f1-be9f-87496992859e",
-          "seasonNumber": 1,
-          "episodeNumber": 13,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "4b9424f0-e7f4-11f0-b3e6-33cffeab9913",
-          "seasonNumber": 1,
-          "episodeNumber": 13,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2",
-          "seasonNumber": 1,
-          "episodeNumber": 14,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "5f8394b0-89eb-11f1-a5d5-f5268777e2e0",
-          "seasonNumber": 1,
-          "episodeNumber": 15,
-          "reason": "no-usable-links"
-        },
-        {
           "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
           "seasonNumber": 1,
           "episodeNumber": 17,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "7c1448e0-d532-11f0-aebf-7f020b8689ca",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "da7bbe30-c629-11f0-a062-ed284b0e9fd8",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "6a3891a0-be51-11f0-8f57-5b13bfa71465",
-          "seasonNumber": 1,
-          "episodeNumber": 18,
           "reason": "no-usable-links"
         }
       ]
@@ -1755,18 +2349,18 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 224,
+  "episodesDiscovered": 834,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 82,
-  "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 7,
-  "affiliateRequests": 16,
-  "affiliateCacheHits": 66,
-  "affiliateNotFound": 16,
+  "episodesRejectedNoLinks": 15,
+  "moviesAddedOrUpdated": 68,
+  "seriesAddedOrUpdated": 24,
+  "affiliateRequests": 103,
+  "affiliateCacheHits": 14,
+  "affiliateNotFound": 11,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1774,8 +2368,8 @@
   "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
   "episodeFrameErrors": 0,
-  "seriesKeptVisibleDuringBackfill": 7,
-  "seriesRestoredByMonotonicGuard": 1,
+  "seriesKeptVisibleDuringBackfill": 24,
+  "seriesRestoredByMonotonicGuard": 0,
   "peopleEnrichmentCandidates": 0,
   "peopleEnrichmentProcessed": 0,
   "peopleEnrichmentSucceeded": 0,
@@ -1792,18 +2386,20 @@
   "mediaRepairRecovered": 0,
   "mediaRepairStillMissing": 0,
   "mediaRepairHiddenConfirmed": 0,
-  "mediaHealthCandidates": 0,
-  "mediaHealthChecked": 0,
-  "mediaHealthHealthy": 0,
+  "mediaHealthCandidates": 1264,
+  "mediaHealthChecked": 24,
+  "mediaHealthHealthy": 1,
   "mediaHealthDead": 0,
-  "mediaHealthUnknown": 0,
+  "mediaHealthUnknown": 23,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [],
+  "errors": [
+    {
+      "scope": "airing-series-fbb54130-89c7-11ee-b35e-63f53dbb63af",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/fbb54130-89c7-11ee-b35e-63f53dbb63af?affiliate=1"
+    }
+  ],
   "errorsTruncated": 0,
-  "apiRequests": 23,
-  "lastCheckpointAt": "2026-08-09T20:03:42.272Z",
-  "lastCheckpointReason": "backfill-paused-0d106700-5dc6-11f1-8eee-25008b011db9",
-  "remainingRunMsAtCheckpoint": 1064268,
-  "finishedAt": "2026-08-09T20:03:45.035Z"
+  "apiRequests": 157,
+  "finishedAt": "2026-08-09T21:26:11.730Z"
 }
