@@ -138,14 +138,18 @@ const iranianSeriesRequestQuota = Math.min(
   positiveInt(process.env.UPERA_IRANIAN_SERIES_REQUEST_QUOTA, 6),
 );
 
+const operatorDiscoveryEnabled = String(
+  process.env.UPERA_OPERATOR_DISCOVERY_ENABLED || 'true',
+).trim().toLowerCase() !== 'false';
+
 const operatorMovieRequestQuota = Math.min(
   240,
-  positiveInt(process.env.UPERA_OPERATOR_MOVIE_REQUEST_QUOTA, 5),
+  positiveInt(process.env.UPERA_OPERATOR_MOVIE_REQUEST_QUOTA, 8),
 );
 
 const operatorSeriesRequestQuota = Math.min(
   240,
-  positiveInt(process.env.UPERA_OPERATOR_SERIES_REQUEST_QUOTA, 6),
+  positiveInt(process.env.UPERA_OPERATOR_SERIES_REQUEST_QUOTA, 9),
 );
 
 const newTitlesHours = positiveInt(
@@ -278,23 +282,32 @@ const iranianSeriesTitlesPerRun = positiveInt(
 );
 
 const operatorSeriesPagesPerRun = Math.min(
-  5,
-  positiveInt(process.env.UPERA_OPERATOR_SERIES_PAGES_PER_RUN, 2),
+  8,
+  positiveInt(process.env.UPERA_OPERATOR_SERIES_PAGES_PER_RUN, 4),
 );
 
 const operatorSeriesTitlesPerRun = positiveInt(
   process.env.UPERA_OPERATOR_SERIES_TITLES_PER_RUN,
-  4,
+  6,
 );
 
 const operatorMoviePagesPerRun = Math.min(
-  5,
-  positiveInt(process.env.UPERA_OPERATOR_MOVIE_PAGES_PER_RUN, 2),
+  8,
+  positiveInt(process.env.UPERA_OPERATOR_MOVIE_PAGES_PER_RUN, 4),
 );
 
 const operatorMovieTitlesPerRun = positiveInt(
   process.env.UPERA_OPERATOR_MOVIE_TITLES_PER_RUN,
-  5,
+  8,
+);
+
+// Operator discovery must be cheap enough to run every hour, even while the
+// historical year-by-year archive queue is active. Probe a few representative
+// episodes (newest/oldest/middle) instead of spending the whole run on one
+// long series before we even know whether it has operator-only media.
+const operatorProbeEpisodesPerSeries = Math.min(
+  6,
+  positiveInt(process.env.UPERA_OPERATOR_PROBE_EPISODES_PER_SERIES, 3),
 );
 
 const priorityEpisodesPerSeries = Math.min(
@@ -724,6 +737,16 @@ const effectiveSyncMode =
 stats.effectiveSyncMode = effectiveSyncMode;
 console.log(`حالت اجرا: ${effectiveSyncMode}`);
 
+// «ویژه همراه» is an independent hourly discovery lane. Historically it only
+// ran in NORMAL mode, and operator-series discovery was additionally disabled
+// whenever an archive backfill existed. Since a real catalog can stay in
+// BACKFILL mode for weeks, that starved this section indefinitely. Run the
+// bounded operator probes before either NORMAL or BACKFILL work so old-archive
+// completion can never block discovery of new operator-only movies/series.
+if (effectiveSyncMode !== 'PEOPLE' && operatorDiscoveryEnabled) {
+  await syncOperatorPriorityDiscovery();
+}
+
 if (effectiveSyncMode === 'PEOPLE') {
   // Fill episode artwork first so this user-visible repair cannot be starved
   // by slower external cast lookups. Remaining time continues cast enrichment.
@@ -785,28 +808,6 @@ if (effectiveSyncMode === 'PEOPLE') {
       'recent-series',
       recentSeriesRequestQuota,
       syncRecentSeriesDiscovery,
-    );
-  }
-
-  // Operator-only links are a first-class discovery target. Run these passes
-  // before maintenance/archive work so the global budget cannot starve them.
-  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-operator-movies', 80000)) {
-    await withAffiliateRequestScope(
-      'operator-movies',
-      operatorMovieRequestQuota,
-      syncOperatorMovieArchive,
-    );
-  }
-
-  if (
-    !affiliateBudgetExhausted &&
-    buildSequentialBackfillQueue().length === 0 &&
-    !runTimeBudgetReached('before-operator-series', 75000)
-  ) {
-    await withAffiliateRequestScope(
-      'operator-series',
-      operatorSeriesRequestQuota,
-      syncOperatorSeriesArchive,
     );
   }
 
@@ -2040,6 +2041,27 @@ async function syncIranianSeriesArchive() {
   }
 }
 
+async function syncOperatorPriorityDiscovery() {
+  // These scopes are deliberately independent from the year-by-year archive
+  // queue. Each run advances its own page/offset cursor, so even a very large
+  // historical backlog cannot freeze «ویژه همراه» at zero forever.
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-operator-movies', 100000)) {
+    await withAffiliateRequestScope(
+      'operator-movies',
+      operatorMovieRequestQuota,
+      syncOperatorMovieArchive,
+    );
+  }
+
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-operator-series', 90000)) {
+    await withAffiliateRequestScope(
+      'operator-series',
+      operatorSeriesRequestQuota,
+      syncOperatorSeriesArchive,
+    );
+  }
+}
+
 async function syncOperatorSeriesArchive() {
   let completedPages = 0;
   let visitedTitles = 0;
@@ -2086,8 +2108,8 @@ async function syncOperatorSeriesArchive() {
       try {
         const result = await processSeries(series, 'operator-priority', {
           requireOperator: true,
-          episodeStrategy: 'latest',
-          episodeLimit: priorityEpisodesPerSeries,
+          operatorProbe: true,
+          episodeLimit: operatorProbeEpisodesPerSeries,
         });
         retryLater = Boolean(result?.retryLater);
         rememberDiagnostic('operatorDiagnostics', {
@@ -2565,6 +2587,36 @@ function registerArchiveEpisodeFailure(seriesId, episode, reason, unavailableMap
   return !wasUnavailable;
 }
 
+function selectOperatorProbeEpisodes(episodes, limit) {
+  const sorted = [...(Array.isArray(episodes) ? episodes : [])].sort(compareEpisodes);
+  const max = Math.max(1, positiveInt(limit, operatorProbeEpisodesPerSeries));
+  if (sorted.length <= max) return sorted;
+
+  const selected = [];
+  const seen = new Set();
+  const addAt = (index) => {
+    const episode = sorted[Math.max(0, Math.min(sorted.length - 1, index))];
+    if (!episode) return;
+    const key = cleanText(episode.id || `${episodeSeasonNumber(episode)}:${episodeNumberValue(episode)}`);
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    selected.push(episode);
+  };
+
+  // Most operator feeds expose the newest episode reliably, while first and
+  // middle probes catch older or season-specific operator availability.
+  addAt(sorted.length - 1);
+  addAt(0);
+  addAt(Math.floor((sorted.length - 1) / 2));
+
+  // Fill any remaining probe slots evenly across the whole run of episodes.
+  for (let slot = 1; selected.length < max && slot < max * 3; slot += 1) {
+    addAt(Math.round(((sorted.length - 1) * slot) / Math.max(1, max - 1)));
+  }
+
+  return selected.slice(0, max);
+}
+
 async function processSeries(
   candidate,
   source,
@@ -2635,6 +2687,11 @@ async function processSeries(
       (episode) => String(episode.id) === String(options.onlyEpisodeId),
     );
     if (matched) selectedEpisodes = [matched];
+  } else if (options.operatorProbe === true) {
+    selectedEpisodes = selectOperatorProbeEpisodes(
+      episodes,
+      positiveInt(options.episodeLimit, operatorProbeEpisodesPerSeries),
+    );
   } else if (options.refreshAllMedia === true) {
     const limit = positiveInt(options.episodeLimit, priorityEpisodesPerSeries);
     const savedCursor = nonNegativeInt(state.seriesLanguageAuditCursor[id], 0);

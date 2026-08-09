@@ -145,6 +145,81 @@ globalThis.fetch = async (input) => {
     });
   }
 
+  if (scenario === 'operator-series') {
+    if (url.pathname.endsWith('/ghost/get/movies/sort')) {
+      return jsonResponse({ status: 'success', data: { movies: { data: [], last_page: 1 } } });
+    }
+
+    if (url.pathname.endsWith('/ghost/get/series/sort')) {
+      return jsonResponse({
+        status: 'success',
+        data: {
+          series: {
+            data: [
+              {
+                id: 'operator-series-1',
+                type: 'series',
+                name: 'Operator Series',
+                name_fa: 'سریال ویژه همراه',
+                year: 2024,
+                status: 'ended',
+                poster: 'https://example.test/operator-series-poster.jpg',
+                backdrop: 'https://example.test/operator-series-backdrop.jpg',
+              },
+            ],
+            current_page: 1,
+            last_page: 1,
+          },
+        },
+      });
+    }
+
+    if (url.pathname.endsWith('/ghost/get/series/operator-series-1')) {
+      return jsonResponse({
+        status: 'success',
+        data: {
+          series: {
+            id: 'operator-series-1',
+            type: 'series',
+            name: 'Operator Series',
+            name_fa: 'سریال ویژه همراه',
+            year: 2024,
+            status: 'ended',
+            poster: 'https://example.test/operator-series-poster.jpg',
+            backdrop: 'https://example.test/operator-series-backdrop.jpg',
+          },
+          episodes: Array.from({ length: 6 }, (_, index) => ({
+            id: `operator-series-episode-${index + 1}`,
+            type: 'episode',
+            series_id: 'operator-series-1',
+            season_number: 1,
+            episode_number: index + 1,
+            show: 1,
+          })),
+        },
+      });
+    }
+
+    if (
+      url.pathname.endsWith('/ghost/get/getaffiliatelinks') &&
+      url.searchParams.get('id') === 'operator-series-episode-6'
+    ) {
+      return jsonResponse({
+        status: 'success',
+        data: {
+          links: [
+            {
+              amount: 0,
+              link: 'https://redl.ink/operator-series-episode-6',
+              title: 'پخش ویژه اینترنت همراه',
+              operator_only: 1,
+            },
+          ],
+        },
+      });
+    }
+  }
+
   if (scenario === 'operator-movie') {
     if (url.pathname.endsWith('/ghost/get/movies/sort')) {
       return jsonResponse({

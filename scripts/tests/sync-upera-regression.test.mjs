@@ -106,8 +106,9 @@ async function runSync(cwd, options = {}) {
         UPERA_ARCHIVE_MOVIE_REQUEST_QUOTA: '1',
         UPERA_ARCHIVE_SERIES_REQUEST_QUOTA: '1',
         UPERA_IRANIAN_SERIES_REQUEST_QUOTA: '1',
+        UPERA_OPERATOR_DISCOVERY_ENABLED: options.operatorDiscovery ? 'true' : 'false',
         UPERA_OPERATOR_MOVIE_REQUEST_QUOTA: '2',
-        UPERA_OPERATOR_SERIES_REQUEST_QUOTA: '1',
+        UPERA_OPERATOR_SERIES_REQUEST_QUOTA: '3',
         UPERA_IRANIAN_SERIES_PAGES_PER_RUN: '1',
         UPERA_IRANIAN_SERIES_TITLES_PER_RUN: '1',
         UPERA_OPERATOR_SERIES_PAGES_PER_RUN: '1',
@@ -346,6 +347,7 @@ test('an explicit redl operator link is preserved as operator-only content', asy
     const result = await runSync(fixtureDirectory, {
       mode: 'NORMAL',
       scenario: 'operator-movie',
+      operatorDiscovery: true,
     });
     const item = result.catalog.items.find((entry) => entry.id === 'operator-movie-1');
     assert.ok(item, 'operator movie was added');
@@ -360,6 +362,54 @@ test('an explicit redl operator link is preserved as operator-only content', asy
     assert.equal(result.report.operatorMoviesAddedOrUpdated, 1);
     assert.equal(result.report.affiliateRequests, 1, 'the repeated title reuses one affiliate response');
     assert.ok(result.report.affiliateCacheHits >= 1);
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+test('operator movie discovery still runs while an archive backfill is active', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-operator-backfill-movie-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, {
+      mode: 'BACKFILL',
+      scenario: 'operator-movie',
+      operatorDiscovery: true,
+    });
+    const operatorItem = result.catalog.items.find((entry) => entry.id === 'operator-movie-1');
+    assert.ok(operatorItem, 'operator movie is discovered even with a non-empty backfill queue');
+    assert.equal(operatorItem.operatorOnly, true);
+    assert.ok(operatorItem.categoryKeys.includes('mobile-operator'));
+    assert.equal(result.report.operatorMoviesAddedOrUpdated, 1);
+    assert.ok(result.report.affiliateRequestScopes['operator-movies']?.used >= 1);
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+test('operator series discovery probes representative episodes during backfill', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-operator-backfill-series-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, {
+      mode: 'BACKFILL',
+      scenario: 'operator-series',
+      operatorDiscovery: true,
+    });
+    const operatorItem = result.catalog.items.find((entry) => entry.id === 'operator-series-1');
+    assert.ok(operatorItem, 'operator series is discovered even with a non-empty backfill queue');
+    assert.ok(operatorItem.categoryKeys.includes('mobile-operator'));
+    assert.equal(operatorItem.operatorOnly, true);
+    const operatorFiles = operatorItem.downloads.flatMap((group) => group.files || []).filter(
+      (file) => file.mode === 'operator-download' || file.mode === 'operator-play',
+    );
+    assert.ok(operatorFiles.some((file) => file.url === 'https://redl.ink/operator-series-episode-6'));
+    assert.equal(result.report.operatorSeriesAddedOrUpdated, 1);
+    assert.ok(result.report.affiliateRequestScopes['operator-series']?.used >= 1);
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }
