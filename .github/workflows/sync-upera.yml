@@ -10,12 +10,12 @@ on:
       movie_pages:
         description: 'تعداد صفحات فیلم برای بررسی محتوای تازه'
         required: false
-        default: '8'
+        default: '12'
 
       series_pages:
         description: 'تعداد صفحات سریال برای بررسی محتوای تازه'
         required: false
-        default: '8'
+        default: '12'
 
       new_hours:
         description: 'بررسی تغییرات چند ساعت اخیر'
@@ -55,8 +55,8 @@ jobs:
           SERIES_PAGES='${{ github.event.inputs.series_pages }}'
           NEW_HOURS='${{ github.event.inputs.new_hours }}'
 
-          echo "MOVIE_PAGES_PER_RUN=${MOVIE_PAGES:-8}" >> "$GITHUB_ENV"
-          echo "SERIES_PAGES_PER_RUN=${SERIES_PAGES:-8}" >> "$GITHUB_ENV"
+          echo "MOVIE_PAGES_PER_RUN=${MOVIE_PAGES:-12}" >> "$GITHUB_ENV"
+          echo "SERIES_PAGES_PER_RUN=${SERIES_PAGES:-12}" >> "$GITHUB_ENV"
           echo "NEW_TITLES_HOURS=${NEW_HOURS:-24}" >> "$GITHUB_ENV"
 
       - name: Discover new movies and series first
@@ -75,8 +75,8 @@ jobs:
           UPERA_AIRING_SERIES_TITLES_PER_RUN: '120'
           UPERA_SERIES_TITLES_PER_RUN: '80'
           UPERA_INCREMENTAL_LIMIT: '160'
-          UPERA_RECENT_MOVIE_PAGES_PER_RUN: '8'
-          UPERA_RECENT_SERIES_PAGES_PER_RUN: '8'
+          UPERA_RECENT_MOVIE_PAGES_PER_RUN: '12'
+          UPERA_RECENT_SERIES_PAGES_PER_RUN: '12'
           UPERA_RECENT_MOVIE_TITLES_PER_RUN: '120'
           UPERA_RECENT_SERIES_TITLES_PER_RUN: '80'
           UPERA_RECENT_MOVIE_REQUEST_QUOTA: '110'
@@ -142,10 +142,10 @@ jobs:
           APARATCHI_PEOPLE_TITLES_PER_RUN: '20'
           APARATCHI_PEOPLE_MAX_PER_TITLE: '12'
           APARATCHI_PEOPLE_RETRY_HOURS: '12'
-          APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN: '12'
-          APARATCHI_EPISODE_ARTWORK_MIRROR_PER_RUN: '12'
-          APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN: '12'
-          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '36'
+          APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN: '18'
+          APARATCHI_EPISODE_ARTWORK_MIRROR_PER_RUN: '36'
+          APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN: '24'
+          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '72'
           APARATCHI_IMAGE_MIRROR_CONCURRENCY: '4'
         run: node scripts/sync-upera.mjs
 
@@ -169,7 +169,7 @@ jobs:
             git push origin HEAD:main
           fi
 
-      - name: Advance incomplete series archives
+      - name: Advance oldest-year archive completion
         id: archive_sync
         continue-on-error: true
         env:
@@ -206,7 +206,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No archive changes."
           else
-            git commit -m "chore: advance incomplete series archives"
+            git commit -m "chore: advance oldest-year archive completion"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
