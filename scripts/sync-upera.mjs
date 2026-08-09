@@ -4,11 +4,23 @@ import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { writeClientCatalogArtifacts } from './client-catalog.mjs';
+import {
+  classifyCatalogItem as classifyCatalogRules,
+  isManagedCategoryKey as managedCategoryKey,
+  isManagedCategoryLabel as managedCategoryLabel,
+} from './classification.mjs';
 
 const API_BASE = 'https://seeko.film/api/v1';
 const IRANIAN_SERIES_SCAN_VERSION = 3;
-const SERIES_COMPLETENESS_AUDIT_VERSION = 1;
-const CATALOG_VERSION = '0.20.0-final-bugfixes';
+const SERIES_COMPLETENESS_AUDIT_VERSION = 2;
+const MEDIA_LANGUAGE_AUDIT_VERSION = 2;
+const ARCHIVE_COMPLETION_ORDER_VERSION = 1;
+const CATALOG_VERSION = '0.21.0-final-stabilization';
+const AFFILIATE_URL_KEYS = [
+  'link', 'url', 'href', 'download_url', 'downloadUrl', 'download_link', 'downloadLink',
+  'stream_url', 'streamUrl', 'stream_link', 'streamLink', 'file_url', 'fileUrl', 'file',
+];
+
 const PERSIAN_EPISODE_ORDINAL = '(?:اول|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم|دهم|یازدهم|دوازدهم|سیزدهم|چهاردهم|پانزدهم|شانزدهم|هفدهم|هجدهم|نوزدهم|بیستم|بیست\\s*و\\s*(?:یکم|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم)|سی\\s*و\\s*(?:یکم|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم)|آخر|پایانی|\\d{1,4})';
 
 const root = process.cwd();
@@ -39,18 +51,18 @@ const peopleEnrichmentRetryHours = Math.min(
 );
 
 const episodeArtworkSeriesPerRun = Math.min(
-  12,
+  24,
   positiveInt(process.env.APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN, 6),
 );
 
 const episodeArtworkMirrorPerRun = Math.min(
-  36,
+  72,
   nonNegativeInt(process.env.APARATCHI_EPISODE_ARTWORK_MIRROR_PER_RUN, 12),
 );
 
 const episodeFrameCapturesPerRun = Math.min(
-  8,
-  nonNegativeInt(process.env.APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN, 6),
+  32,
+  nonNegativeInt(process.env.APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN, 12),
 );
 
 const moviePagesPerRun = Math.min(
@@ -339,8 +351,13 @@ const defaultState = {
   operatorMovieOffset: 0,
   airingSeriesOffset: 0,
   seriesEpisodeCursor: {},
+  seriesLanguageAuditCursor: {},
   archiveBackfillSeriesId: '',
   archiveBackfillSeriesTitle: '',
+  archiveBackfillItemId: '',
+  archiveBackfillItemType: '',
+  archiveBackfillItemTitle: '',
+  archiveCompletionOrderVersion: ARCHIVE_COMPLETION_ORDER_VERSION,
   archiveBackfillOffset: 0,
   archiveBackfillNoProgress: {},
   archiveBackfillCompleted: {},
@@ -396,8 +413,20 @@ if (
   state.seriesEpisodeCursor = {};
 }
 
+if (
+  !state.seriesLanguageAuditCursor ||
+  typeof state.seriesLanguageAuditCursor !== 'object' ||
+  Array.isArray(state.seriesLanguageAuditCursor)
+) {
+  state.seriesLanguageAuditCursor = {};
+}
+
 state.archiveBackfillSeriesId = String(state.archiveBackfillSeriesId || '');
 state.archiveBackfillSeriesTitle = String(state.archiveBackfillSeriesTitle || '');
+state.archiveBackfillItemId = String(state.archiveBackfillItemId || state.archiveBackfillSeriesId || '');
+state.archiveBackfillItemType = String(state.archiveBackfillItemType || (state.archiveBackfillItemId ? 'series' : ''));
+state.archiveBackfillItemTitle = String(state.archiveBackfillItemTitle || state.archiveBackfillSeriesTitle || '');
+state.archiveCompletionOrderVersion = ARCHIVE_COMPLETION_ORDER_VERSION;
 state.archiveBackfillOffset = nonNegativeInt(state.archiveBackfillOffset, 0);
 if (
   !state.archiveBackfillNoProgress ||
@@ -564,7 +593,7 @@ const stats = {
   episodesMarkedUnavailable: 0,
   backfillNoProgressRuns: 0,
   normalSyncSkippedForBackfill: false,
-  backfillOrdering: 'active-then-nearest-completion',
+  backfillOrdering: 'oldest-production-year-then-one-active-title',
   backfillNextSeries: null,
   episodePaginationPagesFetched: 0,
   episodePaginationErrors: 0,
@@ -681,7 +710,7 @@ console.log(
   `شروع همگام‌سازی امن؛ ${items.length} عنوان قبلی حفظ می‌شود.`,
 );
 
-const initialBackfillQueue = buildSequentialBackfillQueue();
+const initialBackfillQueue = buildSequentialArchiveQueue();
 stats.backfillQueueTotal = initialBackfillQueue.length;
 
 const effectiveSyncMode =
@@ -709,7 +738,7 @@ if (effectiveSyncMode === 'PEOPLE') {
   // runs shrink the existing backlog instead of continuously adding more
   // incomplete titles.
   stats.normalSyncSkippedForBackfill = true;
-  await syncSequentialSeriesBackfill();
+  await syncSequentialArchiveBackfill();
 
   // If the active archive finished before the request budget was consumed,
   // keep already-published weekly series current without discovering titles.
@@ -895,7 +924,7 @@ items = items.map(reclassifyCatalogItem).map((item) => withSeriesPublicationStat
 stats.seriesAwaitingArchiveAudit = items.filter(
   (item) => item?.type === 'series' && !hasSeriesArchiveMetadata(item),
 ).length;
-stats.backfillBacklogRemaining = buildSequentialBackfillQueue().length;
+stats.backfillBacklogRemaining = buildSequentialArchiveQueue().length;
 stats.backfillBlockedTotal = items.filter(
   (item) => item?.type === 'series' && item?.archiveAuditStatus === 'blocked',
 ).length;
@@ -1421,6 +1450,212 @@ async function syncAiringSeriesUpdates() {
 }
 
 
+function archiveItemYear(item) {
+  const year = Number(item?.year);
+  return Number.isInteger(year) && year >= 1880 && year <= 2100 ? year : 9999;
+}
+
+function archiveItemTimestamp(item) {
+  for (const candidate of [item?.sourceCreatedAt, item?.createdAt, item?.firstSeenAt]) {
+    const timestamp = Date.parse(String(candidate || ''));
+    if (Number.isFinite(timestamp)) return timestamp;
+  }
+  return Number.MAX_SAFE_INTEGER;
+}
+
+function movieMediaAuditDue(item) {
+  if (!item || item.type !== 'movie') return false;
+  if (item.mediaAuditStatus === 'confirmed-unavailable') return false;
+  return !movieHasUsableMedia(item) || nonNegativeInt(item.mediaLanguageAuditVersion, 0) < MEDIA_LANGUAGE_AUDIT_VERSION;
+}
+
+function seriesMediaAuditDue(item) {
+  return Boolean(
+    item?.type === 'series' &&
+    nonNegativeInt(item.mediaLanguageAuditVersion, 0) < MEDIA_LANGUAGE_AUDIT_VERSION,
+  );
+}
+
+function buildSequentialArchiveQueue() {
+  const entries = [];
+  for (let catalogIndex = 0; catalogIndex < items.length; catalogIndex += 1) {
+    const item = items[catalogIndex];
+    if (!item || !['movie', 'series'].includes(item.type)) continue;
+    if (item.type === 'movie') {
+      if (!movieMediaAuditDue(item)) continue;
+      entries.push({ item, catalogIndex, kind: 'movie', deficit: { total: movieHasUsableMedia(item) ? 0 : 1 } });
+      continue;
+    }
+    const deficit = seriesArchiveDeficit(item);
+    const blocked = item?.archiveAuditStatus === 'blocked';
+    if (blocked && !blockedSeriesRetryDue(item)) continue;
+    const needsSeriesWork = Boolean(
+      deficit.total > 0 ||
+      item?.publicationStatus !== 'published' ||
+      !hasSeriesArchiveMetadata(item) ||
+      seriesHasUnavailableRetryDue(item) ||
+      seriesCompletenessAuditDue(item) ||
+      seriesMediaAuditDue(item)
+    );
+    if (needsSeriesWork) entries.push({ item, catalogIndex, kind: 'series', deficit });
+  }
+
+  return entries.sort((a, b) => {
+    const activeId = String(state.archiveBackfillItemId || '');
+    const activeType = String(state.archiveBackfillItemType || '');
+    const aActive = String(a.item?.id || '') === activeId && a.item?.type === activeType;
+    const bActive = String(b.item?.id || '') === activeId && b.item?.type === activeType;
+    if (aActive !== bActive) return aActive ? -1 : 1;
+
+    // The archive is deterministic: finish the oldest discovered production
+    // year first, across movies, series, animation, anime, documentaries and
+    // programs (all of those are represented by movie/series source records).
+    const yearDiff = archiveItemYear(a.item) - archiveItemYear(b.item);
+    if (yearDiff) return yearDiff;
+
+    // Within the same year, cheap one-request movies are completed first. A
+    // series then owns the queue until all discoverable episodes are repaired.
+    const typeDiff = Number(a.kind === 'series') - Number(b.kind === 'series');
+    if (typeDiff) return typeDiff;
+
+    const dateDiff = archiveItemTimestamp(a.item) - archiveItemTimestamp(b.item);
+    if (dateDiff) return dateDiff;
+    const titleDiff = String(a.item?.nameFa || a.item?.name || '').localeCompare(
+      String(b.item?.nameFa || b.item?.name || ''), 'fa',
+    );
+    if (titleDiff) return titleDiff;
+    return a.catalogIndex - b.catalogIndex;
+  });
+}
+
+function chooseActiveArchiveItem(queue) {
+  const activeId = String(state.archiveBackfillItemId || '');
+  const activeType = String(state.archiveBackfillItemType || '');
+  if (activeId && activeType) {
+    const active = queue.find((entry) =>
+      String(entry.item?.id || '') === activeId && entry.item?.type === activeType,
+    );
+    if (active) return active;
+  }
+  const first = queue[0] || null;
+  if (!first) {
+    state.archiveBackfillItemId = '';
+    state.archiveBackfillItemType = '';
+    state.archiveBackfillItemTitle = '';
+    return null;
+  }
+  state.archiveBackfillItemId = String(first.item?.id || '');
+  state.archiveBackfillItemType = String(first.item?.type || '');
+  state.archiveBackfillItemTitle = cleanText(first.item?.nameFa || first.item?.name || '');
+  return first;
+}
+
+function clearActiveArchiveItem(expectedType = '', expectedId = '') {
+  if (expectedType && state.archiveBackfillItemType && state.archiveBackfillItemType !== expectedType) return;
+  if (expectedId && state.archiveBackfillItemId && String(state.archiveBackfillItemId) !== String(expectedId)) return;
+  state.archiveBackfillItemId = '';
+  state.archiveBackfillItemType = '';
+  state.archiveBackfillItemTitle = '';
+}
+
+async function syncSequentialArchiveBackfill() {
+  let moviesCompletedThisRun = 0;
+  while (
+    !affiliateBudgetExhausted &&
+    !runTimeBudgetReached('year-archive-backfill', 60000) &&
+    moviesCompletedThisRun < 100
+  ) {
+    const queue = buildSequentialArchiveQueue();
+    stats.backfillQueueTotal = Math.max(stats.backfillQueueTotal, queue.length);
+    if (!queue.length) {
+      clearActiveArchiveItem();
+      clearActiveBackfillSeries();
+      return;
+    }
+
+    const active = chooseActiveArchiveItem(queue);
+    if (!active) return;
+    const item = active.item;
+    const id = String(item.id || '');
+    const title = cleanText(item.nameFa || item.name || id);
+
+    if (item.type === 'series') {
+      state.archiveBackfillSeriesId = id;
+      state.archiveBackfillSeriesTitle = title;
+      await syncSequentialSeriesBackfill();
+      const refreshed = items.find((entry) => entry?.type === 'series' && String(entry.id) === id);
+      const stillQueued = refreshed && buildSequentialArchiveQueue().some((entry) =>
+        entry.item?.type === 'series' && String(entry.item?.id || '') === id,
+      );
+      if (!stillQueued) clearActiveArchiveItem('series', id);
+      // One series owns a BACKFILL run. This preserves deterministic resume
+      // semantics and prevents one episode from being added to many series.
+      return;
+    }
+
+    console.log(`تکمیل آرشیو سال ${archiveItemYear(item)}: فیلم «${title}»`);
+    const hadUsableMedia = movieHasUsableMedia(item);
+    let result;
+    try {
+      result = await processMovie(item, 'year-backfill', {
+        fullMediaAudit: true,
+        replaceMedia: false,
+      });
+    } catch (error) {
+      rememberError(`year-backfill-movie-${id}`, error);
+      result = { added: false, reason: 'request-error' };
+    }
+
+    const refreshed = items.find((entry) => entry?.type === 'movie' && String(entry.id) === id) || item;
+    if (result?.added && movieHasUsableMedia(refreshed)) {
+      refreshed.mediaLanguageAuditVersion = MEDIA_LANGUAGE_AUDIT_VERSION;
+      refreshed.mediaAuditStatus = 'ok';
+      refreshed.mediaAuditCheckedAt = new Date().toISOString();
+      delete state.mediaRepairFailures[id];
+      clearActiveArchiveItem('movie', id);
+      moviesCompletedThisRun += 1;
+      await persistSyncCheckpoint(`year-backfill-movie-complete-${id}`);
+      continue;
+    }
+
+    const failure = state.mediaRepairFailures[id] || { count: 0, firstAt: new Date().toISOString() };
+    failure.count = nonNegativeInt(failure.count, 0) + 1;
+    failure.lastAt = new Date().toISOString();
+    state.mediaRepairFailures[id] = failure;
+    refreshed.mediaAuditCheckedAt = failure.lastAt;
+    refreshed.mediaAuditStatus = hadUsableMedia ? 'ok' : 'missing-links';
+
+    // A zero-media movie must not freeze the oldest production year. Resolve it
+    // out of the sequential archive queue after one clean "no usable links"
+    // response; the independent NORMAL media-repair lane keeps retrying it every
+    // couple of hours, so a temporary source omission can still recover later.
+    if (!hadUsableMedia && result?.reason === 'no-usable-links') {
+      refreshed.mediaLanguageAuditVersion = MEDIA_LANGUAGE_AUDIT_VERSION;
+      refreshed.mediaAuditStatus = 'confirmed-unavailable';
+      clearActiveArchiveItem('movie', id);
+      moviesCompletedThisRun += 1;
+      await persistSyncCheckpoint(`year-backfill-movie-deferred-${id}`);
+      continue;
+    }
+
+    // Existing usable media stays published. Give its full language audit a few
+    // deterministic retries so dub/subtitle variants are not missed because of
+    // one transient affiliate response.
+    if (failure.count >= 3) {
+      refreshed.mediaLanguageAuditVersion = MEDIA_LANGUAGE_AUDIT_VERSION;
+      if (!movieHasUsableMedia(refreshed)) refreshed.mediaAuditStatus = 'confirmed-unavailable';
+      clearActiveArchiveItem('movie', id);
+      moviesCompletedThisRun += 1;
+      await persistSyncCheckpoint(`year-backfill-movie-resolved-${id}`);
+      continue;
+    }
+
+    await persistSyncCheckpoint(`year-backfill-movie-${id}`);
+    // Retry this exact movie on the next run before advancing within the year.
+    return;
+  }
+}
+
 async function syncSequentialSeriesBackfill() {
   const queue = buildSequentialBackfillQueue();
   stats.incompleteSeriesCandidates = queue.length;
@@ -1476,6 +1711,13 @@ async function syncSequentialSeriesBackfill() {
 
     let result;
     try {
+      // Completeness has priority over language re-auditing. Re-fetching every
+      // already-known episode before filling gaps wastes the hourly budget and
+      // was the reason old series stayed at 1/4/6 episodes for many runs. Once
+      // the archive has no episode deficit, the same active series gets a full
+      // dubbed/subtitle media audit before the queue advances.
+      const currentDeficit = seriesArchiveDeficit(current);
+      const refreshAllMedia = seriesMediaAuditDue(current) && currentDeficit.total === 0;
       result = await processSeries(
         { id, type: 'series' },
         'fast-backfill',
@@ -1486,7 +1728,8 @@ async function syncSequentialSeriesBackfill() {
             backfillEpisodeLimit,
             Math.max(1, remainingBudget - 1),
           )),
-          onlyMissing: true,
+          onlyMissing: !refreshAllMedia,
+          refreshAllMedia,
         },
       );
     } catch (error) {
@@ -1504,7 +1747,8 @@ async function syncSequentialSeriesBackfill() {
     const completed = Boolean(
       refreshed?.archiveComplete === true &&
       refreshed?.publicationStatus === 'published' &&
-      remaining.total === 0,
+      remaining.total === 0 &&
+      !seriesMediaAuditDue(refreshed),
     );
     const progressed = Boolean(
       addedEpisodes > 0 ||
@@ -1606,7 +1850,8 @@ function buildSequentialBackfillQueue() {
         entry.item?.publicationStatus !== 'published' ||
         !hasSeriesArchiveMetadata(entry.item) ||
         seriesHasUnavailableRetryDue(entry.item) ||
-        seriesCompletenessAuditDue(entry.item)
+        seriesCompletenessAuditDue(entry.item) ||
+        seriesMediaAuditDue(entry.item)
       );
     })
     .sort((a, b) => {
@@ -1682,8 +1927,12 @@ function chooseActiveBackfillSeries(queue) {
 }
 
 function clearActiveBackfillSeries() {
+  const previousId = String(state.archiveBackfillSeriesId || '');
   state.archiveBackfillSeriesId = '';
   state.archiveBackfillSeriesTitle = '';
+  if (state.archiveBackfillItemType === 'series' && (!previousId || String(state.archiveBackfillItemId || '') === previousId)) {
+    clearActiveArchiveItem('series', previousId);
+  }
 }
 
 function markSeriesBackfillBlocked(id, detail = {}) {
@@ -2209,6 +2458,11 @@ async function processMovie(candidate, source, options = {}) {
   const existing = findExistingItem(movie, 'movie');
   const mergedMedia = options.replaceMedia === true ? media : mergeMovieMedia(existing, media);
   const normalized = normalizeMovie(movie, mergedMedia, source, existing);
+  if (options.fullMediaAudit === true) {
+    normalized.mediaLanguageAuditVersion = MEDIA_LANGUAGE_AUDIT_VERSION;
+    normalized.mediaAuditStatus = 'ok';
+    normalized.mediaAuditCheckedAt = new Date().toISOString();
+  }
 
   replaceItem(normalized);
   stats.moviesAddedOrUpdated += 1;
@@ -2381,6 +2635,11 @@ async function processSeries(
       (episode) => String(episode.id) === String(options.onlyEpisodeId),
     );
     if (matched) selectedEpisodes = [matched];
+  } else if (options.refreshAllMedia === true) {
+    const limit = positiveInt(options.episodeLimit, priorityEpisodesPerSeries);
+    const savedCursor = nonNegativeInt(state.seriesLanguageAuditCursor[id], 0);
+    cursor = savedCursor < episodes.length ? savedCursor : 0;
+    selectedEpisodes = episodes.slice(cursor, cursor + limit);
   } else if (options.episodeStrategy === 'latest') {
     const limit = positiveInt(options.episodeLimit, priorityEpisodesPerSeries);
     // Completeness comes first: fill missing old/gap episodes before refreshing
@@ -2475,7 +2734,12 @@ async function processSeries(
   }
 
   let completeBackfill = true;
-  if (source === 'backfill') {
+  let mediaLanguageAuditComplete = !options.refreshAllMedia;
+  if (options.refreshAllMedia === true) {
+    const nextCursor = cursor + processedEpisodes;
+    mediaLanguageAuditComplete = !stoppedByBudget && nextCursor >= episodes.length;
+    state.seriesLanguageAuditCursor[id] = mediaLanguageAuditComplete ? 0 : nextCursor;
+  } else if (source === 'backfill') {
     const nextCursor = cursor + processedEpisodes;
     completeBackfill = nextCursor >= episodes.length;
     state.seriesEpisodeCursor[id] = completeBackfill ? 0 : nextCursor;
@@ -2596,6 +2860,7 @@ async function processSeries(
       meaningfulUpdatedAt: isPublishedAiringEpisodeUpdate
         ? new Date().toISOString()
         : existing?.meaningfulUpdatedAt,
+      mediaLanguageAuditComplete,
     },
   );
 
@@ -2934,6 +3199,39 @@ async function withAffiliateRequestScope(name, limit, task) {
   }
 }
 
+function affiliateUrlFromRecord(record) {
+  if (!record || typeof record !== 'object') return '';
+  for (const key of AFFILIATE_URL_KEYS) {
+    const value = cleanText(record[key]);
+    if (isHttp(value)) return value;
+  }
+  return '';
+}
+
+function extractAffiliateLinkRecords(value, hints = [], output = []) {
+  if (Array.isArray(value)) {
+    for (const entry of value) extractAffiliateLinkRecords(entry, hints, output);
+    return output;
+  }
+  if (!value || typeof value !== 'object') return output;
+
+  const directUrl = affiliateUrlFromRecord(value);
+  if (directUrl) {
+    output.push({
+      ...value,
+      link: directUrl,
+      _group_hint: uniqueStrings([cleanText(value._group_hint), ...hints]).join(' '),
+    });
+  }
+
+  for (const [key, child] of Object.entries(value)) {
+    if (AFFILIATE_URL_KEYS.includes(key)) continue;
+    if (!child || typeof child !== 'object') continue;
+    extractAffiliateLinkRecords(child, [...hints, key], output);
+  }
+  return output;
+}
+
 async function fetchAffiliateLinks(
   id,
   type,
@@ -2995,14 +3293,16 @@ async function fetchAffiliateLinks(
       { method: 'POST' },
     );
 
-    const links =
+    const rawLinks =
       json?.data?.links ??
       json?.links ??
+      json?.data ??
       [];
     const result = {
-      links: Array.isArray(links)
-        ? links
-        : [],
+      // Upera has returned both flat arrays and grouped objects (for example
+      // dubbed/subtitle buckets) across deployments. Flatten every link-like
+      // record while preserving the parent group names as language hints.
+      links: uniqueByUrl(extractAffiliateLinkRecords(rawLinks)),
       skipped: false,
     };
     affiliateLinkCache.set(cacheKey, result);
@@ -3041,17 +3341,25 @@ async function throttleAffiliateRequest() {
   lastAffiliateRequestAt = Date.now();
 }
 
+function mediaBooleanHint(value) {
+  if (value === true || value === 1) return true;
+  const text = cleanText(value).toLowerCase();
+  return ['1', 'true', 'yes', 'y', 'on', 'dubbed', 'subtitle', 'persian', 'farsi'].includes(text);
+}
+
 function mediaLinkDescriptor(link) {
   if (!link || typeof link !== 'object') return cleanText(link || '');
   const booleanHints = [
-    link.dubbed === true || Number(link.dubbed || 0) === 1 ? 'dubbed' : '',
-    link.is_dubbed === true || Number(link.is_dubbed || 0) === 1 ? 'dubbed' : '',
-    link.subtitle === true || Number(link.subtitle || 0) === 1 ? 'subtitle' : '',
-    link.has_subtitle === true || Number(link.has_subtitle || 0) === 1 ? 'subtitle' : '',
+    mediaBooleanHint(link.dubbed) || mediaBooleanHint(link.is_dubbed) || mediaBooleanHint(link.isDubbed) || mediaBooleanHint(link.dub) ? 'dubbed' : '',
+    mediaBooleanHint(link.subtitle) || mediaBooleanHint(link.has_subtitle) || mediaBooleanHint(link.hasSubtitle) || mediaBooleanHint(link.subtitled) ? 'subtitle' : '',
   ];
   return [
-    link.title, link.name, link.label, link.language, link.lang, link.audio,
-    link.audio_language, link.subtitle_language, link.type, link.description,
+    link._group_hint,
+    link.title, link.name, link.label, link.language, link.lang,
+    link.audio, link.audio_language, link.audioLanguage, link.audio_lang, link.audioLang,
+    link.subtitle_language, link.subtitleLanguage, link.subtitle_lang, link.subtitleLang,
+    link.voice, link.voice_language, link.voiceLanguage,
+    link.type, link.kind, link.format, link.mime, link.mime_type, link.description,
     ...booleanHints,
   ].map((value) => cleanText(value || '')).filter(Boolean).join(' ');
 }
@@ -3656,15 +3964,14 @@ function episodeGroupNeedsGeneratedFrame(item, group, usage = episodeArtworkUsag
   if (!artwork) return true;
   if (/^(?:\.\/)?assets\/media\/episodes\//i.test(artwork)) return false;
 
-  const key = normalizedEpisodeArtworkIdentity(artwork);
-  const posterKey = normalizedEpisodeArtworkIdentity(item?.poster);
-  const backdropKey = normalizedEpisodeArtworkIdentity(item?.backdrop);
-  if (key && (key === posterKey || key === backdropKey)) return true;
-
-  // If two different episode rows point at exactly the same source image, the
-  // source almost always supplied the series poster/backdrop rather than an
-  // episode still. Replace it with a frame captured from each episode video.
-  return Boolean(key && (usage.get(key) || 0) > 1);
+  // Final rule: an episode card must use a frame captured from that exact
+  // episode, never a remote poster/backdrop/still whose provenance can be
+  // ambiguous. Remote artwork is only a temporary source hint; the PEOPLE
+  // stage replaces it with a locally cached ffmpeg frame from the episode
+  // video. This also removes the slow remote-image dependency in the app.
+  void item;
+  void usage;
+  return true;
 }
 
 async function generateEpisodeFrameArtwork(item, group, options = {}) {
@@ -4101,9 +4408,10 @@ function episodeArtworkUrl(episode) {
     [episode?.thumb, 'backdrops'],
     [episode?.video_thumbnail ?? episode?.videoThumbnail, 'backdrops'],
     [episode?.image ?? episode?.episode_image ?? episode?.episodeImage, 'backdrops'],
-    [episode?.poster ?? episode?.episode_poster ?? episode?.episodePoster, 'posters'],
-    [episode?.cover, 'posters'],
-    [episode?.images ?? episode?.media ?? episode?.attachments, 'backdrops'],
+    // Deliberately do not inspect generic `images/media/attachments` objects:
+    // those payloads frequently contain a poster/cover rather than an episode
+    // still. If no explicit still-like field exists, ffmpeg generates a frame
+    // from this exact episode instead.
   ]) {
     const raw = nestedImageValue(value);
     if (raw) return imageUrl(raw, folder);
@@ -4383,6 +4691,8 @@ function normalizeMovie(
     lastSyncedAt:
       new Date().toISOString(),
 
+    mediaLanguageAuditVersion: nonNegativeInt(existing?.mediaLanguageAuditVersion, 0),
+
     categoryKeys: uniqueStrings(categoryKeys),
 
     categoryLabels: uniqueStrings(categoryLabels),
@@ -4598,6 +4908,9 @@ function normalizeSeries(
     // Versioned full-source audit: every legacy series is revisited once after
     // completeness logic changes, even if an older run incorrectly marked it complete.
     archiveCompletenessAuditVersion: SERIES_COMPLETENESS_AUDIT_VERSION,
+    mediaLanguageAuditVersion: archiveMeta.mediaLanguageAuditComplete === true
+      ? MEDIA_LANGUAGE_AUDIT_VERSION
+      : nonNegativeInt(existing?.mediaLanguageAuditVersion, 0),
 
     latestEpisode: latestEpisode
       ? {
@@ -4687,234 +5000,58 @@ function classifyContent(
   genres,
   metadata = {},
 ) {
-  const normalizedGenres = (Array.isArray(genres) ? genres : [])
-    .map((genre) => normalizeClassificationText(genre))
-    .filter(Boolean);
-  const genreText = normalizedGenres.join(' ');
-  const titleText = normalizeClassificationText([
-    metadata.nameFa,
-    metadata.name,
-  ].filter(Boolean).join(' '));
   const existing = metadata.existing || {};
-  const existingKind = normalizeClassificationText(existing.contentKind);
-  const allowExistingFallback = normalizedGenres.length === 0;
-  const trustedExistingClassification = Number(existing.tmdbValidationVersion || 0) >= 3;
-
-  const forcedLiveAction = hasClassificationTerm(titleText, [
-    'عشق احتمالی', 'muhtemel ask', 'muhtemel aşk',
-    'خاله نسرین', 'aunt nasrin', 'ترانه های کودکانه خاله نسرین',
-  ]);
-  const genreSaysAnimation = normalizedGenres.some((genre) => genre.includes('انیمیشن') || genre.includes('animation'));
-  const isAnimation = !forcedLiveAction && (
-    trustedExistingClassification
-      ? existing.isAnimation === true
-      : genreSaysAnimation || Boolean(allowExistingFallback && existing.isAnimation)
-  );
-
-  const narrativeGenre = hasClassificationTerm(genreText, [
-    'درام', 'ترسناک', 'وحشت', 'هیجان انگیز', 'اکشن', 'کمدی', 'عاشقانه', 'خانوادگی',
-    'drama', 'horror', 'thriller', 'action', 'comedy', 'romance', 'family',
-  ]);
-  const documentaryGenre = normalizedGenres.some((genre) =>
-    genre.includes('مستند') || genre.includes('documentary'),
-  );
-  const knownNarrativeWhistle = hasClassificationTerm(titleText, ['سوت', 'whistle']);
-  const knownNarrativeFather = hasClassificationTerm(titleText, ['پدر', 'father']) && narrativeGenre;
-  const isDocumentary = !knownNarrativeWhistle && !knownNarrativeFather && (
-    trustedExistingClassification
-      ? existing.isDocumentary === true
-      : (documentaryGenre && !narrativeGenre) || Boolean(allowExistingFallback && existingKind === 'documentary')
-  );
-
-  const adultOrHeavy = hasClassificationTerm(genreText, [
-    'ترسناک', 'وحشت', 'جنگی', 'جنایی', 'هیجان انگیز', 'بزرگسال',
-    'horror', 'war', 'crime', 'thriller', 'adult',
-  ]);
-
-  const isQuran = hasClassificationTerm(titleText, [
-    'قرآن', 'قرآنی', 'ترتیل', 'تلاوت', 'quran', 'recitation',
-  ]);
-  const religiousProgramTerms = [
-    'ادعیه', 'دعای', 'دعا', 'مداحی', 'نوحه', 'زیارت', 'ترتیل', 'تلاوت',
-  ];
-  const isReligious = Boolean(
-    isQuran ||
-    hasClassificationTerm(titleText, [
-      ...religiousProgramTerms,
-      'مذهبی', 'عاشورا', 'کربلا', 'پیامبر', 'نبی', 'امام', 'religious',
-    ]) ||
-    hasClassificationTerm(genreText, ['مذهبی', 'religious']) ||
-    (allowExistingFallback && ['religious program', 'quran program', 'religious movie', 'religious series'].includes(existingKind))
-  );
-  const isReligiousProgram = Boolean(
-    isQuran ||
-    hasClassificationTerm(titleText, religiousProgramTerms) ||
-    (allowExistingFallback && ['religious program', 'quran program'].includes(existingKind))
-  );
-
-  const explicitKidsTitle = hasClassificationTerm(titleText, [
-    'کودک', 'کودکان', 'کودکانه', 'برنامه کودک', 'ترانه کودک',
-    'خاله نسرین', 'خاله سوسکه', 'با بابام', 'بیا آشتی کنیم', 'بنیامین',
-    'ننه لالا', 'kids', 'children', 'nursery',
-  ]);
-  const explicitKidsGenre = hasClassificationTerm(genreText, [
-    'کودک', 'کودکان', 'kids', 'children',
-  ]);
-  const isKids = Boolean(
-    !adultOrHeavy &&
-    (
-      explicitKidsTitle ||
-      explicitKidsGenre ||
-      (allowExistingFallback && ['kids', 'children program'].includes(existingKind))
-    )
-  );
-
-  const isTalkShow = Boolean(
-    type === 'series' &&
-    (
-      hasClassificationTerm(genreText, ['تاک شو', 'talk show']) ||
-      hasClassificationTerm(titleText, ['تاک شو', 'talk show']) ||
-      (allowExistingFallback && existingKind === 'talk show')
-    )
-  );
-  const isRealityCompetition = Boolean(
-    type === 'series' &&
-    (
-      hasClassificationTerm(genreText, [
-        'رئالیتی شو', 'مسابقه تلویزیونی', 'reality', 'game show',
-      ]) ||
-      hasClassificationTerm(titleText, [
-        'رئالیتی شو', 'مسابقه', 'گیم شو', 'سیزده شمالی',
-        'شب های مافیا', 'جوکر', 'reality', 'game show',
-      ]) ||
-      (allowExistingFallback && existingKind === 'reality competition')
-    )
-  );
-  const isProgram = isTalkShow || isRealityCompetition;
-
-  const categoryKeys = [type === 'movie' ? 'movies' : 'series'];
-  const categoryLabels = [type === 'movie' ? 'فیلم‌ها' : 'مجموعه‌ها'];
-
-  // Narrative religious films/series may also remain in their normal regional
-  // shelf. Programs, kids content, animation and documentaries stay in their
-  // dedicated shelves and do not pollute the standard series/movie lists.
-  const excludeFromRegional = Boolean(
-    isAnimation || isDocumentary || isKids || isProgram || isReligiousProgram,
-  );
-  if (!excludeFromRegional) {
-    if (type === 'movie') {
-      categoryKeys.push(ir ? 'iranian-movies' : 'foreign-movies');
-      categoryLabels.push(ir ? 'فیلم ایرانی' : 'فیلم خارجی');
-    } else {
-      categoryKeys.push(ir ? 'iranian-series' : 'foreign-series');
-      categoryLabels.push(ir ? 'سریال ایرانی' : 'سریال خارجی');
-    }
-  }
-
-  if (isAnimation) {
-    categoryKeys.push(type === 'movie' ? 'animation-movies' : 'animation-series');
-    categoryLabels.push(type === 'movie' ? 'انیمیشن سینمایی' : 'انیمیشن سریالی');
-  }
-  if (isKids) {
-    categoryKeys.push('kids');
-    categoryLabels.push('کودکان');
-  }
-  if (isReligious) {
-    categoryKeys.push('religious');
-    categoryLabels.push('مذهبی و مناسبتی');
-    if (isQuran) {
-      categoryKeys.push('quran');
-      categoryLabels.push('قرآن و ادعیه');
-    }
-  }
-  if (isProgram) {
-    categoryKeys.push('programs');
-    categoryLabels.push('برنامه‌ها و مسابقه‌ها');
-    if (isTalkShow) {
-      categoryKeys.push('talk-shows');
-      categoryLabels.push('تاک‌شو');
-    }
-    if (isRealityCompetition) {
-      categoryKeys.push('reality');
-      categoryLabels.push('مسابقه و رئالیتی‌شو');
-    }
-  }
-  if (isDocumentary) {
-    categoryKeys.push('documentaries');
-    categoryLabels.push('مستند');
-    const wildlifeText = `${titleText} ${genreText} ${normalizeClassificationText(existing.overview || metadata.overview || '')}`;
-    if (hasClassificationTerm(wildlifeText, ['حیات وحش', 'طبیعت', 'جانوران', 'حیوانات', 'زیست بوم', 'اقیانوس', 'wildlife', 'nature', 'animals', 'animal', 'natural history', 'ocean', 'planet earth', 'leopard', 'leopards', 'پلنگ', 'شیر', 'ببر', 'گرگ', 'خرس', 'پرندگان', 'جنگل', 'ساوانا'])) {
-      categoryKeys.push('wildlife');
-      categoryLabels.push('حیات وحش');
-    }
-  }
-
-  let contentKind = type;
-  if (isQuran || isReligiousProgram) contentKind = 'religious-program';
-  else if (isReligious) contentKind = type === 'movie' ? 'religious-movie' : 'religious-series';
-  else if (isKids) contentKind = isAnimation ? 'kids' : 'children-program';
-  else if (isRealityCompetition) contentKind = 'reality-competition';
-  else if (isTalkShow) contentKind = 'talk-show';
-  else if (isAnimation) contentKind = type === 'movie' ? 'animation-movie' : 'animation-series';
-  else if (isDocumentary) contentKind = 'documentary';
-
+  const rules = classifyCatalogRules({
+    ...existing,
+    type,
+    ir,
+    genres,
+    nameFa: metadata.nameFa ?? existing.nameFa,
+    name: metadata.name ?? existing.name,
+    overview: metadata.overview ?? existing.overview,
+  });
   return {
-    categoryKeys: [...new Set(categoryKeys)],
-    categoryLabels: [...new Set(categoryLabels)],
-    contentKind,
-    isAnimation,
-    isTalkShow,
-    isDocumentary,
+    categoryKeys: rules.categoryKeys,
+    categoryLabels: rules.categoryLabels,
+    contentKind: rules.contentKind,
+    isAnimation: rules.isAnimation,
+    isAnime: rules.isAnime,
+    isTalkShow: rules.isTalkShow,
+    isDocumentary: rules.isDocumentary,
+    isWildlife: rules.isWildlife,
+    isChildrenProgram: rules.isChildrenProgram,
+    isRealityCompetition: rules.isRealityCompetition,
   };
 }
 
 function isManagedCategoryKey(value) {
-  return [
-    'movies', 'series', 'iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series',
-    'animation-movies', 'animation-series', 'anime-movies', 'anime-series',
-    'korean-movies', 'korean-series', 'indian-movies', 'japanese-movies',
-    'kids', 'religious', 'quran', 'programs', 'talk-shows', 'reality',
-    'documentaries', 'wildlife', 'collections',
-  ].includes(String(value));
+  return managedCategoryKey(value);
 }
 
 function isManagedCategoryLabel(value) {
-  return [
-    'فیلم‌ها', 'مجموعه‌ها', 'فیلم ایرانی', 'فیلم خارجی', 'سریال ایرانی', 'سریال خارجی',
-    'انیمیشن سینمایی', 'انیمیشن سریالی', 'انیمه سینمایی', 'انیمه سریالی',
-    'فیلم کره‌ای', 'سریال کره‌ای', 'فیلم هندی', 'فیلم ژاپنی',
-    'کودکان', 'مذهبی و مناسبتی', 'قرآن و ادعیه', 'برنامه‌ها و مسابقه‌ها',
-    'تاک‌شو', 'مسابقه و رئالیتی‌شو', 'مستند', 'حیات وحش', 'کالکشن',
-  ].includes(String(value));
+  return managedCategoryLabel(value);
 }
 
 function effectiveIranianIdentity(item) {
-  const title = normalizeClassificationText(`${item?.nameFa || ''} ${item?.name || ''}`);
-  if (/(?:^|\s)(?:the\s+westies|وستی\s*ها)(?:\s|$)/i.test(title)) return false;
-  const language = cleanText(item?.originalLanguage).toLowerCase();
-  const codes = (Array.isArray(item?.countryCodes) ? item.countryCodes : [])
-    .map((code) => cleanText(code).toUpperCase()).filter(Boolean);
-  const primary = codes[0] || '';
-  if (language === 'fa' || primary === 'IR') return true;
-  if (language && language !== 'fa') return false;
-  if (codes.length && !codes.includes('IR')) return false;
-  return Boolean(item?.ir);
+  const rules = classifyCatalogRules({ ...item, categoryKeys: [] });
+  return Boolean(rules.ir);
 }
 
 function reclassifyCatalogItem(item) {
   if (!item || !['movie', 'series'].includes(item.type)) return item;
-  const classification = classifyContent(
-    item.type,
-    effectiveIranianIdentity(item),
-    Array.isArray(item.genres) ? item.genres : [],
-    { nameFa: item.nameFa, name: item.name, existing: item },
-  );
+  const classification = classifyCatalogRules(item);
   const preservedKeys = (Array.isArray(item.categoryKeys) ? item.categoryKeys : [])
     .filter((key) => !isManagedCategoryKey(key));
   const preservedLabels = (Array.isArray(item.categoryLabels) ? item.categoryLabels : [])
     .filter((label) => !isManagedCategoryLabel(label));
   const directLanguages = uniqueStrings((Array.isArray(item.downloads) ? item.downloads : [])
-    .flatMap((section) => [section?.title, section?.badge, ...(Array.isArray(section?.files) ? section.files.map((file) => `${file?.label || ''} ${file?.language || ''}`) : [])])
+    .flatMap((section) => [
+      section?.title,
+      section?.badge,
+      ...(Array.isArray(section?.files)
+        ? section.files.map((file) => `${file?.label || ''} ${file?.language || ''}`)
+        : []),
+    ])
     .map((value) => {
       const text = cleanText(value || '');
       if (mediaLanguageTag(text) === 'dubbed') return 'dubbed';
@@ -4922,58 +5059,19 @@ function reclassifyCatalogItem(item) {
       return '';
     }).filter(Boolean));
 
-  const categoryKeys = [...classification.categoryKeys, ...preservedKeys];
-  const categoryLabels = [...classification.categoryLabels, ...preservedLabels];
-  let contentKind = classification.contentKind;
-  const isAnime = Boolean(classification.isAnimation && item.isAnime === true);
-
-  if (classification.isAnimation && isAnime) {
-    const genericKey = item.type === 'movie' ? 'animation-movies' : 'animation-series';
-    const genericLabel = item.type === 'movie' ? 'انیمیشن سینمایی' : 'انیمیشن سریالی';
-    const keyIndex = categoryKeys.indexOf(genericKey);
-    if (keyIndex >= 0) categoryKeys.splice(keyIndex, 1);
-    const labelIndex = categoryLabels.indexOf(genericLabel);
-    if (labelIndex >= 0) categoryLabels.splice(labelIndex, 1);
-    categoryKeys.push(item.type === 'movie' ? 'anime-movies' : 'anime-series');
-    categoryLabels.push(item.type === 'movie' ? 'انیمه سینمایی' : 'انیمه سریالی');
-    contentKind = item.type === 'movie' ? 'anime-movie' : 'anime-series';
-  }
-
-  const originalLanguage = cleanText(item.originalLanguage).toLowerCase();
-  const countryCodes = (Array.isArray(item.countryCodes) ? item.countryCodes : [])
-    .map((code) => cleanText(code).toUpperCase())
-    .filter(Boolean);
-  const primaryCountry = countryCodes[0] || '';
-  const regionalEligible = !classification.isAnimation && !classification.isDocumentary &&
-    !classification.categoryKeys.includes('kids') && !classification.categoryKeys.includes('programs') &&
-    contentKind !== 'religious-program';
-  const koreanIdentity = originalLanguage === 'ko' || primaryCountry === 'KR';
-  const indianIdentity = originalLanguage === 'hi' || primaryCountry === 'IN';
-
-  if (regionalEligible && item.type === 'movie' && koreanIdentity) {
-    categoryKeys.push('korean-movies'); categoryLabels.push('فیلم کره‌ای');
-  }
-  if (regionalEligible && item.type === 'series' && koreanIdentity) {
-    categoryKeys.push('korean-series'); categoryLabels.push('سریال کره‌ای');
-  }
-  if (regionalEligible && item.type === 'movie' && indianIdentity) {
-    categoryKeys.push('indian-movies'); categoryLabels.push('فیلم هندی');
-  }
-  if (item.type === 'movie' && item.collectionId) {
-    categoryKeys.push('collections');
-    categoryLabels.push('کالکشن');
-  }
-
   const previousLanguages = Array.isArray(item.availableLanguages) ? item.availableLanguages : [];
   return {
     ...item,
-    ir: effectiveIranianIdentity(item),
-    ...classification,
-    contentKind,
-    isAnime,
+    ir: classification.ir,
+    contentKind: classification.contentKind,
+    isAnimation: classification.isAnimation,
+    isAnime: classification.isAnime,
+    isDocumentary: classification.isDocumentary,
+    isWildlife: classification.isWildlife,
+    isTalkShow: classification.isTalkShow,
     availableLanguages: uniqueStrings([...previousLanguages, ...directLanguages]),
-    categoryKeys: uniqueStrings(categoryKeys),
-    categoryLabels: uniqueStrings(categoryLabels),
+    categoryKeys: uniqueStrings([...classification.categoryKeys, ...preservedKeys]),
+    categoryLabels: uniqueStrings([...classification.categoryLabels, ...preservedLabels]),
   };
 }
 
@@ -6598,10 +6696,10 @@ function toDownloadFile(
 
 function mediaLanguageTag(title = '') {
   const text = cleanText(title);
-  if (/دوبله|دو\s*زبانه|صوت\s*فارسی|فارسی\s*(?:دوبله|صدا)|persian\s*(?:dub|audio)|farsi\s*(?:dub|audio)|\bdub(?:bed)?\b/i.test(text)) {
+  if (/دوبله|دو\s*زبانه|دوزبانه|صوت\s*فارسی|صدای\s*فارسی|فارسی\s*(?:دوبله|صدا)|persian\s*(?:dub|audio|voice)|farsi\s*(?:dub|audio|voice)|fa[-_ ]?(?:dub|audio)|\bdub(?:bed|bing)?\b|dual\s*audio/i.test(text)) {
     return 'dubbed';
   }
-  if (/زیر\s*نویس|زير\s*نويس|هارد\s*ساب|سافت\s*ساب|persian\s*sub|farsi\s*sub|\bsub(?:bed|title|titles)?\b/i.test(text)) {
+  if (/زیر\s*نویس|زير\s*نويس|هارد\s*ساب|سافت\s*ساب|چسبیده|persian\s*sub|farsi\s*sub|fa[-_ ]?sub|\bsub(?:bed|title|titles)?\b/i.test(text)) {
     return 'subtitled';
   }
   return '';

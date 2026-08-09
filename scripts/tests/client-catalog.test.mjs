@@ -45,7 +45,7 @@ test('client catalog remains much smaller by not embedding episode files and cas
   assert.ok(artifacts.clientSizeBytes < fullBytes * 0.25);
 });
 
-test('client index hides building/zero-media series but keeps a previously visible series with usable media', () => {
+test('client index hides zero-media movies/series but keeps previously visible series with usable media', () => {
   const playableEpisode = [{ id: 'e1', files: [{ id: 'f1', mode: 'download', url: 'https://cdn.test/e1.mp4' }] }];
   const catalog = {
     version: '1', updatedAt: 'now',
@@ -58,7 +58,7 @@ test('client index hides building/zero-media series but keeps a previously visib
     ],
   };
   const artifacts = buildClientCatalogArtifacts(catalog);
-  assert.deepEqual(artifacts.index.items.map((item) => item.id), ['locked', 'published', 'movie']);
+  assert.deepEqual(artifacts.index.items.map((item) => item.id), ['locked', 'published']);
   assert.equal(catalog.items.length, 5, 'server-side catalog records are never deleted by client filtering');
 });
 
@@ -90,7 +90,7 @@ test('client summary recognizes language from lightweight file metadata and carr
   assert.equal(summary.collectionNameFa, 'مجموعه نمونه');
 });
 
-test('confirmed unavailable movies are hidden from the client index but kept server-side', () => {
+test('movies without usable media stay server-side for repair but are hidden from the client index', () => {
   const catalog = {
     version: '1', updatedAt: 'now',
     items: [
@@ -99,7 +99,7 @@ test('confirmed unavailable movies are hidden from the client index but kept ser
     ],
   };
   const artifacts = buildClientCatalogArtifacts(catalog);
-  assert.deepEqual(artifacts.index.items.map((item) => item.id), ['retry']);
+  assert.deepEqual(artifacts.index.items.map((item) => item.id), []);
   assert.equal(catalog.items.length, 2);
 });
 

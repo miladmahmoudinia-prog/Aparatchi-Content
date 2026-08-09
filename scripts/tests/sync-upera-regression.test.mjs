@@ -211,7 +211,7 @@ test('a new episode on a published airing series becomes the newest meaningful u
 
   try {
     const before = Date.now();
-    const result = await runSync(fixtureDirectory, { scenario: 'airing-update' });
+    const result = await runSync(fixtureDirectory, { scenario: 'airing-update', mode: 'NORMAL' });
     const updated = result.catalog.items.find((entry) => entry.id === 'series-1');
 
     assert.equal(updated?.publicationStatus, 'published');
@@ -492,7 +492,7 @@ test('a stale complete series is re-audited once and boilerplate episode names a
     const result = await runSync(fixtureDirectory, { scenario: 'boilerplate-title-audit' });
     const updated = result.catalog.items.find((entry) => entry.id === 'series-1');
     assert.equal(updated?.downloads.length, 2, 'the versioned audit discovers an episode hidden by stale completeness metadata');
-    assert.equal(updated?.archiveCompletenessAuditVersion, 1);
+    assert.equal(updated?.archiveCompletenessAuditVersion, 2);
     assert.equal(updated?.archiveComplete, true);
     const second = updated?.downloads.find((group) => Number(group.episodeNumber) === 2);
     assert.equal(second?.subtitle, '', 'series-name + episode-number boilerplate is not shown as an episode title');
@@ -501,6 +501,78 @@ test('a stale complete series is re-audited once and boilerplate episode names a
   }
 });
 
+
+
+test('grouped affiliate payloads preserve dubbed and subtitled media buckets', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-grouped-dub-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
+    version: 'test', updatedAt: new Date(0).toISOString(), items: [], iranianSchedule: [], weeklySchedule: [],
+  });
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, { mode: 'NORMAL', scenario: 'grouped-dubbed-movie' });
+    const item = result.catalog.items.find((entry) => entry.id === 'grouped-dubbed-movie-1');
+    assert.ok(item, 'movie from grouped affiliate payload is retained');
+    const files = item.downloads.flatMap((section) => section.files || []);
+    assert.ok(files.some((file) => file.language === 'dubbed'));
+    assert.ok(files.some((file) => file.language === 'subtitled'));
+    const summary = result.clientIndex.items.find((entry) => entry.id === 'grouped-dubbed-movie-1');
+    assert.ok(summary?.availableLanguages?.includes('dubbed'));
+    assert.ok(summary?.availableLanguages?.includes('subtitled'));
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+test('oldest production year owns the archive queue before newer titles', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-year-order-'));
+  const media = (id) => [{ id: `download-${id}`, files: [{ id: `${id}-720`, mode: 'download', url: `https://cdn.example.test/${id}-old.mp4` }] }];
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
+    version: 'test', updatedAt: new Date(0).toISOString(),
+    items: [
+      { id: 'new-movie', type: 'movie', name: 'New Movie', nameFa: 'فیلم جدید', year: 2024, genres: ['درام'], poster: 'https://example.test/new.jpg', backdrop: 'https://example.test/new-bg.jpg', overview: 'fixture', downloads: media('new-movie'), mediaLanguageAuditVersion: 0 },
+      { id: 'old-movie', type: 'movie', name: 'Old Movie', nameFa: 'فیلم قدیمی', year: 2015, genres: ['درام'], poster: 'https://example.test/old.jpg', backdrop: 'https://example.test/old-bg.jpg', overview: 'fixture', downloads: media('old-movie'), mediaLanguageAuditVersion: 0 },
+    ],
+    iranianSchedule: [], weeklySchedule: [],
+  });
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, { mode: 'BACKFILL', scenario: 'year-order' });
+    assert.equal(result.report.affiliateRequests, 1, 'newer title is not touched while the oldest active title still needs retry');
+    assert.equal(result.state.archiveBackfillItemId, 'old-movie');
+    assert.equal(Number(result.catalog.items.find((entry) => entry.id === 'new-movie')?.mediaLanguageAuditVersion || 0), 0);
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+
+test('a zero-media movie cannot freeze an old production year while the repair lane keeps it recoverable', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-zero-media-year-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
+    version: 'test', updatedAt: new Date(0).toISOString(),
+    items: [
+      { id: 'old-movie', type: 'movie', name: 'Old Missing Movie', nameFa: 'فیلم قدیمی بدون لینک', year: 2015, genres: ['درام'], poster: 'https://example.test/old.jpg', backdrop: 'https://example.test/old-bg.jpg', overview: 'fixture', downloads: [], mediaLanguageAuditVersion: 0 },
+      { id: 'new-movie', type: 'movie', name: 'New Movie', nameFa: 'فیلم جدید', year: 2016, genres: ['درام'], poster: 'https://example.test/new.jpg', backdrop: 'https://example.test/new-bg.jpg', overview: 'fixture', downloads: [], mediaLanguageAuditVersion: 0 },
+    ],
+    iranianSchedule: [], weeklySchedule: [],
+  });
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, { mode: 'BACKFILL', scenario: 'year-order-zero-media' });
+    const oldMovie = result.catalog.items.find((entry) => entry.id === 'old-movie');
+    const newMovie = result.catalog.items.find((entry) => entry.id === 'new-movie');
+    assert.equal(oldMovie?.mediaAuditStatus, 'confirmed-unavailable', 'missing old title is hidden instead of pinning the year queue');
+    assert.equal(oldMovie?.mediaLanguageAuditVersion, 2);
+    assert.ok(newMovie?.downloads?.flatMap((section) => section.files || []).some((file) => /new-movie\.mp4/.test(file.url)), 'the queue advances to the next year in the same run');
+    assert.equal(newMovie?.mediaAuditStatus, 'ok');
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
 
 test('regional reclassification fixes stale foreign-series metadata and wildlife documentaries without network work', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-reclassify-regression-'));

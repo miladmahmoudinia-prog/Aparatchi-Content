@@ -33,8 +33,8 @@ globalThis.fetch = async (input) => {
   }
 
 
-  if (scenario === 'paid-movie' || scenario === 'dubbed-movie') {
-    const movieId = scenario === 'paid-movie' ? 'paid-movie-1' : 'dubbed-movie-1';
+  if (scenario === 'paid-movie' || scenario === 'dubbed-movie' || scenario === 'grouped-dubbed-movie') {
+    const movieId = scenario === 'paid-movie' ? 'paid-movie-1' : scenario === 'grouped-dubbed-movie' ? 'grouped-dubbed-movie-1' : 'dubbed-movie-1';
     if (url.pathname.endsWith('/ghost/get/movies/sort')) {
       return jsonResponse({
         status: 'success',
@@ -44,8 +44,8 @@ globalThis.fetch = async (input) => {
               {
                 id: movieId,
                 type: 'movie',
-                name: scenario === 'paid-movie' ? 'Paid Movie' : 'Dubbed Movie',
-                name_fa: scenario === 'paid-movie' ? 'فیلم خریدنی' : 'فیلم دوبله آزمایشی',
+                name: scenario === 'paid-movie' ? 'Paid Movie' : scenario === 'grouped-dubbed-movie' ? 'Grouped Dubbed Movie' : 'Dubbed Movie',
+                name_fa: scenario === 'paid-movie' ? 'فیلم خریدنی' : scenario === 'grouped-dubbed-movie' ? 'فیلم دوبله گروهی' : 'فیلم دوبله آزمایشی',
                 year: 2026,
                 poster: `https://example.test/${movieId}-poster.jpg`,
                 backdrop: `https://example.test/${movieId}-backdrop.jpg`,
@@ -80,13 +80,26 @@ globalThis.fetch = async (input) => {
                 link: 'https://upera.tv/buy/paid-movie-1',
                 title: '1080p',
               }]
-            : [{
-                amount: 0,
-                link: 'https://cdn.example.test/dubbed-movie-1-1080.mp4',
-                title: '1080p',
-                audio_language: 'Persian Dub',
-                dubbed: 1,
-              }],
+            : scenario === 'grouped-dubbed-movie'
+              ? {
+                  dubbed: [{
+                    amount: 0,
+                    download_url: 'https://cdn.example.test/grouped-dubbed-movie-1-1080.mp4',
+                    title: '1080p',
+                  }],
+                  subtitles: [{
+                    amount: 0,
+                    url: 'https://cdn.example.test/grouped-dubbed-movie-1-sub-720.mp4',
+                    title: '720p',
+                  }],
+                }
+              : [{
+                  amount: 0,
+                  link: 'https://cdn.example.test/dubbed-movie-1-1080.mp4',
+                  title: '1080p',
+                  audio_language: 'Persian Dub',
+                  dubbed: 1,
+                }],
         },
       });
     }
@@ -332,6 +345,12 @@ globalThis.fetch = async (input) => {
         ],
       },
     });
+  }
+
+  if ((scenario === 'year-order' || scenario === 'year-order-zero-media') && url.pathname.endsWith('/ghost/get/getaffiliatelinks')) {
+    const id = String(url.searchParams.get('id') || '');
+    if (id === 'old-movie') return jsonResponse({ message: 'No affiliate files' }, 404);
+    if (id === 'new-movie') return jsonResponse({ status: 'success', data: { links: [{ amount: 0, link: 'https://cdn.example.test/new-movie.mp4', title: '720p' }] } });
   }
 
   if (url.pathname.endsWith('/ghost/get/getaffiliatelinks')) {

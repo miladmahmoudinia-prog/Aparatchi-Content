@@ -13,7 +13,7 @@ const SUMMARY_FIELDS = [
   'archivePendingEpisodeCount', 'sourceEpisodeCount', 'archiveAuditStatus',
   'archiveEpisodeDiscoveryComplete', 'updateLabel', 'meaningfulUpdatedAt',
   'categoryKeys', 'categoryLabels', 'contentKind', 'isAnimation', 'isAnime', 'isTalkShow',
-  'isDocumentary', 'mediaAuditStatus', 'createdAt', 'updatedAt', 'sourceCreatedAt', 'sourceUpdatedAt',
+  'isDocumentary', 'isWildlife', 'mediaAuditStatus', 'createdAt', 'updatedAt', 'sourceCreatedAt', 'sourceUpdatedAt',
   'tmdbValidationVersion',
 ];
 
@@ -44,7 +44,7 @@ export function clientSummaryForItem(item) {
       .filter(Boolean)
       .join(' ');
     summary.availableLanguages = [
-      /دوبله|دو\s*زبانه|صوت\s*فارسی|فارسی\s*(?:دوبله|صدا)|persian\s*(?:dub|audio)|farsi\s*(?:dub|audio)|dubbed|\bdub\b/i.test(text) ? 'dubbed' : '',
+      /دوبله|دو\s*زبانه|دوزبانه|صوت\s*فارسی|صدای\s*فارسی|فارسی\s*(?:دوبله|صدا)|persian\s*(?:dub|audio|voice)|farsi\s*(?:dub|audio|voice)|dual\s*audio|dubbed|\bdub\b/i.test(text) ? 'dubbed' : '',
       /زیر\s*نویس|زير\s*نويس|هارد\s*ساب|سافت\s*ساب|persian\s*sub|farsi\s*sub|subtitle|subbed|\bsub\b/i.test(text) ? 'subtitled' : '',
     ].filter(Boolean);
   }
@@ -65,6 +65,14 @@ const isStructurallyUsableMediaFile = (file) => {
   return /\.mp4(?:$|[?#])/i.test(url);
 };
 
+const movieHasUsableClientMedia = (item) => {
+  const streamUrl = typeof item?.streamUrl === 'string' ? item.streamUrl.trim() : '';
+  if (/^https?:\/\//i.test(streamUrl) && /\.(?:m3u8|mp4)(?:$|[?#])/i.test(streamUrl)) return true;
+  return (Array.isArray(item?.downloads) ? item.downloads : []).some((section) =>
+    (Array.isArray(section?.files) ? section.files : []).some(isStructurallyUsableMediaFile),
+  );
+};
+
 const seriesHasUsableClientMedia = (item) =>
   (Array.isArray(item?.downloads) ? item.downloads : []).some((section) =>
     (Array.isArray(section?.files) ? section.files : []).some(isStructurallyUsableMediaFile),
@@ -72,7 +80,13 @@ const seriesHasUsableClientMedia = (item) =>
 
 const isClientVisibleItem = (item) => {
   if (!item || !item.id || !item.type) return false;
-  if (item.type === 'movie' && item.mediaAuditStatus === 'confirmed-unavailable') return false;
+  if (item.type === 'movie') {
+    if (item.mediaAuditStatus === 'confirmed-unavailable') return false;
+    // Never publish a movie detail that has no usable play/download/purchase
+    // action. The server record stays intact and the oldest-year repair queue
+    // retries it until media becomes available.
+    return movieHasUsableClientMedia(item);
+  }
   if (item.type !== 'series') return true;
   // Keep the server-side record forever, but do not expose a completely empty
   // series detail to users while the media-repair/backfill queue is still

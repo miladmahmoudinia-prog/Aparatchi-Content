@@ -3,6 +3,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { classifyCatalogItem as classifyCatalogRules } from './classification.mjs';
 
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
@@ -103,14 +104,14 @@ if (!catalog || !Array.isArray(catalog.items)) {
 }
 
 const cache = await readJson(cachePath, {
-  version: 11,
+  version: 12,
   updatedAt: null,
   items: {},
 });
-if (Number(cache.version || 0) !== 11 || !cache.items || typeof cache.items !== 'object' || Array.isArray(cache.items)) {
+if (Number(cache.version || 0) !== 12 || !cache.items || typeof cache.items !== 'object' || Array.isArray(cache.items)) {
   cache.items = {};
 }
-cache.version = 11;
+cache.version = 12;
 if (!cache.people || typeof cache.people !== 'object' || Array.isArray(cache.people)) cache.people = {};
 if (!cache.posterChecks || typeof cache.posterChecks !== 'object' || Array.isArray(cache.posterChecks)) cache.posterChecks = {};
 
@@ -162,7 +163,7 @@ for (const item of catalog.items) {
   const cacheKey = String(item.id || item.slug || signature);
   const cached = cache.items[cacheKey];
 
-  const cachedMetadataCurrent = cached?.tmdb === null || Number(cached?.metadata?.validationVersion || 0) >= 6;
+  const cachedMetadataCurrent = cached?.tmdb === null || Number(cached?.metadata?.validationVersion || 0) >= 7;
   if (cached && cached.signature === signature && cachedMetadataCurrent && !isCacheStale(cached.fetchedAt, refreshDays)) {
     report.cacheApplied += 1;
 
@@ -519,11 +520,11 @@ function buildTmdbMetadata(details, mediaType, item) {
     isAnimation,
     isAnime,
     isDocumentary,
-    validationVersion: 6,
+    validationVersion: 7,
     ...(collection?.id ? {
       collectionId: `tmdb:${collection.id}`,
       collectionName: cleanText(collection.name),
-      collectionNameFa: cleanText(collection.name),
+      collectionNameFa: /[\u0600-\u06ff]/.test(cleanText(collection.name)) ? cleanText(collection.name) : '',
     } : {}),
     ...(mediaType === 'tv' ? {
       isAiring,
@@ -538,7 +539,7 @@ function buildTmdbMetadata(details, mediaType, item) {
 function applyTmdbMetadata(item, metadataValue) {
   const metadata = metadataValue && typeof metadataValue === 'object' ? metadataValue : {};
   const validationVersion = Number(metadata.validationVersion || 0);
-  const trustedClassification = validationVersion >= 3;
+  const trustedClassification = validationVersion >= 7;
   const countryCodes = Array.isArray(metadata.countryCodes)
     ? [...new Set(metadata.countryCodes.map(normalizeCountryCode).filter(Boolean))]
     : [];
@@ -551,7 +552,7 @@ function applyTmdbMetadata(item, metadataValue) {
     ? 'IR'
     : originalLanguage === 'ko'
       ? 'KR'
-      : originalLanguage === 'hi'
+      : ['hi', 'ta', 'te', 'ml', 'kn', 'bn', 'mr', 'pa', 'gu', 'ur'].includes(originalLanguage)
         ? 'IN'
         : originalLanguage === 'ja'
           ? 'JP'
@@ -567,32 +568,6 @@ function applyTmdbMetadata(item, metadataValue) {
       : [...existingCodes, inferredCountry].filter(Boolean),
   )];
 
-  const titleIdentity = `${cleanText(item.nameFa)} ${cleanText(item.name)}`;
-  const forcedLiveAction = /(?:عشق احتمالی|muhtemel\s*a(?:s|şk)|خاله نسرین|aunt\s+nasrin)/i.test(titleIdentity);
-  const isAnimation = !forcedLiveAction && (trustedClassification
-    ? Boolean(metadata.isAnimation)
-    : Boolean(metadata.isAnimation || item.isAnimation));
-  const isAnime = Boolean(isAnimation && (
-    trustedClassification
-      ? metadata.isAnime
-      : metadata.isAnime || effectiveCodes.includes('JP') || originalLanguage === 'ja'
-  ));
-  const eternalManOverride = /(?:^|\s)مرد\s+ابدی(?:\s|$)/i.test(cleanText(item.nameFa));
-  const narrativeGenre = (Array.isArray(item.genres) ? item.genres : []).some((genre) =>
-    /درام|ترسناک|وحشت|هیجان|اکشن|کمدی|عاشقانه|drama|horror|thriller|action|comedy|romance/i.test(cleanText(genre)),
-  );
-  const knownNarrative = /(?:^|\s)(?:سوت|whistle)(?:\s|$)/i.test(titleIdentity) ||
-    (/(?:^|\s)(?:پدر|father)(?:\s|$)/i.test(titleIdentity) && narrativeGenre);
-  const isDocumentary = !knownNarrative && (trustedClassification
-    ? Boolean(metadata.isDocumentary || eternalManOverride)
-    : Boolean(
-        metadata.isDocumentary ||
-        item.isDocumentary ||
-        item.contentKind === 'documentary' ||
-        (Array.isArray(item.genres) && item.genres.some((genre) => /مستند|documentary/i.test(cleanText(genre)))) ||
-        eternalManOverride
-      ));
-
   const before = JSON.stringify({
     countryCodes: item.countryCodes,
     countryLabels: item.countryLabels,
@@ -605,6 +580,7 @@ function applyTmdbMetadata(item, metadataValue) {
     isAnimation: item.isAnimation,
     isAnime: item.isAnime,
     isDocumentary: item.isDocumentary,
+    isWildlife: item.isWildlife,
     categoryKeys: item.categoryKeys,
     categoryLabels: item.categoryLabels,
     contentKind: item.contentKind,
@@ -631,9 +607,6 @@ function applyTmdbMetadata(item, metadataValue) {
   if (metadata.collectionId) item.collectionId = cleanText(metadata.collectionId);
   if (metadata.collectionName) item.collectionName = cleanText(metadata.collectionName);
   if (metadata.collectionNameFa) item.collectionNameFa = cleanText(metadata.collectionNameFa);
-  item.ir = trustedClassification
-    ? (originalLanguage === 'fa' || effectiveCodes[0] === 'IR')
-    : (originalLanguage === 'fa' || effectiveCodes[0] === 'IR' || (!originalLanguage && !effectiveCodes.length && item.ir === true));
 
   const posterFallback = cleanText(metadata.posterFallback);
   const backdropFallback = cleanText(metadata.backdropFallback);
@@ -646,13 +619,18 @@ function applyTmdbMetadata(item, metadataValue) {
     if (!isUsableArtworkUrl(item.backdrop)) item.backdrop = backdropFallback;
   }
 
-  item.isAnimation = isAnimation;
-  item.isAnime = isAnime;
-  item.isDocumentary = isDocumentary;
-  item.tmdbValidationVersion = Math.max(
-    Number(item.tmdbValidationVersion || 0),
-    validationVersion,
-  );
+  // TMDB v7 classification is authoritative. Older local/stale flags are never
+  // allowed to keep a title in a wrong category after this audit pass.
+  if (trustedClassification) {
+    item.isAnimation = Boolean(metadata.isAnimation);
+    item.isAnime = Boolean(metadata.isAnime);
+    item.isDocumentary = Boolean(metadata.isDocumentary);
+  } else {
+    if (typeof metadata.isAnimation === 'boolean') item.isAnimation = metadata.isAnimation;
+    if (typeof metadata.isAnime === 'boolean') item.isAnime = metadata.isAnime;
+    if (typeof metadata.isDocumentary === 'boolean') item.isDocumentary = metadata.isDocumentary;
+  }
+  item.tmdbValidationVersion = Math.max(Number(item.tmdbValidationVersion || 0), validationVersion);
 
   const type = item.type === 'series' ? 'series' : 'movie';
   if (type === 'series') {
@@ -674,64 +652,21 @@ function applyTmdbMetadata(item, metadataValue) {
     if (typeof metadata.isAiring === 'boolean') item.isAiring = metadata.isAiring;
   }
 
-  const removedKeys = new Set([
-    'iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series',
-    'korean-movies', 'korean-series', 'indian-movies', 'japanese-movies',
-    'anime-movies', 'anime-series', 'animation-movies', 'animation-series',
-    'documentaries', 'wildlife', 'collections',
-  ]);
-  const categoryKeys = (Array.isArray(item.categoryKeys) ? item.categoryKeys : [])
-    .map(cleanText)
-    .filter((key) => key && !removedKeys.has(key));
-  const primaryCountry = effectiveCodes[0] || '';
-  const koreanIdentity = originalLanguage === 'ko' || primaryCountry === 'KR';
-  const indianIdentity = originalLanguage === 'hi' || primaryCountry === 'IN';
-  const wildlifeText = `${titleIdentity} ${(Array.isArray(item.genres) ? item.genres : []).join(' ')} ${cleanText(item.overview)}`;
-  const isWildlife = Boolean(isDocumentary && /حیات\s*وحش|طبیعت|جانوران|حیوانات|زیست\s*بوم|اقیانوس|پلنگ|یوز|شیر|ببر|گرگ|خرس|پرندگان|جنگل|ساوانا|wildlife|natural\s+history|nature|animals?|ocean|planet\s+earth|leopards?|cheetahs?|lions?|tigers?|wolves?|bears?|birds?|forest|savanna/i.test(wildlifeText));
-  const itemCategoryKeys = Array.isArray(item.categoryKeys) ? item.categoryKeys : [];
-  const isKids = /(?:کودک|کودکان|کودکانه|برنامه\s*کودک|ترانه(?:\s+های)?\s+کودک|خاله\s*نسرین|aunt\s+nasrin|kids?|children|nursery)/i.test(titleIdentity) ||
-    ['kids', 'children-program'].includes(cleanText(item.contentKind)) ||
-    itemCategoryKeys.includes('kids');
-  const isProgram = ['program', 'talk-show', 'reality-competition'].includes(cleanText(item.contentKind)) ||
-    itemCategoryKeys.some((key) => ['programs', 'talk-shows', 'reality'].includes(cleanText(key)));
-  const isReligiousProgram = cleanText(item.contentKind) === 'religious-program' || itemCategoryKeys.includes('quran');
-  const regionalEligible = !isAnimation && !isDocumentary && !isKids && !isProgram && !isReligiousProgram;
-  if (regionalEligible && type === 'movie') categoryKeys.push(item.ir ? 'iranian-movies' : 'foreign-movies');
-  if (regionalEligible && type === 'series') categoryKeys.push(item.ir ? 'iranian-series' : 'foreign-series');
-  if (regionalEligible && type === 'movie' && koreanIdentity) categoryKeys.push('korean-movies');
-  if (regionalEligible && type === 'series' && koreanIdentity) categoryKeys.push('korean-series');
-  if (regionalEligible && type === 'movie' && indianIdentity) categoryKeys.push('indian-movies');
-  if (isAnimation) categoryKeys.push(isAnime
-    ? type === 'movie' ? 'anime-movies' : 'anime-series'
-    : type === 'movie' ? 'animation-movies' : 'animation-series');
-  if (isDocumentary) categoryKeys.push('documentaries');
-  if (isWildlife) categoryKeys.push('wildlife');
-  if (type === 'movie' && item.collectionId) categoryKeys.push('collections');
-  item.categoryKeys = [...new Set(categoryKeys)];
-
-  const classificationLabels = /^(فیلم (ایرانی|خارجی|کره‌ای|هندی|ژاپنی)|سریال (ایرانی|خارجی|کره‌ای)|انیمه (سینمایی|سریالی)|انیمیشن (سینمایی|سریالی)|مستند|حیات وحش|کالکشن)$/;
-  const categoryLabels = (Array.isArray(item.categoryLabels) ? item.categoryLabels : [])
-    .map(cleanText)
-    .filter((label) => label && !classificationLabels.test(label));
-  if (regionalEligible && type === 'movie') categoryLabels.push(item.ir ? 'فیلم ایرانی' : 'فیلم خارجی');
-  if (regionalEligible && type === 'series') categoryLabels.push(item.ir ? 'سریال ایرانی' : 'سریال خارجی');
-  if (regionalEligible && type === 'movie' && koreanIdentity) categoryLabels.push('فیلم کره‌ای');
-  if (regionalEligible && type === 'series' && koreanIdentity) categoryLabels.push('سریال کره‌ای');
-  if (regionalEligible && type === 'movie' && indianIdentity) categoryLabels.push('فیلم هندی');
-  if (isAnimation) categoryLabels.push(isAnime
-    ? type === 'movie' ? 'انیمه سینمایی' : 'انیمه سریالی'
-    : type === 'movie' ? 'انیمیشن سینمایی' : 'انیمیشن سریالی');
-  if (isDocumentary) categoryLabels.push('مستند');
-  if (isWildlife) categoryLabels.push('حیات وحش');
-  if (type === 'movie' && item.collectionId) categoryLabels.push('کالکشن');
-  item.categoryLabels = [...new Set(categoryLabels)];
-
-  if (isDocumentary) item.contentKind = 'documentary';
-  else if (isAnime) item.contentKind = type === 'movie' ? 'anime-movie' : 'anime-series';
-  else if (isAnimation) item.contentKind = type === 'movie' ? 'animation-movie' : 'animation-series';
-  else if (['documentary', 'anime-movie', 'anime-series', 'animation-movie', 'animation-series'].includes(cleanText(item.contentKind))) {
-    delete item.contentKind;
-  }
+  const classification = classifyCatalogRules({
+    ...item,
+    type,
+    countryCodes: effectiveCodes,
+    originalLanguage,
+    tmdbValidationVersion: item.tmdbValidationVersion,
+  });
+  item.ir = classification.ir;
+  item.isAnimation = classification.isAnimation;
+  item.isAnime = classification.isAnime;
+  item.isDocumentary = classification.isDocumentary;
+  item.isWildlife = classification.isWildlife;
+  item.contentKind = classification.contentKind;
+  item.categoryKeys = classification.categoryKeys;
+  item.categoryLabels = classification.categoryLabels;
 
   const languageTagsChanged = normalizeIranianLanguageTags(item);
 
@@ -747,6 +682,7 @@ function applyTmdbMetadata(item, metadataValue) {
     isAnimation: item.isAnimation,
     isAnime: item.isAnime,
     isDocumentary: item.isDocumentary,
+    isWildlife: item.isWildlife,
     categoryKeys: item.categoryKeys,
     categoryLabels: item.categoryLabels,
     contentKind: item.contentKind,
@@ -999,6 +935,16 @@ function isTmdbDetailsCompatible(item, details, mediaType, matchSource = '') {
   const codes = detailsCountryCodes(details, mediaType);
   const originalLanguage = cleanText(details?.original_language).toLowerCase();
   if (iranian && originalLanguage !== 'fa' && !codes.includes('IR')) return false;
+
+  const sourceGenreText = (Array.isArray(item?.genres) ? item.genres : []).map(cleanText).join(' ');
+  const sourceNarrative = /درام|ترسناک|وحشت|هیجان|اکشن|کمدی|عاشقانه|خانوادگی|جنایی|ماجراجویی|علمی\s*تخیلی|drama|horror|thriller|action|comedy|romance|family|crime|adventure|science\s*fiction|sci-fi/i.test(sourceGenreText);
+  const sourceDocumentary = /مستند|documentary/i.test(sourceGenreText);
+  const detailGenreText = (Array.isArray(details?.genres) ? details.genres : []).map((genre) => cleanText(genre?.name)).join(' ');
+  const detailsDocumentary = (Array.isArray(details?.genres) ? details.genres : []).some((genre) => Number(genre?.id) === 99 || /documentary|مستند/i.test(cleanText(genre?.name)));
+  const detailsNarrative = /drama|horror|thriller|action|comedy|romance|family|crime|adventure|science\s*fiction|fantasy/i.test(detailGenreText);
+  // Common titles can resolve to an unrelated documentary with the same name/year.
+  // If Upera clearly describes a narrative work, reject a documentary-only TMDB match.
+  if (sourceNarrative && !sourceDocumentary && detailsDocumentary && !detailsNarrative) return false;
 
   const itemYear = positiveInt(item?.year, 0);
   const detailsDate = cleanText(
