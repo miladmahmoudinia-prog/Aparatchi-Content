@@ -130,6 +130,7 @@ async function runSync(cwd, options = {}) {
     manifest: JSON.parse(await fs.readFile(path.join(cwd, 'catalog-manifest.json'), 'utf8')),
     state: JSON.parse(await fs.readFile(path.join(cwd, 'sync-state.json'), 'utf8')),
     report: JSON.parse(await fs.readFile(path.join(cwd, 'sync-report.json'), 'utf8')),
+    clientIndex: JSON.parse(await fs.readFile(path.join(cwd, 'catalog-index.json'), 'utf8')),
   };
 }
 
@@ -425,6 +426,128 @@ test('people enrichment uses cast and director data from the source API', async 
     assert.equal(result.report.peopleEnrichmentSucceeded, 1);
     assert.equal(result.report.peopleEnrichmentFromSource, 1);
     assert.equal(result.report.peopleEnrichmentFailed, 0);
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+
+test('paid-only movie media is preserved as a purchase option instead of disappearing', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-paid-movie-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
+    version: 'test', updatedAt: new Date(0).toISOString(), items: [], iranianSchedule: [], weeklySchedule: [],
+  });
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, { mode: 'NORMAL', scenario: 'paid-movie' });
+    const item = result.catalog.items.find((entry) => entry.id === 'paid-movie-1');
+    assert.ok(item, 'paid-only movie stays in the catalog');
+    assert.equal(item.access, 'paid');
+    assert.equal(item.streamUrl, undefined, 'purchase portal is never treated as a video stream');
+    const files = item.downloads.flatMap((section) => section.files || []);
+    assert.ok(files.some((file) => file.mode === 'purchase' && file.url.startsWith('https://upera.tv/buy/paid-movie-1')));
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+test('dubbed language metadata is detected even when the link title only contains quality', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-dubbed-movie-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
+    version: 'test', updatedAt: new Date(0).toISOString(), items: [], iranianSchedule: [], weeklySchedule: [],
+  });
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, { mode: 'NORMAL', scenario: 'dubbed-movie' });
+    const item = result.catalog.items.find((entry) => entry.id === 'dubbed-movie-1');
+    assert.ok(item);
+    const dubbedFile = item.downloads.flatMap((section) => section.files || []).find((file) => file.language === 'dubbed');
+    assert.ok(dubbedFile, 'audio_language/dubbed metadata marks the file as dubbed');
+    const summary = result.clientIndex.items.find((entry) => entry.id === 'dubbed-movie-1');
+    assert.ok(summary?.availableLanguages?.includes('dubbed'), 'lightweight Home index keeps the dubbed badge');
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+test('a stale complete series is re-audited once and boilerplate episode names are suppressed', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-series-reaudit-'));
+  const fixture = initialCatalog();
+  const item = fixture.items[0];
+  item.sourceEpisodeCount = 1;
+  item.archivePendingEpisodeCount = 0;
+  item.archivePendingEpisodes = [];
+  item.archiveComplete = true;
+  item.archiveAuditStatus = 'checked';
+  item.archiveEpisodeDiscoveryComplete = true;
+  item.publicationStatus = 'published';
+  item.visibilityLocked = true;
+  item.archiveCompletenessAuditVersion = 0;
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), fixture);
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, { scenario: 'boilerplate-title-audit' });
+    const updated = result.catalog.items.find((entry) => entry.id === 'series-1');
+    assert.equal(updated?.downloads.length, 2, 'the versioned audit discovers an episode hidden by stale completeness metadata');
+    assert.equal(updated?.archiveCompletenessAuditVersion, 1);
+    assert.equal(updated?.archiveComplete, true);
+    const second = updated?.downloads.find((group) => Number(group.episodeNumber) === 2);
+    assert.equal(second?.subtitle, '', 'series-name + episode-number boilerplate is not shown as an episode title');
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+
+test('regional reclassification fixes stale foreign-series metadata and wildlife documentaries without network work', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-reclassify-regression-'));
+  const playableEpisode = {
+    id: 'westies-e1',
+    sourceEpisodeId: 'westies-e1',
+    seasonNumber: 1,
+    episodeNumber: 1,
+    title: 'قسمت ۱',
+    files: [{ id: 'westies-e1-720', quality: '720p', label: '720p', url: 'https://cdn.example.test/westies-e1.mp4', mode: 'download' }],
+  };
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
+    version: 'test',
+    updatedAt: new Date(0).toISOString(),
+    items: [
+      {
+        id: 'westies', type: 'series', name: 'The Westies', nameFa: 'وستی ها', year: 2026,
+        ir: true, originalLanguage: 'en', countryCodes: ['US'], genres: ['درام', 'جنایی'],
+        categoryKeys: ['series', 'iranian-series'], categoryLabels: ['مجموعه‌ها', 'سریال ایرانی'],
+        downloads: [playableEpisode], sourceEpisodeCount: 1, archivePendingEpisodes: [], archivePendingEpisodeCount: 0,
+        archiveComplete: true, archiveAuditStatus: 'checked', archiveEpisodeDiscoveryComplete: true,
+        archiveCompletenessAuditVersion: 1, archiveDiscoveryCheckedAt: new Date().toISOString(),
+        publicationStatus: 'published', visibilityLocked: true, isAiring: false,
+      },
+      {
+        id: 'leopards', type: 'movie', name: 'Living with Leopards', nameFa: 'زندگی با پلنگ ها', year: 2024,
+        ir: false, originalLanguage: 'en', countryCodes: ['GB'], genres: ['مستند'],
+        overview: 'A wildlife documentary following leopards in their natural habitat.',
+        isDocumentary: true, tmdbValidationVersion: 6,
+        categoryKeys: ['movies', 'documentaries'], categoryLabels: ['فیلم‌ها', 'مستند'],
+        downloads: [{ id: 'download-original', files: [{ id: 'leo-720', quality: '720p', label: '720p', url: 'https://cdn.example.test/leopards.mp4', mode: 'download' }] }],
+      },
+    ],
+    iranianSchedule: [], weeklySchedule: [],
+  });
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, { mode: 'BACKFILL', scenario: 'no-network-needed' });
+    const westies = result.catalog.items.find((entry) => entry.id === 'westies');
+    assert.equal(westies?.ir, false);
+    assert.ok(westies?.categoryKeys.includes('foreign-series'));
+    assert.ok(!westies?.categoryKeys.includes('iranian-series'));
+
+    const leopards = result.catalog.items.find((entry) => entry.id === 'leopards');
+    assert.ok(leopards?.categoryKeys.includes('documentaries'));
+    assert.ok(leopards?.categoryKeys.includes('wildlife'));
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }

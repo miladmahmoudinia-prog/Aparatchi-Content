@@ -387,6 +387,50 @@ async function tmdbMetadata(entry, type, posterCache) {
     return response.json();
   };
 
+  const titleSearchQueries = () => {
+    const raw = [cleanText(entry?.title), cleanText(entry?.originalTitle)].filter(Boolean);
+    const expanded = [];
+    for (const title of raw) {
+      expanded.push(title);
+      const colonParts = title.split(/[:：]/).map((part) => cleanText(part)).filter(Boolean);
+      if (colonParts.length > 1) {
+        expanded.push(colonParts[0], colonParts[colonParts.length - 1], `${colonParts.slice(1).join(': ')}: ${colonParts[0]}`);
+      }
+      const withoutFranchise = title
+        .replace(/jojo['’]s\s+bizarre\s+adventure/ig, ' ')
+        .replace(/steel\s+ball\s+run/ig, 'Steel Ball Run')
+        .replace(/\s+/g, ' ')
+        .replace(/^[:\-–—\s]+|[:\-–—\s]+$/g, '')
+        .trim();
+      if (withoutFranchise) expanded.push(withoutFranchise);
+    }
+    return [...new Set(expanded.filter(Boolean))];
+  };
+
+  const searchTmdbByTitle = async (requirePoster = false) => {
+    const mediaPath = type === 'series' ? 'tv' : 'movie';
+    const year = positiveInt(entry?.year, 0);
+    const yearKey = type === 'series' ? 'first_air_date_year' : 'year';
+    for (const query of titleSearchQueries()) {
+      for (const includeYear of year > 0 ? [true, false] : [false]) {
+        try {
+          const search = await tmdbJson(
+            `/search/${mediaPath}?language=fa-IR&include_adult=false&query=${encodeURIComponent(query)}` +
+            (includeYear ? `&${yearKey}=${year}` : ''),
+          );
+          const results = Array.isArray(search?.results) ? search.results.filter((value) => value?.id) : [];
+          const preferred = requirePoster
+            ? results.find((value) => cleanText(value?.poster_path))
+            : results[0];
+          if (preferred) return preferred;
+        } catch {
+          // Try the next title variant/year combination.
+        }
+      }
+    }
+    return null;
+  };
+
   try {
     let candidate = null;
     if (imdb) {
@@ -400,22 +444,7 @@ async function tmdbMetadata(entry, type, posterCache) {
     }
 
     if (!candidate?.id) {
-      const mediaPath = type === 'series' ? 'tv' : 'movie';
-      const query = cleanText(entry?.title || entry?.originalTitle);
-      if (query) {
-        const year = positiveInt(entry?.year, 0);
-        const yearKey = type === 'series' ? 'first_air_date_year' : 'year';
-        try {
-          const search = await tmdbJson(
-            `/search/${mediaPath}?language=fa-IR&include_adult=false&query=${encodeURIComponent(query)}` +
-            (year > 0 ? `&${yearKey}=${year}` : ''),
-          );
-          const results = Array.isArray(search?.results) ? search.results : [];
-          candidate = results.find((value) => value?.id) || null;
-        } catch {
-          // Keep cached metadata when search is temporarily unavailable.
-        }
-      }
+      candidate = await searchTmdbByTitle(false);
     }
 
     if (!candidate?.id) {
@@ -439,6 +468,16 @@ async function tmdbMetadata(entry, type, posterCache) {
       if (containsPersian(localizedTitle)) titleFa = localizedTitle;
     } catch {
       // The search/find result can still provide a usable poster.
+    }
+
+    if (!posterPath) {
+      const posterCandidate = await searchTmdbByTitle(true);
+      if (posterCandidate?.id) {
+        candidate = posterCandidate;
+        posterPath = cleanText(posterCandidate.poster_path);
+        const candidateTitle = cleanText(posterCandidate.title || posterCandidate.name);
+        if (!titleFa && containsPersian(candidateTitle)) titleFa = candidateTitle;
+      }
     }
 
     if (!titleFa) {

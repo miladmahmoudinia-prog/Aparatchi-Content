@@ -7,7 +7,9 @@ import { writeClientCatalogArtifacts } from './client-catalog.mjs';
 
 const API_BASE = 'https://seeko.film/api/v1';
 const IRANIAN_SERIES_SCAN_VERSION = 3;
-const CATALOG_VERSION = '0.18.0-stability-categories-media';
+const SERIES_COMPLETENESS_AUDIT_VERSION = 1;
+const CATALOG_VERSION = '0.20.0-final-bugfixes';
+const PERSIAN_EPISODE_ORDINAL = '(?:اول|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم|دهم|یازدهم|دوازدهم|سیزدهم|چهاردهم|پانزدهم|شانزدهم|هفدهم|هجدهم|نوزدهم|بیستم|بیست\\s*و\\s*(?:یکم|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم)|سی\\s*و\\s*(?:یکم|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم)|آخر|پایانی|\\d{1,4})';
 
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
@@ -1043,7 +1045,7 @@ function movieHasUsableMedia(item) {
   if (isDirectMediaUrl(item?.streamUrl)) return true;
   return (Array.isArray(item?.downloads) ? item.downloads : []).some(
     (section) => (Array.isArray(section?.files) ? section.files : []).some((file) =>
-      isDirectMediaUrl(file?.url) || isValidStoredOperatorFile(file),
+      isDirectMediaUrl(file?.url) || file?.mode === 'purchase' || isValidStoredOperatorFile(file),
     ),
   );
 }
@@ -1180,7 +1182,7 @@ async function syncMovieMediaHealthAudit() {
 
 async function syncIncompleteMovieMedia() {
   const nowMs = Date.now();
-  const retryMs = 12 * 60 * 60 * 1000;
+  const retryMs = 2 * 60 * 60 * 1000;
   const candidates = items.filter((item) => {
     if (item?.type !== 'movie' || movieHasUsableMedia(item)) return false;
     const last = Date.parse(String(item?.mediaAuditCheckedAt || '')) || 0;
@@ -1188,7 +1190,7 @@ async function syncIncompleteMovieMedia() {
   });
   stats.mediaRepairCandidates = candidates.length;
   if (!candidates.length) { state.mediaRepairOffset = 0; return; }
-  const limit = Math.min(24, candidates.length);
+  const limit = Math.min(72, candidates.length);
   const start = state.mediaRepairOffset % candidates.length;
   for (let step = 0; step < limit; step += 1) {
     if (affiliateBudgetExhausted || affiliateScopeExhausted || runTimeBudgetReached('media-repair', 70000)) break;
@@ -1582,6 +1584,12 @@ async function syncSequentialSeriesBackfill() {
   }
 }
 
+function seriesCompletenessAuditDue(item) {
+  if (!item || item.type !== 'series') return false;
+  if (item.isAiring === true && item.publicationStatus === 'published') return false;
+  return nonNegativeInt(item.archiveCompletenessAuditVersion, 0) < SERIES_COMPLETENESS_AUDIT_VERSION;
+}
+
 function buildSequentialBackfillQueue() {
   return items
     .filter((item) => item?.type === 'series')
@@ -1597,7 +1605,8 @@ function buildSequentialBackfillQueue() {
         entry.deficit.total > 0 ||
         entry.item?.publicationStatus !== 'published' ||
         !hasSeriesArchiveMetadata(entry.item) ||
-        seriesHasUnavailableRetryDue(entry.item)
+        seriesHasUnavailableRetryDue(entry.item) ||
+        seriesCompletenessAuditDue(entry.item)
       );
     })
     .sort((a, b) => {
@@ -2352,7 +2361,7 @@ async function processSeries(
   let cursor = 0;
 
   const missingEpisodes = episodes
-    .filter((episode) => !findEpisodeGroup(previousGroups, episode))
+    .filter((episode) => { const group = findEpisodeGroup(previousGroups, episode); return !group || !episodeGroupHasUsableMedia(group); })
     .filter((episode) => {
       const unavailable = unavailableEpisodeMap.get(archiveEpisodeKey(id, episode));
       return !unavailable || unavailableEpisodeRetryDue(unavailable, episode);
@@ -2444,7 +2453,7 @@ async function processSeries(
 
       clearArchiveEpisodeFailure(id, episode, unavailableEpisodeMap);
       const previousGroup = findEpisodeGroup(mergedGroups, episode);
-      const nextGroup = episodeGroup(episode, media);
+      const nextGroup = episodeGroup(episode, media, series);
       upsertEpisodeGroup(mergedGroups, nextGroup);
 
       if (!previousGroup) {
@@ -2524,7 +2533,7 @@ async function processSeries(
   // deficit, even after repeated failures. This is what keeps the backfill queue
   // on the same series instead of silently publishing a gapped archive.
   const remainingSourceEpisodes = episodes.filter(
-    (episode) => !findEpisodeGroup(mergedGroups, episode),
+    (episode) => { const group = findEpisodeGroup(mergedGroups, episode); return !group || !episodeGroupHasUsableMedia(group); },
   );
   const archiveComplete =
     episodeDiscoveryComplete &&
@@ -3032,27 +3041,43 @@ async function throttleAffiliateRequest() {
   lastAffiliateRequestAt = Date.now();
 }
 
+function mediaLinkDescriptor(link) {
+  if (!link || typeof link !== 'object') return cleanText(link || '');
+  const booleanHints = [
+    link.dubbed === true || Number(link.dubbed || 0) === 1 ? 'dubbed' : '',
+    link.is_dubbed === true || Number(link.is_dubbed || 0) === 1 ? 'dubbed' : '',
+    link.subtitle === true || Number(link.subtitle || 0) === 1 ? 'subtitle' : '',
+    link.has_subtitle === true || Number(link.has_subtitle || 0) === 1 ? 'subtitle' : '',
+  ];
+  return [
+    link.title, link.name, link.label, link.language, link.lang, link.audio,
+    link.audio_language, link.subtitle_language, link.type, link.description,
+    ...booleanHints,
+  ].map((value) => cleanText(value || '')).filter(Boolean).join(' ');
+}
+
 function parseMediaLinks(links) {
-  const freeLinks = (Array.isArray(links) ? links : [])
-    .filter(
-      (link) =>
-        Number(link?.amount || 0) === 0 &&
-        isHttp(link?.link),
-    )
-    .map((link) => ({
-      ...link,
-      link: rewriteAffiliateRef(link.link),
-    }));
+  const normalizedLinks = (Array.isArray(links) ? links : [])
+    .filter((link) => isHttp(link?.link))
+    .map((link) => ({ ...link, link: rewriteAffiliateRef(link.link) }));
+
+  const freeLinks = normalizedLinks.filter((link) => Number(link?.amount || 0) === 0);
+  const paidLinks = normalizedLinks.filter((link) => Number(link?.amount || 0) > 0);
+  // Product rule: free media wins. Paid links are exposed only when no free
+  // alternative exists, so the app never shows a paid option beside a free one.
+  const selectedLinks = freeLinks.length ? freeLinks : paidLinks;
+  const paidFallback = freeLinks.length === 0 && paidLinks.length > 0;
 
   const operatorLinks = uniqueByUrl(
     freeLinks.filter((link) => isOperatorAccessLink(link)),
   );
 
-  const directLinks = freeLinks.filter(
-    (link) =>
-      !isOperatorAccessLink(link) &&
-      isDirectMediaUrl(link.link),
+  const directLinks = selectedLinks.filter(
+    (link) => !isOperatorAccessLink(link) && isDirectMediaUrl(link.link),
   );
+  const purchasePortalLinks = paidFallback
+    ? uniqueByUrl(selectedLinks.filter((link) => !isOperatorAccessLink(link) && !isDirectMediaUrl(link.link)))
+    : [];
 
   const mp4 = uniqueByUrl(
     directLinks.filter((link) => /\.mp4(?:$|[?#])/i.test(link.link)),
@@ -3069,16 +3094,32 @@ function parseMediaLinks(links) {
   const groups = new Map();
 
   for (const link of sortedMp4) {
-    const language = linkLanguage(link.title);
+    const descriptor = mediaLinkDescriptor(link);
+    const language = linkLanguage(descriptor);
+    const file = toDownloadFile(link, paidFallback ? 'purchase' : 'download');
+    const languageTag = mediaLanguageTag(descriptor);
+    if (languageTag) file.language = languageTag;
     if (!groups.has(language)) groups.set(language, []);
-    groups.get(language).push(toDownloadFile(link, 'download'));
+    groups.get(language).push(file);
+  }
+
+  for (const link of purchasePortalLinks) {
+    const descriptor = mediaLinkDescriptor(link);
+    const language = linkLanguage(descriptor);
+    const file = toDownloadFile(link, 'purchase');
+    const languageTag = mediaLanguageTag(descriptor);
+    if (languageTag) file.language = languageTag;
+    if (!groups.has(language)) groups.set(language, []);
+    groups.get(language).push(file);
   }
 
   const downloads = [...groups.entries()].map(([language, files]) => ({
     id: `download-${slugify(language)}`,
     title: language,
-    subtitle: `${files.length} کیفیت دانلود مستقیم`,
-    badge: 'DL',
+    subtitle: paidFallback
+      ? `${files.length} گزینه خرید یا دریافت`
+      : `${files.length} کیفیت دانلود مستقیم`,
+    badge: paidFallback ? 'خرید' : 'DL',
     files,
   }));
 
@@ -3096,17 +3137,20 @@ function parseMediaLinks(links) {
     });
   }
 
-  const streamUrl =
-    hls[0]?.link ||
-    highestQuality(sortedMp4)?.link ||
-    null;
+  const streamUrl = !paidFallback
+    ? hls[0]?.link || highestQuality(sortedMp4)?.link || null
+    : null;
 
   return {
     downloads,
     streamUrl,
-    hls: hls[0]?.link || null,
+    hls: !paidFallback ? hls[0]?.link || null : null,
     mp4: sortedMp4,
     operatorFiles,
+    access: operatorFiles.length && !downloads.some((section) =>
+      (section.files || []).some((file) => ['download', 'play', 'purchase'].includes(file?.mode || 'download') && !file?.operatorOnly),
+    ) ? 'operator' : paidFallback ? 'paid' : 'free',
+    paidFallback,
     operatorAccess: operatorAccessFromFiles(operatorFiles),
     supportedOperators: uniqueStrings(
       operatorFiles.flatMap((file) => file.supportedOperators || []),
@@ -3972,6 +4016,10 @@ function mergeDuplicateCatalogPair(current, incoming) {
           ? 'published'
           : 'building-archive',
       archiveComplete: Boolean(current.archiveComplete || incoming.archiveComplete),
+      archiveCompletenessAuditVersion: Math.min(
+        nonNegativeInt(current.archiveCompletenessAuditVersion, 0),
+        nonNegativeInt(incoming.archiveCompletenessAuditVersion, 0),
+      ),
     } : {}),
   };
 }
@@ -4063,7 +4111,65 @@ function episodeArtworkUrl(episode) {
   return '';
 }
 
-function episodeGroup(episode, media) {
+
+function meaningfulEpisodeTitle(series, episode, number) {
+  // `overview` is intentionally not a title source. Upera often stores
+  // boilerplate such as "قسمت سیزدهم سیاوش" in the episode name fields; keep
+  // only an independent episode title.
+  const raw = cleanText(episode?.name_fa || episode?.name || episode?.title || '');
+  if (!raw) return '';
+
+  const normalized = normalizeClassificationText(raw)
+    .replace(/[ـ_:|•\-–—]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!normalized) return '';
+
+  const episodeToken = `(?:${PERSIAN_EPISODE_ORDINAL}|${String(number || '').trim() || '\\d{1,4}'})`;
+  const genericOnly = new RegExp(
+    `^(?:(?:قسمت|اپیزود)\\s*${episodeToken}|(?:episode|ep|part)\\s*[-:#]*\\s*\\d{1,4}|(?:فصل|season)\\s*\\d+\\s*(?:قسمت|اپیزود|episode|ep)\\s*\\d+)$`,
+    'i',
+  ).test(normalized);
+  if (genericOnly) return '';
+
+  const seriesNames = uniqueStrings([
+    normalizeClassificationText(series?.name_fa || series?.nameFa || ''),
+    normalizeClassificationText(series?.name || ''),
+  ])
+    .map((value) => value.replace(/[ـ_:|•\-–—]+/g, ' ').replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+
+  for (const seriesName of seriesNames) {
+    const escaped = seriesName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const seriesThenEpisode = new RegExp(
+      `^${escaped}\\s*(?:(?:قسمت|اپیزود)\\s*${episodeToken}|(?:episode|ep|part)\\s*\\d{1,4})$`,
+      'i',
+    );
+    const episodeThenSeries = new RegExp(
+      `^(?:(?:قسمت|اپیزود)\\s*${episodeToken}|(?:episode|ep|part)\\s*\\d{1,4})\\s*${escaped}$`,
+      'i',
+    );
+    if (seriesThenEpisode.test(normalized) || episodeThenSeries.test(normalized)) return '';
+
+    const residual = normalized
+      .replace(new RegExp(escaped, 'i'), ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (
+      residual !== normalized &&
+      new RegExp(
+        `^(?:(?:قسمت|اپیزود)\\s*${episodeToken}|(?:episode|ep|part)\\s*[-:#]*\\s*\\d{1,4})$`,
+        'i',
+      ).test(residual)
+    ) {
+      return '';
+    }
+  }
+
+  return raw;
+}
+
+function episodeGroup(episode, media, series) {
   const season = episodeSeasonNumber(episode);
 
   const number = episodeNumberValue(episode);
@@ -4072,7 +4178,7 @@ function episodeGroup(episode, media) {
 
   const playUrl =
     media.hls ||
-    highestQuality(media.mp4)?.link;
+    (!media.paidFallback ? highestQuality(media.mp4)?.link : null);
 
   if (playUrl) {
     files.push({
@@ -4086,14 +4192,14 @@ function episodeGroup(episode, media) {
     });
   }
 
-  for (const link of media.mp4) {
-    files.push(
-      toDownloadFile(
-        link,
-        'download',
-        `s${season}-e${number}`,
-      ),
-    );
+  // Preserve normalized language and paid/free mode from parseMediaLinks().
+  for (const file of (Array.isArray(media.downloads) ? media.downloads : [])
+    .flatMap((section) => Array.isArray(section?.files) ? section.files : [])
+    .filter((file) => !isValidStoredOperatorFile(file) && file?.mode !== 'play')) {
+    files.push({
+      ...file,
+      id: `s${season}-e${number}-${file.id || simpleHash(file.url || '')}`,
+    });
   }
 
   for (const file of media.operatorFiles || []) {
@@ -4123,18 +4229,12 @@ function episodeGroup(episode, media) {
     title:
       `فصل ${toPersianDigits(season)} • قسمت ${toPersianDigits(number)}`,
 
-    subtitle:
-      cleanText(
-        episode.name_fa ||
-        episode.overview_fa ||
-        episode.name ||
-        `قسمت ${number}`,
-      ),
+    subtitle: meaningfulEpisodeTitle(series, episode, number),
 
     badge: `E${number}`,
     ...(artwork ? { artwork } : {}),
     sourceUpdatedAt,
-    files,
+    files: dedupeMediaFiles(files),
   };
 }
 
@@ -4205,7 +4305,7 @@ function normalizeMovie(
     media.streamUrl ||
     media.downloads.some((section) =>
       (section.files || []).some((file) =>
-        file.mode === 'download' || file.mode === 'play' || !file.mode,
+        file.mode === 'download' || file.mode === 'play' || file.mode === 'purchase' || !file.mode,
       ),
     ),
   );
@@ -4260,7 +4360,7 @@ function normalizeMovie(
       ? { rate: Number(movie.rate) }
       : {}),
 
-    access: operatorOnly ? 'operator' : 'free',
+    access: operatorOnly ? 'operator' : (media.access === 'paid' ? 'paid' : 'free'),
     operatorOnly,
     operatorAccess: hasOperator ? media.operatorAccess : undefined,
     supportedOperators: hasOperator && media.supportedOperators.length
@@ -4383,6 +4483,8 @@ function normalizeSeries(
     ),
   );
   const hasOperator = operatorFiles.length > 0;
+  const hasPurchase = directFiles.some((file) => file?.mode === 'purchase');
+  const hasFreeDirect = directFiles.some((file) => file?.mode !== 'purchase');
   const operatorOnly = hasOperator && directFiles.length === 0;
   const operatorAccess = operatorAccessFromFiles(operatorFiles);
   const supportedOperators = uniqueStrings(
@@ -4446,7 +4548,7 @@ function normalizeSeries(
       ? { rate: Number(series.rate) }
       : {}),
 
-    access: operatorOnly ? 'operator' : 'free',
+    access: operatorOnly ? 'operator' : (hasPurchase && !hasFreeDirect ? 'paid' : 'free'),
     operatorOnly,
     operatorAccess: hasOperator ? operatorAccess : undefined,
     supportedOperators: supportedOperators.length ? supportedOperators : undefined,
@@ -4493,6 +4595,9 @@ function normalizeSeries(
       0,
     ),
     archiveDiscoveryCheckedAt: new Date().toISOString(),
+    // Versioned full-source audit: every legacy series is revisited once after
+    // completeness logic changes, even if an older run incorrectly marked it complete.
+    archiveCompletenessAuditVersion: SERIES_COMPLETENESS_AUDIT_VERSION,
 
     latestEpisode: latestEpisode
       ? {
@@ -4737,8 +4842,8 @@ function classifyContent(
   if (isDocumentary) {
     categoryKeys.push('documentaries');
     categoryLabels.push('مستند');
-    const wildlifeText = `${titleText} ${genreText}`;
-    if (hasClassificationTerm(wildlifeText, ['حیات وحش', 'طبیعت', 'جانوران', 'حیوانات', 'زیست بوم', 'اقیانوس', 'wildlife', 'nature', 'animals', 'natural history', 'ocean', 'planet earth'])) {
+    const wildlifeText = `${titleText} ${genreText} ${normalizeClassificationText(existing.overview || metadata.overview || '')}`;
+    if (hasClassificationTerm(wildlifeText, ['حیات وحش', 'طبیعت', 'جانوران', 'حیوانات', 'زیست بوم', 'اقیانوس', 'wildlife', 'nature', 'animals', 'animal', 'natural history', 'ocean', 'planet earth', 'leopard', 'leopards', 'پلنگ', 'شیر', 'ببر', 'گرگ', 'خرس', 'پرندگان', 'جنگل', 'ساوانا'])) {
       categoryKeys.push('wildlife');
       categoryLabels.push('حیات وحش');
     }
@@ -4783,11 +4888,24 @@ function isManagedCategoryLabel(value) {
   ].includes(String(value));
 }
 
+function effectiveIranianIdentity(item) {
+  const title = normalizeClassificationText(`${item?.nameFa || ''} ${item?.name || ''}`);
+  if (/(?:^|\s)(?:the\s+westies|وستی\s*ها)(?:\s|$)/i.test(title)) return false;
+  const language = cleanText(item?.originalLanguage).toLowerCase();
+  const codes = (Array.isArray(item?.countryCodes) ? item.countryCodes : [])
+    .map((code) => cleanText(code).toUpperCase()).filter(Boolean);
+  const primary = codes[0] || '';
+  if (language === 'fa' || primary === 'IR') return true;
+  if (language && language !== 'fa') return false;
+  if (codes.length && !codes.includes('IR')) return false;
+  return Boolean(item?.ir);
+}
+
 function reclassifyCatalogItem(item) {
   if (!item || !['movie', 'series'].includes(item.type)) return item;
   const classification = classifyContent(
     item.type,
-    Boolean(item.ir),
+    effectiveIranianIdentity(item),
     Array.isArray(item.genres) ? item.genres : [],
     { nameFa: item.nameFa, name: item.name, existing: item },
   );
@@ -4799,8 +4917,8 @@ function reclassifyCatalogItem(item) {
     .flatMap((section) => [section?.title, section?.badge, ...(Array.isArray(section?.files) ? section.files.map((file) => `${file?.label || ''} ${file?.language || ''}`) : [])])
     .map((value) => {
       const text = cleanText(value || '');
-      if (/دوبله|dubbed|\bdub\b/i.test(text)) return 'dubbed';
-      if (/زیر\s*نویس|subtitle|subbed|\bsub\b/i.test(text)) return 'subtitled';
+      if (mediaLanguageTag(text) === 'dubbed') return 'dubbed';
+      if (mediaLanguageTag(text) === 'subtitled') return 'subtitled';
       return '';
     }).filter(Boolean));
 
@@ -4831,7 +4949,6 @@ function reclassifyCatalogItem(item) {
     contentKind !== 'religious-program';
   const koreanIdentity = originalLanguage === 'ko' || primaryCountry === 'KR';
   const indianIdentity = originalLanguage === 'hi' || primaryCountry === 'IN';
-  const japaneseIdentity = originalLanguage === 'ja' || primaryCountry === 'JP';
 
   if (regionalEligible && item.type === 'movie' && koreanIdentity) {
     categoryKeys.push('korean-movies'); categoryLabels.push('فیلم کره‌ای');
@@ -4842,9 +4959,6 @@ function reclassifyCatalogItem(item) {
   if (regionalEligible && item.type === 'movie' && indianIdentity) {
     categoryKeys.push('indian-movies'); categoryLabels.push('فیلم هندی');
   }
-  if (regionalEligible && item.type === 'movie' && japaneseIdentity) {
-    categoryKeys.push('japanese-movies'); categoryLabels.push('فیلم ژاپنی');
-  }
   if (item.type === 'movie' && item.collectionId) {
     categoryKeys.push('collections');
     categoryLabels.push('کالکشن');
@@ -4853,6 +4967,7 @@ function reclassifyCatalogItem(item) {
   const previousLanguages = Array.isArray(item.availableLanguages) ? item.availableLanguages : [];
   return {
     ...item,
+    ir: effectiveIranianIdentity(item),
     ...classification,
     contentKind,
     isAnime,
@@ -4979,7 +5094,7 @@ function episodeNeedsRefresh(
     episode,
   );
 
-  if (!group) return true;
+  if (!group || !episodeGroupHasUsableMedia(group)) return true;
 
   const episodeUpdated = String(
     episode.updated_at ||
@@ -5031,6 +5146,12 @@ function findEpisodeGroup(
       );
     }) || null
   );
+}
+
+function episodeGroupHasUsableMedia(group) {
+  return Boolean((Array.isArray(group?.files) ? group.files : []).some((file) =>
+    isDirectMediaUrl(file?.url) || file?.mode === 'purchase' || isValidStoredOperatorFile(file),
+  ));
 }
 
 function hydrateEpisodeGroupArtwork(groups, episodes) {
@@ -5325,7 +5446,7 @@ function seriesArchiveDeficit(item) {
 
   const groups = Array.isArray(item.downloads) ? item.downloads : [];
   const availableCoordinates = new Set(
-    groups.map((group) => archiveEpisodeCoordinateKey(group)),
+    groups.filter(episodeGroupHasUsableMedia).map((group) => archiveEpisodeCoordinateKey(group)),
   );
   // `archiveUnavailableEpisodes` is diagnostic/retry metadata only. It must
   // never erase a real source episode from the completeness deficit; otherwise
@@ -5382,7 +5503,7 @@ function withSeriesPublicationState(item) {
 
   const deficit = seriesArchiveDeficit(item);
   const hasArchiveMetadata = hasSeriesArchiveMetadata(item);
-  const hasEpisodes = (Array.isArray(item.downloads) ? item.downloads.length : 0) > 0;
+  const hasEpisodes = (Array.isArray(item.downloads) ? item.downloads : []).some(episodeGroupHasUsableMedia);
   const visibilityLocked = Boolean(
     item.visibilityLocked ||
     (item.publicationStatus === 'published' && hasEpisodes)
@@ -5395,7 +5516,7 @@ function withSeriesPublicationState(item) {
       archiveComplete:
         deficit.total === 0 &&
         item.archiveEpisodeDiscoveryComplete !== false &&
-        Boolean(item.downloads?.length),
+        hasEpisodes,
       archivePendingEpisodeCount: deficit.pending,
       publicationStatus: 'published',
       archiveAuditStatus: hasArchiveMetadata ? (item.archiveAuditStatus || 'checked') : 'pending',
@@ -5431,7 +5552,7 @@ function withSeriesPublicationState(item) {
   const archiveComplete =
     deficit.total === 0 &&
     item.archiveEpisodeDiscoveryComplete !== false &&
-    Boolean(item.downloads?.length);
+    hasEpisodes;
   const keepPublishedWhileAiring = Boolean(
     item.isAiring &&
     item.publicationStatus === 'published' &&
@@ -5454,6 +5575,7 @@ function withSeriesPublicationState(item) {
 function episodeGapsForGroups(groups) {
   const bySeason = new Map();
   for (const group of Array.isArray(groups) ? groups : []) {
+    if (!episodeGroupHasUsableMedia(group)) continue;
     const season = Number(group?.seasonNumber || 1);
     const number = Number(group?.episodeNumber || 0);
     if (number <= 0) continue;
@@ -6474,15 +6596,21 @@ function toDownloadFile(
   };
 }
 
+function mediaLanguageTag(title = '') {
+  const text = cleanText(title);
+  if (/دوبله|دو\s*زبانه|صوت\s*فارسی|فارسی\s*(?:دوبله|صدا)|persian\s*(?:dub|audio)|farsi\s*(?:dub|audio)|\bdub(?:bed)?\b/i.test(text)) {
+    return 'dubbed';
+  }
+  if (/زیر\s*نویس|زير\s*نويس|هارد\s*ساب|سافت\s*ساب|persian\s*sub|farsi\s*sub|\bsub(?:bed|title|titles)?\b/i.test(text)) {
+    return 'subtitled';
+  }
+  return '';
+}
+
 function linkLanguage(title = '') {
-  if (/دوبله/i.test(title)) {
-    return 'دوبله فارسی';
-  }
-
-  if (/زیرنویس/i.test(title)) {
-    return 'زیرنویس فارسی';
-  }
-
+  const tag = mediaLanguageTag(title);
+  if (tag === 'dubbed') return 'دوبله فارسی';
+  if (tag === 'subtitled') return 'زیرنویس فارسی';
   return 'نسخه اصلی';
 }
 

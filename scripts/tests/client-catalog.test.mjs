@@ -45,18 +45,21 @@ test('client catalog remains much smaller by not embedding episode files and cas
   assert.ok(artifacts.clientSizeBytes < fullBytes * 0.25);
 });
 
-test('client index never exposes building archive series, but never drops a locked visible series', () => {
+test('client index hides building/zero-media series but keeps a previously visible series with usable media', () => {
+  const playableEpisode = [{ id: 'e1', files: [{ id: 'f1', mode: 'download', url: 'https://cdn.test/e1.mp4' }] }];
   const catalog = {
     version: '1', updatedAt: 'now',
     items: [
       { id: 'building', type: 'series', nameFa: 'در حال تکمیل', name: 'Building', publicationStatus: 'building-archive', archiveComplete: false },
-      { id: 'locked', type: 'series', nameFa: 'قبلاً منتشرشده', name: 'Locked', publicationStatus: 'building-archive', archiveComplete: false, visibilityLocked: true },
-      { id: 'published', type: 'series', nameFa: 'منتشرشده', name: 'Published', publicationStatus: 'published', archiveComplete: false },
+      { id: 'locked', type: 'series', nameFa: 'قبلاً منتشرشده', name: 'Locked', publicationStatus: 'building-archive', archiveComplete: false, visibilityLocked: true, downloads: playableEpisode },
+      { id: 'published', type: 'series', nameFa: 'منتشرشده', name: 'Published', publicationStatus: 'published', archiveComplete: false, downloads: playableEpisode },
+      { id: 'empty-published', type: 'series', nameFa: 'بدون لینک', name: 'Empty', publicationStatus: 'published', archiveComplete: false, visibilityLocked: true, downloads: [] },
       { id: 'movie', type: 'movie', nameFa: 'فیلم', name: 'Movie' },
     ],
   };
   const artifacts = buildClientCatalogArtifacts(catalog);
   assert.deepEqual(artifacts.index.items.map((item) => item.id), ['locked', 'published', 'movie']);
+  assert.equal(catalog.items.length, 5, 'server-side catalog records are never deleted by client filtering');
 });
 
 test('client summary carries lightweight dubbing and subtitle badges without media payloads', () => {
@@ -98,4 +101,17 @@ test('confirmed unavailable movies are hidden from the client index but kept ser
   const artifacts = buildClientCatalogArtifacts(catalog);
   assert.deepEqual(artifacts.index.items.map((item) => item.id), ['retry']);
   assert.equal(catalog.items.length, 2);
+});
+
+
+test('client summary recognizes Persian dubbing variants that used to be missed', () => {
+  const item = {
+    id: 'dub-variants', type: 'movie', nameFa: 'نمونه دوبله', name: 'Dub Sample',
+    downloads: [
+      { id: 'dual', title: 'نسخه دو زبانه', files: [{ id: 'd1', label: 'Persian Audio 1080p', url: 'https://cdn.test/d1.mp4' }] },
+      { id: 'sub', title: 'هارد ساب فارسی', files: [{ id: 's1', label: 'Farsi Sub 720p', url: 'https://cdn.test/s1.mp4' }] },
+    ],
+  };
+  const { summary } = clientSummaryForItem(item);
+  assert.deepEqual(summary.availableLanguages, ['dubbed', 'subtitled']);
 });

@@ -44,8 +44,8 @@ export function clientSummaryForItem(item) {
       .filter(Boolean)
       .join(' ');
     summary.availableLanguages = [
-      /دوبله|dubbed|\bdub\b/i.test(text) ? 'dubbed' : '',
-      /زیر\s*نویس|subtitle|subbed|\bsub\b/i.test(text) ? 'subtitled' : '',
+      /دوبله|دو\s*زبانه|صوت\s*فارسی|فارسی\s*(?:دوبله|صدا)|persian\s*(?:dub|audio)|farsi\s*(?:dub|audio)|dubbed|\bdub\b/i.test(text) ? 'dubbed' : '',
+      /زیر\s*نویس|زير\s*نويس|هارد\s*ساب|سافت\s*ساب|persian\s*sub|farsi\s*sub|subtitle|subbed|\bsub\b/i.test(text) ? 'subtitled' : '',
     ].filter(Boolean);
   }
 
@@ -56,13 +56,29 @@ export function clientSummaryForItem(item) {
   return { summary, detailSerialized };
 }
 
+const isStructurallyUsableMediaFile = (file) => {
+  const url = typeof file?.url === 'string' ? file.url.trim() : '';
+  if (!/^https?:\/\//i.test(url)) return false;
+  const mode = String(file?.mode || 'download');
+  if (mode === 'purchase' || mode === 'operator-download' || mode === 'operator-play') return true;
+  if (mode === 'play') return /\.m3u8(?:$|[?#])|\.mp4(?:$|[?#])/i.test(url);
+  return /\.mp4(?:$|[?#])/i.test(url);
+};
+
+const seriesHasUsableClientMedia = (item) =>
+  (Array.isArray(item?.downloads) ? item.downloads : []).some((section) =>
+    (Array.isArray(section?.files) ? section.files : []).some(isStructurallyUsableMediaFile),
+  );
+
 const isClientVisibleItem = (item) => {
   if (!item || !item.id || !item.type) return false;
   if (item.type === 'movie' && item.mediaAuditStatus === 'confirmed-unavailable') return false;
   if (item.type !== 'series') return true;
-  // Building archive series stay server-side until they are publishable. Once a
-  // series has ever been visible, visibilityLocked keeps it in the client index
-  // even if a later upstream request is temporarily incomplete.
+  // Keep the server-side record forever, but do not expose a completely empty
+  // series detail to users while the media-repair/backfill queue is still
+  // working. A previously visible series with at least one usable episode stays
+  // visible even while gaps are repaired.
+  if (!seriesHasUsableClientMedia(item)) return false;
   return item.publicationStatus === 'published' || item.archiveComplete === true || item.visibilityLocked === true;
 };
 

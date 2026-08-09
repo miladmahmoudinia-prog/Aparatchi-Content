@@ -632,8 +632,8 @@ function applyTmdbMetadata(item, metadataValue) {
   if (metadata.collectionName) item.collectionName = cleanText(metadata.collectionName);
   if (metadata.collectionNameFa) item.collectionNameFa = cleanText(metadata.collectionNameFa);
   item.ir = trustedClassification
-    ? effectiveCodes.includes('IR') || originalLanguage === 'fa'
-    : effectiveCodes.includes('IR') || item.ir === true;
+    ? (originalLanguage === 'fa' || effectiveCodes[0] === 'IR')
+    : (originalLanguage === 'fa' || effectiveCodes[0] === 'IR' || (!originalLanguage && !effectiveCodes.length && item.ir === true));
 
   const posterFallback = cleanText(metadata.posterFallback);
   const backdropFallback = cleanText(metadata.backdropFallback);
@@ -675,6 +675,7 @@ function applyTmdbMetadata(item, metadataValue) {
   }
 
   const removedKeys = new Set([
+    'iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series',
     'korean-movies', 'korean-series', 'indian-movies', 'japanese-movies',
     'anime-movies', 'anime-series', 'animation-movies', 'animation-series',
     'documentaries', 'wildlife', 'collections',
@@ -685,8 +686,8 @@ function applyTmdbMetadata(item, metadataValue) {
   const primaryCountry = effectiveCodes[0] || '';
   const koreanIdentity = originalLanguage === 'ko' || primaryCountry === 'KR';
   const indianIdentity = originalLanguage === 'hi' || primaryCountry === 'IN';
-  const wildlifeText = `${titleIdentity} ${(Array.isArray(item.genres) ? item.genres : []).join(' ')}`;
-  const isWildlife = Boolean(isDocumentary && /حیات\s*وحش|طبیعت|جانوران|حیوانات|زیست\s*بوم|اقیانوس|wildlife|natural\s+history|nature|animals?|ocean|planet\s+earth/i.test(wildlifeText));
+  const wildlifeText = `${titleIdentity} ${(Array.isArray(item.genres) ? item.genres : []).join(' ')} ${cleanText(item.overview)}`;
+  const isWildlife = Boolean(isDocumentary && /حیات\s*وحش|طبیعت|جانوران|حیوانات|زیست\s*بوم|اقیانوس|پلنگ|یوز|شیر|ببر|گرگ|خرس|پرندگان|جنگل|ساوانا|wildlife|natural\s+history|nature|animals?|ocean|planet\s+earth|leopards?|cheetahs?|lions?|tigers?|wolves?|bears?|birds?|forest|savanna/i.test(wildlifeText));
   const itemCategoryKeys = Array.isArray(item.categoryKeys) ? item.categoryKeys : [];
   const isKids = /(?:کودک|کودکان|کودکانه|برنامه\s*کودک|ترانه(?:\s+های)?\s+کودک|خاله\s*نسرین|aunt\s+nasrin|kids?|children|nursery)/i.test(titleIdentity) ||
     ['kids', 'children-program'].includes(cleanText(item.contentKind)) ||
@@ -695,10 +696,11 @@ function applyTmdbMetadata(item, metadataValue) {
     itemCategoryKeys.some((key) => ['programs', 'talk-shows', 'reality'].includes(cleanText(key)));
   const isReligiousProgram = cleanText(item.contentKind) === 'religious-program' || itemCategoryKeys.includes('quran');
   const regionalEligible = !isAnimation && !isDocumentary && !isKids && !isProgram && !isReligiousProgram;
+  if (regionalEligible && type === 'movie') categoryKeys.push(item.ir ? 'iranian-movies' : 'foreign-movies');
+  if (regionalEligible && type === 'series') categoryKeys.push(item.ir ? 'iranian-series' : 'foreign-series');
   if (regionalEligible && type === 'movie' && koreanIdentity) categoryKeys.push('korean-movies');
   if (regionalEligible && type === 'series' && koreanIdentity) categoryKeys.push('korean-series');
   if (regionalEligible && type === 'movie' && indianIdentity) categoryKeys.push('indian-movies');
-  if (regionalEligible && type === 'movie' && (originalLanguage === 'ja' || primaryCountry === 'JP')) categoryKeys.push('japanese-movies');
   if (isAnimation) categoryKeys.push(isAnime
     ? type === 'movie' ? 'anime-movies' : 'anime-series'
     : type === 'movie' ? 'animation-movies' : 'animation-series');
@@ -707,14 +709,15 @@ function applyTmdbMetadata(item, metadataValue) {
   if (type === 'movie' && item.collectionId) categoryKeys.push('collections');
   item.categoryKeys = [...new Set(categoryKeys)];
 
-  const classificationLabels = /^(فیلم (کره‌ای|هندی|ژاپنی)|سریال کره‌ای|انیمه (سینمایی|سریالی)|انیمیشن (سینمایی|سریالی)|مستند|حیات وحش|کالکشن)$/;
+  const classificationLabels = /^(فیلم (ایرانی|خارجی|کره‌ای|هندی|ژاپنی)|سریال (ایرانی|خارجی|کره‌ای)|انیمه (سینمایی|سریالی)|انیمیشن (سینمایی|سریالی)|مستند|حیات وحش|کالکشن)$/;
   const categoryLabels = (Array.isArray(item.categoryLabels) ? item.categoryLabels : [])
     .map(cleanText)
     .filter((label) => label && !classificationLabels.test(label));
+  if (regionalEligible && type === 'movie') categoryLabels.push(item.ir ? 'فیلم ایرانی' : 'فیلم خارجی');
+  if (regionalEligible && type === 'series') categoryLabels.push(item.ir ? 'سریال ایرانی' : 'سریال خارجی');
   if (regionalEligible && type === 'movie' && koreanIdentity) categoryLabels.push('فیلم کره‌ای');
   if (regionalEligible && type === 'series' && koreanIdentity) categoryLabels.push('سریال کره‌ای');
   if (regionalEligible && type === 'movie' && indianIdentity) categoryLabels.push('فیلم هندی');
-  if (regionalEligible && type === 'movie' && (originalLanguage === 'ja' || primaryCountry === 'JP')) categoryLabels.push('فیلم ژاپنی');
   if (isAnimation) categoryLabels.push(isAnime
     ? type === 'movie' ? 'انیمه سینمایی' : 'انیمه سریالی'
     : type === 'movie' ? 'انیمیشن سینمایی' : 'انیمیشن سریالی');

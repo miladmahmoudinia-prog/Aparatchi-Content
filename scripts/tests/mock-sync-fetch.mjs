@@ -32,6 +32,106 @@ globalThis.fetch = async (input) => {
     });
   }
 
+
+  if (scenario === 'paid-movie' || scenario === 'dubbed-movie') {
+    const movieId = scenario === 'paid-movie' ? 'paid-movie-1' : 'dubbed-movie-1';
+    if (url.pathname.endsWith('/ghost/get/movies/sort')) {
+      return jsonResponse({
+        status: 'success',
+        data: {
+          movies: {
+            data: [
+              {
+                id: movieId,
+                type: 'movie',
+                name: scenario === 'paid-movie' ? 'Paid Movie' : 'Dubbed Movie',
+                name_fa: scenario === 'paid-movie' ? 'فیلم خریدنی' : 'فیلم دوبله آزمایشی',
+                year: 2026,
+                poster: `https://example.test/${movieId}-poster.jpg`,
+                backdrop: `https://example.test/${movieId}-backdrop.jpg`,
+                overview: 'Media parsing regression fixture',
+              },
+            ],
+            current_page: 1,
+            last_page: 1,
+          },
+        },
+      });
+    }
+
+    if (url.pathname.endsWith('/ghost/get/series/sort')) {
+      return jsonResponse({ status: 'success', data: { series: { data: [], last_page: 1 } } });
+    }
+
+    if (url.pathname.endsWith('/get/getNewTitles')) {
+      return jsonResponse({ status: 'success', data: { titles: [] } });
+    }
+
+    if (
+      url.pathname.endsWith('/ghost/get/getaffiliatelinks') &&
+      url.searchParams.get('id') === movieId
+    ) {
+      return jsonResponse({
+        status: 'success',
+        data: {
+          links: scenario === 'paid-movie'
+            ? [{
+                amount: 45000,
+                link: 'https://upera.tv/buy/paid-movie-1',
+                title: '1080p',
+              }]
+            : [{
+                amount: 0,
+                link: 'https://cdn.example.test/dubbed-movie-1-1080.mp4',
+                title: '1080p',
+                audio_language: 'Persian Dub',
+                dubbed: 1,
+              }],
+        },
+      });
+    }
+  }
+
+  if (
+    scenario === 'boilerplate-title-audit' &&
+    url.pathname.endsWith('/ghost/get/series/series-1')
+  ) {
+    return jsonResponse({
+      status: 'success',
+      data: {
+        series: {
+          id: 'series-1',
+          type: 'series',
+          name: 'Regression Series',
+          name_fa: 'سریال آزمون',
+          year: 2025,
+          status: 'ended',
+          poster: 'https://example.test/poster.jpg',
+          backdrop: 'https://example.test/backdrop.jpg',
+        },
+        episodes: [
+          {
+            id: 'episode-1',
+            type: 'episode',
+            series_id: 'series-1',
+            season_number: 1,
+            episode_number: 1,
+            show: 1,
+          },
+          {
+            id: 'episode-2',
+            type: 'episode',
+            series_id: 'series-1',
+            season_number: 1,
+            episode_number: 2,
+            name_fa: 'قسمت دوم سریال آزمون',
+            show: 1,
+          },
+        ],
+      },
+    });
+  }
+
   if (scenario === 'operator-movie') {
     if (url.pathname.endsWith('/ghost/get/movies/sort')) {
       return jsonResponse({
@@ -236,7 +336,7 @@ globalThis.fetch = async (input) => {
 
   if (url.pathname.endsWith('/ghost/get/getaffiliatelinks')) {
     if (
-      (scenario === 'episode-artwork' || scenario === 'sequential-series' || scenario === 'airing-update') &&
+      (scenario === 'episode-artwork' || scenario === 'sequential-series' || scenario === 'airing-update' || scenario === 'boilerplate-title-audit') &&
       url.searchParams.get('id') === 'episode-2'
     ) {
       return jsonResponse({
