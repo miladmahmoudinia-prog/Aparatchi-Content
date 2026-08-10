@@ -115,3 +115,22 @@ test('client summary recognizes Persian dubbing variants that used to be missed'
   const { summary } = clientSummaryForItem(item);
   assert.deepEqual(summary.availableLanguages, ['dubbed', 'subtitled']);
 });
+
+test('client index accepts MKV direct downloads and extensionless external acquisition links', () => {
+  const catalog = {
+    version: 'test', updatedAt: new Date(0).toISOString(), iranianSchedule: [], weeklySchedule: [],
+    items: [
+      {
+        id: 'mkv', type: 'movie', nameFa: 'ام‌کی‌وی', name: 'MKV',
+        downloads: [{ id: 'dub', files: [{ id: 'mkv-dub', mode: 'download', language: 'dubbed', url: 'https://cdn.test/movie.mkv' }] }],
+      },
+      {
+        id: 'external', type: 'movie', nameFa: 'خارجی', name: 'External',
+        downloads: [{ id: 'dub', files: [{ id: 'external-dub', mode: 'purchase', language: 'dubbed', url: 'https://cdn.test/acquire?id=1' }] }],
+      },
+    ],
+  };
+  const artifacts = buildClientCatalogArtifacts(catalog);
+  assert.ok(artifacts.index.items.some((item) => item.id === 'mkv'));
+  assert.ok(artifacts.index.items.some((item) => item.id === 'external'));
+});

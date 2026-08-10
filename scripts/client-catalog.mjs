@@ -61,8 +61,8 @@ const isStructurallyUsableMediaFile = (file) => {
   if (!/^https?:\/\//i.test(url)) return false;
   const mode = String(file?.mode || 'download');
   if (mode === 'purchase' || mode === 'operator-download' || mode === 'operator-play') return true;
-  if (mode === 'play') return /\.m3u8(?:$|[?#])|\.mp4(?:$|[?#])/i.test(url);
-  return /\.mp4(?:$|[?#])/i.test(url);
+  if (mode === 'play') return /\.(?:m3u8|mp4)(?:$|[?#])/i.test(url);
+  return /\.(?:mp4|m4v|mov|webm|mkv)(?:$|[?#])/i.test(url);
 };
 
 const movieHasUsableClientMedia = (item) => {

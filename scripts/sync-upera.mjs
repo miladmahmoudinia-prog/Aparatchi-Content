@@ -13,9 +13,9 @@ import {
 const API_BASE = 'https://seeko.film/api/v1';
 const IRANIAN_SERIES_SCAN_VERSION = 3;
 const SERIES_COMPLETENESS_AUDIT_VERSION = 2;
-const MEDIA_LANGUAGE_AUDIT_VERSION = 2;
+const MEDIA_LANGUAGE_AUDIT_VERSION = 3;
 const ARCHIVE_COMPLETION_ORDER_VERSION = 1;
-const CATALOG_VERSION = '0.21.0-final-stabilization';
+const CATALOG_VERSION = '0.21.1-media-recovery';
 const AFFILIATE_URL_KEYS = [
   'link', 'url', 'href', 'download_url', 'downloadUrl', 'download_link', 'downloadLink',
   'stream_url', 'streamUrl', 'stream_link', 'streamLink', 'file_url', 'fileUrl', 'file',
@@ -106,6 +106,11 @@ const recentMovieRequestQuota = Math.min(
 const recentSeriesRequestQuota = Math.min(
   240,
   positiveInt(process.env.UPERA_RECENT_SERIES_REQUEST_QUOTA, 24),
+);
+
+const mediaRepairRequestQuota = Math.min(
+  120,
+  positiveInt(process.env.UPERA_MEDIA_REPAIR_REQUEST_QUOTA, 60),
 );
 
 const recentSeriesEpisodeLimit = Math.min(
@@ -787,10 +792,21 @@ if (effectiveSyncMode === 'PEOPLE') {
     );
   }
 
+  // Finish fresh-title discovery before spending the remaining budget on
+  // old-media repair. Previously the repair lane ran first and could starve
+  // recent series, leaving newly discovered series shells without episode media.
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-recent-series', 90000)) {
+    await withAffiliateRequestScope(
+      'recent-series',
+      recentSeriesRequestQuota,
+      syncRecentSeriesDiscovery,
+    );
+  }
+
   if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-media-repair', 80000)) {
     await withAffiliateRequestScope(
       'media-repair',
-      Math.min(30, recentMovieRequestQuota),
+      mediaRepairRequestQuota,
       syncIncompleteMovieMedia,
     );
   }
@@ -800,14 +816,6 @@ if (effectiveSyncMode === 'PEOPLE') {
       'media-health-audit',
       Math.min(12, recentMovieRequestQuota),
       syncMovieMediaHealthAudit,
-    );
-  }
-
-  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-recent-series', 90000)) {
-    await withAffiliateRequestScope(
-      'recent-series',
-      recentSeriesRequestQuota,
-      syncRecentSeriesDiscovery,
     );
   }
 
@@ -1213,41 +1221,75 @@ async function syncMovieMediaHealthAudit() {
 async function syncIncompleteMovieMedia() {
   const nowMs = Date.now();
   const retryMs = 2 * 60 * 60 * 1000;
-  const candidates = items.filter((item) => {
-    if (item?.type !== 'movie' || movieHasUsableMedia(item)) return false;
-    const last = Date.parse(String(item?.mediaAuditCheckedAt || '')) || 0;
-    return !last || nowMs - last >= retryMs;
-  });
+  const candidates = items
+    .filter((item) => {
+      if (item?.type !== 'movie') return false;
+      const needsLinks = !movieHasUsableMedia(item);
+      const needsLanguageAudit =
+        nonNegativeInt(item.mediaLanguageAuditVersion, 0) < MEDIA_LANGUAGE_AUDIT_VERSION;
+      if (!needsLinks && !needsLanguageAudit) return false;
+      const last = Date.parse(String(item?.mediaAuditCheckedAt || '')) || 0;
+      return !last || nowMs - last >= retryMs;
+    })
+    // Empty-media titles are repaired first; then the same lane steadily
+    // re-audits old movies for dubbed/subtitled variants after parser changes.
+    .sort((a, b) =>
+      Number(movieHasUsableMedia(a)) - Number(movieHasUsableMedia(b)) ||
+      archiveItemYear(a) - archiveItemYear(b) ||
+      archiveItemTimestamp(a) - archiveItemTimestamp(b),
+    );
+
   stats.mediaRepairCandidates = candidates.length;
   if (!candidates.length) { state.mediaRepairOffset = 0; return; }
+
   const limit = Math.min(72, candidates.length);
   const start = state.mediaRepairOffset % candidates.length;
+  let visited = 0;
   for (let step = 0; step < limit; step += 1) {
     if (affiliateBudgetExhausted || affiliateScopeExhausted || runTimeBudgetReached('media-repair', 70000)) break;
     const item = candidates[(start + step) % candidates.length];
     const id = String(item.id);
+    const hadUsableMedia = movieHasUsableMedia(item);
     stats.mediaRepairChecked += 1;
-    const result = await processMovie(item, 'media-repair');
+    visited += 1;
+
+    const result = await processMovie(item, 'media-repair', { fullMediaAudit: true });
     const current = items.find((entry) => entry?.type === 'movie' && String(entry?.id) === id);
+
     if (result?.added && current && movieHasUsableMedia(current)) {
+      current.mediaLanguageAuditVersion = MEDIA_LANGUAGE_AUDIT_VERSION;
       current.mediaAuditStatus = 'ok';
       current.mediaAuditCheckedAt = new Date().toISOString();
       delete state.mediaRepairFailures[id];
       stats.mediaRepairRecovered += 1;
-    } else if (current && result?.reason === 'no-usable-links') {
+      continue;
+    }
+
+    if (current && result?.reason === 'no-usable-links') {
+      current.mediaAuditCheckedAt = new Date().toISOString();
+
+      // Never destroy/hide a previously healthy title because one affiliate
+      // refresh temporarily returned an empty payload. Leave its old media in
+      // place and retry the language audit later.
+      if (hadUsableMedia && movieHasUsableMedia(current)) {
+        current.mediaAuditStatus = 'ok';
+        stats.mediaRepairStillMissing += 1;
+        continue;
+      }
+
       const failure = state.mediaRepairFailures[id] || { count: 0, firstAt: new Date().toISOString() };
       failure.count = nonNegativeInt(failure.count, 0) + 1;
-      failure.lastAt = new Date().toISOString();
+      failure.lastAt = current.mediaAuditCheckedAt;
       state.mediaRepairFailures[id] = failure;
       current.mediaAuditStatus = failure.count >= 3 && (Date.now() - (Date.parse(failure.firstAt) || Date.now())) >= 20 * 60 * 60 * 1000
         ? 'confirmed-unavailable'
         : 'missing-links';
-      current.mediaAuditCheckedAt = failure.lastAt;
       if (current.mediaAuditStatus === 'confirmed-unavailable') stats.mediaRepairHiddenConfirmed += 1;
       else stats.mediaRepairStillMissing += 1;
     }
   }
-  state.mediaRepairOffset = (start + Math.max(1, stats.mediaRepairChecked)) % Math.max(1, candidates.length);
+
+  state.mediaRepairOffset = (start + Math.max(1, visited)) % Math.max(1, candidates.length);
 }
 
 async function syncRecentMovieDiscovery() {
@@ -2480,11 +2522,13 @@ async function processMovie(candidate, source, options = {}) {
   const existing = findExistingItem(movie, 'movie');
   const mergedMedia = options.replaceMedia === true ? media : mergeMovieMedia(existing, media);
   const normalized = normalizeMovie(movie, mergedMedia, source, existing);
-  if (options.fullMediaAudit === true) {
-    normalized.mediaLanguageAuditVersion = MEDIA_LANGUAGE_AUDIT_VERSION;
-    normalized.mediaAuditStatus = 'ok';
-    normalized.mediaAuditCheckedAt = new Date().toISOString();
-  }
+  // fetchAffiliateLinks() returns the complete movie affiliate payload, so a
+  // successful parse is already a full media-language audit. Mark it now; new
+  // titles should not immediately re-enter the repair queue just to discover
+  // the same dubbed/subtitle variants again.
+  normalized.mediaLanguageAuditVersion = MEDIA_LANGUAGE_AUDIT_VERSION;
+  normalized.mediaAuditStatus = 'ok';
+  normalized.mediaAuditCheckedAt = new Date().toISOString();
 
   replaceItem(normalized);
   stats.moviesAddedOrUpdated += 1;
@@ -3401,7 +3445,63 @@ async function throttleAffiliateRequest() {
 function mediaBooleanHint(value) {
   if (value === true || value === 1) return true;
   const text = cleanText(value).toLowerCase();
-  return ['1', 'true', 'yes', 'y', 'on', 'dubbed', 'subtitle', 'persian', 'farsi'].includes(text);
+  return ['1', 'true', 'yes', 'y', 'on', 'dubbed', 'subtitle', 'persian', 'farsi', 'fa', 'fas', 'per'].includes(text);
+}
+
+function normalizedMediaAmount(value) {
+  if (value === undefined || value === null || value === '' || value === false) return 0;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  const normalized = normalizeNumericText(value)
+    .replace(/[٬,،]/g, '')
+    .replace(/[^\d.+-]+/g, ' ')
+    .trim();
+  if (!normalized) return null;
+  const match = normalized.match(/[-+]?\d+(?:\.\d+)?/);
+  if (!match) return null;
+  const number = Number(match[0]);
+  return Number.isFinite(number) ? number : null;
+}
+
+function mediaPriceTier(link) {
+  if (!link || typeof link !== 'object') return 'unknown';
+
+  const freeFlag = [
+    link.free, link.is_free, link.isFree, link.free_download, link.freeDownload,
+  ].some((value) =>
+    value === true ||
+    value === 1 ||
+    String(value ?? '').trim().toLowerCase() === 'true' ||
+    String(value ?? '').trim() === '1',
+  );
+  if (freeFlag) return 'free';
+
+  const paidFlag = [
+    link.paid, link.is_paid, link.isPaid, link.purchase_required, link.purchaseRequired,
+  ].some((value) =>
+    value === true ||
+    value === 1 ||
+    String(value ?? '').trim().toLowerCase() === 'true' ||
+    String(value ?? '').trim() === '1',
+  );
+  if (paidFlag) return 'paid';
+
+  const amountCandidates = [
+    link.amount, link.price, link.cost, link.fee, link.pay_amount, link.payAmount,
+  ];
+  for (const candidate of amountCandidates) {
+    if (candidate === undefined || candidate === null || candidate === '') continue;
+    const amount = normalizedMediaAmount(candidate);
+    if (amount !== null) return amount > 0 ? 'paid' : 'free';
+  }
+
+  const text = mediaLinkDescriptor(link).toLowerCase();
+  if (/رایگان|مجانی|بدون\s*هزینه|\bfree\b/i.test(text)) return 'free';
+  if (/خرید|پرداخت|اشتراک|\bpaid\b|\bpurchase\b|\bbuy\b/i.test(text)) return 'paid';
+
+  // Historically the affiliate endpoint omitted `amount` for free direct
+  // media. Keeping an otherwise valid media record is safer than silently
+  // dropping it, which is what caused many dubbed/original links to vanish.
+  return isDirectMediaUrl(link.link) ? 'free' : 'unknown';
 }
 
 function mediaLinkDescriptor(link) {
@@ -3417,76 +3517,171 @@ function mediaLinkDescriptor(link) {
     link.subtitle_language, link.subtitleLanguage, link.subtitle_lang, link.subtitleLang,
     link.voice, link.voice_language, link.voiceLanguage,
     link.type, link.kind, link.format, link.mime, link.mime_type, link.description,
+    link.amount, link.price, link.cost, link.fee,
     ...booleanHints,
   ].map((value) => cleanText(value || '')).filter(Boolean).join(' ');
+}
+
+function isPersianLanguageValue(value) {
+  const text = cleanText(value).toLowerCase().replace(/[_-]+/g, ' ');
+  return /^(?:fa|fas|per|persian|farsi|فارسی|فارسي)$/.test(text);
+}
+
+function mediaLanguageTagForLink(link) {
+  const descriptor = mediaLinkDescriptor(link);
+  const detected = mediaLanguageTag(descriptor);
+  if (detected) return detected;
+
+  const subtitleValues = [
+    link?.subtitle_language, link?.subtitleLanguage, link?.subtitle_lang, link?.subtitleLang,
+    link?.sub_language, link?.subLanguage,
+  ];
+  if (subtitleValues.some(isPersianLanguageValue)) return 'subtitled';
+
+  const audioValues = [
+    link?.audio, link?.audio_language, link?.audioLanguage, link?.audio_lang, link?.audioLang,
+    link?.voice, link?.voice_language, link?.voiceLanguage, link?.voice_lang, link?.voiceLang,
+  ];
+  if (audioValues.some(isPersianLanguageValue)) return 'dubbed';
+
+  // Some affiliate payloads expose only a generic language field inside a
+  // dubbed/audio group. Preserve that structured parent hint too.
+  const genericLanguage = link?.language ?? link?.lang;
+  const groupText = cleanText(link?._group_hint).toLowerCase();
+  if (
+    isPersianLanguageValue(genericLanguage) &&
+    /dub|audio|voice|دوبله|صوت|صدا/i.test(groupText)
+  ) {
+    return 'dubbed';
+  }
+
+  return '';
+}
+
+function mediaLanguageLabel(tag) {
+  if (tag === 'dubbed') return 'دوبله فارسی';
+  if (tag === 'subtitled') return 'زیرنویس فارسی';
+  return 'نسخه اصلی';
 }
 
 function parseMediaLinks(links) {
   const normalizedLinks = (Array.isArray(links) ? links : [])
     .filter((link) => isHttp(link?.link))
-    .map((link) => ({ ...link, link: rewriteAffiliateRef(link.link) }));
+    .map((link) => {
+      const next = { ...link, link: rewriteAffiliateRef(link.link) };
+      next._media_descriptor = mediaLinkDescriptor(next);
+      next._media_language_tag = mediaLanguageTagForLink(next);
+      next._media_language = mediaLanguageLabel(next._media_language_tag);
+      next._media_price_tier = mediaPriceTier(next);
+      return next;
+    });
 
-  const freeLinks = normalizedLinks.filter((link) => Number(link?.amount || 0) === 0);
-  const paidLinks = normalizedLinks.filter((link) => Number(link?.amount || 0) > 0);
-  // Product rule: free media wins. Paid links are exposed only when no free
-  // alternative exists, so the app never shows a paid option beside a free one.
-  const selectedLinks = freeLinks.length ? freeLinks : paidLinks;
-  const paidFallback = freeLinks.length === 0 && paidLinks.length > 0;
-
+  // Operator access is independent from the ordinary free/paid language
+  // buckets. Never let the presence of a free subtitle suppress a dubbed link
+  // (or vice versa).
   const operatorLinks = uniqueByUrl(
-    freeLinks.filter((link) => isOperatorAccessLink(link)),
+    normalizedLinks.filter((link) =>
+      isOperatorAccessLink(link) && link._media_price_tier !== 'paid',
+    ),
   );
 
-  const directLinks = selectedLinks.filter(
-    (link) => !isOperatorAccessLink(link) && isDirectMediaUrl(link.link),
-  );
-  const purchasePortalLinks = paidFallback
-    ? uniqueByUrl(selectedLinks.filter((link) => !isOperatorAccessLink(link) && !isDirectMediaUrl(link.link)))
-    : [];
-
-  const mp4 = uniqueByUrl(
-    directLinks.filter((link) => /\.mp4(?:$|[?#])/i.test(link.link)),
-  );
-
-  const hls = uniqueByUrl(
-    directLinks.filter((link) => /\.m3u8(?:$|[?#])/i.test(link.link)),
-  );
-
-  const sortedMp4 = [...mp4].sort(
-    (a, b) => qualityRank(a.title) - qualityRank(b.title),
-  );
-
-  const groups = new Map();
-
-  for (const link of sortedMp4) {
-    const descriptor = mediaLinkDescriptor(link);
-    const language = linkLanguage(descriptor);
-    const file = toDownloadFile(link, paidFallback ? 'purchase' : 'download');
-    const languageTag = mediaLanguageTag(descriptor);
-    if (languageTag) file.language = languageTag;
-    if (!groups.has(language)) groups.set(language, []);
-    groups.get(language).push(file);
+  const ordinaryLinks = normalizedLinks.filter((link) => !isOperatorAccessLink(link));
+  const byLanguage = new Map();
+  for (const link of ordinaryLinks) {
+    const language = link._media_language || 'نسخه اصلی';
+    if (!byLanguage.has(language)) byLanguage.set(language, []);
+    byLanguage.get(language).push(link);
   }
 
-  for (const link of purchasePortalLinks) {
-    const descriptor = mediaLinkDescriptor(link);
-    const language = linkLanguage(descriptor);
-    const file = toDownloadFile(link, 'purchase');
-    const languageTag = mediaLanguageTag(descriptor);
-    if (languageTag) file.language = languageTag;
-    if (!groups.has(language)) groups.set(language, []);
-    groups.get(language).push(file);
-  }
+  const downloads = [];
+  const freePlayableMp4 = [];
+  const freeHls = [];
+  let hasFreeAcquisition = false;
+  let hasPaidAcquisition = false;
+  let hasAnyAcquisition = false;
 
-  const downloads = [...groups.entries()].map(([language, files]) => ({
-    id: `download-${slugify(language)}`,
-    title: language,
-    subtitle: paidFallback
-      ? `${files.length} گزینه خرید یا دریافت`
-      : `${files.length} کیفیت دانلود مستقیم`,
-    badge: paidFallback ? 'خرید' : 'DL',
-    files,
-  }));
+  for (const [language, bucket] of byLanguage.entries()) {
+    const free = bucket.filter((link) => link._media_price_tier === 'free');
+    const paid = bucket.filter((link) => link._media_price_tier === 'paid');
+    const unknown = bucket.filter((link) => link._media_price_tier === 'unknown');
+
+    // Free wins only INSIDE the same language/version. A free subtitled file
+    // must not erase a paid or differently-shaped dubbed source.
+    const preferred = free.length
+      ? free
+      : paid.length
+        ? paid
+        : unknown;
+    if (!preferred.length) continue;
+
+    const bucketPaid = free.length === 0 && paid.length > 0;
+    const files = [];
+
+    for (const link of uniqueByUrl(preferred)) {
+      const descriptor = link._media_descriptor || mediaLinkDescriptor(link);
+      const languageTag = link._media_language_tag || mediaLanguageTagForLink(link);
+      const directDownload = isDownloadableMediaUrl(link.link);
+      const directPlayable = isPlayableMediaUrl(link.link);
+      let file;
+
+      if (directDownload) {
+        // A paid direct URL is still opened as a purchase/acquisition action;
+        // free downloadable media stays downloadable inside the app.
+        file = toDownloadFile(link, bucketPaid ? 'purchase' : 'download');
+        if (!bucketPaid) {
+          hasFreeAcquisition = true;
+          if (/\.mp4(?:$|[?#])/i.test(link.link)) freePlayableMp4.push(link);
+        } else {
+          file.purchaseRequired = true;
+          hasPaidAcquisition = true;
+        }
+      } else if (directPlayable) {
+        if (!bucketPaid && /\.m3u8(?:$|[?#])/i.test(link.link)) {
+          // Keep the HLS source inside its language section too. Mobile hides
+          // play rows from the download list but uses them for language-aware
+          // online playback (important for dubbed-only HLS variants).
+          file = toDownloadFile(link, 'play');
+          freeHls.push(link);
+          hasFreeAcquisition = true;
+        } else {
+          file = toDownloadFile(link, 'purchase');
+          file.purchaseRequired = true;
+          hasPaidAcquisition = true;
+        }
+      } else {
+        // The affiliate API also returns signed/redirect/portal URLs without a
+        // file extension. Do not discard them. Mobile already handles
+        // `purchase` as an external "خرید / دریافت" action, which is the safe
+        // fallback when a URL cannot be proven to be a direct video file.
+        file = toDownloadFile(link, 'purchase');
+        file.purchaseRequired = bucketPaid;
+        file.externalAcquisition = true;
+        if (bucketPaid) hasPaidAcquisition = true;
+        else hasFreeAcquisition = true;
+      }
+
+      if (languageTag) file.language = languageTag;
+      files.push(file);
+      hasAnyAcquisition = true;
+    }
+
+    if (!files.length) continue;
+    const dedupedFiles = dedupeMediaFiles(files);
+    const allPurchase = dedupedFiles.every((file) => file.mode === 'purchase');
+    downloads.push({
+      id: `download-${slugify(language)}`,
+      title: language,
+      subtitle: allPurchase
+        ? `${dedupedFiles.length} گزینه خرید یا دریافت`
+        : `${dedupedFiles.length} کیفیت دانلود مستقیم`,
+      badge: language === 'دوبله فارسی'
+        ? 'دوبله'
+        : language === 'زیرنویس فارسی'
+          ? 'زیرنویس'
+          : allPurchase ? 'دریافت' : 'DL',
+      files: dedupedFiles,
+    });
+  }
 
   const operatorFiles = operatorLinks
     .map((link) => toOperatorFile(link))
@@ -3502,20 +3697,29 @@ function parseMediaLinks(links) {
     });
   }
 
-  const streamUrl = !paidFallback
-    ? hls[0]?.link || highestQuality(sortedMp4)?.link || null
-    : null;
+  const sortedMp4 = uniqueByUrl(freePlayableMp4).sort(
+    (a, b) => qualityRank(a.title) - qualityRank(b.title),
+  );
+  const hls = uniqueByUrl(freeHls);
+  const streamUrl = hls[0]?.link || highestQuality(sortedMp4)?.link || null;
+  const onlyOperator = operatorFiles.length > 0 && !hasAnyAcquisition && !streamUrl;
 
   return {
     downloads,
     streamUrl,
-    hls: !paidFallback ? hls[0]?.link || null : null,
+    hls: hls[0]?.link || null,
     mp4: sortedMp4,
     operatorFiles,
-    access: operatorFiles.length && !downloads.some((section) =>
-      (section.files || []).some((file) => ['download', 'play', 'purchase'].includes(file?.mode || 'download') && !file?.operatorOnly),
-    ) ? 'operator' : paidFallback ? 'paid' : 'free',
-    paidFallback,
+    access: onlyOperator
+      ? 'operator'
+      : hasFreeAcquisition || streamUrl
+        ? 'free'
+        : hasPaidAcquisition
+          ? 'paid'
+          : 'free',
+    // Kept for episodeGroup compatibility. `mp4`/`hls` above contain free
+    // playable sources only, so paid links can never accidentally autoplay.
+    paidFallback: !hasFreeAcquisition && hasPaidAcquisition,
     operatorAccess: operatorAccessFromFiles(operatorFiles),
     supportedOperators: uniqueStrings(
       operatorFiles.flatMap((file) => file.supportedOperators || []),
@@ -4545,7 +4749,14 @@ function episodeGroup(episode, media, series) {
     media.hls ||
     (!media.paidFallback ? highestQuality(media.mp4)?.link : null);
 
-  if (playUrl) {
+  const normalizedMediaFiles = (Array.isArray(media.downloads) ? media.downloads : [])
+    .flatMap((section) => Array.isArray(section?.files) ? section.files : [])
+    .filter((file) => !isValidStoredOperatorFile(file));
+  const hasLanguageAwarePlay = normalizedMediaFiles.some((file) =>
+    file?.mode === 'play' && Boolean(file?.language),
+  );
+
+  if (playUrl && !hasLanguageAwarePlay) {
     files.push({
       id: `play-s${season}-e${number}`,
       quality: 'پخش آنلاین',
@@ -4557,10 +4768,9 @@ function episodeGroup(episode, media, series) {
     });
   }
 
-  // Preserve normalized language and paid/free mode from parseMediaLinks().
-  for (const file of (Array.isArray(media.downloads) ? media.downloads : [])
-    .flatMap((section) => Array.isArray(section?.files) ? section.files : [])
-    .filter((file) => !isValidStoredOperatorFile(file) && file?.mode !== 'play')) {
+  // Preserve normalized language and paid/free mode from parseMediaLinks(),
+  // including language-aware HLS play rows.
+  for (const file of normalizedMediaFiles) {
     files.push({
       ...file,
       id: `s${season}-e${number}-${file.id || simpleHash(file.url || '')}`,
@@ -6413,8 +6623,16 @@ async function fetchJson(
 }
 
 
-function isDirectMediaUrl(value) {
+function isPlayableMediaUrl(value) {
   return /\.(?:mp4|m3u8)(?:$|[?#])/i.test(String(value || ''));
+}
+
+function isDownloadableMediaUrl(value) {
+  return /\.(?:mp4|m4v|mov|webm|mkv)(?:$|[?#])/i.test(String(value || ''));
+}
+
+function isDirectMediaUrl(value) {
+  return isPlayableMediaUrl(value) || isDownloadableMediaUrl(value);
 }
 
 function operatorPortalDetails(value) {

@@ -575,6 +575,107 @@ test('grouped affiliate payloads preserve dubbed and subtitled media buckets', a
   }
 });
 
+test('a free subtitled file no longer suppresses a paid dubbed acquisition link', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-mixed-language-price-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
+    version: 'test', updatedAt: new Date(0).toISOString(), items: [], iranianSchedule: [], weeklySchedule: [],
+  });
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, { mode: 'NORMAL', scenario: 'mixed-language-price' });
+    const item = result.catalog.items.find((entry) => entry.id === 'mixed-language-price-1');
+    assert.ok(item);
+    const files = item.downloads.flatMap((section) => section.files || []);
+    assert.ok(files.some((file) => file.language === 'subtitled' && file.mode === 'download'));
+    assert.ok(files.some((file) => file.language === 'dubbed' && file.mode === 'purchase'), 'dubbed paid variant survives beside free subtitle');
+    const summary = result.clientIndex.items.find((entry) => entry.id === 'mixed-language-price-1');
+    assert.ok(summary?.availableLanguages?.includes('dubbed'));
+    assert.ok(summary?.availableLanguages?.includes('subtitled'));
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+test('extensionless grouped dubbed affiliate links are preserved as safe external acquisition actions', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-dubbed-extensionless-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
+    version: 'test', updatedAt: new Date(0).toISOString(), items: [], iranianSchedule: [], weeklySchedule: [],
+  });
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, { mode: 'NORMAL', scenario: 'dubbed-extensionless' });
+    const item = result.catalog.items.find((entry) => entry.id === 'dubbed-extensionless-1');
+    assert.ok(item, 'extensionless acquisition URL keeps the movie visible');
+    const file = item.downloads.flatMap((section) => section.files || []).find((entry) => entry.language === 'dubbed');
+    assert.ok(file);
+    assert.equal(file.mode, 'purchase');
+    assert.equal(file.externalAcquisition, true);
+    assert.match(file.url, /dubbed-extensionless-1/);
+    assert.ok(result.clientIndex.items.some((entry) => entry.id === 'dubbed-extensionless-1'));
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+test('dubbed MKV files are retained as direct downloads instead of being discarded', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-dubbed-mkv-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
+    version: 'test', updatedAt: new Date(0).toISOString(), items: [], iranianSchedule: [], weeklySchedule: [],
+  });
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, { mode: 'NORMAL', scenario: 'dubbed-mkv' });
+    const item = result.catalog.items.find((entry) => entry.id === 'dubbed-mkv-1');
+    assert.ok(item);
+    const file = item.downloads.flatMap((section) => section.files || []).find((entry) => entry.language === 'dubbed');
+    assert.ok(file);
+    assert.equal(file.mode, 'download');
+    assert.match(file.url, /\.mkv(?:$|[?#])/i);
+    assert.ok(result.clientIndex.items.some((entry) => entry.id === 'dubbed-mkv-1'), 'client index accepts direct downloadable video formats');
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+test('Persian audio language codes mark an otherwise unlabeled file as dubbed', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-dubbed-fa-audio-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
+    version: 'test', updatedAt: new Date(0).toISOString(), items: [], iranianSchedule: [], weeklySchedule: [],
+  });
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+  try {
+    const result = await runSync(fixtureDirectory, { mode: 'NORMAL', scenario: 'dubbed-fa-audio' });
+    const item = result.catalog.items.find((entry) => entry.id === 'dubbed-fa-audio-1');
+    const dubbedFile = item?.downloads?.flatMap((section) => section.files || []).find((file) => file.language === 'dubbed');
+    assert.ok(dubbedFile, 'audio_language=fa is a Persian dubbed audio signal');
+    assert.ok(result.clientIndex.items.find((entry) => entry.id === 'dubbed-fa-audio-1')?.availableLanguages?.includes('dubbed'));
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+test('dubbed HLS keeps its language metadata for online playback', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-dubbed-hls-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
+    version: 'test', updatedAt: new Date(0).toISOString(), items: [], iranianSchedule: [], weeklySchedule: [],
+  });
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+  try {
+    const result = await runSync(fixtureDirectory, { mode: 'NORMAL', scenario: 'dubbed-hls' });
+    const item = result.catalog.items.find((entry) => entry.id === 'dubbed-hls-1');
+    assert.ok(item);
+    const play = item.downloads.flatMap((section) => section.files || []).find((file) => file.mode === 'play' && file.language === 'dubbed');
+    assert.ok(play, 'language-aware HLS source is retained in detail media');
+    assert.match(item.streamUrl || '', /\.m3u8/);
+    assert.ok(result.clientIndex.items.find((entry) => entry.id === 'dubbed-hls-1')?.availableLanguages?.includes('dubbed'));
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
 test('oldest production year owns the archive queue before newer titles', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-year-order-'));
   const media = (id) => [{ id: `download-${id}`, files: [{ id: `${id}-720`, mode: 'download', url: `https://cdn.example.test/${id}-old.mp4` }] }];
@@ -616,7 +717,7 @@ test('a zero-media movie cannot freeze an old production year while the repair l
     const oldMovie = result.catalog.items.find((entry) => entry.id === 'old-movie');
     const newMovie = result.catalog.items.find((entry) => entry.id === 'new-movie');
     assert.equal(oldMovie?.mediaAuditStatus, 'confirmed-unavailable', 'missing old title is hidden instead of pinning the year queue');
-    assert.equal(oldMovie?.mediaLanguageAuditVersion, 2);
+    assert.equal(oldMovie?.mediaLanguageAuditVersion, 3);
     assert.ok(newMovie?.downloads?.flatMap((section) => section.files || []).some((file) => /new-movie\.mp4/.test(file.url)), 'the queue advances to the next year in the same run');
     assert.equal(newMovie?.mediaAuditStatus, 'ok');
   } finally {
