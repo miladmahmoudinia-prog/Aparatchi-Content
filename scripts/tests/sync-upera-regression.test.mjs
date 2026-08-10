@@ -482,7 +482,7 @@ test('people enrichment uses cast and director data from the source API', async 
 });
 
 
-test('paid-only movie media is preserved as a purchase option instead of disappearing', async () => {
+test('paid-only movie media is excluded from Aparatchi', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-paid-movie-'));
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
     version: 'test', updatedAt: new Date(0).toISOString(), items: [], iranianSchedule: [], weeklySchedule: [],
@@ -492,11 +492,8 @@ test('paid-only movie media is preserved as a purchase option instead of disappe
   try {
     const result = await runSync(fixtureDirectory, { mode: 'NORMAL', scenario: 'paid-movie' });
     const item = result.catalog.items.find((entry) => entry.id === 'paid-movie-1');
-    assert.ok(item, 'paid-only movie stays in the catalog');
-    assert.equal(item.access, 'paid');
-    assert.equal(item.streamUrl, undefined, 'purchase portal is never treated as a video stream');
-    const files = item.downloads.flatMap((section) => section.files || []);
-    assert.ok(files.some((file) => file.mode === 'purchase' && file.url.startsWith('https://upera.tv/buy/paid-movie-1')));
+    assert.equal(item, undefined, 'purchase-only title is not added to the public catalog');
+    assert.equal(result.clientIndex.items.some((entry) => entry.id === 'paid-movie-1'), false);
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }
@@ -575,7 +572,7 @@ test('grouped affiliate payloads preserve dubbed and subtitled media buckets', a
   }
 });
 
-test('a free subtitled file no longer suppresses a paid dubbed acquisition link', async () => {
+test('a free subtitled file is kept while a paid dubbed acquisition link is excluded', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-mixed-language-price-'));
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
     version: 'test', updatedAt: new Date(0).toISOString(), items: [], iranianSchedule: [], weeklySchedule: [],
@@ -588,16 +585,16 @@ test('a free subtitled file no longer suppresses a paid dubbed acquisition link'
     assert.ok(item);
     const files = item.downloads.flatMap((section) => section.files || []);
     assert.ok(files.some((file) => file.language === 'subtitled' && file.mode === 'download'));
-    assert.ok(files.some((file) => file.language === 'dubbed' && file.mode === 'purchase'), 'dubbed paid variant survives beside free subtitle');
+    assert.equal(files.some((file) => file.mode === 'purchase'), false, 'paid dubbed variant is not exposed');
     const summary = result.clientIndex.items.find((entry) => entry.id === 'mixed-language-price-1');
-    assert.ok(summary?.availableLanguages?.includes('dubbed'));
+    assert.equal(summary?.availableLanguages?.includes('dubbed'), false);
     assert.ok(summary?.availableLanguages?.includes('subtitled'));
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }
 });
 
-test('extensionless grouped dubbed affiliate links are preserved as safe external acquisition actions', async () => {
+test('extensionless ordinary acquisition portals are not exposed as downloads', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-dubbed-extensionless-'));
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
     version: 'test', updatedAt: new Date(0).toISOString(), items: [], iranianSchedule: [], weeklySchedule: [],
@@ -607,13 +604,8 @@ test('extensionless grouped dubbed affiliate links are preserved as safe externa
   try {
     const result = await runSync(fixtureDirectory, { mode: 'NORMAL', scenario: 'dubbed-extensionless' });
     const item = result.catalog.items.find((entry) => entry.id === 'dubbed-extensionless-1');
-    assert.ok(item, 'extensionless acquisition URL keeps the movie visible');
-    const file = item.downloads.flatMap((section) => section.files || []).find((entry) => entry.language === 'dubbed');
-    assert.ok(file);
-    assert.equal(file.mode, 'purchase');
-    assert.equal(file.externalAcquisition, true);
-    assert.match(file.url, /dubbed-extensionless-1/);
-    assert.ok(result.clientIndex.items.some((entry) => entry.id === 'dubbed-extensionless-1'));
+    assert.equal(item, undefined, 'non-direct acquisition portal is not added as media');
+    assert.equal(result.clientIndex.items.some((entry) => entry.id === 'dubbed-extensionless-1'), false);
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }

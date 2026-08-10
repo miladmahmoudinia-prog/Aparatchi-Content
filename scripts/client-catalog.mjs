@@ -60,7 +60,7 @@ const isStructurallyUsableMediaFile = (file) => {
   const url = typeof file?.url === 'string' ? file.url.trim() : '';
   if (!/^https?:\/\//i.test(url)) return false;
   const mode = String(file?.mode || 'download');
-  if (mode === 'purchase' || mode === 'operator-download' || mode === 'operator-play') return true;
+  if (mode === 'operator-download' || mode === 'operator-play') return true;
   if (mode === 'play') return /\.(?:m3u8|mp4)(?:$|[?#])/i.test(url);
   return /\.(?:mp4|m4v|mov|webm|mkv)(?:$|[?#])/i.test(url);
 };
@@ -82,7 +82,7 @@ const isClientVisibleItem = (item) => {
   if (!item || !item.id || !item.type) return false;
   if (item.type === 'movie') {
     if (item.mediaAuditStatus === 'confirmed-unavailable') return false;
-    // Never publish a movie detail that has no usable play/download/purchase
+    // Never publish a movie detail that has no usable play/download
     // action. The server record stays intact and the oldest-year repair queue
     // retries it until media becomes available.
     return movieHasUsableClientMedia(item);

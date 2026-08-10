@@ -562,7 +562,8 @@ const originalSeriesById = new Map(
 // removes stale badges/categories created by older, overly broad matching.
 // Existing duplicate rows (for example direct + operator versions of one title)
 // are merged before the new sync starts.
-const initialOperatorCleanup = sanitizeCatalogOperatorAccess(items);
+const purchaseCleanup = sanitizeCatalogUnsupportedPurchases(items);
+const initialOperatorCleanup = sanitizeCatalogOperatorAccess(purchaseCleanup.items);
 const duplicateCleanup = mergeDuplicateCatalogItems(initialOperatorCleanup.items);
 const finalOperatorCleanup = sanitizeCatalogOperatorAccess(duplicateCleanup.items);
 const operatorCleanup = {
@@ -1083,7 +1084,7 @@ function movieHasUsableMedia(item) {
   if (isDirectMediaUrl(item?.streamUrl)) return true;
   return (Array.isArray(item?.downloads) ? item.downloads : []).some(
     (section) => (Array.isArray(section?.files) ? section.files : []).some((file) =>
-      isDirectMediaUrl(file?.url) || file?.mode === 'purchase' || isValidStoredOperatorFile(file),
+      isDirectMediaUrl(file?.url) || isValidStoredOperatorFile(file),
     ),
   );
 }
@@ -3576,16 +3577,19 @@ function parseMediaLinks(links) {
       return next;
     });
 
-  // Operator access is independent from the ordinary free/paid language
-  // buckets. Never let the presence of a free subtitle suppress a dubbed link
-  // (or vice versa).
+  // Purchase/subscription links are not part of Aparatchi. Operator access is
+  // accepted only when it is free and can be positively identified as mobile
+  // operator playback/download; an ordinary Upera purchase page must never be
+  // promoted into «ویژه اینترنت همراه».
   const operatorLinks = uniqueByUrl(
     normalizedLinks.filter((link) =>
-      isOperatorAccessLink(link) && link._media_price_tier !== 'paid',
+      link._media_price_tier !== 'paid' && isOperatorAccessLink(link),
     ),
   );
 
-  const ordinaryLinks = normalizedLinks.filter((link) => !isOperatorAccessLink(link));
+  const ordinaryLinks = normalizedLinks.filter((link) =>
+    !isOperatorAccessLink(link) && link._media_price_tier !== 'paid',
+  );
   const byLanguage = new Map();
   for (const link of ordinaryLinks) {
     const language = link._media_language || 'نسخه اصلی';
@@ -3597,69 +3601,35 @@ function parseMediaLinks(links) {
   const freePlayableMp4 = [];
   const freeHls = [];
   let hasFreeAcquisition = false;
-  let hasPaidAcquisition = false;
   let hasAnyAcquisition = false;
 
   for (const [language, bucket] of byLanguage.entries()) {
     const free = bucket.filter((link) => link._media_price_tier === 'free');
-    const paid = bucket.filter((link) => link._media_price_tier === 'paid');
     const unknown = bucket.filter((link) => link._media_price_tier === 'unknown');
-
-    // Free wins only INSIDE the same language/version. A free subtitled file
-    // must not erase a paid or differently-shaped dubbed source.
+    // Prefer explicitly-free links, but keep extension-bearing direct media
+    // when the provider omitted the amount field. Never fall back to paid.
     const preferred = free.length
       ? free
-      : paid.length
-        ? paid
-        : unknown;
+      : unknown.filter((link) => isDirectMediaUrl(link.link));
     if (!preferred.length) continue;
 
-    const bucketPaid = free.length === 0 && paid.length > 0;
     const files = [];
-
     for (const link of uniqueByUrl(preferred)) {
-      const descriptor = link._media_descriptor || mediaLinkDescriptor(link);
       const languageTag = link._media_language_tag || mediaLanguageTagForLink(link);
-      const directDownload = isDownloadableMediaUrl(link.link);
-      const directPlayable = isPlayableMediaUrl(link.link);
-      let file;
+      let file = null;
 
-      if (directDownload) {
-        // A paid direct URL is still opened as a purchase/acquisition action;
-        // free downloadable media stays downloadable inside the app.
-        file = toDownloadFile(link, bucketPaid ? 'purchase' : 'download');
-        if (!bucketPaid) {
-          hasFreeAcquisition = true;
-          if (/\.mp4(?:$|[?#])/i.test(link.link)) freePlayableMp4.push(link);
-        } else {
-          file.purchaseRequired = true;
-          hasPaidAcquisition = true;
-        }
-      } else if (directPlayable) {
-        if (!bucketPaid && /\.m3u8(?:$|[?#])/i.test(link.link)) {
-          // Keep the HLS source inside its language section too. Mobile hides
-          // play rows from the download list but uses them for language-aware
-          // online playback (important for dubbed-only HLS variants).
-          file = toDownloadFile(link, 'play');
-          freeHls.push(link);
-          hasFreeAcquisition = true;
-        } else {
-          file = toDownloadFile(link, 'purchase');
-          file.purchaseRequired = true;
-          hasPaidAcquisition = true;
-        }
-      } else {
-        // The affiliate API also returns signed/redirect/portal URLs without a
-        // file extension. Do not discard them. Mobile already handles
-        // `purchase` as an external "خرید / دریافت" action, which is the safe
-        // fallback when a URL cannot be proven to be a direct video file.
-        file = toDownloadFile(link, 'purchase');
-        file.purchaseRequired = bucketPaid;
-        file.externalAcquisition = true;
-        if (bucketPaid) hasPaidAcquisition = true;
-        else hasFreeAcquisition = true;
+      if (isDownloadableMediaUrl(link.link)) {
+        file = toDownloadFile(link, 'download');
+        hasFreeAcquisition = true;
+        if (/\.mp4(?:$|[?#])/i.test(link.link)) freePlayableMp4.push(link);
+      } else if (isPlayableMediaUrl(link.link) && /\.m3u8(?:$|[?#])/i.test(link.link)) {
+        // HLS is a play source, not a download action.
+        file = toDownloadFile(link, 'play');
+        freeHls.push(link);
+        hasFreeAcquisition = true;
       }
 
+      if (!file) continue;
       if (languageTag) file.language = languageTag;
       files.push(file);
       hasAnyAcquisition = true;
@@ -3667,18 +3637,18 @@ function parseMediaLinks(links) {
 
     if (!files.length) continue;
     const dedupedFiles = dedupeMediaFiles(files);
-    const allPurchase = dedupedFiles.every((file) => file.mode === 'purchase');
+    const downloadableCount = dedupedFiles.filter((file) => file.mode === 'download').length;
     downloads.push({
       id: `download-${slugify(language)}`,
       title: language,
-      subtitle: allPurchase
-        ? `${dedupedFiles.length} گزینه خرید یا دریافت`
-        : `${dedupedFiles.length} کیفیت دانلود مستقیم`,
+      subtitle: downloadableCount
+        ? `${downloadableCount} کیفیت دانلود مستقیم`
+        : 'فقط پخش آنلاین',
       badge: language === 'دوبله فارسی'
         ? 'دوبله'
         : language === 'زیرنویس فارسی'
           ? 'زیرنویس'
-          : allPurchase ? 'دریافت' : 'DL',
+          : downloadableCount ? 'DL' : 'پخش',
       files: dedupedFiles,
     });
   }
@@ -3688,10 +3658,16 @@ function parseMediaLinks(links) {
     .filter(Boolean);
 
   if (operatorFiles.length) {
+    const hasOperatorPlay = operatorFiles.some((file) => file.mode === 'operator-play');
+    const hasOperatorDownload = operatorFiles.some((file) => file.mode === 'operator-download');
     downloads.push({
       id: 'operator-mobile-access',
       title: 'ویژه اینترنت همراه',
-      subtitle: 'پخش یا دریافت با اینترنت سیم‌کارت',
+      subtitle: hasOperatorPlay && hasOperatorDownload
+        ? 'پخش و دانلود با اینترنت سیم‌کارت'
+        : hasOperatorDownload
+          ? 'دانلود با اینترنت سیم‌کارت'
+          : 'فقط پخش با اینترنت سیم‌کارت',
       badge: 'همراه',
       files: operatorFiles,
     });
@@ -3710,16 +3686,8 @@ function parseMediaLinks(links) {
     hls: hls[0]?.link || null,
     mp4: sortedMp4,
     operatorFiles,
-    access: onlyOperator
-      ? 'operator'
-      : hasFreeAcquisition || streamUrl
-        ? 'free'
-        : hasPaidAcquisition
-          ? 'paid'
-          : 'free',
-    // Kept for episodeGroup compatibility. `mp4`/`hls` above contain free
-    // playable sources only, so paid links can never accidentally autoplay.
-    paidFallback: !hasFreeAcquisition && hasPaidAcquisition,
+    access: onlyOperator ? 'operator' : 'free',
+    paidFallback: false,
     operatorAccess: operatorAccessFromFiles(operatorFiles),
     supportedOperators: uniqueStrings(
       operatorFiles.flatMap((file) => file.supportedOperators || []),
@@ -5515,7 +5483,7 @@ function findEpisodeGroup(
 
 function episodeGroupHasUsableMedia(group) {
   return Boolean((Array.isArray(group?.files) ? group.files : []).some((file) =>
-    isDirectMediaUrl(file?.url) || file?.mode === 'purchase' || isValidStoredOperatorFile(file),
+    isDirectMediaUrl(file?.url) || isValidStoredOperatorFile(file),
   ));
 }
 
@@ -6728,8 +6696,11 @@ function isOperatorAccessLink(link) {
   const explicitText = /ویژه\s*(?:اینترنت\s*)?(?:همراه|اپراتور)|همراه\s*اول|ایرانسل|رایتل|شاتل\s*موبایل|mobile\s*(?:operator|internet|data)|cellular\s*(?:only|access)|operator[-_\s]*(?:only|play|download)/i.test(text);
 
   if (!portal) return false;
-  if (portal.shortLink) return explicitFlag || explicitText;
-  return true;
+  if (portal.exactStream) return true;
+  // Generic watch/play/download pages can also be ordinary purchase portals.
+  // Require an explicit operator hint unless this is the dedicated /stream/
+  // route used for mobile-operator playback.
+  return explicitFlag || explicitText;
 }
 
 function operatorModeForLink(link) {
@@ -6827,6 +6798,29 @@ function recoverDirectFileFromInvalidOperator(file) {
   delete next.operatorOnly;
   delete next.supportedOperators;
   return next;
+}
+
+function sanitizeCatalogUnsupportedPurchases(sourceItems) {
+  let removed = 0;
+  const items = (Array.isArray(sourceItems) ? sourceItems : []).map((item) => {
+    const downloads = (Array.isArray(item?.downloads) ? item.downloads : []).flatMap((section) => {
+      const files = (Array.isArray(section?.files) ? section.files : []).filter((file) => {
+        const purchase = file?.mode === 'purchase' || file?.purchaseRequired === true;
+        if (purchase) removed += 1;
+        return !purchase;
+      });
+      return files.length ? [{ ...section, files }] : [];
+    });
+    const hasDirect = downloads.some((section) => (section.files || []).some((file) =>
+      isDirectMediaUrl(file?.url) || isValidStoredOperatorFile(file),
+    ));
+    return {
+      ...item,
+      downloads,
+      ...(item?.access === 'paid' ? { access: hasDirect ? 'free' : 'free' } : {}),
+    };
+  });
+  return { items, removed };
 }
 
 function sanitizeCatalogOperatorAccess(sourceItems) {
