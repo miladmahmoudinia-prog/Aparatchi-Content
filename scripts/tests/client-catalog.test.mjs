@@ -2,14 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildClientCatalogArtifacts, clientSummaryForItem } from '../client-catalog.mjs';
 
-test('client index strips heavy media fields but preserves browse metadata', () => {
+test('client index strips heavy media fields but preserves browse metadata and compact cast identities', () => {
   const item = {
     id: 'series-1', type: 'series', slug: 'series-1', ir: false, year: 2025,
     nameFa: 'نمونه', name: 'Sample', poster: 'p.jpg', backdrop: 'b.jpg',
     overview: 'الف'.repeat(500), genres: ['درام'], access: 'free',
     publicationStatus: 'published', episodeCount: 20, categoryKeys: ['series', 'foreign-series'],
     downloads: [{ id: 'e1', files: [{ id: 'f1', url: 'https://example.test/a.mp4' }] }],
-    people: [{ id: 'p1', nameFa: 'بازیگر', role: 'actor' }],
+    people: [{
+      id: 'p1', nameFa: 'بازیگر', name: 'Actor', role: 'actor', tmdbId: 42,
+      image: 'https://image.test/p1.jpg', character: 'Hero', popularity: 99,
+    }],
   };
   const { summary } = clientSummaryForItem(item);
   assert.equal(summary.id, item.id);
@@ -17,7 +20,10 @@ test('client index strips heavy media fields but preserves browse metadata', () 
   assert.equal(summary.episodeCount, 20);
   assert.ok(summary.detailPath.startsWith('catalog-items/'));
   assert.equal('downloads' in summary, false);
-  assert.equal('people' in summary, false);
+  assert.deepEqual(summary.people, [{ id: 'p1', nameFa: 'بازیگر', name: 'Actor', role: 'actor', tmdbId: 42 }]);
+  assert.equal('image' in summary.people[0], false);
+  assert.equal('character' in summary.people[0], false);
+  assert.equal('popularity' in summary.people[0], false);
   assert.ok(summary.overview.length < item.overview.length);
 });
 
@@ -28,7 +34,7 @@ test('detail path changes when the full item changes', () => {
   assert.notEqual(first, second);
 });
 
-test('client catalog remains much smaller by not embedding episode files and cast per item', () => {
+test('client catalog remains much smaller by not embedding episode files and full cast payloads per item', () => {
   const heavyItem = {
     id: 's', type: 'series', slug: 's', ir: false, year: 2020, nameFa: 'سریال', name: 'Series',
     poster: 'p', backdrop: 'b', overview: 'شرح', genres: ['درام'], access: 'free', publicationStatus: 'published',
@@ -37,12 +43,17 @@ test('client catalog remains much smaller by not embedding episode files and cas
       title: `قسمت ${index + 1}`,
       files: Array.from({ length: 4 }, (_v, q) => ({ id: `f${index}-${q}`, url: `https://cdn.test/${index}/${q}.mp4`, quality: `${q}` })),
     })),
-    people: Array.from({ length: 25 }, (_, index) => ({ id: `p${index}`, nameFa: `نفر ${index}`, role: 'actor' })),
+    people: Array.from({ length: 25 }, (_, index) => ({
+      id: `p${index}`, nameFa: `نفر ${index}`, name: `Person ${index}`, role: 'actor', tmdbId: 1000 + index,
+      image: `https://image.test/${index}.jpg`, character: `Character ${index}`, popularity: index,
+    })),
   };
   const catalog = { version: '1', updatedAt: 'now', items: [heavyItem] };
   const artifacts = buildClientCatalogArtifacts(catalog);
   const fullBytes = Buffer.byteLength(JSON.stringify(catalog));
-  assert.ok(artifacts.clientSizeBytes < fullBytes * 0.25);
+  assert.ok(artifacts.clientSizeBytes < fullBytes * 0.35);
+  assert.equal(artifacts.index.items[0].people.length, 25);
+  assert.equal('image' in artifacts.index.items[0].people[0], false);
 });
 
 test('client index hides zero-media movies/series but keeps previously visible series with usable media', () => {
