@@ -169,6 +169,11 @@ jobs:
             git push origin HEAD:main
           fi
 
+      - name: Release stale archive cursor before backfill
+        env:
+          APARATCHI_BLOCKED_COOLDOWN_HOURS: '6'
+        run: node scripts/prepare-archive-backfill.mjs
+
       - name: Advance oldest-year archive completion
         id: archive_sync
         continue-on-error: true
