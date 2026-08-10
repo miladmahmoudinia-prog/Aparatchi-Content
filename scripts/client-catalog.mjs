@@ -26,6 +26,36 @@ const truncateOverview = (value) => {
   return text.length > 360 ? `${text.slice(0, 357).trimEnd()}…` : text;
 };
 
+const compactPersonReferences = (people) => {
+  const seen = new Set();
+  const result = [];
+  for (const person of Array.isArray(people) ? people : []) {
+    if (!person || !['actor', 'director'].includes(String(person.role || ''))) continue;
+    const id = typeof person.id === 'string' ? person.id.trim() : '';
+    const tmdbId = Number(person.tmdbId || 0);
+    const nameFa = typeof person.nameFa === 'string' ? person.nameFa.trim() : '';
+    const name = typeof person.name === 'string' ? person.name.trim() : '';
+    if (!id && !(tmdbId > 0) && !nameFa && !name) continue;
+
+    const identity = tmdbId > 0
+      ? `tmdb:${tmdbId}:${person.role}`
+      : id
+        ? `id:${id}:${person.role}`
+        : `name:${String(name || nameFa).toLowerCase()}:${person.role}`;
+    if (seen.has(identity)) continue;
+    seen.add(identity);
+
+    result.push({
+      ...(id ? { id } : {}),
+      ...(nameFa ? { nameFa } : {}),
+      ...(name ? { name } : {}),
+      role: person.role,
+      ...(tmdbId > 0 ? { tmdbId } : {}),
+    });
+  }
+  return result;
+};
+
 export function clientSummaryForItem(item) {
   const summary = {};
   for (const field of SUMMARY_FIELDS) {
@@ -48,6 +78,14 @@ export function clientSummaryForItem(item) {
       /زیر\s*نویس|زير\s*نويس|هارد\s*ساب|سافت\s*ساب|persian\s*sub|farsi\s*sub|subtitle|subbed|\bsub\b/i.test(text) ? 'subtitled' : '',
     ].filter(Boolean);
   }
+
+  // Actor/director profile pages need a reverse lookup from person -> titles.
+  // Keep only identity fields in the lightweight index; photos, character names,
+  // bios and the rest of the heavy cast payload remain in the lazy detail shard.
+  // This preserves fast startup while preventing every person profile from
+  // incorrectly showing "0 titles".
+  const compactPeople = compactPersonReferences(item?.people);
+  if (compactPeople.length) summary.people = compactPeople;
 
   const identityHash = digest(`${item?.type || 'item'}:${item?.id || ''}`, 12);
   const detailSerialized = `${stableJson(item)}\n`;
