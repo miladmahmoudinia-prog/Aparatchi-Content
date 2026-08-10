@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-08-10T22:20:43.824Z",
+  "startedAt": "2026-08-10T22:46:40.550Z",
   "runTimeLimitMinutes": 6,
-  "runDeadlineAt": "2026-08-10T22:26:43.542Z",
+  "runDeadlineAt": "2026-08-10T22:52:40.275Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 324630,
+  "remainingRunMsAtFinish": 320612,
   "imageMirroringSkipped": false,
-  "originalCount": 1906,
-  "finalCount": 1906,
+  "originalCount": 1935,
+  "finalCount": 1935,
   "requestedSyncMode": "PEOPLE",
   "effectiveSyncMode": "PEOPLE",
-  "backfillQueueTotal": 1722,
-  "backfillBacklogRemaining": 1722,
+  "backfillQueueTotal": 1661,
+  "backfillBacklogRemaining": 1661,
   "backfillBlockedTotal": 5,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
@@ -73,7 +73,7 @@
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 9,
+  "duplicateCatalogItemsMerged": 10,
   "iranianSeriesDiagnostics": [],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [],
@@ -959,7 +959,7 @@
   ],
   "episodesDiscovered": 0,
   "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 54,
+  "episodeArtworkCandidates": 53,
   "episodeArtworkSeriesChecked": 18,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 13,
@@ -972,23 +972,23 @@
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
-  "imagesMirrored": 33,
+  "imagesMirrored": 13,
   "imageMirrorErrors": 23,
   "episodeFramesGenerated": 0,
   "episodeFrameErrors": 0,
   "seriesKeptVisibleDuringBackfill": 0,
   "seriesRestoredByMonotonicGuard": 0,
-  "peopleEnrichmentCandidates": 153,
+  "peopleEnrichmentCandidates": 147,
   "peopleEnrichmentProcessed": 20,
-  "peopleEnrichmentSucceeded": 14,
-  "peopleEnrichmentFailed": 6,
-  "peopleEnrichmentSkippedFresh": 79,
+  "peopleEnrichmentSucceeded": 5,
+  "peopleEnrichmentFailed": 15,
+  "peopleEnrichmentSkippedFresh": 86,
   "peopleEnrichmentFromSource": 0,
-  "peopleEnrichmentFromTmdb": 14,
+  "peopleEnrichmentFromTmdb": 5,
   "peopleEnrichmentFromImdb": 0,
-  "peopleAdded": 146,
-  "tmdbRequests": 34,
-  "imdbRequests": 6,
+  "peopleAdded": 19,
+  "tmdbRequests": 25,
+  "imdbRequests": 27,
   "mediaRepairCandidates": 0,
   "mediaRepairChecked": 0,
   "mediaRepairRecovered": 0,
@@ -1002,6 +1002,50 @@
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
   "errors": [
+    {
+      "scope": "episode-artwork-f9b3d300-0922-11f1-abc6-6b384876b292",
+      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
+    },
+    {
+      "scope": "episode-artwork-0d106700-5dc6-11f1-8eee-25008b011db9",
+      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
+    },
+    {
+      "scope": "episode-artwork-6afe97f0-e084-11ea-a506-71b2dd673e04",
+      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
+    },
+    {
+      "scope": "episode-artwork-0211f520-f2b9-11eb-8904-6179943b9168",
+      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
+    },
+    {
+      "scope": "episode-artwork-cfb27d20-e77e-11ef-b8d9-2dd842bea893",
+      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
+    },
+    {
+      "scope": "episode-artwork-c289ea80-573e-11f1-a968-1b623cae7bb0",
+      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
+    },
+    {
+      "scope": "episode-artwork-fbb54130-89c7-11ee-b35e-63f53dbb63af",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/fbb54130-89c7-11ee-b35e-63f53dbb63af?affiliate=1"
+    },
+    {
+      "scope": "episode-artwork-dc549440-0965-11f0-980f-1ba9ba1d1523",
+      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
+    },
+    {
+      "scope": "episode-artwork-f63d4060-4893-11f0-a22a-2b4c820fe1da",
+      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
+    },
+    {
+      "scope": "episode-artwork-3debbc50-fa05-11ef-9905-8329d1e1ddd1",
+      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
+    },
+    {
+      "scope": "episode-artwork-b6e14590-4171-11f1-b8ad-97209dbcf9e6",
+      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
+    },
     {
       "scope": "episode-artwork-4feeeb30-b7dc-11f0-a6fc-79902a83e715",
       "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
@@ -1031,71 +1075,63 @@
       "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
     },
     {
-      "scope": "episode-artwork-6c71ffe0-3ef0-11e8-a14c-137f453c2a5d",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-1ed80b20-340e-11ed-94e4-396df7bf5a21",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-77fb5260-d647-11ef-9875-2d26004c5396",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-223b4500-d7ca-11ef-a2a5-65ed70f68a2b",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-84de3060-d8d8-11f0-a8df-41ebc832fd3d",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-1c4c3560-d15f-11f0-b604-7f319829bda5",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-4609c2e0-b53d-11ef-b652-adcde9163814",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-1cb2a690-d57f-11ef-a1f9-91af443a73a4",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-e9bddc80-0571-11f0-b295-09ad878b3c23",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-09070160-3a34-11e8-976b-cbc7d564706f",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-59dd46a0-c53d-11f0-babd-b775bbbbb824",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "people-3c4f3120-57e8-11ea-96b1-7bb0c884eb00",
+      "scope": "people-6742bcc0-3bc7-11ea-b380-2f9b22315689",
       "message": "فهرست عوامل معتبری پیدا نشد."
     },
     {
-      "scope": "people-dd5fca90-f4ac-11e8-ac04-41ed2db1ac55",
+      "scope": "people-02dffea0-bf73-11ee-a61d-3592e042e803",
       "message": "فهرست عوامل معتبری پیدا نشد."
     },
     {
-      "scope": "people-d8af1900-a2c7-11e9-b141-b1d601aecbc2",
+      "scope": "people-8f6a4430-970f-11ed-bfd7-61794ca96d94",
       "message": "فهرست عوامل معتبری پیدا نشد."
     },
     {
-      "scope": "people-c720b090-e53d-11ee-8489-474702854cfd",
+      "scope": "people-cc018a60-c177-11ef-91e0-bf38af5f6837",
       "message": "فهرست عوامل معتبری پیدا نشد."
     },
     {
-      "scope": "people-7bcbfbd0-a0f1-11ef-b484-e72b6a05d763",
+      "scope": "people-bae3d2d0-3393-11ee-adcc-8b3b46dad0dd",
       "message": "فهرست عوامل معتبری پیدا نشد."
     },
     {
-      "scope": "people-7cfd4c20-a450-11ef-b621-77602bdbf2f8",
+      "scope": "people-b9f69900-e0c9-11f0-9d77-a5cee5fe9cba",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-c8b5bf60-e644-11f0-8e7b-69109f6f4985",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-63d01c30-f147-11f0-a16b-6501a901068b",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-06a724c0-c74d-11ef-9cf7-317d55aaa2fe",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-f8bf0b40-cc1c-11ef-9a00-f9349336ac50",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-b8e8a6a0-f790-11eb-8d35-a93c34ef84c4",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-1b540c90-b4ad-11ef-a6d5-87dbbe5c5141",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-916f8700-2c60-11ed-a9ea-cb4b5d30febe",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-968d77b0-d597-11ef-b91e-7d66172e1364",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-9fd5c560-d597-11ef-83e7-37dacb288665",
       "message": "فهرست عوامل معتبری پیدا نشد."
     },
     {
@@ -1193,5 +1229,5 @@
   ],
   "errorsTruncated": 0,
   "apiRequests": 78,
-  "finishedAt": "2026-08-10T22:21:18.912Z"
+  "finishedAt": "2026-08-10T22:47:19.663Z"
 }
