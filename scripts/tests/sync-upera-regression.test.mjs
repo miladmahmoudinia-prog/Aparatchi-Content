@@ -363,6 +363,28 @@ test('series backfill runs before old movie audits and selects the oldest series
   }
 });
 
+test('unnumbered legacy payload rows do not keep a complete series pending', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-zero-number-episodes-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, { scenario: 'zero-number-ghosts' });
+    const item = result.catalog.items.find((entry) => entry.id === 'series-1');
+
+    assert.equal(item?.downloads.length, 2);
+    assert.equal(item?.sourceEpisodeCount, 2, 'only numbered source episodes count toward completeness');
+    assert.equal(item?.archivePendingEpisodeCount, 0);
+    assert.deepEqual(item?.archivePendingEpisodes, []);
+    assert.equal(item?.archiveComplete, true);
+    assert.equal(item?.publicationStatus, 'published');
+    assert.equal(result.report.backfillEpisodesAdded, 1);
+    assert.equal(result.report.affiliateRequests, 1, 'invalid rows never consume affiliate requests');
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
 test('episode artwork is stored with a newly discovered playable episode', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-episode-artwork-'));
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());
