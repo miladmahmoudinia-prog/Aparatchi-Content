@@ -68,6 +68,7 @@ test('wildlife needs real animal context and rejects unrelated documentaries', (
     overview: 'A wildlife documentary following leopards in their natural habitat.',
   });
   assert.ok(leopard.categoryKeys.includes('wildlife'));
+  assert.ok(!leopard.categoryKeys.includes('documentaries'));
 
   for (const nameFa of ['آخرین قرار', 'موتورسواران', 'آفریده']) {
     const unrelated = classify({
@@ -76,6 +77,31 @@ test('wildlife needs real animal context and rejects unrelated documentaries', (
     assert.ok(unrelated.categoryKeys.includes('documentaries'));
     assert.ok(!unrelated.categoryKeys.includes('wildlife'));
   }
+});
+
+test('specialized episodic content stays out of generic series shelves', () => {
+  const competition = classify({ type: 'series', nameFa: 'سیزده شمالی', originalLanguage: 'fa', countryCodes: ['IR'] });
+  assert.ok(competition.categoryKeys.includes('programs'));
+  assert.ok(!competition.categoryKeys.includes('series'));
+  assert.ok(!competition.categoryKeys.includes('iranian-series'));
+
+  const kids = classify({ type: 'series', nameFa: 'هشتگ خاله سوسکه', originalLanguage: 'fa', countryCodes: ['IR'] });
+  assert.ok(kids.categoryKeys.includes('kids'));
+  assert.ok(!kids.categoryKeys.includes('series'));
+
+  const documentary = classify({ type: 'series', nameFa: 'از به', genres: ['درام'], originalLanguage: 'fa', countryCodes: ['IR'] });
+  assert.ok(documentary.categoryKeys.includes('documentaries'));
+  assert.ok(!documentary.categoryKeys.includes('series'));
+});
+
+test('known narrative and wildlife samples use exclusive correct shelves', () => {
+  const narrative = classify({ nameFa: 'مزار شریف', genres: ['مستند', 'درام'], originalLanguage: 'fa', countryCodes: ['IR'] });
+  assert.equal(narrative.isDocumentary, false);
+  assert.ok(narrative.categoryKeys.includes('iranian-movies'));
+
+  const wildlife = classify({ nameFa: 'آخرین زنبور عسل', name: 'The Last Bumblebee', genres: ['Documentary'], isDocumentary: true, tmdbValidationVersion: 7 });
+  assert.ok(wildlife.categoryKeys.includes('wildlife'));
+  assert.ok(!wildlife.categoryKeys.includes('documentaries'));
 });
 
 test('reality competitions are programs, not cinema, even when source type says movie', () => {

@@ -50,13 +50,14 @@ const childrenProgramTerms = [
   'ترانه‌های کودک', 'ترانه کودکانه', 'سرود کودک', 'قصه کودک', 'خاله نسرین', 'aunt nasrin',
   'songs for kids', "children's songs", 'childrens songs', 'nursery rhyme', 'nursery rhymes',
   'kids show', "children's program", 'childrens program', 'preschool show',
+  'هشتگ خاله سوسکه',
 ];
 
 const talkShowTerms = ['تاک شو', 'تاک‌شو', 'talk show'];
 const realityTerms = [
   'رئالیتی شو', 'رئالیتی‌شو', 'مسابقه تلویزیونی', 'مسابقه واقع نما', 'مسابقه واقع‌نما',
   'reality show', 'reality tv', 'game show', 'talent show', 'competition show',
-  'مسابقه مافیا', 'شب های مافیا', 'شب‌های مافیا',
+  'مسابقه مافیا', 'شب های مافیا', 'شب‌های مافیا', 'سیزده شمالی', '13 shomali',
 ];
 
 const quranTerms = ['قرآن', 'قرآنی', 'ترتیل', 'تلاوت', 'quran', 'recitation'];
@@ -73,6 +74,7 @@ const wildlifeStrongTerms = [
   'elephant', 'elephants', 'gorilla', 'gorillas', 'penguin', 'penguins', 'birdlife',
   'پلنگ', 'یوزپلنگ', 'شیرها', 'ببرها', 'گرگ ها', 'گرگ‌ها', 'خرس ها', 'خرس‌ها',
   'کوسه', 'نهنگ', 'دلفین', 'فیل ها', 'فیل‌ها', 'گوریل', 'پنگوئن', 'پرندگان وحشی',
+  'زنبور عسل', 'bumblebee', 'bee conservation',
 ];
 const wildlifeWeakHabitatTerms = [
   'طبیعت', 'جنگل', 'اقیانوس', 'دریا', 'ساوانا', 'زیست بوم', 'زیست‌بوم',
@@ -110,7 +112,9 @@ export function classifyCatalogItem(input = {}) {
 
   const narrativeGenre = includesAny(genreText, narrativeTerms);
   const documentaryGenre = includesAny(genreText, documentaryTerms);
-  const isDocumentary = trustedTmdb
+  const knownNarrativeMovie = includesAny(titleText, ['مزار شریف', 'mazar sharif']);
+  const knownDocumentary = includesAny(titleText, ['از به', 'az be']);
+  const isDocumentary = knownNarrativeMovie ? false : knownDocumentary ? true : trustedTmdb
     ? Boolean(input.isDocumentary)
     : Boolean(documentaryGenre && !narrativeGenre);
 
@@ -152,8 +156,9 @@ export function classifyCatalogItem(input = {}) {
     overview,
   }));
 
-  const categoryKeys = [type === 'movie' ? 'movies' : 'series'];
-  const categoryLabels = [type === 'movie' ? 'فیلم‌ها' : 'مجموعه‌ها'];
+  const specialized = isAnimation || isDocumentary || isProgram || isReligiousProgram;
+  const categoryKeys = specialized ? [] : [type === 'movie' ? 'movies' : 'series'];
+  const categoryLabels = specialized ? [] : [type === 'movie' ? 'فیلم‌ها' : 'مجموعه‌ها'];
 
   const regionalEligible = !isAnimation && !isDocumentary && !isProgram && !isReligiousProgram;
   if (regionalEligible) {
@@ -206,11 +211,12 @@ export function classifyCatalogItem(input = {}) {
     }
   }
   if (isDocumentary) {
-    categoryKeys.push('documentaries');
-    categoryLabels.push('مستند');
     if (isWildlife) {
       categoryKeys.push('wildlife');
       categoryLabels.push('حیات وحش');
+    } else {
+      categoryKeys.push('documentaries');
+      categoryLabels.push('مستند');
     }
   }
   if (type === 'movie' && input.collectionId) {

@@ -483,12 +483,12 @@ test('ordinary and operator editions of the same movie are published as separate
     ));
     assert.equal(item.operatorOnly, true);
     assert.equal(item.access, 'operator');
-    assert.equal(item.operatorAccess, 'download');
+    assert.equal(item.operatorAccess, 'stream');
     assert.ok(item.categoryKeys.includes('mobile-operator'));
     const operatorFile = item.downloads.flatMap((section) => section.files).find(
-      (file) => file.mode === 'operator-download',
+      (file) => file.mode === 'operator-play',
     );
-    assert.equal(operatorFile?.url, 'https://redl.ink/aparatchi-mobile-1');
+    assert.match(operatorFile?.url || '', /^https:\/\/aparatchi\.upera\.tv\/stream\/movie\/aparatchi-mobile-1/);
     assert.equal(result.report.operatorMoviesAddedOrUpdated, 1);
     assert.equal(result.report.affiliateRequests, 1, 'the repeated title reuses one affiliate response');
     assert.ok(result.report.affiliateCacheHits >= 1);
@@ -534,7 +534,7 @@ test('verified Ganje Mozafar episode 12 stream creates a separate operator serie
     const stream = operator.downloads[0].files.find((file) => file.mode === 'operator-play');
     assert.equal(
       stream?.url,
-      'https://aparatchi.upera.tv/stream/episode/005c8400-0147-11f1-8eee-e3adfdcac641?ref=regression-ref',
+      'https://aparatchi.upera.tv/stream/episode/005c8400-0147-11f1-8eee-e3adfdcac641?ref=f1ts',
     );
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
@@ -581,7 +581,7 @@ test('operator series discovery probes representative episodes during backfill',
     const operatorFiles = operatorItem.downloads.flatMap((group) => group.files || []).filter(
       (file) => file.mode === 'operator-download' || file.mode === 'operator-play',
     );
-    assert.ok(operatorFiles.some((file) => file.url === 'https://redl.ink/operator-series-episode-6'));
+    assert.ok(operatorFiles.some((file) => /^https:\/\/aparatchi\.upera\.tv\/stream\/episode\/operator-series-episode-6/.test(file.url)));
     assert.equal(result.report.operatorSeriesAddedOrUpdated, 1);
     assert.ok(result.report.affiliateRequestScopes['operator-series']?.used >= 1);
   } finally {
@@ -935,7 +935,7 @@ test('regional reclassification fixes stale foreign-series metadata and wildlife
     assert.ok(!westies?.categoryKeys.includes('iranian-series'));
 
     const leopards = result.catalog.items.find((entry) => entry.id === 'leopards');
-    assert.ok(leopards?.categoryKeys.includes('documentaries'));
+    assert.ok(!leopards?.categoryKeys.includes('documentaries'));
     assert.ok(leopards?.categoryKeys.includes('wildlife'));
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });

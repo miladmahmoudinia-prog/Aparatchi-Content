@@ -4293,10 +4293,10 @@ async function generateEpisodeFrameArtwork(item, group, options = {}) {
       [
         '-hide_banner',
         '-loglevel', 'error',
-        '-ss', '00:00:08',
+        '-ss', String(45 + ((Number(group?.episodeNumber || 1) * 37) % 210)),
         '-i', source,
         '-frames:v', '1',
-        '-vf', 'scale=640:-2',
+        '-vf', 'thumbnail=90,scale=640:-2',
         '-q:v', '5',
         '-y',
         absolute,
@@ -6665,24 +6665,9 @@ function operatorPortalDetails(value) {
     if (url.protocol !== 'https:') return null;
 
     const isUpera = /(^|\.)upera\.tv$/i.test(url.hostname);
-    const isShortLink = /(^|\.)redl\.ink$/i.test(url.hostname);
-    if (!isUpera && !isShortLink) return null;
+    if (!isUpera) return null;
 
     const pathText = decodeURIComponent(url.pathname || '');
-    if (isShortLink) {
-      return pathText && pathText !== '/'
-        ? {
-            action: '',
-            mediaType: '',
-            resourceId: '',
-            hostname: url.hostname,
-            pathname: url.pathname,
-            shortLink: true,
-            exactStream: false,
-          }
-        : null;
-    }
-
     const streamMatch = pathText.match(/^\/stream\/(movie|episode)\/([^/?#]+)\/?$/i);
     if (streamMatch) {
       return {
@@ -6696,19 +6681,7 @@ function operatorPortalDetails(value) {
       };
     }
 
-    const actionMatch = pathText.match(/\/(watch|play|download)(?:\/|$)/i);
-    const mediaMatch = pathText.match(/\/(movie|series|episode)(?:\/|$)/i);
-    if (!actionMatch || !mediaMatch) return null;
-
-    return {
-      action: String(actionMatch[1] || '').toLowerCase(),
-      mediaType: String(mediaMatch[1] || '').toLowerCase(),
-      resourceId: '',
-      hostname: url.hostname,
-      pathname: url.pathname,
-      shortLink: false,
-      exactStream: false,
-    };
+    return null;
   } catch {
     return null;
   }
@@ -7079,7 +7052,7 @@ function applyVerifiedOperatorStreamOverrides(sourceItems) {
       );
       if (!override) return group;
 
-      const url = rewriteAffiliateRef(override.url);
+      const url = cleanText(override.url);
       const existingFiles = Array.isArray(group.files) ? group.files : [];
       if (existingFiles.some((file) => file?.mode === 'operator-play' && file?.url === url)) return group;
       changed = true;

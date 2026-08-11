@@ -300,7 +300,7 @@ globalThis.fetch = async (input) => {
           links: [
             {
               amount: 0,
-              link: 'https://redl.ink/operator-series-episode-6',
+              link: 'https://aparatchi.upera.tv/stream/episode/operator-series-episode-6?ref=test',
               title: 'پخش ویژه اینترنت همراه',
               operator_only: 1,
             },
@@ -358,7 +358,7 @@ globalThis.fetch = async (input) => {
             },
             {
               amount: 0,
-              link: 'https://redl.ink/aparatchi-mobile-1',
+              link: 'https://aparatchi.upera.tv/stream/movie/aparatchi-mobile-1?ref=test',
               title: 'دانلود ویژه اینترنت همراه',
               operator_only: 1,
             },
