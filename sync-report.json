@@ -1,27 +1,27 @@
 {
-  "startedAt": "2026-08-11T08:40:32.722Z",
-  "runTimeLimitMinutes": 6,
-  "runDeadlineAt": "2026-08-11T08:46:32.475Z",
+  "startedAt": "2026-08-11T08:41:32.651Z",
+  "runTimeLimitMinutes": 18,
+  "runDeadlineAt": "2026-08-11T08:59:32.403Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 306869,
-  "imageMirroringSkipped": false,
+  "remainingRunMsAtFinish": 831253,
+  "imageMirroringSkipped": true,
   "originalCount": 2032,
   "finalCount": 2032,
-  "requestedSyncMode": "PEOPLE",
-  "effectiveSyncMode": "PEOPLE",
-  "backfillQueueTotal": 1894,
-  "backfillBacklogRemaining": 1894,
+  "requestedSyncMode": "BACKFILL",
+  "effectiveSyncMode": "BACKFILL",
+  "backfillQueueTotal": 1899,
+  "backfillBacklogRemaining": 1799,
   "backfillBlockedTotal": 6,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
   "backfillSeriesBlockedThisRun": [],
   "backfillEpisodesAdded": 0,
   "backfillSeriesVisited": 0,
-  "backfillCheckpoints": 0,
+  "backfillCheckpoints": 100,
   "episodesMarkedUnavailable": 0,
   "backfillNoProgressRuns": 0,
-  "normalSyncSkippedForBackfill": false,
+  "normalSyncSkippedForBackfill": true,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
   "backfillNextSeries": null,
   "episodePaginationPagesFetched": 0,
@@ -40,14 +40,25 @@
   "recentSeriesNewCandidates": 0,
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
-  "affiliateRequestScopes": {},
+  "affiliateRequestScopes": {
+    "operator-movies": {
+      "limit": 8,
+      "used": 8,
+      "exhausted": false
+    },
+    "operator-series": {
+      "limit": 9,
+      "used": 3,
+      "exhausted": false
+    }
+  },
   "skippedByScopedBudget": 0,
   "moviePagesProcessed": 0,
   "movieTitlesProcessed": 0,
   "seriesPagesProcessed": 0,
   "seriesTitlesProcessed": 0,
-  "airingSeriesCandidates": 0,
-  "airingSeriesChecked": 0,
+  "airingSeriesCandidates": 25,
+  "airingSeriesChecked": 6,
   "airingSeriesUpdated": 0,
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
@@ -56,27 +67,740 @@
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
-  "episodesProcessed": 0,
+  "iranianSeriesProcessed": 1,
+  "episodesProcessed": 63,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
   "iranianSeriesRejectedNoLinks": 0,
   "operatorSeriesPagesProcessed": 0,
-  "operatorSeriesCandidates": 0,
+  "operatorSeriesCandidates": 1,
   "operatorSeriesAddedOrUpdated": 0,
-  "operatorSeriesRejectedNoOperatorLink": 0,
+  "operatorSeriesRejectedNoOperatorLink": 1,
   "operatorMoviePagesProcessed": 0,
-  "operatorMovieCandidates": 0,
+  "operatorMovieCandidates": 8,
   "operatorMoviesAddedOrUpdated": 0,
-  "operatorMoviesRejectedNoOperatorLink": 0,
+  "operatorMoviesRejectedNoOperatorLink": 8,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 9,
+  "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [],
-  "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "operatorDiagnostics": [
+    {
+      "type": "movie",
+      "id": "6eb17b50-200d-11f0-b39b-431683eb7d9e",
+      "title": "رازهای آرورا تیگاردن: درسی در قتل",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "87f684d0-11da-11ef-89c9-5d75a2116eaa",
+      "title": "اوشم",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "59664440-1f89-11f0-ae78-f95ec8dafaf7",
+      "title": "عملیات ضد مواد مخدر",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "56ff0420-1f4a-11f0-8b5a-d704b019bc46",
+      "title": "مرد میداس",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "4b2b9210-1f4a-11f0-9a72-df58246322db",
+      "title": "شب آخرالزمان باغ وحش",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "1b5adab0-12ed-11f0-97cc-6fb05622bf95",
+      "title": "شب آخر الزمان جنگل",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "e8409cc0-1f46-11f0-9a68-471d7bd48026",
+      "title": "سلام جو",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "15693780-1e26-11f0-af62-2981f44e2819",
+      "title": "خط زندگی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "series",
+      "id": "28d52520-1d72-11f0-9fa1-332372dce575",
+      "title": "دوستان و همسایگانتان",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    }
+  ],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "0d106700-5dc6-11f1-8eee-25008b011db9",
+      "title": "شهر ستارگان",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 25,
+      "catalogEpisodeCount": 7,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
+          "seasonNumber": 1,
+          "episodeNumber": 0,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "45c86e00-d02a-11ec-9953-a31100034ade",
+          "seasonNumber": 1,
+          "episodeNumber": 0,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "0fe8c940-6e52-11f1-b8dc-a5993cc534d7",
+          "seasonNumber": 1,
+          "episodeNumber": 10,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "8a2c7c70-1a21-11f1-ae10-4f7a3c2190bf",
+          "seasonNumber": 1,
+          "episodeNumber": 12,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "14613be0-5f67-11f1-be9f-87496992859e",
+          "seasonNumber": 1,
+          "episodeNumber": 13,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "4b9424f0-e7f4-11f0-b3e6-33cffeab9913",
+          "seasonNumber": 1,
+          "episodeNumber": 13,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2",
+          "seasonNumber": 1,
+          "episodeNumber": 14,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "5f8394b0-89eb-11f1-a5d5-f5268777e2e0",
+          "seasonNumber": 1,
+          "episodeNumber": 15,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
+          "seasonNumber": 1,
+          "episodeNumber": 17,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "7c1448e0-d532-11f0-aebf-7f020b8689ca",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "da7bbe30-c629-11f0-a062-ed284b0e9fd8",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "6a3891a0-be51-11f0-8f57-5b13bfa71465",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "title": "سایه باز",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 38,
+      "catalogEpisodeCount": 8,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 6
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 7
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 8
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 9
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 11
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 12
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
+          "seasonNumber": 1,
+          "episodeNumber": 0,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "45c86e00-d02a-11ec-9953-a31100034ade",
+          "seasonNumber": 1,
+          "episodeNumber": 0,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "0fe8c940-6e52-11f1-b8dc-a5993cc534d7",
+          "seasonNumber": 1,
+          "episodeNumber": 10,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "8a2c7c70-1a21-11f1-ae10-4f7a3c2190bf",
+          "seasonNumber": 1,
+          "episodeNumber": 12,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "14613be0-5f67-11f1-be9f-87496992859e",
+          "seasonNumber": 1,
+          "episodeNumber": 13,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "4b9424f0-e7f4-11f0-b3e6-33cffeab9913",
+          "seasonNumber": 1,
+          "episodeNumber": 13,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2",
+          "seasonNumber": 1,
+          "episodeNumber": 14,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "5f8394b0-89eb-11f1-a5d5-f5268777e2e0",
+          "seasonNumber": 1,
+          "episodeNumber": 15,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
+          "seasonNumber": 1,
+          "episodeNumber": 17,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "7c1448e0-d532-11f0-aebf-7f020b8689ca",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "da7bbe30-c629-11f0-a062-ed284b0e9fd8",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "6a3891a0-be51-11f0-8f57-5b13bfa71465",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "9dcad570-cdf0-11f0-a0a0-eddd96259c2c",
+      "title": "ناینیای قدرتمند",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 26,
+      "catalogEpisodeCount": 8,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
+          "seasonNumber": 1,
+          "episodeNumber": 0,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "45c86e00-d02a-11ec-9953-a31100034ade",
+          "seasonNumber": 1,
+          "episodeNumber": 0,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "0fe8c940-6e52-11f1-b8dc-a5993cc534d7",
+          "seasonNumber": 1,
+          "episodeNumber": 10,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "8a2c7c70-1a21-11f1-ae10-4f7a3c2190bf",
+          "seasonNumber": 1,
+          "episodeNumber": 12,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "14613be0-5f67-11f1-be9f-87496992859e",
+          "seasonNumber": 1,
+          "episodeNumber": 13,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "4b9424f0-e7f4-11f0-b3e6-33cffeab9913",
+          "seasonNumber": 1,
+          "episodeNumber": 13,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2",
+          "seasonNumber": 1,
+          "episodeNumber": 14,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "5f8394b0-89eb-11f1-a5d5-f5268777e2e0",
+          "seasonNumber": 1,
+          "episodeNumber": 15,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
+          "seasonNumber": 1,
+          "episodeNumber": 17,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "7c1448e0-d532-11f0-aebf-7f020b8689ca",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "da7bbe30-c629-11f0-a062-ed284b0e9fd8",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "6a3891a0-be51-11f0-8f57-5b13bfa71465",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "1af21e70-46db-11ec-8281-67b7f87ff6c0",
+      "title": "شهردار کینگزتاون",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 58,
+      "catalogEpisodeCount": 40,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
+          "seasonNumber": 1,
+          "episodeNumber": 0,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "45c86e00-d02a-11ec-9953-a31100034ade",
+          "seasonNumber": 1,
+          "episodeNumber": 0,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "8a2c7c70-1a21-11f1-ae10-4f7a3c2190bf",
+          "seasonNumber": 1,
+          "episodeNumber": 12,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "14613be0-5f67-11f1-be9f-87496992859e",
+          "seasonNumber": 1,
+          "episodeNumber": 13,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "4b9424f0-e7f4-11f0-b3e6-33cffeab9913",
+          "seasonNumber": 1,
+          "episodeNumber": 13,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2",
+          "seasonNumber": 1,
+          "episodeNumber": 14,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "5f8394b0-89eb-11f1-a5d5-f5268777e2e0",
+          "seasonNumber": 1,
+          "episodeNumber": 15,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
+          "seasonNumber": 1,
+          "episodeNumber": 17,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "7c1448e0-d532-11f0-aebf-7f020b8689ca",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "da7bbe30-c629-11f0-a062-ed284b0e9fd8",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "6a3891a0-be51-11f0-8f57-5b13bfa71465",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "132053f0-d387-11f0-9b0a-65d68e4f69fd",
+          "seasonNumber": 1,
+          "episodeNumber": 20,
+          "reason": "no-usable-links"
+        }
+      ]
+    },
+    {
+      "seriesId": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
+      "title": "آن:به دری خوش آمدید",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 26,
+      "catalogEpisodeCount": 8,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 15
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 22
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "9c8e2c70-64c8-11f1-9b89-dbbc21a3b29a",
+          "seasonNumber": 1,
+          "episodeNumber": 0,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "45c86e00-d02a-11ec-9953-a31100034ade",
+          "seasonNumber": 1,
+          "episodeNumber": 0,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "0fe8c940-6e52-11f1-b8dc-a5993cc534d7",
+          "seasonNumber": 1,
+          "episodeNumber": 10,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "8a2c7c70-1a21-11f1-ae10-4f7a3c2190bf",
+          "seasonNumber": 1,
+          "episodeNumber": 12,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "14613be0-5f67-11f1-be9f-87496992859e",
+          "seasonNumber": 1,
+          "episodeNumber": 13,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "4b9424f0-e7f4-11f0-b3e6-33cffeab9913",
+          "seasonNumber": 1,
+          "episodeNumber": 13,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2",
+          "seasonNumber": 1,
+          "episodeNumber": 14,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "5f8394b0-89eb-11f1-a5d5-f5268777e2e0",
+          "seasonNumber": 1,
+          "episodeNumber": 15,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "a5749a30-940c-11f1-893c-a7a7093290b1",
+          "seasonNumber": 1,
+          "episodeNumber": 17,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "7c1448e0-d532-11f0-aebf-7f020b8689ca",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "da7bbe30-c629-11f0-a062-ed284b0e9fd8",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        },
+        {
+          "id": "6a3891a0-be51-11f0-8f57-5b13bfa71465",
+          "seasonNumber": 1,
+          "episodeNumber": 18,
+          "reason": "no-usable-links"
+        }
+      ]
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "581efd70-5698-11ef-8956-f95068daf4da",
@@ -993,38 +1717,38 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 0,
+  "episodesDiscovered": 210,
   "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 54,
-  "episodeArtworkSeriesChecked": 24,
+  "episodeArtworkCandidates": 0,
+  "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
-  "episodeArtworkMirrored": 18,
-  "episodesRejectedNoLinks": 0,
-  "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
-  "affiliateRequests": 0,
-  "affiliateCacheHits": 0,
-  "affiliateNotFound": 0,
+  "episodeArtworkMirrored": 0,
+  "episodesRejectedNoLinks": 60,
+  "moviesAddedOrUpdated": 100,
+  "seriesAddedOrUpdated": 5,
+  "affiliateRequests": 122,
+  "affiliateCacheHits": 49,
+  "affiliateNotFound": 13,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
-  "imagesMirrored": 18,
-  "imageMirrorErrors": 18,
+  "imagesMirrored": 0,
+  "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
   "episodeFrameErrors": 0,
-  "seriesKeptVisibleDuringBackfill": 0,
+  "seriesKeptVisibleDuringBackfill": 5,
   "seriesRestoredByMonotonicGuard": 0,
-  "peopleEnrichmentCandidates": 186,
-  "peopleEnrichmentProcessed": 20,
-  "peopleEnrichmentSucceeded": 3,
-  "peopleEnrichmentFailed": 17,
-  "peopleEnrichmentSkippedFresh": 65,
+  "peopleEnrichmentCandidates": 0,
+  "peopleEnrichmentProcessed": 0,
+  "peopleEnrichmentSucceeded": 0,
+  "peopleEnrichmentFailed": 0,
+  "peopleEnrichmentSkippedFresh": 0,
   "peopleEnrichmentFromSource": 0,
-  "peopleEnrichmentFromTmdb": 3,
+  "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
-  "peopleAdded": 12,
-  "tmdbRequests": 25,
-  "imdbRequests": 27,
+  "peopleAdded": 0,
+  "tmdbRequests": 0,
+  "imdbRequests": 0,
   "mediaRepairCandidates": 0,
   "mediaRepairChecked": 0,
   "mediaRepairRecovered": 0,
@@ -1039,243 +1763,14 @@
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
-      "scope": "episode-artwork-4feeeb30-b7dc-11f0-a6fc-79902a83e715",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-99ec1bf0-4afa-11ee-87f8-9f43ad598dd2",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-2a00d500-3eed-11e8-bbc0-ef914c209838",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-af3f70e0-d919-11e8-962e-35c1bfc338e6",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-946774b0-3ee5-11e8-95aa-77b5803429da",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-85d855e0-340e-11ed-8ac9-f1be46586898",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-30887d00-2202-11ed-8278-39539c2baf45",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-1d826ab0-ca03-11f0-82b9-33bab0125bc6",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-1b6a7520-d19d-11ee-83f7-8fa6588a44cd",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-c31e83d0-ec57-11ed-a4b1-9700540c04df",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-30995770-d91a-11e8-a1de-3fdec812a3e5",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-6f632250-e61f-11f0-838b-6f95efda9909",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-d1fafca0-dbaa-11ea-8b89-e18819ca9e35",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-f9274ea0-632b-11e9-9c3c-070e21c5b5be",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-89546ca0-34d6-11ed-804f-2daa476fafb8",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-2f3be920-d8c1-11f0-a5bc-2fe8487c56f1",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-c63e6810-386d-11ef-863c-091635ebc05e",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-53d81a30-b05b-11f0-a0f0-7303548a05ce",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-6796d120-bc7b-11f0-bee3-e5d212979650",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-1af21e70-46db-11ec-8281-67b7f87ff6c0",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-c8caa550-94ea-11ec-865b-cd6bf1f34bc1",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-6c71ffe0-3ef0-11e8-a14c-137f453c2a5d",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-1ed80b20-340e-11ed-94e4-396df7bf5a21",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "episode-artwork-77fb5260-d647-11ef-9875-2d26004c5396",
-      "message": "Cannot access 'episodeFrameCapturesUsed' before initialization"
-    },
-    {
-      "scope": "people-8f289220-5286-11f1-b41f-e9fb187cbd95",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-d92587c0-5286-11f1-8cf9-fde60b74f8f8",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-07df50f0-46b6-11f1-9868-31bc2bdb9b3b",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-f9b3d300-0922-11f1-abc6-6b384876b292",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-08f6b5e0-8809-11f1-b107-8380eb916de3",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-deecda90-5361-11f1-87dc-37789e8516dd",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-11d635d0-5419-11f1-aa16-612588af74c5",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-25a964d0-5419-11f1-9755-21b9875b8787",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-7afa8a10-8bfc-11f1-8242-e9d2d61cc65a",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-65c6eac0-6f92-11f1-9ffe-2d42a7552daf",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-09a77570-5423-11f1-9493-a183c83e77de",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-9b5c0e20-8899-11f0-ab39-1bd28a40a59f",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-0211f520-f2b9-11eb-8904-6179943b9168",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-08447d70-9b7e-11eb-8510-7d24d94903ac",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-7f0e60a0-e07b-11ea-83c4-2144b9a142fa",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-99ec1bf0-4afa-11ee-87f8-9f43ad598dd2",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-2a00d500-3eed-11e8-bbc0-ef914c209838",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
+      "scope": "airing-series-fbb54130-89c7-11ee-b35e-63f53dbb63af",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/fbb54130-89c7-11ee-b35e-63f53dbb63af?affiliate=1"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 84,
-  "finishedAt": "2026-08-11T08:41:25.606Z"
+  "apiRequests": 131,
+  "lastCheckpointAt": "2026-08-11T08:45:26.456Z",
+  "lastCheckpointReason": "year-backfill-movie-complete-b382ac70-618f-11f1-8e9b-dd6c6a7a7777",
+  "remainingRunMsAtCheckpoint": 845744,
+  "finishedAt": "2026-08-11T08:45:41.150Z"
 }
