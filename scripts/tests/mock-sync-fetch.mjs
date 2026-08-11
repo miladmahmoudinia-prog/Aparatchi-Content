@@ -218,6 +218,18 @@ globalThis.fetch = async (input) => {
                 },
               ]
             : []),
+          ...(scenario === 'series-ownership-operator'
+            ? [
+                {
+                  id: 'foreign-series-episode-13',
+                  type: 'episode',
+                  series_id: 'another-series',
+                  season_number: 1,
+                  episode_number: 13,
+                  show: 1,
+                },
+              ]
+            : []),
         ],
       },
     });
@@ -514,7 +526,7 @@ globalThis.fetch = async (input) => {
 
   if (url.pathname.endsWith('/ghost/get/getaffiliatelinks')) {
     if (
-      (scenario === 'episode-artwork' || scenario === 'sequential-series' || scenario === 'airing-update' || scenario === 'boilerplate-title-audit' || scenario === 'zero-number-ghosts' || scenario === 'duplicate-coordinate-fallback') &&
+      (scenario === 'episode-artwork' || scenario === 'sequential-series' || scenario === 'airing-update' || scenario === 'boilerplate-title-audit' || scenario === 'zero-number-ghosts' || scenario === 'duplicate-coordinate-fallback' || scenario === 'series-ownership-operator') &&
       url.searchParams.get('id') === 'episode-2'
     ) {
       return jsonResponse({
@@ -523,8 +535,10 @@ globalThis.fetch = async (input) => {
           links: [
             {
               amount: 0,
-              link: 'https://cdn.example.test/episode-2.mp4',
-              title: '720p',
+              link: scenario === 'series-ownership-operator'
+                ? 'https://aparatchi.upera.tv/stream/episode/005c8400-0147-11f1-8eee-e3adfdcac641?ref=f1ts'
+                : 'https://cdn.example.test/episode-2.mp4',
+              title: scenario === 'series-ownership-operator' ? 'پخش ویژه اینترنت همراه' : '720p',
             },
           ],
         },
