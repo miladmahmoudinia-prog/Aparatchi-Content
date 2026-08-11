@@ -69,12 +69,17 @@ const wildlifeStrongTerms = [
   'حیات جانوری', 'گونه های جانوری', 'گونه‌های جانوری', 'زیستگاه حیوانات', 'زیستگاه جانوران',
   'wildlife', 'wild animals', 'animal kingdom', 'natural history', 'nature documentary',
   'marine life', 'ocean life', 'underwater wildlife', 'planet earth', 'our planet',
+];
+const wildlifeSubjectTerms = [
   'leopard', 'leopards', 'cheetah', 'cheetahs', 'lion', 'lions', 'tiger', 'tigers',
   'wolf', 'wolves', 'bear', 'bears', 'shark', 'sharks', 'whale', 'whales', 'dolphin', 'dolphins',
   'elephant', 'elephants', 'gorilla', 'gorillas', 'penguin', 'penguins', 'birdlife',
+  'bee', 'bees', 'bumblebee', 'insect', 'insects', 'bird', 'birds', 'fish', 'reptile', 'reptiles',
+  'mammal', 'mammals', 'amphibian', 'amphibians', 'coral', 'octopus', 'turtle', 'turtles',
   'پلنگ', 'یوزپلنگ', 'شیرها', 'ببرها', 'گرگ ها', 'گرگ‌ها', 'خرس ها', 'خرس‌ها',
   'کوسه', 'نهنگ', 'دلفین', 'فیل ها', 'فیل‌ها', 'گوریل', 'پنگوئن', 'پرندگان وحشی',
-  'زنبور عسل', 'bumblebee', 'bee conservation',
+  'زنبور', 'زنبورها', 'حشرات', 'پرنده', 'پرندگان', 'ماهی', 'ماهیان', 'خزندگان', 'پستانداران',
+  'دوزیستان', 'لاک پشت', 'لاک‌پشت', 'مرجان', 'اختاپوس',
 ];
 const wildlifeWeakHabitatTerms = [
   'طبیعت', 'جنگل', 'اقیانوس', 'دریا', 'ساوانا', 'زیست بوم', 'زیست‌بوم',
@@ -84,15 +89,36 @@ const wildlifeAnimalContextTerms = [
   'حیوان', 'حیوانات', 'جانور', 'جانوران', 'گونه', 'شکارچی', 'حیات جانوری',
   'animal', 'animals', 'species', 'predator', 'fauna', 'creature',
 ];
+const wildlifeEcologyTerms = [
+  'زیستگاه', 'اکوسیستم', 'زیست بوم', 'زیست‌بوم', 'انقراض', 'در معرض انقراض', 'حفاظت از گونه',
+  'جمعیت جانوری', 'رفتار جانوران', 'مهاجرت جانوران', 'چرخه زندگی', 'چرخهٔ زندگی', 'تولید مثل',
+  'شکار و بقا', 'زنجیره غذایی', 'تنوع زیستی', 'محیط طبیعی',
+  'habitat', 'ecosystem', 'endangered', 'extinction', 'conservation', 'biodiversity',
+  'animal behavior', 'animal behaviour', 'migration', 'breeding', 'life cycle', 'food chain',
+  'natural environment', 'survival in the wild',
+];
 
 const indianLanguages = new Set(['hi', 'ta', 'te', 'ml', 'kn', 'bn', 'mr', 'pa', 'gu', 'ur']);
 
 export function isWildlifeDocumentaryText({ title = '', genres = [], overview = '' } = {}) {
-  const text = normalize(`${title} ${(genres || []).join(' ')} ${overview}`);
+  const normalizedTitle = normalize(title);
+  const normalizedOverview = normalize(overview);
+  const text = normalize(`${normalizedTitle} ${(genres || []).join(' ')} ${normalizedOverview}`);
   if (includesAny(text, wildlifeStrongTerms)) return true;
-  // Generic habitat words such as "nature", "forest" or "ocean" are not enough.
-  // Require an explicit animal/species context as well to avoid social/narrative false positives.
-  return includesAny(text, wildlifeWeakHabitatTerms) && includesAny(text, wildlifeAnimalContextTerms);
+
+  const subjectInTitle = includesAny(normalizedTitle, wildlifeSubjectTerms);
+  const specificSubjectInOverview = includesAny(normalizedOverview, wildlifeSubjectTerms);
+  const genericAnimalContext = includesAny(normalizedOverview, wildlifeAnimalContextTerms);
+  const ecologyContext = includesAny(normalizedOverview, wildlifeEcologyTerms);
+  const habitatContext = includesAny(normalizedOverview, wildlifeWeakHabitatTerms);
+
+  // A species in the title of a documentary is a strong signal. When the
+  // title is unrelated, the synopsis must contain both an animal subject and
+  // ecological/behavioural context. A lone word such as forest, nature,
+  // animal or ocean can never move a social/narrative film into Wildlife.
+  return subjectInTitle ||
+    (specificSubjectInOverview && (ecologyContext || habitatContext)) ||
+    (genericAnimalContext && ecologyContext);
 }
 
 export function classifyCatalogItem(input = {}) {

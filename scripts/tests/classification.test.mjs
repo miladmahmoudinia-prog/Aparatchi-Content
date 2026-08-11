@@ -77,6 +77,20 @@ test('wildlife needs real animal context and rejects unrelated documentaries', (
     assert.ok(unrelated.categoryKeys.includes('documentaries'));
     assert.ok(!unrelated.categoryKeys.includes('wildlife'));
   }
+
+  const unrelatedTitle = classify({
+    name: 'A Hidden World', nameFa: 'دنیای پنهان', genres: ['Documentary'],
+    overview: 'این مستند رفتار، مهاجرت و زیستگاه طبیعی پرندگان و پستانداران یک جنگل دورافتاده را بررسی می‌کند.',
+  });
+  assert.ok(unrelatedTitle.categoryKeys.includes('wildlife'));
+  assert.ok(!unrelatedTitle.categoryKeys.includes('documentaries'));
+
+  const narrativeInNature = classify({
+    name: 'Lost in the Forest', nameFa: 'گمشده در جنگل', genres: ['Documentary'],
+    overview: 'داستان زندگی یک خانواده و حیوان خانگی آن‌ها در طبیعت و تلاششان برای بازگشت به خانه.',
+  });
+  assert.ok(narrativeInNature.categoryKeys.includes('documentaries'));
+  assert.ok(!narrativeInNature.categoryKeys.includes('wildlife'));
 });
 
 test('specialized episodic content stays out of generic series shelves', () => {
