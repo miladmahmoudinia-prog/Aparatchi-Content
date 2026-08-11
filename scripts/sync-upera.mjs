@@ -592,6 +592,10 @@ let affiliateRequestsUsed = 0;
 let affiliateBudgetExhausted = false;
 const affiliateLinkCache = new Map();
 const episodeFailureRegisteredThisRun = new Set();
+// PEOPLE mode can start episode-artwork work before execution reaches the
+// helper declarations below. Keep this counter initialized with the other
+// run-scoped state to avoid the top-level `let` temporal dead zone.
+let episodeFrameCapturesUsed = 0;
 
 // A scoped quota is softer than the global run budget. Reaching it stops only
 // the current phase and lets the next reserved phase continue. This is the key
@@ -1544,6 +1548,9 @@ function buildSequentialArchiveQueue() {
   for (let catalogIndex = 0; catalogIndex < items.length; catalogIndex += 1) {
     const item = items[catalogIndex];
     if (!item || !['movie', 'series'].includes(item.type)) continue;
+    // Operator siblings are derived from their standard source record. They
+    // are not real Upera title ids and must never become archive/API cursors.
+    if (catalogVariant(item) === 'operator') continue;
     if (item.type === 'movie') {
       if (!movieMediaAuditDue(item)) continue;
       entries.push({ item, catalogIndex, kind: 'movie', deficit: { total: movieHasUsableMedia(item) ? 0 : 1 } });
@@ -2500,7 +2507,7 @@ async function processCandidate(candidate, source) {
 }
 
 async function processMovie(candidate, source, options = {}) {
-  const id = candidate?.id || candidate?.t_id;
+  const id = baseCatalogId(candidate) || candidate?.t_id;
 
   if (!id) {
     return { retryLater: false, added: false, reason: 'missing-id' };
@@ -2689,7 +2696,7 @@ async function processSeries(
   options = {},
 ) {
   const id =
-    candidate?.id ||
+    baseCatalogId(candidate) ||
     candidate?.t_id ||
     candidate?.series_id;
 
@@ -4155,12 +4162,13 @@ async function enrichPeopleFromImdb(item) {
 }
 
 async function enrichPeopleFromSource(item) {
+  const sourceId = baseCatalogId(item);
   let detail = null;
   if (item?.type === 'movie') {
-    detail = await fetchMovieDetail(item.id);
+    detail = await fetchMovieDetail(sourceId);
   } else if (item?.type === 'series') {
     const url = new URL(
-      `${API_BASE}/ghost/get/series/${encodeURIComponent(item.id)}`,
+      `${API_BASE}/ghost/get/series/${encodeURIComponent(sourceId)}`,
     );
     url.searchParams.set('affiliate', '1');
     const json = await fetchJson(url);
@@ -4201,8 +4209,6 @@ async function fetchSeriesEpisodeArtworkMetadata(id) {
   return dedupeEpisodes(collectEpisodes(data)).sort(compareEpisodes);
 }
 
-
-let episodeFrameCapturesUsed = 0;
 
 function episodeFrameSource(group) {
   const files = Array.isArray(group?.files) ? group.files : [];
@@ -4350,6 +4356,7 @@ async function syncEpisodeArtworkMetadata(options = {}) {
   ));
   const candidates = items
     .filter((item) => item?.type === 'series')
+    .filter((item) => catalogVariant(item) !== 'operator')
     .filter((item) => {
       const usage = episodeArtworkUsage(item);
       return (Array.isArray(item.downloads) ? item.downloads : []).some((group) =>
@@ -4381,7 +4388,7 @@ async function syncEpisodeArtworkMetadata(options = {}) {
     stats.episodeArtworkSeriesChecked += 1;
     item.episodeArtworkCheckedAt = new Date().toISOString();
     try {
-      const episodes = await fetchSeriesEpisodeArtworkMetadata(item.id);
+      const episodes = await fetchSeriesEpisodeArtworkMetadata(baseCatalogId(item));
       stats.episodeArtworkAdded += hydrateEpisodeGroupArtwork(item.downloads, episodes);
       await generateMissingEpisodeFrames(item);
     } catch (error) {
@@ -4401,6 +4408,7 @@ async function syncPeopleMetadata(options = {}) {
   ));
   const candidates = items
     .filter((item) => peopleEnrichmentNeedsWork(item))
+    .filter((item) => catalogVariant(item) !== 'operator')
     .filter((item) => {
       const allowed = peopleRetryAllowed(item, nowMs);
       if (!allowed) stats.peopleEnrichmentSkippedFresh += 1;
