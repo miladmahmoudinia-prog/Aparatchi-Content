@@ -56,6 +56,26 @@ const compactPersonReferences = (people) => {
   return result;
 };
 
+const normalizePersonWorkKey = (value) =>
+  String(value || '')
+    .toLowerCase()
+    .normalize('NFKC')
+    .replace(/[يى]/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/[^a-z0-9\u0600-\u06ff]+/g, ' ')
+    .trim();
+
+const peopleWorkKeysForPerson = (person) => {
+  const keys = [];
+  const tmdbId = Number(person?.tmdbId || 0);
+  if (tmdbId > 0) keys.push('tmdb:' + tmdbId);
+  for (const value of [person?.name, person?.nameFa]) {
+    const normalized = normalizePersonWorkKey(value);
+    if (normalized) keys.push('name:' + normalized);
+  }
+  return [...new Set(keys)];
+};
+
 export function clientSummaryForItem(item) {
   const summary = {};
   for (const field of SUMMARY_FIELDS) {
@@ -137,6 +157,7 @@ const isClientVisibleItem = (item) => {
 export function buildClientCatalogArtifacts(catalog) {
   const detailFiles = [];
   const items = [];
+  const peopleWorks = Object.create(null);
 
   for (const item of Array.isArray(catalog?.items) ? catalog.items : []) {
     if (!isClientVisibleItem(item)) continue;
@@ -146,6 +167,12 @@ export function buildClientCatalogArtifacts(catalog) {
     // be hidden again by the mobile publication gate.
     if (item.type === 'series') summary.publicationStatus = 'published';
     items.push(summary);
+    for (const person of Array.isArray(summary.people) ? summary.people : []) {
+      for (const key of peopleWorkKeysForPerson(person)) {
+        if (!peopleWorks[key]) peopleWorks[key] = [];
+        if (!peopleWorks[key].includes(summary.id)) peopleWorks[key].push(summary.id);
+      }
+    }
     detailFiles.push({ path: summary.detailPath, serialized: detailSerialized });
   }
 
@@ -156,6 +183,7 @@ export function buildClientCatalogArtifacts(catalog) {
     iranianSchedule: Array.isArray(catalog?.iranianSchedule) ? catalog.iranianSchedule : [],
     weeklySchedule: Array.isArray(catalog?.weeklySchedule) ? catalog.weeklySchedule : [],
     featuredPeople: Array.isArray(catalog?.featuredPeople) ? catalog.featuredPeople : [],
+    peopleWorks,
     ...(catalog?.imdbTop100 ? { imdbTop100: catalog.imdbTop100 } : {}),
   };
 

@@ -13,9 +13,9 @@ import {
 const API_BASE = 'https://seeko.film/api/v1';
 const IRANIAN_SERIES_SCAN_VERSION = 3;
 const SERIES_COMPLETENESS_AUDIT_VERSION = 2;
-const MEDIA_LANGUAGE_AUDIT_VERSION = 3;
+const MEDIA_LANGUAGE_AUDIT_VERSION = 4;
 const ARCHIVE_COMPLETION_ORDER_VERSION = 1;
-const CATALOG_VERSION = '0.21.1-media-recovery';
+const CATALOG_VERSION = '0.22.0-final-stability';
 const AFFILIATE_URL_KEYS = [
   'link', 'url', 'href', 'download_url', 'downloadUrl', 'download_link', 'downloadLink',
   'stream_url', 'streamUrl', 'stream_link', 'streamLink', 'file_url', 'fileUrl', 'file',
@@ -1243,7 +1243,7 @@ async function syncIncompleteMovieMedia() {
   stats.mediaRepairCandidates = candidates.length;
   if (!candidates.length) { state.mediaRepairOffset = 0; return; }
 
-  const limit = Math.min(72, candidates.length);
+  const limit = Math.min(120, candidates.length);
   const start = state.mediaRepairOffset % candidates.length;
   let visited = 0;
   for (let step = 0; step < limit; step += 1) {
@@ -1322,15 +1322,8 @@ async function syncRecentMovieDiscovery() {
 async function syncRecentSeriesDiscovery() {
   const candidates = await collectRecentPageCandidates('series', recentSeriesPagesPerRun);
   stats.recentSeriesCandidates = candidates.length;
-
-  // Never start a second archive while another series is incomplete. New
-  // series can still be discovered by the hourly page scan, but their episode
-  // downloads wait until the active archive is complete and published.
-  const archiveQueue = buildSequentialBackfillQueue();
-  if (archiveQueue.length > 0) {
-    stats.recentSeriesDeferredByArchiveQueue = candidates.length;
-    return;
-  }
+  // Fresh/current series are independent from archive backfill.
+  stats.recentSeriesDeferredByArchiveQueue = 0;
 
   const selected = candidates
     .map((candidate) => ({
@@ -1344,10 +1337,10 @@ async function syncRecentSeriesDiscovery() {
     // pass below. Discovery is only allowed to start one unpublished archive.
     .filter((entry) => entry.existing?.publicationStatus !== 'published')
     .sort((a, b) => a.priority - b.priority || b.timestamp - a.timestamp)
-    .slice(0, 1);
+    .slice(0, recentSeriesTitlesPerRun);
 
   stats.recentSeriesNewCandidates = selected.filter((entry) => entry.priority === 0).length;
-  for (const { candidate } of selected) {
+  for (const { candidate, existing } of selected) {
     if (affiliateBudgetExhausted || affiliateScopeExhausted) break;
     try {
       const result = await processSeries(candidate, 'recent-discovery', {
@@ -1355,6 +1348,13 @@ async function syncRecentSeriesDiscovery() {
         episodeLimit: recentSeriesEpisodeLimit,
         onlyMissing: true,
       });
+      if (!existing && result?.added) {
+        const added = findExistingItem(candidate, 'series');
+        if (added) {
+          added.meaningfulUpdatedAt = added.meaningfulUpdatedAt || new Date().toISOString();
+          added.updateLabel = 'سریال جدید';
+        }
+      }
       stats.recentSeriesProcessed += 1;
       if (result?.retryLater && affiliateScopeExhausted) break;
     } catch (error) {
@@ -2878,9 +2878,9 @@ async function processSeries(
   }
 
   const isAiring = inferSeriesAiring(series, existing);
+  const isMeaningfulEpisodeUpdate = Boolean(addedEpisodes > 0 && latestAddedEpisode && existing);
   const isPublishedAiringEpisodeUpdate = Boolean(
-    addedEpisodes > 0 &&
-    latestAddedEpisode &&
+    isMeaningfulEpisodeUpdate &&
     existing?.publicationStatus === 'published' &&
     isAiring &&
     (source === 'airing-refresh' || source === 'incremental'),
@@ -2888,7 +2888,7 @@ async function processSeries(
 
   let updateLabel = existing?.updateLabel || '';
 
-  if (isPublishedAiringEpisodeUpdate && latestAddedEpisode) {
+  if (isMeaningfulEpisodeUpdate && latestAddedEpisode) {
     const episodeNumber = episodeNumberValue(latestAddedEpisode);
     updateLabel = `قسمت ${toPersianDigits(episodeNumber)} اضافه شد`;
   } else if ((source === 'incremental' || source.endsWith('-priority')) && existing) {
@@ -2959,7 +2959,7 @@ async function processSeries(
       episodeDiscoveryComplete,
       episodePaginationPagesFetched: detail.episodePaginationPagesFetched || 0,
       episodePaginationErrors: detail.episodePaginationErrors || 0,
-      meaningfulUpdatedAt: isPublishedAiringEpisodeUpdate
+      meaningfulUpdatedAt: isMeaningfulEpisodeUpdate
         ? new Date().toISOString()
         : existing?.meaningfulUpdatedAt,
       mediaLanguageAuditComplete,
@@ -4302,7 +4302,6 @@ async function syncEpisodeArtworkMetadata(options = {}) {
       const usage = episodeArtworkUsage(item);
       return (Array.isArray(item.downloads) ? item.downloads : []).some((group) =>
         Number(group?.episodeNumber || 0) > 0 &&
-        cleanText(group?.sourceEpisodeId) &&
         episodeGroupNeedsGeneratedFrame(item, group, usage),
       );
     })

@@ -709,7 +709,7 @@ test('a zero-media movie cannot freeze an old production year while the repair l
     const oldMovie = result.catalog.items.find((entry) => entry.id === 'old-movie');
     const newMovie = result.catalog.items.find((entry) => entry.id === 'new-movie');
     assert.equal(oldMovie?.mediaAuditStatus, 'confirmed-unavailable', 'missing old title is hidden instead of pinning the year queue');
-    assert.equal(oldMovie?.mediaLanguageAuditVersion, 3);
+    assert.equal(oldMovie?.mediaLanguageAuditVersion, 4);
     assert.ok(newMovie?.downloads?.flatMap((section) => section.files || []).some((file) => /new-movie\.mp4/.test(file.url)), 'the queue advances to the next year in the same run');
     assert.equal(newMovie?.mediaAuditStatus, 'ok');
   } finally {
