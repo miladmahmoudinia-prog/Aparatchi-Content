@@ -46,7 +46,7 @@ jobs:
           if [ "$patch_code" -ne 0 ] || [ "$test_code" -ne 0 ]; then
             code="$patch_code"
             if [ "$code" -eq 0 ]; then code="$test_code"; fi
-            git restore scripts/sync-upera.mjs scripts/client-catalog.mjs .github/workflows/sync-upera.yml 2>/dev/null || true
+            git restore scripts/sync-upera.mjs scripts/client-catalog.mjs .github/workflows/sync-upera.yml scripts/tests/sync-upera-regression.test.mjs 2>/dev/null || true
             rm -f scripts/tests/final-stability.test.mjs
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -64,7 +64,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/sync-upera.mjs scripts/client-catalog.mjs .github/workflows/sync-upera.yml scripts/tests/final-stability.test.mjs
+          git add scripts/sync-upera.mjs scripts/client-catalog.mjs .github/workflows/sync-upera.yml scripts/tests/sync-upera-regression.test.mjs scripts/tests/final-stability.test.mjs
           if git diff --cached --quiet; then
             echo "No source changes were needed."
             exit 0
