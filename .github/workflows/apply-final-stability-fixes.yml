@@ -29,26 +29,34 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Apply source fixes
+      - name: Apply and validate final Content fixes
         shell: bash
         run: |
           set +e
-          node scripts/apply-final-stability-fixes.mjs > final-fix-output.log 2>&1
-          code=$?
+          : > final-fix-output.log
+          node scripts/apply-final-stability-fixes.mjs >> final-fix-output.log 2>&1
+          patch_code=$?
+          if [ "$patch_code" -eq 0 ]; then
+            node --test scripts/tests/*.test.mjs >> final-fix-output.log 2>&1
+            test_code=$?
+          else
+            test_code=0
+          fi
           cat final-fix-output.log
-          if [ "$code" -ne 0 ]; then
+          if [ "$patch_code" -ne 0 ] || [ "$test_code" -ne 0 ]; then
+            code="$patch_code"
+            if [ "$code" -eq 0 ]; then code="$test_code"; fi
+            git restore scripts/sync-upera.mjs scripts/client-catalog.mjs .github/workflows/sync-upera.yml 2>/dev/null || true
+            rm -f scripts/tests/final-stability.test.mjs
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add final-fix-output.log
-            git commit -m "diagnostic: capture Content final fixer failure" || true
+            git commit -m "diagnostic: Content final fixer validation failure" || true
             git pull --rebase --autostash origin main
             git push origin HEAD:main
             exit "$code"
           fi
           rm -f final-fix-output.log
-
-      - name: Run Content regression tests
-        run: node --test scripts/tests/*.test.mjs
 
       - name: Commit fixed sources
         shell: bash
