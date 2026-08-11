@@ -353,6 +353,11 @@ globalThis.fetch = async (input) => {
           links: [
             {
               amount: 0,
+              link: 'https://cdn.example.test/operator-movie-1.mp4',
+              title: 'دانلود عادی 720p',
+            },
+            {
+              amount: 0,
               link: 'https://redl.ink/aparatchi-mobile-1',
               title: 'دانلود ویژه اینترنت همراه',
               operator_only: 1,

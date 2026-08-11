@@ -903,6 +903,11 @@ for (const [id, originalSeries] of originalSeriesById.entries()) {
   }
 }
 
+// A title can exist twice in Upera: the ordinary Upera edition and a separate
+// mobile-operator/Filimo edition. They must remain two independent catalog
+// posts even when their name, year and IMDb id are identical.
+items = splitOperatorCatalogVariants(items);
+
 items.sort((a, b) => {
   const aDate = String(
     a.updatedAt ||
@@ -4606,7 +4611,7 @@ function mergeDuplicateCatalogItems(sourceItems) {
     const names = identityNames(item);
     let matchIndex = -1;
     for (const name of names) {
-      const candidates = indexesByName.get(`${item.type}:${name}`) || [];
+      const candidates = indexesByName.get(`${catalogVariant(item)}:${item.type}:${name}`) || [];
       matchIndex = candidates.find((index) => yearsAreCompatible(result[index]?.year, item.year)) ?? -1;
       if (matchIndex >= 0) break;
     }
@@ -4615,7 +4620,7 @@ function mergeDuplicateCatalogItems(sourceItems) {
       const index = result.length;
       result.push(item);
       for (const name of names) {
-        const key = `${item.type}:${name}`;
+        const key = `${catalogVariant(item)}:${item.type}:${name}`;
         indexesByName.set(key, [...(indexesByName.get(key) || []), index]);
       }
       continue;
@@ -4624,7 +4629,7 @@ function mergeDuplicateCatalogItems(sourceItems) {
     result[matchIndex] = mergeDuplicateCatalogPair(result[matchIndex], item);
     merged += 1;
     for (const name of identityNames(result[matchIndex])) {
-      const key = `${result[matchIndex].type}:${name}`;
+      const key = `${catalogVariant(result[matchIndex])}:${result[matchIndex].type}:${name}`;
       const indexes = indexesByName.get(key) || [];
       if (!indexes.includes(matchIndex)) indexesByName.set(key, [...indexes, matchIndex]);
     }
@@ -5393,6 +5398,9 @@ function findExistingItem(
 
   return (
     items.find((item) => {
+      // Source candidates use the ordinary Upera identity. Operator editions
+      // are updated through the split pass and must never steal this match.
+      if (catalogVariant(item) !== 'standard') return false;
       if (
         id &&
         String(item.id) === id
@@ -5420,7 +5428,9 @@ function findExistingItem(
 }
 
 function replaceItem(next) {
+  const nextVariant = catalogVariant(next);
   items = items.filter((item) => {
+    if (catalogVariant(item) !== nextVariant) return true;
     if (
       String(item.id) ===
       String(next.id)
@@ -6924,6 +6934,116 @@ function sanitizeCatalogOperatorAccess(sourceItems) {
   return { items: sanitized, removed };
 }
 
+function catalogVariant(item) {
+  return item?.contentVariant === 'operator' ? 'operator' : 'standard';
+}
+
+function baseCatalogId(item) {
+  return cleanText(item?.sourceContentId || item?.id || '').replace(/--operator$/, '');
+}
+
+function filesByVariant(item, operator) {
+  return (Array.isArray(item?.downloads) ? item.downloads : []).flatMap((section) => {
+    const files = (Array.isArray(section?.files) ? section.files : []).filter((file) => {
+      const isOperator = file?.mode === 'operator-play' || file?.mode === 'operator-download';
+      return operator ? isOperator : !isOperator;
+    });
+    return files.length ? [{ ...section, files }] : [];
+  });
+}
+
+function splitOperatorCatalogVariants(sourceItems) {
+  const variants = [];
+
+  for (const item of Array.isArray(sourceItems) ? sourceItems : []) {
+    if (!item || !['movie', 'series'].includes(item.type)) {
+      variants.push(item);
+      continue;
+    }
+
+    const baseId = baseCatalogId(item);
+    if (!baseId) {
+      variants.push(item);
+      continue;
+    }
+
+    const directDownloads = filesByVariant(item, false);
+    const operatorDownloads = filesByVariant(item, true);
+    const hasDirect = directDownloads.length > 0 || isDirectMediaUrl(item?.streamUrl);
+    const hasOperator = operatorDownloads.length > 0;
+    const baseKeys = (item.categoryKeys || []).filter((key) => key !== 'mobile-operator');
+    const baseLabels = (item.categoryLabels || []).filter((label) => label !== 'ویژه اینترنت همراه');
+
+    if (hasDirect || !hasOperator) {
+      const standard = {
+        ...item,
+        id: baseId,
+        slug: `${item.type}-${baseId}`,
+        sourceContentId: baseId,
+        contentVariant: 'standard',
+        downloads: directDownloads,
+        operatorOnly: false,
+        access: item.access === 'paid' ? 'paid' : 'free',
+        categoryKeys: uniqueStrings(baseKeys),
+        categoryLabels: uniqueStrings(baseLabels),
+      };
+      delete standard.operatorAccess;
+      delete standard.supportedOperators;
+      if (item.type === 'series') {
+        standard.episodeCount = directDownloads.length;
+      }
+      variants.push(standard);
+    }
+
+    if (hasOperator) {
+      const operatorId = `${baseId}--operator`;
+      const operatorFiles = operatorDownloads.flatMap((group) => group.files || []);
+      const operator = {
+        ...item,
+        id: operatorId,
+        slug: `${item.type}-${operatorId}`,
+        sourceContentId: baseId,
+        contentVariant: 'operator',
+        downloads: operatorDownloads,
+        streamUrl: undefined,
+        streamMode: undefined,
+        access: 'operator',
+        operatorOnly: true,
+        operatorAccess: operatorAccessFromFiles(operatorFiles),
+        supportedOperators: uniqueStrings(operatorFiles.flatMap((file) => file.supportedOperators || [])),
+        categoryKeys: uniqueStrings([...baseKeys, 'mobile-operator']),
+        categoryLabels: uniqueStrings([...baseLabels, 'ویژه اینترنت همراه']),
+      };
+      if (!operator.supportedOperators.length) delete operator.supportedOperators;
+      if (item.type === 'series') {
+        operator.episodeCount = operatorDownloads.length;
+        operator.sourceEpisodeCount = operatorDownloads.length;
+        operator.archivePendingEpisodeCount = 0;
+        operator.archivePendingEpisodes = [];
+        operator.archiveUnavailableEpisodes = [];
+        operator.archiveComplete = true;
+        operator.publicationStatus = 'published';
+        operator.visibilityLocked = true;
+      }
+      variants.push(operator);
+    }
+  }
+
+  // A normal pass and an operator probe can both touch the same title in one
+  // run. Consolidate only rows with the exact same variant id.
+  const byId = new Map();
+  for (const item of variants) {
+    const key = cleanText(item?.id);
+    if (!key || !byId.has(key)) {
+      if (key) byId.set(key, item);
+      else byId.set(Symbol(), item);
+      continue;
+    }
+    byId.set(key, mergeDuplicateCatalogPair(byId.get(key), item));
+  }
+  return [...byId.values()];
+}
+
 function rememberDiagnostic(bucket, entry) {
   if (!Array.isArray(stats[bucket])) return;
   if (stats[bucket].length < 100) stats[bucket].push(entry);
@@ -7474,7 +7594,7 @@ function redact(url) {
 
 async function persistSyncCheckpoint(reason = 'checkpoint') {
   const now = new Date().toISOString();
-  const checkpointItems = items
+  const checkpointItems = splitOperatorCatalogVariants(items)
     .map(reclassifyCatalogItem)
     .map((item) => withSeriesPublicationState(item));
   const checkpointOutput = {

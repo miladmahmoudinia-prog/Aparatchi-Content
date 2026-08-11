@@ -412,19 +412,22 @@ test('foreign episode rows cannot add gaps or operator access to the wrong serie
   try {
     const result = await runSync(fixtureDirectory, { scenario: 'series-ownership-operator' });
     const item = result.catalog.items.find((entry) => entry.id === 'series-1');
-    const operatorFiles = (item?.downloads || []).flatMap((group) => group.files || []).filter((file) =>
+    const operatorItem = result.catalog.items.find((entry) => entry.id === 'series-1--operator');
+    const operatorFiles = (operatorItem?.downloads || []).flatMap((group) => group.files || []).filter((file) =>
       file.mode === 'operator-play' || file.mode === 'operator-download',
     );
 
     assert.equal(item?.sourceEpisodeCount, 2, 'episode rows owned by another series are excluded');
-    assert.equal(item?.downloads.length, 2);
-    assert.equal(item?.archivePendingEpisodeCount, 0);
-    assert.equal(item?.archiveComplete, true);
+    assert.equal(item?.downloads.length, 1);
+    assert.equal(item?.archivePendingEpisodeCount, 1, 'operator-only episode is not counted as ordinary media');
+    assert.equal(item?.archiveComplete, false);
     assert.equal(result.report.affiliateRequests, 1, 'foreign episode rows never reach the affiliate endpoint');
     assert.equal(operatorFiles.length, 1);
     assert.equal(operatorFiles[0]?.mode, 'operator-play');
     assert.match(operatorFiles[0]?.url || '', /^https:\/\/aparatchi\.upera\.tv\/stream\/episode\//);
-    assert.ok(item?.categoryKeys?.includes('mobile-operator'));
+    assert.ok(!item?.categoryKeys?.includes('mobile-operator'));
+    assert.equal(operatorItem?.operatorOnly, true);
+    assert.ok(operatorItem?.categoryKeys?.includes('mobile-operator'));
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }
@@ -451,7 +454,7 @@ test('episode artwork is stored with a newly discovered playable episode', async
   }
 });
 
-test('an explicit redl operator link is preserved as operator-only content', async () => {
+test('ordinary and operator editions of the same movie are published as separate posts', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-operator-regression-'));
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
     version: 'test',
@@ -468,8 +471,16 @@ test('an explicit redl operator link is preserved as operator-only content', asy
       scenario: 'operator-movie',
       operatorDiscovery: true,
     });
-    const item = result.catalog.items.find((entry) => entry.id === 'operator-movie-1');
+    const ordinaryItem = result.catalog.items.find((entry) => entry.id === 'operator-movie-1');
+    const item = result.catalog.items.find((entry) => entry.id === 'operator-movie-1--operator');
+    assert.ok(ordinaryItem, 'ordinary movie was added as its own post');
     assert.ok(item, 'operator movie was added');
+    assert.equal(ordinaryItem.contentVariant, 'standard');
+    assert.equal(ordinaryItem.operatorOnly, false);
+    assert.ok(!ordinaryItem.categoryKeys.includes('mobile-operator'));
+    assert.ok(ordinaryItem.downloads.flatMap((section) => section.files).some(
+      (file) => file.url === 'https://cdn.example.test/operator-movie-1.mp4',
+    ));
     assert.equal(item.operatorOnly, true);
     assert.equal(item.access, 'operator');
     assert.equal(item.operatorAccess, 'download');
@@ -497,7 +508,7 @@ test('operator movie discovery still runs while an archive backfill is active', 
       scenario: 'operator-movie',
       operatorDiscovery: true,
     });
-    const operatorItem = result.catalog.items.find((entry) => entry.id === 'operator-movie-1');
+    const operatorItem = result.catalog.items.find((entry) => entry.id === 'operator-movie-1--operator');
     assert.ok(operatorItem, 'operator movie is discovered even with a non-empty backfill queue');
     assert.equal(operatorItem.operatorOnly, true);
     assert.ok(operatorItem.categoryKeys.includes('mobile-operator'));
@@ -519,7 +530,7 @@ test('operator series discovery probes representative episodes during backfill',
       scenario: 'operator-series',
       operatorDiscovery: true,
     });
-    const operatorItem = result.catalog.items.find((entry) => entry.id === 'operator-series-1');
+    const operatorItem = result.catalog.items.find((entry) => entry.id === 'operator-series-1--operator');
     assert.ok(operatorItem, 'operator series is discovered even with a non-empty backfill queue');
     assert.ok(operatorItem.categoryKeys.includes('mobile-operator'));
     assert.equal(operatorItem.operatorOnly, true);
