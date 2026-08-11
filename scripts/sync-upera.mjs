@@ -2695,7 +2695,12 @@ async function processSeries(
       (episode) =>
         episode &&
         episode.id &&
-        Number(episode.show ?? 1) !== 0,
+        Number(episode.show ?? 1) !== 0 &&
+        // Some legacy series payloads contain unrelated/promotional rows with
+        // an id but no episode coordinate. They cannot be rendered or matched
+        // to a catalog episode and must not keep an otherwise complete archive
+        // permanently pending.
+        episodeNumberValue(episode) > 0,
     )
     .sort(compareEpisodes);
 
