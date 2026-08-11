@@ -497,6 +497,50 @@ test('ordinary and operator editions of the same movie are published as separate
   }
 });
 
+test('verified Ganje Mozafar episode 12 stream creates a separate operator series post', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-verified-operator-stream-'));
+  const fixture = initialCatalog();
+  const series = fixture.items[0];
+  series.id = '0211f520-f2b9-11eb-8904-6179943b9168';
+  series.slug = `series-${series.id}`;
+  series.name = 'Ganje Mozafar';
+  series.nameFa = 'گنج مظفر';
+  series.downloads = [{
+    ...series.downloads[0],
+    id: 'season-1-episode-12-source-episode-12',
+    sourceEpisodeId: 'source-episode-12',
+    seasonNumber: 1,
+    episodeNumber: 12,
+    title: 'فصل ۱ • قسمت ۱۲',
+  }];
+  series.episodeCount = 1;
+  series.sourceEpisodeCount = 1;
+  series.archivePendingEpisodeCount = 0;
+  series.archivePendingEpisodes = [];
+  series.archiveComplete = true;
+  series.publicationStatus = 'published';
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), fixture);
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, { mode: 'PEOPLE' });
+    const ordinary = result.catalog.items.find((entry) => entry.id === series.id);
+    const operator = result.catalog.items.find((entry) => entry.id === `${series.id}--operator`);
+    assert.ok(ordinary, 'ordinary Upera series remains available');
+    assert.ok(operator, 'mobile-operator sibling post is created');
+    assert.equal(ordinary.downloads[0].files.some((file) => file.mode === 'operator-play'), false);
+    assert.equal(operator.operatorOnly, true);
+    assert.equal(operator.downloads.length, 1);
+    const stream = operator.downloads[0].files.find((file) => file.mode === 'operator-play');
+    assert.equal(
+      stream?.url,
+      'https://aparatchi.upera.tv/stream/episode/005c8400-0147-11f1-8eee-e3adfdcac641?ref=regression-ref',
+    );
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
 test('operator movie discovery still runs while an archive backfill is active', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-operator-backfill-movie-'));
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());

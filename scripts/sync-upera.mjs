@@ -157,6 +157,20 @@ const operatorSeriesRequestQuota = Math.min(
   positiveInt(process.env.UPERA_OPERATOR_SERIES_REQUEST_QUOTA, 9),
 );
 
+// Verified mobile-operator streams supplied from Upera's own player. These
+// overrides are intentionally keyed by the ordinary source title + episode
+// coordinate so they can only create a sibling operator post for that exact
+// title and can never be attached by fuzzy name matching.
+const verifiedOperatorStreamOverrides = [
+  {
+    type: 'series',
+    sourceContentId: '0211f520-f2b9-11eb-8904-6179943b9168',
+    seasonNumber: 1,
+    episodeNumber: 12,
+    url: 'https://aparatchi.upera.tv/stream/episode/005c8400-0147-11f1-8eee-e3adfdcac641?ref=f1ts',
+  },
+];
+
 const newTitlesHours = positiveInt(
   process.env.NEW_TITLES_HOURS,
   72,
@@ -6953,9 +6967,10 @@ function filesByVariant(item, operator) {
 }
 
 function splitOperatorCatalogVariants(sourceItems) {
+  const preparedItems = applyVerifiedOperatorStreamOverrides(sourceItems);
   const variants = [];
 
-  for (const item of Array.isArray(sourceItems) ? sourceItems : []) {
+  for (const item of preparedItems) {
     if (!item || !['movie', 'series'].includes(item.type)) {
       variants.push(item);
       continue;
@@ -7042,6 +7057,50 @@ function splitOperatorCatalogVariants(sourceItems) {
     byId.set(key, mergeDuplicateCatalogPair(byId.get(key), item));
   }
   return [...byId.values()];
+}
+
+function applyVerifiedOperatorStreamOverrides(sourceItems) {
+  const overridesByTitle = new Map();
+  for (const override of verifiedOperatorStreamOverrides) {
+    const key = `${override.type}:${override.sourceContentId}`;
+    overridesByTitle.set(key, [...(overridesByTitle.get(key) || []), override]);
+  }
+
+  return (Array.isArray(sourceItems) ? sourceItems : []).map((item) => {
+    if (!item || catalogVariant(item) === 'operator') return item;
+    const titleOverrides = overridesByTitle.get(`${item.type}:${baseCatalogId(item)}`) || [];
+    if (!titleOverrides.length) return item;
+
+    let changed = false;
+    const downloads = (Array.isArray(item.downloads) ? item.downloads : []).map((group) => {
+      const override = titleOverrides.find((entry) =>
+        nonNegativeInt(group?.seasonNumber, 0) === nonNegativeInt(entry.seasonNumber, 0) &&
+        nonNegativeInt(group?.episodeNumber, 0) === nonNegativeInt(entry.episodeNumber, 0),
+      );
+      if (!override) return group;
+
+      const url = rewriteAffiliateRef(override.url);
+      const existingFiles = Array.isArray(group.files) ? group.files : [];
+      if (existingFiles.some((file) => file?.mode === 'operator-play' && file?.url === url)) return group;
+      changed = true;
+      return {
+        ...group,
+        files: dedupeMediaFiles([
+          ...existingFiles,
+          {
+            id: `verified-operator-play-${simpleHash(url)}`,
+            quality: 'پخش آنلاین',
+            label: 'پخش ویژه اینترنت همراه',
+            url,
+            mode: 'operator-play',
+            operatorOnly: true,
+          },
+        ]),
+      };
+    });
+
+    return changed ? { ...item, downloads } : item;
+  });
 }
 
 function rememberDiagnostic(bucket, entry) {
