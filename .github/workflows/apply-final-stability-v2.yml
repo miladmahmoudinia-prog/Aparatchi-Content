@@ -67,7 +67,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           rm -f final-fix-output.log final-v2-output.log
-          git add scripts/sync-upera.mjs scripts/client-catalog.mjs .github/workflows/sync-upera.yml scripts/tests/sync-upera-regression.test.mjs scripts/tests/final-stability.test.mjs
+          # sync-upera.yml is configured directly through the GitHub connector.
+          # Do not include workflow files in the bot commit because the job token
+          # intentionally lacks the workflows permission.
+          git restore .github/workflows/sync-upera.yml 2>/dev/null || true
+          git add scripts/sync-upera.mjs scripts/client-catalog.mjs scripts/tests/sync-upera-regression.test.mjs scripts/tests/final-stability.test.mjs
           git add -A final-fix-output.log final-v2-output.log 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No source changes were needed."
