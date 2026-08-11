@@ -30,6 +30,7 @@ jobs:
         with:
           node-version: '22'
 
+      # This runner is intentionally independent from the hourly catalog lane.
       - name: Apply source fixes
         run: node scripts/apply-final-stability-fixes.mjs
 
