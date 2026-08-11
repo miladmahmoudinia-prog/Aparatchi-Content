@@ -1,0 +1,280 @@
+Already applied or not needed: recent-series early return
+Final Content stability patches applied.
+TAP version 13
+# Subtest: narrative films with children/family wording are not child-program content
+ok 1 - narrative films with children/family wording are not child-program content
+  ---
+  duration_ms: 3.235342
+  type: 'test'
+  ...
+# Subtest: actual child programs stay in Kids and are excluded from Iranian cinema
+ok 2 - actual child programs stay in Kids and are excluded from Iranian cinema
+  ---
+  duration_ms: 0.524867
+  type: 'test'
+  ...
+# Subtest: Korean and Indian titles use exclusive regional shelves instead of generic foreign
+ok 3 - Korean and Indian titles use exclusive regional shelves instead of generic foreign
+  ---
+  duration_ms: 0.696345
+  type: 'test'
+  ...
+# Subtest: foreign-series reclassification removes a stale Iranian identity when trusted country/language exists
+ok 4 - foreign-series reclassification removes a stale Iranian identity when trusted country/language exists
+  ---
+  duration_ms: 0.476135
+  type: 'test'
+  ...
+# Subtest: wildlife needs real animal context and rejects unrelated documentaries
+ok 5 - wildlife needs real animal context and rejects unrelated documentaries
+  ---
+  duration_ms: 2.967471
+  type: 'test'
+  ...
+# Subtest: reality competitions are programs, not cinema, even when source type says movie
+ok 6 - reality competitions are programs, not cinema, even when source type says movie
+  ---
+  duration_ms: 0.496267
+  type: 'test'
+  ...
+# Subtest: client index strips heavy media fields but preserves browse metadata and compact cast identities
+ok 7 - client index strips heavy media fields but preserves browse metadata and compact cast identities
+  ---
+  duration_ms: 4.324364
+  type: 'test'
+  ...
+# Subtest: detail path changes when the full item changes
+ok 8 - detail path changes when the full item changes
+  ---
+  duration_ms: 0.649427
+  type: 'test'
+  ...
+# Subtest: client catalog remains much smaller by not embedding episode files and full cast payloads per item
+ok 9 - client catalog remains much smaller by not embedding episode files and full cast payloads per item
+  ---
+  duration_ms: 4.712885
+  type: 'test'
+  ...
+# Subtest: client index hides zero-media movies/series but keeps previously visible series with usable media
+ok 10 - client index hides zero-media movies/series but keeps previously visible series with usable media
+  ---
+  duration_ms: 0.478861
+  type: 'test'
+  ...
+# Subtest: client summary carries lightweight dubbing and subtitle badges without media payloads
+ok 11 - client summary carries lightweight dubbing and subtitle badges without media payloads
+  ---
+  duration_ms: 0.247721
+  type: 'test'
+  ...
+# Subtest: client summary recognizes language from lightweight file metadata and carries collection identity
+ok 12 - client summary recognizes language from lightweight file metadata and carries collection identity
+  ---
+  duration_ms: 0.164416
+  type: 'test'
+  ...
+# Subtest: movies without usable media stay server-side for repair but are hidden from the client index
+ok 13 - movies without usable media stay server-side for repair but are hidden from the client index
+  ---
+  duration_ms: 0.185318
+  type: 'test'
+  ...
+# Subtest: client summary recognizes Persian dubbing variants that used to be missed
+ok 14 - client summary recognizes Persian dubbing variants that used to be missed
+  ---
+  duration_ms: 0.177708
+  type: 'test'
+  ...
+# Subtest: client index accepts MKV direct downloads but rejects purchase-only links
+ok 15 - client index accepts MKV direct downloads but rejects purchase-only links
+  ---
+  duration_ms: 0.624784
+  type: 'test'
+  ...
+# Subtest: Persian metadata repair fills a missing Persian title and poster from TMDB
+ok 16 - Persian metadata repair fills a missing Persian title and poster from TMDB
+  ---
+  duration_ms: 159.444827
+  type: 'test'
+  ...
+# Subtest: client index exposes a compact reverse people-to-works map
+ok 17 - client index exposes a compact reverse people-to-works map
+  ---
+  duration_ms: 2.927292
+  type: 'test'
+  ...
+# Subtest: a permanent affiliate 404 never falsely completes a gapped archive
+ok 18 - a permanent affiliate 404 never falsely completes a gapped archive
+  ---
+  duration_ms: 496.040067
+  type: 'test'
+  ...
+# Subtest: legacy visible series never disappear while archive backfill is incomplete
+ok 19 - legacy visible series never disappear while archive backfill is incomplete
+  ---
+  duration_ms: 102.56352
+  type: 'test'
+  ...
+# Subtest: a new episode on a published airing series becomes the newest meaningful update
+ok 20 - a new episode on a published airing series becomes the newest meaningful update
+  ---
+  duration_ms: 20120.895172
+  type: 'test'
+  ...
+# Subtest: archive backfill never starts a second incomplete series in the same run
+ok 21 - archive backfill never starts a second incomplete series in the same run
+  ---
+  duration_ms: 149.728193
+  type: 'test'
+  ...
+# Subtest: one hourly backfill spends its budget on the same series until every discovered episode is complete
+ok 22 - one hourly backfill spends its budget on the same series until every discovered episode is complete
+  ---
+  duration_ms: 108.916078
+  type: 'test'
+  ...
+# Subtest: episode artwork is stored with a newly discovered playable episode
+ok 23 - episode artwork is stored with a newly discovered playable episode
+  ---
+  duration_ms: 99.008345
+  type: 'test'
+  ...
+# Subtest: an explicit redl operator link is preserved as operator-only content
+ok 24 - an explicit redl operator link is preserved as operator-only content
+  ---
+  duration_ms: 98.639343
+  type: 'test'
+  ...
+# Subtest: operator movie discovery still runs while an archive backfill is active
+ok 25 - operator movie discovery still runs while an archive backfill is active
+  ---
+  duration_ms: 119.435998
+  type: 'test'
+  ...
+# Subtest: operator series discovery probes representative episodes during backfill
+ok 26 - operator series discovery probes representative episodes during backfill
+  ---
+  duration_ms: 119.066304
+  type: 'test'
+  ...
+# Subtest: a blocked series observes its cooldown and then re-enters the queue
+ok 27 - a blocked series observes its cooldown and then re-enters the queue
+  ---
+  duration_ms: 155.454773
+  type: 'test'
+  ...
+# Subtest: people enrichment uses cast and director data from the source API
+ok 28 - people enrichment uses cast and director data from the source API
+  ---
+  duration_ms: 85.778082
+  type: 'test'
+  ...
+# Subtest: paid-only movie media is excluded from Aparatchi
+ok 29 - paid-only movie media is excluded from Aparatchi
+  ---
+  duration_ms: 90.58315
+  type: 'test'
+  ...
+# Subtest: dubbed language metadata is detected even when the link title only contains quality
+ok 30 - dubbed language metadata is detected even when the link title only contains quality
+  ---
+  duration_ms: 100.185344
+  type: 'test'
+  ...
+# Subtest: a stale complete series is re-audited once and boilerplate episode names are suppressed
+ok 31 - a stale complete series is re-audited once and boilerplate episode names are suppressed
+  ---
+  duration_ms: 101.6872
+  type: 'test'
+  ...
+# Subtest: grouped affiliate payloads preserve dubbed and subtitled media buckets
+ok 32 - grouped affiliate payloads preserve dubbed and subtitled media buckets
+  ---
+  duration_ms: 98.551036
+  type: 'test'
+  ...
+# Subtest: a free subtitled file is kept while a paid dubbed acquisition link is excluded
+ok 33 - a free subtitled file is kept while a paid dubbed acquisition link is excluded
+  ---
+  duration_ms: 99.102408
+  type: 'test'
+  ...
+# Subtest: extensionless ordinary acquisition portals are not exposed as downloads
+ok 34 - extensionless ordinary acquisition portals are not exposed as downloads
+  ---
+  duration_ms: 91.917072
+  type: 'test'
+  ...
+# Subtest: dubbed MKV files are retained as direct downloads instead of being discarded
+ok 35 - dubbed MKV files are retained as direct downloads instead of being discarded
+  ---
+  duration_ms: 94.075225
+  type: 'test'
+  ...
+# Subtest: Persian audio language codes mark an otherwise unlabeled file as dubbed
+ok 36 - Persian audio language codes mark an otherwise unlabeled file as dubbed
+  ---
+  duration_ms: 91.442808
+  type: 'test'
+  ...
+# Subtest: dubbed HLS keeps its language metadata for online playback
+ok 37 - dubbed HLS keeps its language metadata for online playback
+  ---
+  duration_ms: 93.186273
+  type: 'test'
+  ...
+# Subtest: oldest production year owns the archive queue before newer titles
+ok 38 - oldest production year owns the archive queue before newer titles
+  ---
+  duration_ms: 102.07226
+  type: 'test'
+  ...
+# Subtest: a zero-media movie cannot freeze an old production year while the repair lane keeps it recoverable
+not ok 39 - a zero-media movie cannot freeze an old production year while the repair lane keeps it recoverable
+  ---
+  duration_ms: 111.825531
+  type: 'test'
+  location: '/home/runner/work/Aparatchi-Content/Aparatchi-Content/scripts/tests/sync-upera-regression.test.mjs:695:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    4 !== 3
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 3
+  actual: 4
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/runner/work/Aparatchi-Content/Aparatchi-Content/scripts/tests/sync-upera-regression.test.mjs:712:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: regional reclassification fixes stale foreign-series metadata and wildlife documentaries without network work
+ok 40 - regional reclassification fixes stale foreign-series metadata and wildlife documentaries without network work
+  ---
+  duration_ms: 2078.38593
+  type: 'test'
+  ...
+# Subtest: IMDb ranking keeps all 100 entries and only links titles available in the catalog
+ok 41 - IMDb ranking keeps all 100 entries and only links titles available in the catalog
+  ---
+  duration_ms: 113.511105
+  type: 'test'
+  ...
+# Subtest: fresh IMDb ranking repairs missing Persian title and poster metadata without rebuilding ranks
+ok 42 - fresh IMDb ranking repairs missing Persian title and poster metadata without rebuilding ranks
+  ---
+  duration_ms: 92.231044
+  type: 'test'
+  ...
+1..42
+# tests 42
+# suites 0
+# pass 41
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 25037.800277
