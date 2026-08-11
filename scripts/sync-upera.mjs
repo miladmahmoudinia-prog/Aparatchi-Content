@@ -2704,6 +2704,18 @@ async function processSeries(
     )
     .sort(compareEpisodes);
 
+  // Source payloads can expose several ids for the same season/episode. Keep
+  // every id in `episodes` so affiliate fallbacks are all attempted, but count
+  // each coordinate only once when deciding whether the archive is complete.
+  const episodesByCoordinate = [];
+  const seenEpisodeCoordinates = new Set();
+  for (const episode of episodes) {
+    const coordinate = archiveEpisodeCoordinateKey(episode);
+    if (seenEpisodeCoordinates.has(coordinate)) continue;
+    seenEpisodeCoordinates.add(coordinate);
+    episodesByCoordinate.push(episode);
+  }
+
   const existing = findExistingItem(series, 'series');
   const unavailableEpisodeMap = existingUnavailableEpisodeMap(id, existing);
   let unavailableMarked = 0;
@@ -2903,12 +2915,12 @@ async function processSeries(
   // Every source episode without a matching usable group stays in the archive
   // deficit, even after repeated failures. This is what keeps the backfill queue
   // on the same series instead of silently publishing a gapped archive.
-  const remainingSourceEpisodes = episodes.filter(
+  const remainingSourceEpisodes = episodesByCoordinate.filter(
     (episode) => { const group = findEpisodeGroup(mergedGroups, episode); return !group || !episodeGroupHasUsableMedia(group); },
   );
   const archiveComplete =
     episodeDiscoveryComplete &&
-    episodes.length > 0 &&
+    episodesByCoordinate.length > 0 &&
     remainingSourceEpisodes.length === 0 &&
     !stoppedByBudget;
   const historicalMissing = remainingSourceEpisodes.filter(
@@ -2958,7 +2970,7 @@ async function processSeries(
       isAiring,
       archiveComplete,
       publicationStatus,
-      sourceEpisodeCount: episodes.length,
+      sourceEpisodeCount: episodesByCoordinate.length,
       pendingEpisodes: remainingSourceEpisodes,
       unavailableEpisodes: [...unavailableEpisodeMap.values()],
       episodeDiscoveryComplete,
@@ -2995,7 +3007,7 @@ async function processSeries(
     archiveComplete,
     publicationStatus,
     remainingEpisodeCount: remainingSourceEpisodes.length,
-    sourceEpisodeCount: episodes.length,
+    sourceEpisodeCount: episodesByCoordinate.length,
     episodeDiscoveryComplete,
     reason: episodeDiscoveryComplete
       ? 'added-or-updated'
