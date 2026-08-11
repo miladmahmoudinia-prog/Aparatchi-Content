@@ -4,7 +4,7 @@ import path from 'node:path';
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
 const statePath = path.join(root, 'sync-state.json');
-const MEDIA_LANGUAGE_AUDIT_VERSION = 3;
+const MEDIA_LANGUAGE_AUDIT_VERSION = 4;
 const blockedCooldownHours = Math.max(
   1,
   Number.parseInt(String(process.env.APARATCHI_BLOCKED_COOLDOWN_HOURS || '6'), 10) || 6,
@@ -60,6 +60,15 @@ const needsArchiveWork = (item, now) => {
   );
 };
 
+const needsSeriesArchiveWork = (item) => Boolean(
+  item?.type === 'series' && (
+    item.archiveComplete !== true ||
+    item.publicationStatus !== 'published' ||
+    Number(item.archivePendingEpisodeCount || 0) > 0 ||
+    Number(item.mediaLanguageAuditVersion || 0) < MEDIA_LANGUAGE_AUDIT_VERSION
+  )
+);
+
 const clearArchiveLocks = (state) => {
   state.archiveBackfillItemId = '';
   state.archiveBackfillItemType = '';
@@ -72,7 +81,9 @@ const catalog = await readJson(catalogPath, { items: [] });
 const state = await readJson(statePath, {});
 const items = Array.isArray(catalog?.items) ? catalog.items.filter(Boolean) : [];
 const now = Date.now();
-const candidates = items.filter((item) => needsArchiveWork(item, now));
+// BACKFILL is series-first. Movie media repair has its own NORMAL lane and
+// must not influence which series owns the archive lock.
+const candidates = items.filter((item) => needsSeriesArchiveWork(item));
 const oldestYear = candidates.length ? Math.min(...candidates.map(yearOf)) : null;
 
 const activeId = String(state.archiveBackfillItemId || state.archiveBackfillSeriesId || '');
@@ -84,12 +95,14 @@ const noProgressRuns = activeId
   ? Number(state.archiveBackfillNoProgress?.[activeId] || 0)
   : 0;
 
+// A selected series owns the cursor until it is genuinely complete. Neither
+// repeated source failures nor the discovery of an older item may silently
+// move the queue to another incomplete series.
 const stale = Boolean(
   activeId && (
     !active ||
-    blockedCoolingDown(active, now) ||
-    noProgressRuns >= 3 ||
-    (oldestYear != null && yearOf(active) !== oldestYear)
+    active.type !== 'series' ||
+    !needsSeriesArchiveWork(active)
   )
 );
 
