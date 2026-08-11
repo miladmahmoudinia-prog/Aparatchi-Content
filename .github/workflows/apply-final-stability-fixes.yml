@@ -29,7 +29,22 @@ jobs:
           node-version: '22'
 
       - name: Apply source fixes
-        run: node scripts/apply-final-stability-fixes.mjs
+        shell: bash
+        run: |
+          set +e
+          node scripts/apply-final-stability-fixes.mjs > final-fix-output.log 2>&1
+          code=$?
+          cat final-fix-output.log
+          if [ "$code" -ne 0 ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add final-fix-output.log
+            git commit -m "diagnostic: capture Content final fixer failure" || true
+            git pull --rebase --autostash origin main
+            git push origin HEAD:main
+            exit "$code"
+          fi
+          rm -f final-fix-output.log
 
       - name: Run Content regression tests
         run: node --test scripts/tests/*.test.mjs
@@ -46,5 +61,5 @@ jobs:
             exit 0
           fi
           git commit -m "fix: stabilize series media people and episode backfill"
-          git pull --rebase origin main
+          git pull --rebase --autostash origin main
           git push origin HEAD:main
