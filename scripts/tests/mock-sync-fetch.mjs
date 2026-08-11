@@ -206,6 +206,18 @@ globalThis.fetch = async (input) => {
             name_fa: 'قسمت دوم سریال آزمون',
             show: 1,
           },
+          ...(scenario === 'duplicate-coordinate-fallback'
+            ? [
+                {
+                  id: 'episode-2-broken-source',
+                  type: 'episode',
+                  series_id: 'series-1',
+                  season_number: 1,
+                  episode_number: 2,
+                  show: 1,
+                },
+              ]
+            : []),
         ],
       },
     });
@@ -502,7 +514,7 @@ globalThis.fetch = async (input) => {
 
   if (url.pathname.endsWith('/ghost/get/getaffiliatelinks')) {
     if (
-      (scenario === 'episode-artwork' || scenario === 'sequential-series' || scenario === 'airing-update' || scenario === 'boilerplate-title-audit' || scenario === 'zero-number-ghosts') &&
+      (scenario === 'episode-artwork' || scenario === 'sequential-series' || scenario === 'airing-update' || scenario === 'boilerplate-title-audit' || scenario === 'zero-number-ghosts' || scenario === 'duplicate-coordinate-fallback') &&
       url.searchParams.get('id') === 'episode-2'
     ) {
       return jsonResponse({
