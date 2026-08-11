@@ -385,6 +385,25 @@ test('unnumbered legacy payload rows do not keep a complete series pending', asy
   }
 });
 
+test('duplicate source ids count once while every affiliate fallback is attempted', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-duplicate-episode-coordinate-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, { scenario: 'duplicate-coordinate-fallback' });
+    const item = result.catalog.items.find((entry) => entry.id === 'series-1');
+
+    assert.equal(item?.sourceEpisodeCount, 2, 'duplicate ids do not inflate the source episode count');
+    assert.equal(item?.downloads.length, 2);
+    assert.equal(item?.archivePendingEpisodeCount, 0);
+    assert.equal(item?.archiveComplete, true);
+    assert.equal(item?.publicationStatus, 'published');
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
 test('episode artwork is stored with a newly discovered playable episode', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-episode-artwork-'));
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());
