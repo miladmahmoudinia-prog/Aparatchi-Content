@@ -1545,6 +1545,12 @@ function buildSequentialArchiveQueue() {
   }
 
   return entries.sort((a, b) => {
+    // Series completion is the dedicated BACKFILL lane. Movies already have
+    // their own bounded media-repair lane in NORMAL runs, so an old movie audit
+    // must never consume the whole archive run before a series is selected.
+    const typeDiff = Number(b.kind === 'series') - Number(a.kind === 'series');
+    if (typeDiff) return typeDiff;
+
     const activeId = String(state.archiveBackfillItemId || '');
     const activeType = String(state.archiveBackfillItemType || '');
     const aActive = String(a.item?.id || '') === activeId && a.item?.type === activeType;
@@ -1556,11 +1562,6 @@ function buildSequentialArchiveQueue() {
     // programs (all of those are represented by movie/series source records).
     const yearDiff = archiveItemYear(a.item) - archiveItemYear(b.item);
     if (yearDiff) return yearDiff;
-
-    // Within the same year, cheap one-request movies are completed first. A
-    // series then owns the queue until all discoverable episodes are repaired.
-    const typeDiff = Number(a.kind === 'series') - Number(b.kind === 'series');
-    if (typeDiff) return typeDiff;
 
     const dateDiff = archiveItemTimestamp(a.item) - archiveItemTimestamp(b.item);
     if (dateDiff) return dateDiff;
@@ -1904,6 +1905,12 @@ function buildSequentialBackfillQueue() {
       const bActive = String(b.item?.id || '') === activeId;
       if (aActive !== bActive) return aActive ? -1 : 1;
 
+      // After an explicitly active series, always start with the oldest
+      // production year. Once selected, that id remains locked across runs
+      // until the archive is complete.
+      const yearDiff = seriesBackfillYear(a.item) - seriesBackfillYear(b.item);
+      if (yearDiff) return yearDiff;
+
       const aNeedsArchive =
         a.deficit.total > 0 ||
         a.item?.publicationStatus !== 'published' ||
@@ -1919,16 +1926,9 @@ function buildSequentialBackfillQueue() {
       const deficitDiff = a.deficit.total - b.deficit.total;
       if (deficitDiff) return deficitDiff;
 
-      const aAiring = Boolean(a.item?.isAiring);
-      const bAiring = Boolean(b.item?.isAiring);
-      if (aAiring !== bAiring) return aAiring ? -1 : 1;
-
-      const yearDiff = seriesBackfillYear(b.item) - seriesBackfillYear(a.item);
-      if (yearDiff) return yearDiff;
-
       const dateDiff =
-        seriesBackfillTimestamp(b.item) -
-        seriesBackfillTimestamp(a.item);
+        seriesBackfillTimestamp(a.item) -
+        seriesBackfillTimestamp(b.item);
       if (dateDiff) return dateDiff;
 
       const titleDiff = String(a.item?.nameFa || a.item?.name || '').localeCompare(
