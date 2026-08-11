@@ -311,6 +311,58 @@ test('one hourly backfill spends its budget on the same series until every disco
   }
 });
 
+test('series backfill runs before old movie audits and selects the oldest series first', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-series-first-backfill-'));
+  const fixture = initialCatalog();
+  fixture.items[0].year = 2025;
+  fixture.items.push({
+    id: 'old-movie',
+    type: 'movie',
+    name: 'Very Old Movie',
+    nameFa: 'فیلم بسیار قدیمی',
+    year: 1900,
+    genres: ['درام'],
+    poster: 'https://example.test/old.jpg',
+    backdrop: 'https://example.test/old-bg.jpg',
+    overview: 'fixture',
+    downloads: [{ id: 'old-movie-download', files: [{ id: 'old-movie-720', mode: 'download', url: 'https://cdn.example.test/old-movie.mp4' }] }],
+    mediaLanguageAuditVersion: 0,
+  });
+  fixture.items.push({
+    ...structuredClone(fixture.items[0]),
+    id: 'series-2',
+    slug: 'series-series-2',
+    name: 'Older Regression Series',
+    nameFa: 'سریال قدیمی‌تر',
+    year: 2010,
+    downloads: [{
+      id: 'series2-episode-1',
+      sourceEpisodeId: 'series2-episode-1',
+      seasonNumber: 1,
+      episodeNumber: 1,
+      title: 'قسمت ۱',
+      files: [{ id: 'series2-episode-1-720', mode: 'download', url: 'https://cdn.example.test/series2-episode-1.mp4' }],
+    }],
+    archivePendingEpisodes: [{ seasonNumber: 1, episodeNumber: 2 }],
+  });
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), fixture);
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, { scenario: 'sequential-series' });
+    const oldMovie = result.catalog.items.find((item) => item.id === 'old-movie');
+    const olderSeries = result.catalog.items.find((item) => item.id === 'series-2');
+    const newerSeries = result.catalog.items.find((item) => item.id === 'series-1');
+
+    assert.equal(result.report.backfillSeriesVisited, 1);
+    assert.equal(olderSeries?.publicationStatus, 'published', 'oldest series is completed first');
+    assert.equal(newerSeries?.publicationStatus, 'building-archive', 'newer series waits for the next run');
+    assert.equal(oldMovie?.mediaLanguageAuditVersion, 0, 'movie audits cannot starve series backfill');
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
 test('episode artwork is stored with a newly discovered playable episode', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-episode-artwork-'));
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());
