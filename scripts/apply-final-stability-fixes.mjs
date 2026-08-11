@@ -129,6 +129,15 @@ setEnv('UPERA_BLOCKED_RETRY_HOURS', '6');
 setEnv('UPERA_RETRY_BLOCKED', 'false');
 await fs.writeFile('.github/workflows/sync-upera.yml', workflow, 'utf8');
 
+let regression = await fs.readFile('scripts/tests/sync-upera-regression.test.mjs', 'utf8');
+regression = required(
+  regression,
+  /assert\.equal\(oldMovie\?\.mediaLanguageAuditVersion, 3\);/,
+  'assert.equal(oldMovie?.mediaLanguageAuditVersion, 4);',
+  'media audit regression version',
+);
+await fs.writeFile('scripts/tests/sync-upera-regression.test.mjs', regression, 'utf8');
+
 const test = `import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { buildClientCatalogArtifacts } from '../client-catalog.mjs';\n\ntest('client index exposes a compact reverse people-to-works map', () => {\n  const media = [{ id: 'd', files: [{ id: 'f', mode: 'download', url: 'https://cdn.test/a.mp4' }] }];\n  const person = { id: 'actor-1', tmdbId: 123, name: 'Test Actor', nameFa: 'بازیگر تست', role: 'actor' };\n  const catalog = { version: 'test', updatedAt: 'now', featuredPeople: [], items: [\n    { id: 'm1', type: 'movie', nameFa: 'یک', name: 'One', people: [person], downloads: media },\n    { id: 'm2', type: 'movie', nameFa: 'دو', name: 'Two', people: [person], downloads: media },\n  ] };\n  const { index } = buildClientCatalogArtifacts(catalog);\n  assert.deepEqual(index.peopleWorks['tmdb:123'], ['m1', 'm2']);\n  assert.deepEqual(index.peopleWorks['name:test actor'], ['m1', 'm2']);\n  assert.deepEqual(index.peopleWorks['name:بازیگر تست'], ['m1', 'm2']);\n});\n`;
 await fs.writeFile('scripts/tests/final-stability.test.mjs', test, 'utf8');
 console.log('Final Content stability patches applied.');
