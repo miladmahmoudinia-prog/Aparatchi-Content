@@ -2176,7 +2176,9 @@ async function syncOperatorSeriesArchive() {
       visitedTitles += 1;
       state.operatorSeriesOffset = offset;
 
-      if (buildSequentialBackfillQueue().length > 0) break;
+      // Operator discovery has an independent request scope. An archive queue
+      // must not stop it after the first title; continue until this lane's own
+      // title/request budget is reached.
     }
 
     if (offset >= candidates.length) {
@@ -2690,12 +2692,26 @@ async function processSeries(
     return { retryLater: false, completeBackfill: true, added: false, reason: 'not-iranian' };
   }
 
+  const episodeBelongsToRequestedSeries = (episode) => {
+    const ownerIds = uniqueStrings([
+      episode?.series_id,
+      episode?.seriesId,
+      episode?.parent_series_id,
+      episode?.parentSeriesId,
+      episode?.series?.id,
+    ].map((value) => cleanText(value)).filter(Boolean));
+    // Some valid legacy episode rows omit the parent id. Keep those, but when
+    // the API supplies ownership metadata it must match the requested series.
+    return ownerIds.length === 0 || ownerIds.includes(String(id));
+  };
+
   const episodes = detail.episodes
     .filter(
       (episode) =>
         episode &&
         episode.id &&
         Number(episode.show ?? 1) !== 0 &&
+        episodeBelongsToRequestedSeries(episode) &&
         // Some legacy series payloads contain unrelated/promotional rows with
         // an id but no episode coordinate. They cannot be rendered or matched
         // to a catalog episode and must not keep an otherwise complete archive
