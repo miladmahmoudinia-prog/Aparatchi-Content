@@ -195,7 +195,10 @@ jobs:
           UPERA_EPISODE_UNAVAILABLE_AFTER_ATTEMPTS: '8'
           UPERA_UNAVAILABLE_EPISODE_RETRY_HOURS: '1'
           UPERA_BLOCKED_RETRY_HOURS: '6'
-          UPERA_RETRY_BLOCKED: 'false'
+          # Retry the one locked archive on every hourly run. The backfill
+          # already stays on a single series, so a cooldown here would only
+          # delay recovery after parser/source fixes.
+          UPERA_RETRY_BLOCKED: 'true'
           UPERA_REQUEST_DELAY_MS: '650'
           APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
         run: node scripts/sync-upera.mjs
