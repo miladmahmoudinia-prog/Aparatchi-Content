@@ -404,6 +404,32 @@ test('duplicate source ids count once while every affiliate fallback is attempte
   }
 });
 
+test('foreign episode rows cannot add gaps or operator access to the wrong series', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-series-ownership-operator-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+
+  try {
+    const result = await runSync(fixtureDirectory, { scenario: 'series-ownership-operator' });
+    const item = result.catalog.items.find((entry) => entry.id === 'series-1');
+    const operatorFiles = (item?.downloads || []).flatMap((group) => group.files || []).filter((file) =>
+      file.mode === 'operator-play' || file.mode === 'operator-download',
+    );
+
+    assert.equal(item?.sourceEpisodeCount, 2, 'episode rows owned by another series are excluded');
+    assert.equal(item?.downloads.length, 2);
+    assert.equal(item?.archivePendingEpisodeCount, 0);
+    assert.equal(item?.archiveComplete, true);
+    assert.equal(result.report.affiliateRequests, 1, 'foreign episode rows never reach the affiliate endpoint');
+    assert.equal(operatorFiles.length, 1);
+    assert.equal(operatorFiles[0]?.mode, 'operator-play');
+    assert.match(operatorFiles[0]?.url || '', /^https:\/\/aparatchi\.upera\.tv\/stream\/episode\//);
+    assert.ok(item?.categoryKeys?.includes('mobile-operator'));
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
 test('episode artwork is stored with a newly discovered playable episode', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-episode-artwork-'));
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());
