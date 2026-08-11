@@ -20,7 +20,10 @@ const patchAsyncFunction = (source, name, transform) => {
   if (end < 0) throw new Error(`Could not find function boundary after: ${name}`);
   const before = source.slice(start, end);
   const after = transform(before);
-  if (after === before) throw new Error(`Function patch produced no change: ${name}`);
+  if (after === before) {
+    console.log(`Already applied or not needed: ${name}`);
+    return source;
+  }
   return source.slice(0, start) + after + source.slice(end);
 };
 
@@ -31,20 +34,26 @@ sync = optional(sync, /const CATALOG_VERSION = '[^']+';/, "const CATALOG_VERSION
 
 sync = patchAsyncFunction(sync, 'syncRecentSeriesDiscovery', (body) => {
   let next = body;
-  next = required(
-    next,
-    /\n\s*\/\/ Never start a second archive[\s\S]*?\n\s*const archiveQueue = buildSequentialBackfillQueue\(\);\n\s*if \(archiveQueue\.length > 0\) \{\n\s*stats\.recentSeriesDeferredByArchiveQueue = candidates\.length;\n\s*return;\n\s*\}\n/,
-    '\n  // Fresh/current series are independent from archive backfill.\n  stats.recentSeriesDeferredByArchiveQueue = 0;\n',
-    'recent-series archive deferral',
-  );
+  if (!next.includes('// Fresh/current series are independent from archive backfill.')) {
+    next = required(
+      next,
+      /\n\s*\/\/ Never start a second archive[\s\S]*?\n\s*const archiveQueue = buildSequentialBackfillQueue\(\);\n\s*if \(archiveQueue\.length > 0\) \{\n\s*stats\.recentSeriesDeferredByArchiveQueue = candidates\.length;\n\s*return;\n\s*\}\n/,
+      '\n  // Fresh/current series are independent from archive backfill.\n  stats.recentSeriesDeferredByArchiveQueue = 0;\n',
+      'recent-series archive deferral',
+    );
+  }
   next = optional(next, /\.slice\(0,\s*1\);/, '.slice(0, recentSeriesTitlesPerRun);', 'recent-series batch size');
-  next = required(next, /for \(const \{ candidate \} of selected\) \{/, 'for (const { candidate, existing } of selected) {', 'recent-series existing state');
-  next = required(
-    next,
-    /(\s+const result = await processSeries\(candidate, 'recent-discovery', \{[\s\S]*?\n\s+\}\);)(\n\s+stats\.recentSeriesProcessed \+= 1;)/,
-    `$1\n      if (!existing && result?.added) {\n        const added = findExistingItem(candidate, 'series');\n        if (added) {\n          added.meaningfulUpdatedAt = added.meaningfulUpdatedAt || new Date().toISOString();\n          added.updateLabel = 'سریال جدید';\n        }\n      }$2`,
-    'new-series updated feed',
-  );
+  if (!next.includes('for (const { candidate, existing } of selected) {')) {
+    next = required(next, /for \(const \{ candidate \} of selected\) \{/, 'for (const { candidate, existing } of selected) {', 'recent-series existing state');
+  }
+  if (!next.includes('if (!existing && result?.added) {')) {
+    next = required(
+      next,
+      /(\s+const result = await processSeries\(candidate, 'recent-discovery', \{[\s\S]*?\n\s+\}\);)(\n\s+stats\.recentSeriesProcessed \+= 1;)/,
+      `$1\n      if (!existing && result?.added) {\n        const added = findExistingItem(candidate, 'series');\n        if (added) {\n          added.meaningfulUpdatedAt = added.meaningfulUpdatedAt || new Date().toISOString();\n          added.updateLabel = 'سریال جدید';\n        }\n      }$2`,
+      'new-series updated feed',
+    );
+  }
   next = optional(
     next,
     /(if \(result\?\.added\) \{\s*state\.recentSeriesCursor = \{ fingerprint, offset: index \+ 1 \};)\s*return;(\s*\})/,
@@ -54,19 +63,25 @@ sync = patchAsyncFunction(sync, 'syncRecentSeriesDiscovery', (body) => {
   return next;
 });
 
-sync = required(
-  sync,
-  /  const isPublishedAiringEpisodeUpdate = Boolean\(\n    addedEpisodes > 0 &&\n    latestAddedEpisode &&\n    existing\?\.publicationStatus === 'published' &&\n    isAiring &&\n    \(source === 'airing-refresh' \|\| source === 'incremental'\),\n  \);/,
-  "  const isMeaningfulEpisodeUpdate = Boolean(addedEpisodes > 0 && latestAddedEpisode && existing);\n  const isPublishedAiringEpisodeUpdate = Boolean(\n    isMeaningfulEpisodeUpdate &&\n    existing?.publicationStatus === 'published' &&\n    isAiring &&\n    (source === 'airing-refresh' || source === 'incremental'),\n  );",
-  'meaningful episode update',
-);
-sync = required(sync, /  if \(isPublishedAiringEpisodeUpdate && latestAddedEpisode\) \{/, '  if (isMeaningfulEpisodeUpdate && latestAddedEpisode) {', 'episode label update');
-sync = required(
-  sync,
-  /meaningfulUpdatedAt: isPublishedAiringEpisodeUpdate\n\s*\? new Date\(\)\.toISOString\(\)\n\s*: existing\?\.meaningfulUpdatedAt,/,
-  'meaningfulUpdatedAt: isMeaningfulEpisodeUpdate\n        ? new Date().toISOString()\n        : existing?.meaningfulUpdatedAt,',
-  'episode meaningful timestamp',
-);
+if (!sync.includes('const isMeaningfulEpisodeUpdate = Boolean(')) {
+  sync = required(
+    sync,
+    /  const isPublishedAiringEpisodeUpdate = Boolean\(\n    addedEpisodes > 0 &&\n    latestAddedEpisode &&\n    existing\?\.publicationStatus === 'published' &&\n    isAiring &&\n    \(source === 'airing-refresh' \|\| source === 'incremental'\),\n  \);/,
+    "  const isMeaningfulEpisodeUpdate = Boolean(addedEpisodes > 0 && latestAddedEpisode && existing);\n  const isPublishedAiringEpisodeUpdate = Boolean(\n    isMeaningfulEpisodeUpdate &&\n    existing?.publicationStatus === 'published' &&\n    isAiring &&\n    (source === 'airing-refresh' || source === 'incremental'),\n  );",
+    'meaningful episode update',
+  );
+}
+if (sync.includes('if (isPublishedAiringEpisodeUpdate && latestAddedEpisode) {')) {
+  sync = required(sync, /  if \(isPublishedAiringEpisodeUpdate && latestAddedEpisode\) \{/, '  if (isMeaningfulEpisodeUpdate && latestAddedEpisode) {', 'episode label update');
+}
+if (/meaningfulUpdatedAt: isPublishedAiringEpisodeUpdate/.test(sync)) {
+  sync = required(
+    sync,
+    /meaningfulUpdatedAt: isPublishedAiringEpisodeUpdate\n\s*\? new Date\(\)\.toISOString\(\)\n\s*: existing\?\.meaningfulUpdatedAt,/,
+    'meaningfulUpdatedAt: isMeaningfulEpisodeUpdate\n        ? new Date().toISOString()\n        : existing?.meaningfulUpdatedAt,',
+    'episode meaningful timestamp',
+  );
+}
 
 sync = optional(
   sync,
@@ -130,12 +145,14 @@ setEnv('UPERA_RETRY_BLOCKED', 'false');
 await fs.writeFile('.github/workflows/sync-upera.yml', workflow, 'utf8');
 
 let regression = await fs.readFile('scripts/tests/sync-upera-regression.test.mjs', 'utf8');
-regression = required(
-  regression,
-  /assert\.equal\(oldMovie\?\.mediaLanguageAuditVersion, 3\);/,
-  'assert.equal(oldMovie?.mediaLanguageAuditVersion, 4);',
-  'media audit regression version',
-);
+if (!regression.includes('assert.equal(oldMovie?.mediaLanguageAuditVersion, 4);')) {
+  regression = required(
+    regression,
+    /assert\.equal\(oldMovie\?\.mediaLanguageAuditVersion, 3\);/,
+    'assert.equal(oldMovie?.mediaLanguageAuditVersion, 4);',
+    'media audit regression version',
+  );
+}
 await fs.writeFile('scripts/tests/sync-upera-regression.test.mjs', regression, 'utf8');
 
 const test = `import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { buildClientCatalogArtifacts } from '../client-catalog.mjs';\n\ntest('client index exposes a compact reverse people-to-works map', () => {\n  const media = [{ id: 'd', files: [{ id: 'f', mode: 'download', url: 'https://cdn.test/a.mp4' }] }];\n  const person = { id: 'actor-1', tmdbId: 123, name: 'Test Actor', nameFa: 'بازیگر تست', role: 'actor' };\n  const catalog = { version: 'test', updatedAt: 'now', featuredPeople: [], items: [\n    { id: 'm1', type: 'movie', nameFa: 'یک', name: 'One', people: [person], downloads: media },\n    { id: 'm2', type: 'movie', nameFa: 'دو', name: 'Two', people: [person], downloads: media },\n  ] };\n  const { index } = buildClientCatalogArtifacts(catalog);\n  assert.deepEqual(index.peopleWorks['tmdb:123'], ['m1', 'm2']);\n  assert.deepEqual(index.peopleWorks['name:test actor'], ['m1', 'm2']);\n  assert.deepEqual(index.peopleWorks['name:بازیگر تست'], ['m1', 'm2']);\n});\n`;
