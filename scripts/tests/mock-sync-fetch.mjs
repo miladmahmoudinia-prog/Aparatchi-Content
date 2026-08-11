@@ -483,6 +483,12 @@ globalThis.fetch = async (input) => {
             },
             show: 1,
           },
+          ...(scenario === 'zero-number-ghosts'
+            ? [
+                { id: 'unrelated-row-1', type: 'episode', series_id: 'series-1', name: 'Trailer', show: 1 },
+                { id: 'unrelated-row-2', type: 'episode', series_id: 'series-1', name_fa: 'پشت صحنه', show: 1 },
+              ]
+            : []),
         ],
       },
     });
@@ -496,7 +502,7 @@ globalThis.fetch = async (input) => {
 
   if (url.pathname.endsWith('/ghost/get/getaffiliatelinks')) {
     if (
-      (scenario === 'episode-artwork' || scenario === 'sequential-series' || scenario === 'airing-update' || scenario === 'boilerplate-title-audit') &&
+      (scenario === 'episode-artwork' || scenario === 'sequential-series' || scenario === 'airing-update' || scenario === 'boilerplate-title-audit' || scenario === 'zero-number-ghosts') &&
       url.searchParams.get('id') === 'episode-2'
     ) {
       return jsonResponse({
