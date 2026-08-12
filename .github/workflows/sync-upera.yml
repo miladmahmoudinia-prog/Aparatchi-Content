@@ -220,11 +220,16 @@ jobs:
             git push origin HEAD:main
           fi
 
-      - name: Report sync failure
+      - name: Report sync status
         if: always()
         shell: bash
         run: |
-          if [ '${{ steps.normal_sync.outcome }}' = 'failure' ] || [ '${{ steps.people_sync.outcome }}' = 'failure' ] || [ '${{ steps.archive_sync.outcome }}' = 'failure' ]; then
-            echo "One or more sync stages failed after saving available progress."
-            exit 1
+          FAILED_STAGES=""
+          if [ '${{ steps.normal_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} normal"; fi
+          if [ '${{ steps.people_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} people"; fi
+          if [ '${{ steps.archive_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} archive"; fi
+          if [ -n "$FAILED_STAGES" ]; then
+            echo "::warning title=Partial sync::Saved all available progress; retry these stages on the next hourly run:$FAILED_STAGES"
+          else
+            echo "All sync stages completed successfully."
           fi
