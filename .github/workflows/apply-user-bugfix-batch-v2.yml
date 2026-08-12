@@ -65,21 +65,22 @@ jobs:
         run: node scripts/sync-upera.mjs
 
       - name: Commit source and validated progress
-        if: always()
         shell: bash
         run: |
           if [ '${{ steps.source_check.outcome }}' = 'failure' ]; then
-            echo '::warning title=Source verification::Real-source check failed; source changes are still committed only after regression tests passed.'
+            echo '::warning title=Source verification::Real-source check failed; regression-tested source is still safe to publish, but source diagnostics must be reviewed.'
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # GitHub Actions GITHUB_TOKEN cannot update workflow files. The hourly
-          # workflow is updated separately through the connected GitHub API.
           git add scripts catalog.json catalog-index.json catalog-items catalog-manifest.json sync-state.json sync-report*.json
           if git diff --cached --quiet; then
             echo "No changes."
           else
             git commit -m "fix: resolve reported catalog, language and Iranian-series bugs"
+            # Root patch also prepares the hourly workflow, but Actions' token is
+            # not allowed to push workflow files. Drop only that unstaged copy;
+            # the connected GitHub API updates it separately after validation.
+            git restore .github/workflows/sync-upera.yml
             git pull --rebase origin main
             git push origin HEAD:main
           fi
