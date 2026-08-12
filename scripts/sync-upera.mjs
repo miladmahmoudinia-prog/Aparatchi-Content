@@ -15,10 +15,10 @@ const PANEL_API_BASE = 'https://panel-api.upera.tv/api/v1';
 const FILIMO_OWNER_ID = 9194919;
 const IRANIAN_SERIES_SCAN_VERSION = 4;
 const SERIES_COMPLETENESS_AUDIT_VERSION = 2;
-const MEDIA_LANGUAGE_AUDIT_VERSION = 6;
+const MEDIA_LANGUAGE_AUDIT_VERSION = 7;
 const IRANIAN_SERIES_REBUILD_VERSION = 1;
 const ARCHIVE_COMPLETION_ORDER_VERSION = 1;
-const CATALOG_VERSION = '0.23.0-user-bugfix-batch';
+const CATALOG_VERSION = '0.23.1-media-language-truth';
 const AFFILIATE_URL_KEYS = [
   'link', 'url', 'href', 'download_url', 'downloadUrl', 'download_link', 'downloadLink',
   'stream_url', 'streamUrl', 'stream_link', 'streamLink', 'file_url', 'fileUrl', 'file',
@@ -504,8 +504,12 @@ function reconcileStoredLanguageFiles(files) {
   if (!unknown.length) return source;
   if (explicit.has('dubbed') && explicit.has('subtitled')) return source.filter((file) => Boolean(file.language));
   if (explicit.size === 1) {
-    const counterpart = explicit.has('dubbed') ? 'subtitled' : 'dubbed';
-    return source.map((file) => file.language ? file : { ...file, language: counterpart });
+    return source.filter((file) =>
+      file.language === 'dubbed' ||
+      file.language === 'subtitled' ||
+      isValidStoredOperatorFile(file) ||
+      isValidStoredPublicPortalFile(file)
+    );
   }
   return source;
 }
@@ -540,13 +544,17 @@ function reconcileStoredLanguageSections(item) {
       if (sectionTag) return [{ ...section, files: reconcileStoredLanguageFiles(section.files) }];
       if (explicit.has('dubbed') && explicit.has('subtitled')) return [];
       if (explicit.size === 1) {
-        const counterpart = explicit.has('dubbed') ? 'subtitled' : 'dubbed';
-        return [{
-          ...section,
-          title: mediaLanguageLabel(counterpart),
-          badge: counterpart === 'dubbed' ? 'دوبله' : 'زیرنویس',
-          files: (section.files || []).map((file) => ({ ...file, language: counterpart })),
-        }];
+        const verifiedPortalFiles = (Array.isArray(section.files) ? section.files : [])
+          .filter((file) => isValidStoredOperatorFile(file) || isValidStoredPublicPortalFile(file));
+        if (verifiedPortalFiles.length) {
+          return [{
+            ...section,
+            title: 'پخش آنلاین',
+            badge: 'پخش',
+            files: verifiedPortalFiles,
+          }];
+        }
+        return [];
       }
       return [{
         ...section,
@@ -1426,7 +1434,7 @@ async function syncIncompleteMovieMedia() {
 
     let result;
     try {
-      result = await processMovie(item, 'media-repair', { fullMediaAudit: true });
+      result = await processMovie(item, 'media-repair', { fullMediaAudit: true, replaceMedia: true });
     } catch (error) {
       if (isRunTimeBudgetError(error)) throw error;
       // A single slow/broken affiliate response must not abort the whole
@@ -1828,7 +1836,7 @@ async function syncSequentialArchiveBackfill() {
     try {
       result = await processMovie(item, 'year-backfill', {
         fullMediaAudit: true,
-        replaceMedia: false,
+        replaceMedia: hadUsableMedia,
       });
     } catch (error) {
       rememberError(`year-backfill-movie-${id}`, error);
@@ -2797,7 +2805,15 @@ async function processMovie(candidate, source, options = {}) {
   // language audit, replace stale ordinary sections instead of merging them;
   // merging kept an old unlabeled URL beside its dubbed copy and the mobile
   // client then had no reliable way to choose the correct language.
-  const mergedMedia = options.replaceMedia === true
+  const freshHasUsableOrdinaryMedia = Boolean(
+    media?.streamUrl ||
+    (Array.isArray(media?.downloads) && media.downloads.some((section) =>
+      (Array.isArray(section?.files) ? section.files : []).some((file) =>
+        file?.mode === 'download' || file?.mode === 'play' || !file?.mode,
+      ),
+    ))
+  );
+  const mergedMedia = options.replaceMedia === true && freshHasUsableOrdinaryMedia
     ? media
     : mergeMovieMedia(existing, media);
   const normalized = normalizeMovie(movie, mergedMedia, source, existing);
@@ -3160,6 +3176,16 @@ async function processSeries(
         continue;
       }
       const nextGroup = episodeGroup(episode, media, series);
+      if (options.refreshAllMedia === true && previousGroup) {
+        const preservedVerifiedPortalFiles = (Array.isArray(previousGroup.files) ? previousGroup.files : [])
+          .filter((file) => isValidStoredOperatorFile(file) || isValidStoredPublicPortalFile(file));
+        nextGroup.files = dedupeMediaFiles([
+          ...(Array.isArray(nextGroup.files) ? nextGroup.files : []),
+          ...preservedVerifiedPortalFiles,
+        ]);
+        const previousIndex = mergedGroups.indexOf(previousGroup);
+        if (previousIndex >= 0) mergedGroups.splice(previousIndex, 1);
+      }
       upsertEpisodeGroup(mergedGroups, nextGroup);
 
       if (!previousGroup) {
@@ -4048,11 +4074,7 @@ function reconcileUperaLanguageLinks(links) {
   }
 
   if (explicit.size === 1) {
-    const counterpart = explicit.has('dubbed') ? 'subtitled' : 'dubbed';
-    for (const link of unknown) {
-      link._media_language_tag = counterpart;
-      link._media_language = mediaLanguageLabel(counterpart);
-    }
+    for (const link of unknown) link._drop_ambiguous_language = true;
   }
   return list;
 }

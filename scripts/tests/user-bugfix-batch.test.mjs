@@ -31,7 +31,7 @@ test('The Westies is never classified as Iranian series from stale flags', () =>
 test('sync source has no Persian UI fallback named نسخه اصلی', () => {
   const source = fs.readFileSync(new URL('../sync-upera.mjs', import.meta.url), 'utf8');
   assert.ok(!source.includes("return 'نسخه اصلی'"));
-  assert.ok(source.includes('MEDIA_LANGUAGE_AUDIT_VERSION = 6'));
+  assert.ok(source.includes('MEDIA_LANGUAGE_AUDIT_VERSION = 7'));
   assert.ok(source.includes("UPERA_SYNC_MODE || 'AUTO'"));
 });
 
