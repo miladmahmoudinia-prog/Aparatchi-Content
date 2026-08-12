@@ -62,7 +62,7 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/sync-upera.mjs scripts/apply-media-language-truth-hotfix.mjs catalog.json catalog-index.json catalog-items catalog-manifest.json sync-state.json sync-report*.json
+          git add scripts catalog.json catalog-index.json catalog-items catalog-manifest.json sync-state.json sync-report*.json
           if git diff --cached --quiet; then
             echo "No changes."
           else
