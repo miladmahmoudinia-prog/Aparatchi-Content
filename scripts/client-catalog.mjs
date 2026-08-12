@@ -146,12 +146,19 @@ const isClientVisibleItem = (item) => {
     return movieHasUsableClientMedia(item);
   }
   if (item.type !== 'series') return true;
-  // Keep the server-side record forever, but do not expose a completely empty
-  // series detail to users while the media-repair/backfill queue is still
-  // working. A previously visible series with at least one usable episode stays
-  // visible even while gaps are repaired.
+  // Iranian narrative archives are intentionally hidden while their clean
+  // sequential rebuild is incomplete. Keep the legacy visibility lock only for
+  // other series so a foreign title does not disappear during a background audit.
   if (!seriesHasUsableClientMedia(item)) return false;
-  return item.publicationStatus === 'published' || item.archiveComplete === true || item.visibilityLocked === true;
+  const keys = Array.isArray(item.categoryKeys) ? item.categoryKeys : [];
+  const strictIranianArchive = Boolean(
+    !item.isDocumentary &&
+    item.contentKind !== 'documentary' &&
+    (keys.includes('iranian-series') || (item.ir === true && !keys.includes('foreign-series')))
+  );
+  return item.publicationStatus === 'published' ||
+    item.archiveComplete === true ||
+    (!strictIranianArchive && item.visibilityLocked === true);
 };
 
 const parsedTimestamp = (value) => {

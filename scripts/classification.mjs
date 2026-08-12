@@ -159,6 +159,7 @@ export function isWildlifeDocumentaryText({ title = '', genres = [], overview = 
 
 export function classifyCatalogItem(input = {}) {
   const type = input.type === 'series' ? 'series' : 'movie';
+  const forcedForeignTitle = includesAny(`${input.nameFa || ''} ${input.name || ''}`, ['the westies', 'وستی ها', 'وستی‌ها']);
   const genres = Array.isArray(input.genres) ? input.genres.map(clean).filter(Boolean) : [];
   const genreText = normalize(genres.join(' '));
   const titleText = normalize(`${input.nameFa || ''} ${input.name || ''}`);
@@ -167,6 +168,9 @@ export function classifyCatalogItem(input = {}) {
   const existingKeys = Array.isArray(input.categoryKeys) ? input.categoryKeys.map(clean) : [];
   const validationVersion = Number(input.tmdbValidationVersion || input.validationVersion || 0);
   const trustedTmdb = validationVersion >= 7;
+  // The Westies was imported with a stale `ir` flag in an older source row.
+  // A known foreign identity must beat that legacy flag everywhere.
+  if (forcedForeignTitle) input = { ...input, ir: false, isIranian: false, is_iranian: false };
 
   const genreSaysAnimation = includesAny(genreText, ['انیمیشن', 'animation']);
   const isAnimation = trustedTmdb ? Boolean(input.isAnimation) : Boolean(genreSaysAnimation || input.isAnimation === true);
@@ -175,10 +179,18 @@ export function classifyCatalogItem(input = {}) {
   const narrativeGenre = includesAny(genreText, narrativeTerms);
   const documentaryGenre = includesAny(genreText, documentaryTerms);
   const knownNarrativeMovie = includesAny(titleText, ['مزار شریف', 'mazar sharif']);
-  const knownDocumentary = includesAny(titleText, ['از به', 'az be']);
-  const isDocumentary = knownNarrativeMovie ? false : knownDocumentary ? true : trustedTmdb
-    ? Boolean(input.isDocumentary)
-    : Boolean(documentaryGenre && !narrativeGenre);
+  const knownDocumentary = includesAny(titleText, ['از بی', 'از به', 'az be']);
+  const explicitDocumentary = Boolean(
+    input.isDocumentary === true ||
+    existingKind === 'documentary' ||
+    existingKeys.includes('documentaries')
+  );
+  // Documentary identity is a content type, not the absence of dramatic genres.
+  // Episodic documentaries can legitimately carry Drama/War/etc. and must not
+  // fall into Iranian/foreign series merely because another genre is present.
+  const isDocumentary = knownNarrativeMovie
+    ? false
+    : Boolean(knownDocumentary || explicitDocumentary || documentaryGenre);
 
   // Program/reality identity must come from the title/genre, not from plot text.
   // A narrative film can be *about* a TV contest without being a game show.

@@ -591,45 +591,22 @@ test('stale unverified mobile duplicates are removed from the category and colla
   }
 });
 
-test('verified Ganje Mozafar episode 12 stream creates a separate operator series post', async () => {
-  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-verified-operator-stream-'));
+test('manual Ganje Mozafar operator fixture is no longer injected', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-no-manual-operator-'));
   const fixture = initialCatalog();
   const series = fixture.items[0];
   series.id = '0211f520-f2b9-11eb-8904-6179943b9168';
   series.slug = `series-${series.id}`;
   series.name = 'Ganje Mozafar';
   series.nameFa = 'گنج مظفر';
-  series.downloads = [{
-    ...series.downloads[0],
-    id: 'season-1-episode-12-source-episode-12',
-    sourceEpisodeId: 'source-episode-12',
-    seasonNumber: 1,
-    episodeNumber: 12,
-    title: 'فصل ۱ • قسمت ۱۲',
-  }];
-  series.episodeCount = 1;
-  series.sourceEpisodeCount = 1;
-  series.archivePendingEpisodeCount = 0;
-  series.archivePendingEpisodes = [];
   series.archiveComplete = true;
   series.publicationStatus = 'published';
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), fixture);
   await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
-
   try {
     const result = await runSync(fixtureDirectory, { mode: 'PEOPLE' });
-    const ordinary = result.catalog.items.find((entry) => entry.id === series.id);
-    const operator = result.catalog.items.find((entry) => entry.id === `${series.id}--operator`);
-    assert.ok(ordinary, 'ordinary Upera series remains available');
-    assert.ok(operator, 'mobile-operator sibling post is created');
-    assert.equal(ordinary.downloads[0].files.some((file) => file.mode === 'operator-play'), false);
-    assert.equal(operator.operatorOnly, true);
-    assert.equal(operator.downloads.length, 1);
-    const stream = operator.downloads[0].files.find((file) => file.mode === 'operator-play');
-    assert.equal(
-      stream?.url,
-      'https://aparatchi.upera.tv/stream/episode/005c8400-0147-11f1-8eee-e3adfdcac641?ref=f1ts',
-    );
+    assert.ok(result.catalog.items.find((entry) => entry.id === series.id));
+    assert.equal(result.catalog.items.some((entry) => entry.id === `${series.id}--operator`), false);
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }
@@ -977,7 +954,7 @@ test('a zero-media movie cannot freeze an old production year while the repair l
     const oldMovie = result.catalog.items.find((entry) => entry.id === 'old-movie');
     const newMovie = result.catalog.items.find((entry) => entry.id === 'new-movie');
     assert.equal(oldMovie?.mediaAuditStatus, 'confirmed-unavailable', 'missing old title is hidden instead of pinning the year queue');
-    assert.equal(oldMovie?.mediaLanguageAuditVersion, 5);
+    assert.equal(oldMovie?.mediaLanguageAuditVersion, 6);
     assert.ok(newMovie?.downloads?.flatMap((section) => section.files || []).some((file) => /new-movie\.mp4/.test(file.url)), 'the queue advances to the next year in the same run');
     assert.equal(newMovie?.mediaAuditStatus, 'ok');
   } finally {

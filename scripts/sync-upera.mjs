@@ -13,11 +13,12 @@ import {
 const API_BASE = 'https://seeko.film/api/v1';
 const PANEL_API_BASE = 'https://panel-api.upera.tv/api/v1';
 const FILIMO_OWNER_ID = 9194919;
-const IRANIAN_SERIES_SCAN_VERSION = 3;
+const IRANIAN_SERIES_SCAN_VERSION = 4;
 const SERIES_COMPLETENESS_AUDIT_VERSION = 2;
-const MEDIA_LANGUAGE_AUDIT_VERSION = 5;
+const MEDIA_LANGUAGE_AUDIT_VERSION = 6;
+const IRANIAN_SERIES_REBUILD_VERSION = 1;
 const ARCHIVE_COMPLETION_ORDER_VERSION = 1;
-const CATALOG_VERSION = '0.22.0-final-stability';
+const CATALOG_VERSION = '0.23.0-user-bugfix-batch';
 const AFFILIATE_URL_KEYS = [
   'link', 'url', 'href', 'download_url', 'downloadUrl', 'download_link', 'downloadLink',
   'stream_url', 'streamUrl', 'stream_link', 'streamLink', 'file_url', 'fileUrl', 'file',
@@ -164,15 +165,7 @@ const operatorSeriesRequestQuota = Math.min(
 // overrides are intentionally keyed by the ordinary source title + episode
 // coordinate so they can only create a sibling operator post for that exact
 // title and can never be attached by fuzzy name matching.
-const verifiedOperatorStreamOverrides = [
-  {
-    type: 'series',
-    sourceContentId: '0211f520-f2b9-11eb-8904-6179943b9168',
-    seasonNumber: 1,
-    episodeNumber: 12,
-    url: 'https://aparatchi.upera.tv/stream/episode/005c8400-0147-11f1-8eee-e3adfdcac641?ref=f1ts',
-  },
-];
+const verifiedOperatorStreamOverrides = [];
 
 const newTitlesHours = positiveInt(
   process.env.NEW_TITLES_HOURS,
@@ -193,7 +186,7 @@ const requestedSyncMode = String(
   process.env.UPERA_SYNC_MODE || 'AUTO',
 ).trim().toUpperCase();
 
-const syncModeSetting = ['AUTO', 'BACKFILL', 'NORMAL', 'PEOPLE'].includes(requestedSyncMode)
+const syncModeSetting = ['AUTO', 'BACKFILL', 'NORMAL', 'IRANIAN', 'PEOPLE'].includes(requestedSyncMode)
   ? requestedSyncMode
   : 'AUTO';
 
@@ -206,7 +199,7 @@ const runTimeLimitMinutes = Math.min(
   30,
   positiveInt(
     process.env.APARATCHI_RUN_TIME_LIMIT_MINUTES,
-    syncModeSetting === 'BACKFILL' ? 18 : syncModeSetting === 'PEOPLE' ? 4 : 8,
+    syncModeSetting === 'BACKFILL' ? 18 : syncModeSetting === 'IRANIAN' ? 15 : syncModeSetting === 'PEOPLE' ? 4 : 8,
   ),
 );
 const runCheckpointReserveMs = Math.min(
@@ -380,6 +373,9 @@ const defaultState = {
   iranianSeriesPage: 1,
   iranianSeriesOffset: 0,
   iranianSeriesScanVersion: IRANIAN_SERIES_SCAN_VERSION,
+  iranianSeriesRebuildVersion: 0,
+  iranianSeriesNoProgress: {},
+  iranianSeriesActiveId: '',
   operatorSeriesPage: 1,
   operatorSeriesOffset: 0,
   operatorMoviePage: 1,
@@ -416,6 +412,8 @@ state.seriesPage = positiveInt(state.seriesPage, 1);
 state.seriesOffset = nonNegativeInt(state.seriesOffset, 0);
 state.iranianSeriesPage = positiveInt(state.iranianSeriesPage, 1);
 state.iranianSeriesOffset = nonNegativeInt(state.iranianSeriesOffset, 0);
+state.iranianSeriesActiveId = cleanText(state.iranianSeriesActiveId || '');
+if (!state.iranianSeriesNoProgress || typeof state.iranianSeriesNoProgress !== 'object' || Array.isArray(state.iranianSeriesNoProgress)) state.iranianSeriesNoProgress = {};
 if (Number(state.iranianSeriesScanVersion || 0) !== IRANIAN_SERIES_SCAN_VERSION) {
   state.iranianSeriesPage = 1;
   state.iranianSeriesOffset = 0;
@@ -488,6 +486,122 @@ if (
 let items = Array.isArray(catalog.items)
   ? catalog.items.filter(Boolean)
   : [];
+
+items = items.filter((item) => !(
+  item?.type === 'series' &&
+  catalogVariant(item) === 'operator' &&
+  baseCatalogId(item) === '0211f520-f2b9-11eb-8904-6179943b9168'
+));
+
+function reconcileStoredLanguageFiles(files) {
+  const source = (Array.isArray(files) ? files : []).map((file) => {
+    if (file?.language === 'dubbed' || file?.language === 'subtitled') return { ...file };
+    const tag = mediaLanguageTag(`${file?.label || ''} ${file?.quality || ''}`);
+    return tag ? { ...file, language: tag } : { ...file };
+  });
+  const explicit = new Set(source.map((file) => file.language).filter((value) => value === 'dubbed' || value === 'subtitled'));
+  const unknown = source.filter((file) => !file.language);
+  if (!unknown.length) return source;
+  if (explicit.has('dubbed') && explicit.has('subtitled')) return source.filter((file) => Boolean(file.language));
+  if (explicit.size === 1) {
+    const counterpart = explicit.has('dubbed') ? 'subtitled' : 'dubbed';
+    return source.map((file) => file.language ? file : { ...file, language: counterpart });
+  }
+  return source;
+}
+
+function reconcileStoredLanguageSections(item) {
+  if (!item || !Array.isArray(item.downloads)) return item;
+  if (item.type === 'series') {
+    return {
+      ...item,
+      downloads: item.downloads.map((group) => ({
+        ...group,
+        files: reconcileStoredLanguageFiles(group?.files),
+      })),
+    };
+  }
+
+  const prepared = item.downloads.map((section) => {
+    const sectionTag = mediaLanguageTag(`${section?.title || ''} ${section?.badge || ''}`);
+    const files = (Array.isArray(section?.files) ? section.files : []).map((file) =>
+      file?.language || !sectionTag ? { ...file } : { ...file, language: sectionTag },
+    );
+    return { ...section, files };
+  });
+  const explicit = new Set(prepared.flatMap((section) => section.files || [])
+    .map((file) => file.language)
+    .filter((value) => value === 'dubbed' || value === 'subtitled'));
+
+  return {
+    ...item,
+    downloads: prepared.flatMap((section) => {
+      const sectionTag = mediaLanguageTag(`${section?.title || ''} ${section?.badge || ''}`);
+      if (sectionTag) return [{ ...section, files: reconcileStoredLanguageFiles(section.files) }];
+      if (explicit.has('dubbed') && explicit.has('subtitled')) return [];
+      if (explicit.size === 1) {
+        const counterpart = explicit.has('dubbed') ? 'subtitled' : 'dubbed';
+        return [{
+          ...section,
+          title: mediaLanguageLabel(counterpart),
+          badge: counterpart === 'dubbed' ? 'دوبله' : 'زیرنویس',
+          files: (section.files || []).map((file) => ({ ...file, language: counterpart })),
+        }];
+      }
+      return [{
+        ...section,
+        title: 'لینک‌های دریافت',
+        badge: 'دریافت',
+        files: section.files || [],
+      }];
+    }),
+  };
+}
+
+items = items.map(reconcileStoredLanguageSections);
+
+// One-time clean rebuild of Iranian narrative series. Old revisions could
+// publish a shell with "تا قسمت N" while the episode files were empty. Preserve
+// metadata, but clear only Iranian narrative episode media and rebuild it
+// sequentially. Foreign series, documentaries, movies and people are untouched.
+if (Number(state.iranianSeriesRebuildVersion || 0) < IRANIAN_SERIES_REBUILD_VERSION) {
+  let resetCount = 0;
+  items = items.map((item) => {
+    if (item?.type !== 'series') return item;
+    const rules = classifyCatalogRules({ ...item, categoryKeys: [], categoryLabels: [] });
+    if (!rules.ir || rules.isDocumentary || rules.contentKind === 'documentary') return item;
+    resetCount += 1;
+    return {
+      ...item,
+      downloads: [],
+      episodeCount: 0,
+      seasonCount: 0,
+      latestEpisode: null,
+      sourceEpisodeCount: 0,
+      archivePendingEpisodeCount: 1,
+      archivePendingEpisodes: [],
+      archiveUnavailableEpisodes: [],
+      archiveComplete: false,
+      archiveAuditStatus: 'pending',
+      publicationStatus: 'building-archive',
+      visibilityLocked: false,
+      mediaLanguageAuditVersion: 0,
+    };
+  });
+  state.iranianSeriesPage = 1;
+  state.iranianSeriesOffset = 0;
+  state.iranianSeriesNoProgress = {};
+  state.iranianSeriesActiveId = '';
+  state.iranianSeriesRebuildVersion = IRANIAN_SERIES_REBUILD_VERSION;
+  // Only suppress old visibility migrations when an Iranian shell was actually
+  // reset. Regression/foreign-only catalogs must retain their old compatibility
+  // behavior.
+  if (resetCount > 0) {
+    state.legacySeriesVisibilityMigrationCompleted = true;
+    state.historicalVisibleSeriesRecoveryCompleted = true;
+  }
+  console.log(`بازسازی تمیز سریال ایرانی: ${resetCount} عنوان برای تکمیل ترتیبی ریست شد.`);
+}
 
 // Repair damage from older destructive sync revisions once. The workflow now
 // fetches recent history, so any series that used to be visible but vanished
@@ -756,10 +870,12 @@ stats.backfillQueueTotal = initialBackfillQueue.length;
 const effectiveSyncMode =
   syncModeSetting === 'PEOPLE'
     ? 'PEOPLE'
-    : syncModeSetting === 'BACKFILL' ||
-      (syncModeSetting === 'AUTO' && initialBackfillQueue.length > 0)
-      ? 'BACKFILL'
-      : 'NORMAL';
+    : syncModeSetting === 'IRANIAN'
+      ? 'IRANIAN'
+      : syncModeSetting === 'BACKFILL' ||
+        (syncModeSetting === 'AUTO' && initialBackfillQueue.length > 0)
+        ? 'BACKFILL'
+        : 'NORMAL';
 
 stats.effectiveSyncMode = effectiveSyncMode;
 console.log(`حالت اجرا: ${effectiveSyncMode}`);
@@ -781,6 +897,15 @@ if (effectiveSyncMode === 'PEOPLE') {
   if (!runTimeBudgetReached('before-people-metadata', 60000)) {
     await syncPeopleMetadata();
   }
+} else if (effectiveSyncMode === 'IRANIAN') {
+  // Dedicated hourly lane: one Iranian narrative series stays selected until
+  // every discoverable episode has usable media. This lane is independent of
+  // the global foreign/archive backlog.
+  await withAffiliateRequestScope(
+    'iranian-series',
+    iranianSeriesRequestQuota,
+    syncIranianSeriesArchive,
+  );
 } else if (effectiveSyncMode === 'BACKFILL') {
   // The archive queue is intentionally exclusive: one series is completed
   // as far as the request budget allows before the next series is selected.
@@ -911,7 +1036,8 @@ for (const [id, originalSeries] of originalSeriesById.entries()) {
     continue;
   }
 
-  if (wasVisible && current.publicationStatus !== 'published') {
+  const strictIranian = Boolean(effectiveIranianIdentity(current) && !current?.isDocumentary && current?.contentKind !== 'documentary');
+  if (wasVisible && !strictIranian && current.publicationStatus !== 'published') {
     const index = items.indexOf(current);
     const restoredVisibility = {
       ...current,
@@ -2057,88 +2183,155 @@ function markSeriesBackfillBlocked(id, detail = {}) {
 }
 
 async function syncIranianSeriesArchive() {
-  let completedPages = 0;
-  let visitedTitles = 0;
+  // Strict sequential cursor: process ONE title per run and do not advance
+  // until complete. A permanently broken source is hidden and deferred after
+  // bounded attempts so it cannot freeze the whole Iranian queue forever.
+  const maxNoProgress = 3;
+  let pagesVisited = 0;
   const seenPages = new Set();
 
-  while (
-    completedPages < iranianSeriesPagesPerRun &&
-    visitedTitles < iranianSeriesTitlesPerRun &&
-    !affiliateBudgetExhausted
-  ) {
+  while (!affiliateBudgetExhausted && pagesVisited < Math.max(1, iranianSeriesPagesPerRun)) {
     const page = positiveInt(state.iranianSeriesPage, 1);
-    if (seenPages.has(page)) break;
+    if (seenPages.has(page)) return;
     seenPages.add(page);
-    let payload;
 
+    let payload;
     try {
       payload = await fetchIranianSeriesPage(page);
     } catch (error) {
       rememberError(`iranian-series-page-${page}`, error);
-      break;
+      return;
     }
 
     const candidates = dedupeCandidates(payload.items)
       .sort((a, b) => Number(inferIranian(b)) - Number(inferIranian(a)));
-
     if (!candidates.length) {
       state.iranianSeriesPage = nextPage(page, payload.lastPage);
       state.iranianSeriesOffset = 0;
-      completedPages += 1;
+      pagesVisited += 1;
       stats.iranianSeriesPagesProcessed += 1;
       continue;
     }
 
     let offset = nonNegativeInt(state.iranianSeriesOffset, 0);
     if (offset >= candidates.length) offset = 0;
+    const lockedId = cleanText(state.iranianSeriesActiveId || '');
+    if (lockedId) {
+      const lockedIndex = candidates.findIndex((entry) =>
+        String(baseCatalogId(entry) || entry?.t_id || entry?.series_id || '') === lockedId,
+      );
+      if (lockedIndex >= 0) offset = lockedIndex;
+    }
+    const candidate = candidates[offset];
+    const sourceId = String(baseCatalogId(candidate) || candidate?.t_id || candidate?.series_id || '');
+    if (!lockedId && sourceId) state.iranianSeriesActiveId = sourceId;
+    const progressKey = sourceId || `p${page}-o${offset}`;
+    stats.iranianSeriesCandidates += 1;
 
-    while (
-      offset < candidates.length &&
-      visitedTitles < iranianSeriesTitlesPerRun &&
-      !affiliateBudgetExhausted
-    ) {
-      const series = candidates[offset];
-      stats.iranianSeriesCandidates += 1;
-      let retryLater = false;
+    let result;
+    try {
+      result = await processSeries(candidate, 'iranian-priority', {
+        requireIranian: true,
+        episodeStrategy: 'latest',
+        episodeLimit: Math.min(120, Math.max(1, priorityEpisodesPerSeries)),
+        onlyMissing: true,
+      });
+    } catch (error) {
+      rememberError(`iranian-series-${progressKey}`, error);
+      result = { added: false, reason: 'request-error', retryLater: false };
+    }
 
-      try {
-        const result = await processSeries(series, 'iranian-priority', {
-          requireIranian: true,
-          episodeStrategy: 'latest',
-          episodeLimit: priorityEpisodesPerSeries,
-        });
-        retryLater = Boolean(result?.retryLater);
-        rememberDiagnostic('iranianSeriesDiagnostics', {
-          id: String(series?.id || series?.t_id || ''),
-          title: cleanText(series?.name_fa || series?.name || ''),
-          result: result?.added ? 'added-or-updated' : 'rejected',
-          reason: result?.reason || '',
-          retryLater,
-        });
-      } catch (error) {
-        rememberError(
-          `iranian-series-${series?.id || series?.t_id || 'unknown'}`,
-          error,
-        );
-      }
+    const refreshed = items.find((item) =>
+      item?.type === 'series' &&
+      (String(baseCatalogId(item)) === sourceId || String(item.id || '') === sourceId)
+    );
+    const belongsToIranianSeries = Boolean(
+      refreshed &&
+      classifyCatalogRules({ ...refreshed, categoryKeys: [], categoryLabels: [] }).categoryKeys.includes('iranian-series')
+    );
 
-      if (retryLater) break;
+    rememberDiagnostic('iranianSeriesDiagnostics', {
+      id: sourceId,
+      title: cleanText(candidate?.name_fa || candidate?.name || refreshed?.nameFa || refreshed?.name || ''),
+      result: result?.archiveComplete ? 'completed' : result?.added ? 'advanced' : 'rejected',
+      reason: result?.reason || '',
+      addedEpisodes: Number(result?.addedEpisodes || 0),
+      remainingEpisodeCount: Number(result?.remainingEpisodeCount || 0),
+      retryLater: Boolean(result?.retryLater),
+    });
 
+    // Foreign/documentary/invalid rows do not belong in this queue.
+    if (!belongsToIranianSeries && !result?.retryLater) {
+      delete state.iranianSeriesNoProgress[progressKey];
+      state.iranianSeriesActiveId = '';
       offset += 1;
-      visitedTitles += 1;
       state.iranianSeriesOffset = offset;
-
-      if (buildSequentialBackfillQueue().length > 0) break;
+      if (offset >= candidates.length) {
+        state.iranianSeriesPage = nextPage(page, payload.lastPage);
+        state.iranianSeriesOffset = 0;
+        stats.iranianSeriesPagesProcessed += 1;
+      }
+      await persistSyncCheckpoint(`iranian-skip-${progressKey}`);
+      return;
     }
 
-    if (offset >= candidates.length) {
-      state.iranianSeriesPage = nextPage(page, payload.lastPage);
-      state.iranianSeriesOffset = 0;
-      completedPages += 1;
-      stats.iranianSeriesPagesProcessed += 1;
-    } else {
-      break;
+    if (
+      refreshed?.archiveComplete === true &&
+      refreshed?.publicationStatus === 'published' &&
+      Number(result?.remainingEpisodeCount || 0) === 0
+    ) {
+      delete state.iranianSeriesNoProgress[progressKey];
+      state.iranianSeriesActiveId = '';
+      offset += 1;
+      state.iranianSeriesOffset = offset;
+      if (offset >= candidates.length) {
+        state.iranianSeriesPage = nextPage(page, payload.lastPage);
+        state.iranianSeriesOffset = 0;
+        stats.iranianSeriesPagesProcessed += 1;
+      }
+      await persistSyncCheckpoint(`iranian-complete-${progressKey}`);
+      return;
     }
+
+    const progressed = Number(result?.addedEpisodes || 0) > 0 || Boolean(result?.added && result?.retryLater);
+    if (progressed || result?.retryLater) {
+      state.iranianSeriesNoProgress[progressKey] = 0;
+      // DO NOT advance offset: next hourly run continues this exact series.
+      await persistSyncCheckpoint(`iranian-progress-${progressKey}`);
+      return;
+    }
+
+    const attempts = nonNegativeInt(state.iranianSeriesNoProgress[progressKey], 0) + 1;
+    state.iranianSeriesNoProgress[progressKey] = attempts;
+    if (attempts >= maxNoProgress) {
+      if (refreshed) {
+        replaceItem({
+          ...refreshed,
+          archiveComplete: false,
+          publicationStatus: 'building-archive',
+          visibilityLocked: false,
+          archiveAuditStatus: 'blocked',
+          archiveBlockedReason: result?.reason || 'iranian-no-progress',
+          archiveBlockedAttempts: attempts,
+          archiveBlockedAt: new Date().toISOString(),
+        });
+      }
+      // Hidden broken title is retried later by repair/backfill lanes; advance
+      // this dedicated discovery queue so the next Iranian title can start.
+      state.iranianSeriesActiveId = '';
+      offset += 1;
+      state.iranianSeriesOffset = offset;
+      if (offset >= candidates.length) {
+        state.iranianSeriesPage = nextPage(page, payload.lastPage);
+        state.iranianSeriesOffset = 0;
+        stats.iranianSeriesPagesProcessed += 1;
+      }
+      await persistSyncCheckpoint(`iranian-deferred-${progressKey}`);
+      return;
+    }
+
+    await persistSyncCheckpoint(`iranian-no-progress-${progressKey}`);
+    return;
   }
 }
 
@@ -2604,7 +2797,7 @@ async function processMovie(candidate, source, options = {}) {
   // language audit, replace stale ordinary sections instead of merging them;
   // merging kept an old unlabeled URL beside its dubbed copy and the mobile
   // client then had no reliable way to choose the correct language.
-  const mergedMedia = options.replaceMedia === true || options.fullMediaAudit === true
+  const mergedMedia = options.replaceMedia === true
     ? media
     : mergeMovieMedia(existing, media);
   const normalized = normalizeMovie(movie, mergedMedia, source, existing);
@@ -3067,8 +3260,9 @@ async function processSeries(
     historicalMissing.length === 0,
   );
   const keepPreviouslyVisible = Boolean(
+    !iranian &&
     existing?.visibilityLocked &&
-    mergedGroups.length > 0,
+    mergedGroups.some(episodeGroupHasUsableMedia),
   );
   const publicationStatus =
     archiveComplete || keepPublishedWhileAiring || keepPreviouslyVisible
@@ -3538,18 +3732,60 @@ function extractAffiliateLinkRecords(value, hints = [], output = []) {
   return output;
 }
 
+function panelTrafficFlag(value, fallback = null) {
+  if (!value || typeof value !== 'object') return fallback;
+  for (const key of ['traffic_oo', 'trafficOo', 'trafficOO']) {
+    if (Object.prototype.hasOwnProperty.call(value, key)) {
+      const number = Number(value[key]);
+      if (number === 0 || number === 1) return number;
+    }
+  }
+  return fallback;
+}
+
+function findPanelTrafficFlag(value, depth = 0) {
+  if (!value || typeof value !== 'object' || depth > 5) return null;
+  const direct = panelTrafficFlag(value, null);
+  if (direct === 0 || direct === 1) return direct;
+  for (const child of Object.values(value)) {
+    if (!child || typeof child !== 'object') continue;
+    const found = findPanelTrafficFlag(child, depth + 1);
+    if (found === 0 || found === 1) return found;
+  }
+  return null;
+}
+
 async function fetchPanelShowLinks(id, type) {
   if (!panelToken || !['movie', 'episode'].includes(String(type))) return [];
   const json = await fetchPanelJson(
     `${PANEL_API_BASE}/owner/show_links/${encodeURIComponent(type)}/${encodeURIComponent(id)}`,
   );
   const data = json?.data ?? json ?? {};
-  const trafficOo = Number(data?.traffic_oo) === 1 ? 1 : 0;
-  return extractAffiliateLinkRecords(data?.links ?? []).map((link) => ({
-    ...link,
-    _panel_verified: true,
-    _traffic_oo: trafficOo,
-  }));
+  const rootTraffic = findPanelTrafficFlag(data);
+  const records = extractAffiliateLinkRecords(data);
+
+  const verified = records.map((link) => {
+    const traffic = panelTrafficFlag(link, rootTraffic);
+    return {
+      ...link,
+      _panel_verified: true,
+      ...(traffic === 0 || traffic === 1 ? { _traffic_oo: traffic } : {}),
+    };
+  }).filter((link) => Number(link._traffic_oo) === 0 || Number(link._traffic_oo) === 1);
+
+  // Some panel deployments return traffic_oo and title metadata from show_links
+  // but omit the already-known player URL. Because this response is
+  // authenticated and scoped to the exact movie/episode id, the canonical Upera
+  // /stream route is safe to reconstruct. Never do this without traffic_oo.
+  if (!verified.length && (rootTraffic === 0 || rootTraffic === 1)) {
+    verified.push({
+      link: `https://aparatchi.upera.tv/stream/${type}/${encodeURIComponent(id)}?ref=${encodeURIComponent(refId)}`,
+      title: rootTraffic === 1 ? 'پخش ویژه اینترنت همراه' : 'پخش آنلاین',
+      _panel_verified: true,
+      _traffic_oo: rootTraffic,
+    });
+  }
+  return uniqueByUrl(verified);
 }
 
 async function fetchAffiliateLinks(
@@ -3794,11 +4030,39 @@ function mediaLanguageTagForLink(link) {
 function mediaLanguageLabel(tag) {
   if (tag === 'dubbed') return 'دوبله فارسی';
   if (tag === 'subtitled') return 'زیرنویس فارسی';
-  return 'نسخه اصلی';
+  return 'لینک‌های دریافت';
+}
+
+function reconcileUperaLanguageLinks(links) {
+  const list = Array.isArray(links) ? links : [];
+  const ordinary = list.filter((link) => !operatorPortalDetails(link?.link));
+  const explicit = new Set(ordinary.map((link) => link?._media_language_tag).filter(Boolean));
+  const unknown = ordinary.filter((link) => !link?._media_language_tag);
+
+  if (!unknown.length) return list;
+  if (explicit.has('dubbed') && explicit.has('subtitled')) {
+    // Provider has both real variants; a third unlabeled row is stale/duplicate,
+    // never a fictional "original" version.
+    for (const link of unknown) link._drop_ambiguous_language = true;
+    return list;
+  }
+
+  if (explicit.size === 1) {
+    const counterpart = explicit.has('dubbed') ? 'subtitled' : 'dubbed';
+    for (const link of unknown) {
+      link._media_language_tag = counterpart;
+      link._media_language = mediaLanguageLabel(counterpart);
+    }
+  }
+  return list;
+}
+
+function isLikelyDownloadableAffiliateLink(link) {
+  return isDownloadableMediaUrl(link?.link);
 }
 
 function parseMediaLinks(links) {
-  const normalizedLinks = (Array.isArray(links) ? links : [])
+  const normalizedLinks = reconcileUperaLanguageLinks((Array.isArray(links) ? links : [])
     .filter((link) => isHttp(link?.link))
     .map((link) => {
       const next = { ...link, link: rewriteAffiliateRef(link.link) };
@@ -3807,7 +4071,7 @@ function parseMediaLinks(links) {
       next._media_language = mediaLanguageLabel(next._media_language_tag);
       next._media_price_tier = mediaPriceTier(next);
       return next;
-    });
+    }));
 
   // Purchase/subscription links are not part of Aparatchi. Operator access is
   // accepted only when it is free and can be positively identified as mobile
@@ -3826,11 +4090,11 @@ function parseMediaLinks(links) {
   const publicPortalLinks = portalLinks.filter((link) => !isOperatorAccessLink(link));
 
   const ordinaryLinks = normalizedLinks.filter((link) =>
-    !operatorPortalDetails(link?.link) && link._media_price_tier !== 'paid',
+    !operatorPortalDetails(link?.link) && link._media_price_tier !== 'paid' && !link._drop_ambiguous_language,
   );
   const byLanguage = new Map();
   for (const link of ordinaryLinks) {
-    const language = link._media_language || 'نسخه اصلی';
+    const language = link._media_language || 'لینک‌های دریافت';
     if (!byLanguage.has(language)) byLanguage.set(language, []);
     byLanguage.get(language).push(link);
   }
@@ -3856,7 +4120,7 @@ function parseMediaLinks(links) {
       const languageTag = link._media_language_tag || mediaLanguageTagForLink(link);
       let file = null;
 
-      if (isDownloadableMediaUrl(link.link)) {
+      if (isLikelyDownloadableAffiliateLink(link)) {
         file = toDownloadFile(link, 'download');
         hasFreeAcquisition = true;
         if (/\.mp4(?:$|[?#])/i.test(link.link)) freePlayableMp4.push(link);
@@ -5242,7 +5506,8 @@ function normalizeSeries(
     series.genre,
   );
 
-  const latestEpisode = [...groups]
+  const usableGroups = groups.filter(episodeGroupHasUsableMedia);
+  const latestEpisode = [...usableGroups]
     .sort(compareEpisodeGroups)
     .at(-1);
 
@@ -5298,7 +5563,7 @@ function normalizeSeries(
   }
 
   const seasonNumbers = new Set(
-    groups
+    usableGroups
       .map((group) =>
         Number(group.seasonNumber || 0),
       )
@@ -5353,7 +5618,7 @@ function normalizeSeries(
     supportedOperators: supportedOperators.length ? supportedOperators : undefined,
     downloads: groups,
 
-    episodeCount: groups.length,
+    episodeCount: usableGroups.length,
     seasonCount: seasonNumbers.size,
     sourceEpisodeCount: nonNegativeInt(
       archiveMeta.sourceEpisodeCount,
@@ -5378,9 +5643,10 @@ function normalizeSeries(
     archiveComplete: Boolean(archiveMeta.archiveComplete),
     publicationStatus: archiveMeta.publicationStatus || 'building-archive',
     visibilityLocked: Boolean(
-      existing?.visibilityLocked ||
-      existing?.publicationStatus === 'published' ||
-      archiveMeta.publicationStatus === 'published'
+      !ir && (
+        existing?.visibilityLocked ||
+        existing?.publicationStatus === 'published'
+      )
     ),
     isAiring: Boolean(archiveMeta.isAiring),
     archiveEpisodeDiscoveryComplete:
@@ -6122,9 +6388,12 @@ function withSeriesPublicationState(item) {
   const deficit = seriesArchiveDeficit(item);
   const hasArchiveMetadata = hasSeriesArchiveMetadata(item);
   const hasEpisodes = (Array.isArray(item.downloads) ? item.downloads : []).some(episodeGroupHasUsableMedia);
+  const strictIranianArchive = Boolean(effectiveIranianIdentity(item) && !item.isDocumentary && item.contentKind !== 'documentary');
   const visibilityLocked = Boolean(
-    item.visibilityLocked ||
-    (item.publicationStatus === 'published' && hasEpisodes)
+    !strictIranianArchive && (
+      item.visibilityLocked ||
+      (item.publicationStatus === 'published' && hasEpisodes)
+    )
   );
 
   if (visibilityLocked && hasEpisodes) {
@@ -6432,26 +6701,16 @@ function translateGenres(value) {
 }
 
 function inferIranian(item) {
-  const irFlag = item?.ir ?? item?.is_iranian ?? item?.isIranian;
-  if (
-    irFlag === true ||
-    Number(irFlag || 0) === 1 ||
-    String(irFlag || '').toLowerCase() === 'true'
-  ) {
-    return true;
-  }
+  const identity = normalizeIdentityName(`${item?.name_fa || item?.nameFa || ''} ${item?.name || ''}`);
+  if (/(?:^| )the westies(?: |$)/i.test(identity) || /وستی(?: |‌)?ها/.test(identity)) return false;
 
-  const language = cleanText(
-    item?.original_language ||
-    item?.originalLanguage ||
-    item?.language_code ||
-    item?.lang ||
-    item?.language ||
-    '',
+  // Strong source identity beats stale legacy ir flag. Do not use generic audio
+  // language here: a dubbed foreign title can legitimately have Persian audio.
+  const originalLanguage = cleanText(
+    item?.original_language || item?.originalLanguage || '',
   ).toLowerCase();
-  if (language === 'fa' || language === 'fas' || language === 'per' || language === 'persian') {
-    return true;
-  }
+  if (['fa', 'fas', 'per', 'persian'].includes(originalLanguage)) return true;
+  if (originalLanguage) return false;
 
   const countryValue = [
     item?.country_fa,
@@ -6468,8 +6727,15 @@ function inferIranian(item) {
   } catch {
     country = countryValue.map((value) => cleanText(value)).join(' ');
   }
+  if (/ایران|iran|(?:^|[^a-z])ir(?:[^a-z]|$)/i.test(country)) return true;
+  if (countryValue.some((value) => value !== undefined && value !== null && cleanText(value))) return false;
 
-  return /ایران|iran|(?:^|[^a-z])ir(?:[^a-z]|$)/i.test(country);
+  const irFlag = item?.ir ?? item?.is_iranian ?? item?.isIranian;
+  return Boolean(
+    irFlag === true ||
+    Number(irFlag || 0) === 1 ||
+    String(irFlag || '').toLowerCase() === 'true'
+  );
 }
 
 function extractCandidates(
@@ -7440,7 +7706,7 @@ function linkLanguage(title = '') {
   const tag = mediaLanguageTag(title);
   if (tag === 'dubbed') return 'دوبله فارسی';
   if (tag === 'subtitled') return 'زیرنویس فارسی';
-  return 'نسخه اصلی';
+  return 'لینک‌های دریافت';
 }
 
 function qualityLabel(title = '') {

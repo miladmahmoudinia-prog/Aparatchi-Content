@@ -4,7 +4,7 @@ import path from 'node:path';
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
 const statePath = path.join(root, 'sync-state.json');
-const MEDIA_LANGUAGE_AUDIT_VERSION = 4;
+const MEDIA_LANGUAGE_AUDIT_VERSION = 6;
 const blockedCooldownHours = Math.max(
   1,
   Number.parseInt(String(process.env.APARATCHI_BLOCKED_COOLDOWN_HOURS || '6'), 10) || 6,
