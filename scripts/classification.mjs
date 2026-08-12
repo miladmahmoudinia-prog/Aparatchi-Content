@@ -10,16 +10,33 @@ const normalize = (value) => clean(value)
   .replace(/\s+/g, ' ')
   .trim();
 
+const searchable = (value) => normalize(value)
+  .replace(/[^\p{L}\p{N}]+/gu, ' ')
+  .replace(/\s+/g, ' ')
+  .trim();
+
 const includesAny = (textValue, terms) => {
   const text = normalize(textValue);
   return terms.some((termValue) => {
     const term = normalize(termValue);
     if (!term) return false;
     if (/^[a-z0-9 ]+$/i.test(term)) {
-      const latinText = text.replace(/[^a-z0-9]+/gi, ' ').replace(/\\s+/g, ' ').trim();
-      return (` ` + latinText + ` `).includes(` ` + term + ` `);
+      const latinText = text.replace(/[^a-z0-9]+/gi, ' ').replace(/\s+/g, ' ').trim();
+      return (` ${latinText} `).includes(` ${term} `);
     }
     return text.includes(term);
+  });
+};
+
+// Some short Persian identity terms (notably «امام») can occur by accident
+// inside an unrelated title such as «رامام». Use token boundaries only where
+// classification identity depends on those terms, without making all of the
+// older Persian keyword matching more restrictive.
+const includesWholeTerms = (textValue, terms) => {
+  const text = ` ${searchable(textValue)} `;
+  return terms.some((termValue) => {
+    const term = searchable(termValue);
+    return Boolean(term) && text.includes(` ${term} `);
   });
 };
 
@@ -72,6 +89,14 @@ const realityTerms = [
 const quranTerms = ['قرآن', 'قرآنی', 'ترتیل', 'تلاوت', 'quran', 'recitation'];
 const religiousProgramTerms = ['ادعیه', 'دعای', 'دعا', 'مداحی', 'نوحه', 'زیارت', 'ترتیل', 'تلاوت'];
 const religiousTerms = [...religiousProgramTerms, 'مذهبی', 'عاشورا', 'کربلا', 'پیامبر', 'نبی', 'امام', 'religious'];
+const knownReligiousTitleTerms = [
+  'ملک سلیمان', 'the kingdom of solomon',
+  'یوسف پیامبر', 'prophet joseph',
+  'مختارنامه', 'mokhtarnameh',
+  'محمد رسول الله', 'muhammad the messenger of god',
+  'مریم مقدس', 'saint mary',
+  'ولایت عشق',
+];
 
 const wildlifeStrongTerms = [
   'حیات وحش', 'حیات‌وحش', 'جانوران وحشی', 'حیوانات وحشی', 'دنیای حیوانات', 'دنیای جانوران',
@@ -155,27 +180,40 @@ export function classifyCatalogItem(input = {}) {
     ? Boolean(input.isDocumentary)
     : Boolean(documentaryGenre && !narrativeGenre);
 
-  const programText = `${titleText} ${genreText} ${normalize(overview)}`;
+  // Program/reality identity must come from the title/genre, not from plot text.
+  // A narrative film can be *about* a TV contest without being a game show.
+  const programIdentityText = `${titleText} ${genreText}`;
+  const trustedSpecializedKind = trustedTmdb && !narrativeGenre;
   const isChildrenProgram = Boolean(
     !isAnimation &&
     (
-      includesAny(programText, childrenProgramTerms) ||
-      (trustedTmdb && existingKind === 'children-program')
+      includesAny(programIdentityText, childrenProgramTerms) ||
+      (trustedSpecializedKind && existingKind === 'children-program')
     )
   );
-  const isTalkShow = Boolean(includesAny(programText, talkShowTerms) || (trustedTmdb && existingKind === 'talk-show'));
-  const isRealityCompetition = Boolean(
-    includesAny(programText, realityTerms) ||
-    (trustedTmdb && existingKind === 'reality-competition') ||
-    (trustedTmdb && existingKeys.includes('reality'))
+  const isTalkShow = Boolean(
+    includesAny(programIdentityText, talkShowTerms) ||
+    (trustedSpecializedKind && existingKind === 'talk-show')
   );
-  const isProgram = isChildrenProgram || isTalkShow || isRealityCompetition || (trustedTmdb && existingKind === 'program');
+  const isRealityCompetition = Boolean(
+    includesAny(programIdentityText, realityTerms) ||
+    (trustedSpecializedKind && existingKind === 'reality-competition') ||
+    (trustedSpecializedKind && existingKeys.includes('reality'))
+  );
+  const isProgram = isChildrenProgram || isTalkShow || isRealityCompetition ||
+    (trustedSpecializedKind && existingKind === 'program');
 
   const isQuran = includesAny(titleText, quranTerms);
-  const isReligiousProgram = Boolean(isQuran || includesAny(titleText, religiousProgramTerms) || existingKind === 'religious-program');
+  const explicitReligiousTitle = includesAny(titleText, knownReligiousTitleTerms);
+  const isReligiousProgram = Boolean(
+    isQuran ||
+    includesAny(titleText, religiousProgramTerms) ||
+    (trustedSpecializedKind && existingKind === 'religious-program')
+  );
   const isReligious = Boolean(
-    isReligiousProgram || includesAny(`${titleText} ${genreText}`, religiousTerms) ||
-    ['religious-movie', 'religious-series'].includes(existingKind)
+    isReligiousProgram ||
+    explicitReligiousTitle ||
+    includesWholeTerms(`${titleText} ${genreText}`, religiousTerms)
   );
 
   const originalLanguage = normalize(input.originalLanguage);
@@ -235,7 +273,9 @@ export function classifyCatalogItem(input = {}) {
       categoryLabels.push('قرآن و ادعیه');
     }
   }
-  if (isProgram) {
+  // Kids already have a dedicated shelf. Do not duplicate them on Home under
+  // "برنامه‌ها و مسابقه‌ها" while browse correctly excludes Kids.
+  if (isProgram && !isChildrenProgram) {
     categoryKeys.push('programs');
     categoryLabels.push('برنامه‌ها و مسابقه‌ها');
     if (isTalkShow) {
