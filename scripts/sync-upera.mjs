@@ -13,7 +13,7 @@ import {
 const API_BASE = 'https://seeko.film/api/v1';
 const IRANIAN_SERIES_SCAN_VERSION = 3;
 const SERIES_COMPLETENESS_AUDIT_VERSION = 2;
-const MEDIA_LANGUAGE_AUDIT_VERSION = 4;
+const MEDIA_LANGUAGE_AUDIT_VERSION = 5;
 const ARCHIVE_COMPLETION_ORDER_VERSION = 1;
 const CATALOG_VERSION = '0.22.0-final-stability';
 const AFFILIATE_URL_KEYS = [
@@ -2549,7 +2549,13 @@ async function processMovie(candidate, source, options = {}) {
   }
 
   const existing = findExistingItem(movie, 'movie');
-  const mergedMedia = options.replaceMedia === true ? media : mergeMovieMedia(existing, media);
+  // The affiliate response is a complete language/media snapshot. During a
+  // language audit, replace stale ordinary sections instead of merging them;
+  // merging kept an old unlabeled URL beside its dubbed copy and the mobile
+  // client then had no reliable way to choose the correct language.
+  const mergedMedia = options.replaceMedia === true || options.fullMediaAudit === true
+    ? media
+    : mergeMovieMedia(existing, media);
   const normalized = normalizeMovie(movie, mergedMedia, source, existing);
   // fetchAffiliateLinks() returns the complete movie affiliate payload, so a
   // successful parse is already a full media-language audit. Mark it now; new
