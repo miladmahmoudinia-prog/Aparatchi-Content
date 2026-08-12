@@ -86,6 +86,7 @@ async function runSync(cwd, options = {}) {
       env: {
         ...process.env,
         UPERA_REF_ID: 'regression-ref',
+        UPERA_PANEL_TOKEN: options.operatorDiscovery ? 'mock-panel-token' : '',
         MOCK_SYNC_SCENARIO: options.scenario || 'missing-episode',
         UPERA_SYNC_MODE: options.mode || 'BACKFILL',
         UPERA_REQUEST_DELAY_MS: '1',
@@ -108,7 +109,7 @@ async function runSync(cwd, options = {}) {
         UPERA_IRANIAN_SERIES_REQUEST_QUOTA: '1',
         UPERA_OPERATOR_DISCOVERY_ENABLED: options.operatorDiscovery ? 'true' : 'false',
         UPERA_OPERATOR_MOVIE_REQUEST_QUOTA: '2',
-        UPERA_OPERATOR_SERIES_REQUEST_QUOTA: '3',
+        UPERA_OPERATOR_SERIES_REQUEST_QUOTA: '12',
         UPERA_IRANIAN_SERIES_PAGES_PER_RUN: '1',
         UPERA_IRANIAN_SERIES_TITLES_PER_RUN: '1',
         UPERA_OPERATOR_SERIES_PAGES_PER_RUN: '1',
@@ -422,12 +423,9 @@ test('foreign episode rows cannot add gaps or operator access to the wrong serie
     assert.equal(item?.archivePendingEpisodeCount, 1, 'operator-only episode is not counted as ordinary media');
     assert.equal(item?.archiveComplete, false);
     assert.equal(result.report.affiliateRequests, 1, 'foreign episode rows never reach the affiliate endpoint');
-    assert.equal(operatorFiles.length, 1);
-    assert.equal(operatorFiles[0]?.mode, 'operator-play');
-    assert.match(operatorFiles[0]?.url || '', /^https:\/\/aparatchi\.upera\.tv\/stream\/episode\//);
+    assert.equal(operatorFiles.length, 0, 'an unverified /stream URL cannot become mobile-only');
     assert.ok(!item?.categoryKeys?.includes('mobile-operator'));
-    assert.equal(operatorItem?.operatorOnly, true);
-    assert.ok(operatorItem?.categoryKeys?.includes('mobile-operator'));
+    assert.equal(operatorItem, undefined);
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }
@@ -488,10 +486,106 @@ test('ordinary and operator editions of the same movie are published as separate
     const operatorFile = item.downloads.flatMap((section) => section.files).find(
       (file) => file.mode === 'operator-play',
     );
-    assert.match(operatorFile?.url || '', /^https:\/\/aparatchi\.upera\.tv\/stream\/movie\/aparatchi-mobile-1/);
+    assert.match(operatorFile?.url || '', /^https:\/\/aparatchi\.upera\.tv\/stream\/movie\/operator-movie-1/);
     assert.equal(result.report.operatorMoviesAddedOrUpdated, 1);
     assert.equal(result.report.affiliateRequests, 1, 'the repeated title reuses one affiliate response');
     assert.ok(result.report.affiliateCacheHits >= 1);
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+test('traffic_oo=0 remains a public online-only movie without a mobile badge', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-public-panel-stream-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
+    version: 'test', updatedAt: new Date(0).toISOString(), items: [], iranianSchedule: [], weeklySchedule: [],
+  });
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+  try {
+    const result = await runSync(fixtureDirectory, {
+      mode: 'NORMAL', scenario: 'panel-public-movie', operatorDiscovery: true,
+    });
+    const item = result.catalog.items.find((entry) => entry.id === 'panel-public-movie-1');
+    assert.ok(item);
+    assert.equal(item.operatorOnly, false);
+    assert.ok(!item.categoryKeys.includes('mobile-operator'));
+    assert.equal(result.catalog.items.some((entry) => entry.id === 'panel-public-movie-1--operator'), false);
+    const file = item.downloads.flatMap((section) => section.files || []).find(
+      (entry) => entry.url?.includes('/stream/movie/panel-public-movie-1'),
+    );
+    assert.equal(file?.mode, 'operator-play', 'existing web player route is reused by the mobile app');
+    assert.equal(file?.operatorOnly, false);
+    assert.equal(file?.trafficOo, 0);
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+test('a same-name public panel edition is skipped when the existing post already has download and playback', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-no-public-duplicate-'));
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
+    version: 'test',
+    updatedAt: new Date(0).toISOString(),
+    items: [{
+      id: 'existing-public-movie', slug: 'movie-existing-public-movie', type: 'movie',
+      name: 'Public Stream Movie', nameFa: 'فیلم پخش عمومی', year: 2023,
+      poster: 'https://example.test/existing-poster.jpg', backdrop: 'https://example.test/existing-backdrop.jpg',
+      overview: 'Existing complete post', categoryKeys: ['foreign-movies'], categoryLabels: ['فیلم خارجی'],
+      downloads: [{ id: 'download-original', title: 'نسخه اصلی', files: [
+        { id: 'download-720', url: 'https://cdn.example.test/existing-720.mp4', mode: 'download', quality: '720p' },
+        { id: 'play-hls', url: 'https://cdn.example.test/existing/master.m3u8', mode: 'play', quality: 'پخش آنلاین' },
+      ] }],
+    }],
+    iranianSchedule: [], weeklySchedule: [],
+  });
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+  try {
+    const result = await runSync(fixtureDirectory, {
+      mode: 'NORMAL', scenario: 'panel-public-movie', operatorDiscovery: true,
+    });
+    assert.ok(result.catalog.items.some((entry) => entry.id === 'existing-public-movie'));
+    assert.equal(result.catalog.items.some((entry) => entry.id === 'panel-public-movie-1'), false);
+    assert.equal(result.catalog.items.some((entry) => entry.id.endsWith('--operator')), false);
+    const existing = result.catalog.items.find((entry) => entry.id === 'existing-public-movie');
+    assert.ok(existing.downloads.flatMap((section) => section.files || []).some(
+      (file) => file.url === 'https://cdn.example.test/existing-720.mp4',
+    ));
+    assert.equal(existing.downloads.flatMap((section) => section.files || []).some(
+      (file) => file.url?.includes('panel-public-movie-1'),
+    ), false);
+  } finally {
+    await fs.rm(fixtureDirectory, { recursive: true, force: true });
+  }
+});
+
+test('stale unverified mobile duplicates are removed from the category and collapsed into the real post', async () => {
+  const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-stale-mobile-cleanup-'));
+  const ordinary = {
+    id: 'real-title', slug: 'movie-real-title', type: 'movie', name: 'Same Film', nameFa: 'فیلم یکسان', year: 2024,
+    poster: 'https://example.test/same.jpg', backdrop: 'https://example.test/same-bg.jpg',
+    downloads: [{ id: 'ordinary', files: [
+      { id: 'd', url: 'https://cdn.example.test/same.mp4', mode: 'download' },
+      { id: 'p', url: 'https://cdn.example.test/same.m3u8', mode: 'play' },
+    ] }], categoryKeys: ['foreign-movies'], categoryLabels: ['فیلم خارجی'],
+  };
+  const stale = {
+    ...structuredClone(ordinary), id: 'wrong-source--operator', slug: 'movie-wrong-source--operator',
+    sourceContentId: 'wrong-source', contentVariant: 'operator', operatorOnly: true, access: 'operator',
+    categoryKeys: ['foreign-movies', 'mobile-operator'], categoryLabels: ['فیلم خارجی', 'ویژه اینترنت همراه'],
+    downloads: [{ id: 'operator-mobile-access', files: [{
+      id: 'old-wrong', url: 'https://aparatchi.upera.tv/stream/movie/wrong-source?ref=test',
+      mode: 'operator-play', operatorOnly: true,
+    }] }],
+  };
+  await writeJson(path.join(fixtureDirectory, 'catalog.json'), {
+    version: 'test', updatedAt: new Date(0).toISOString(), items: [ordinary, stale], iranianSchedule: [], weeklySchedule: [],
+  });
+  await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
+  try {
+    const result = await runSync(fixtureDirectory, { mode: 'PEOPLE' });
+    assert.equal(result.catalog.items.filter((entry) => entry.nameFa === 'فیلم یکسان').length, 1);
+    assert.equal(result.catalog.items.some((entry) => entry.categoryKeys?.includes('mobile-operator')), false);
+    assert.equal(result.catalog.items.some((entry) => entry.id === 'wrong-source--operator'), false);
   } finally {
     await fs.rm(fixtureDirectory, { recursive: true, force: true });
   }

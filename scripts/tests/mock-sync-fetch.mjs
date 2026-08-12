@@ -10,6 +10,80 @@ globalThis.fetch = async (input) => {
   const url = new URL(String(input));
   const scenario = String(process.env.MOCK_SYNC_SCENARIO || 'missing-episode');
 
+  if (url.hostname === 'panel-api.upera.tv') {
+    if (url.pathname.endsWith('/owner/get/movies')) {
+      const data = ['operator-movie', 'panel-public-movie'].includes(scenario)
+        ? [{
+            id: scenario === 'operator-movie' ? 'operator-movie-1' : 'panel-public-movie-1',
+            type: 'movie',
+            name: scenario === 'operator-movie' ? 'Operator Movie' : 'Public Stream Movie',
+            name_fa: scenario === 'operator-movie' ? 'فیلم ویژه همراه' : 'فیلم پخش عمومی',
+            year: 2026,
+            poster: 'https://example.test/operator-poster.jpg',
+            backdrop: 'https://example.test/operator-backdrop.jpg',
+            owner: 9194919,
+            owner_name: 'فیلیمو',
+          }]
+        : [];
+      return jsonResponse({ data: { movies: { data, current_page: 1, last_page: 1 } } });
+    }
+    if (url.pathname.endsWith('/owner/get/series')) {
+      const data = scenario === 'operator-series'
+        ? [{
+            id: 'operator-series-1',
+            type: 'series',
+            name: 'Operator Series',
+            name_fa: 'سریال ویژه همراه',
+            year: 2024,
+            poster: 'https://example.test/operator-series-poster.jpg',
+            backdrop: 'https://example.test/operator-series-backdrop.jpg',
+            owner: 9194919,
+            owner_name: 'فیلیمو',
+          }]
+        : [];
+      return jsonResponse({ data: { series: { data, current_page: 1, last_page: 1 } } });
+    }
+    if (url.pathname.endsWith('/owner/get/series/season/operator-series-1')) {
+      return jsonResponse({
+        status: 'success',
+        data: {
+          season: {
+            data: Array.from({ length: 6 }, (_, index) => ({
+              id: `operator-series-episode-${index + 1}`,
+              series_id: 'operator-series-1',
+              season_number: 1,
+              episode_number: index + 1,
+              show: 1,
+              owner: 9194919,
+              traffic_oo: index === 5 ? 1 : 0,
+            })),
+            current_page: 1,
+            last_page: 1,
+          },
+        },
+      });
+    }
+    const showLinksMatch = url.pathname.match(/\/owner\/show_links\/(movie|episode)\/([^/]+)$/);
+    if (showLinksMatch) {
+      const [, type, id] = showLinksMatch;
+      const operator =
+        (scenario === 'operator-movie' && id === 'operator-movie-1') ||
+        (scenario === 'operator-series' && id === 'operator-series-episode-6');
+      const publicStream = scenario === 'panel-public-movie' && id === 'panel-public-movie-1';
+      return jsonResponse({
+        data: {
+          links: operator || publicStream ? [{
+            type: 'player',
+            amount: 0,
+            link: `https://aparatchi.upera.tv/stream/${type}/${id}?ref=test`,
+            title: 'لینک پلیر',
+          }] : [],
+          traffic_oo: operator ? 1 : 0,
+        },
+      });
+    }
+  }
+
   if (
     scenario === 'people-source' &&
     url.pathname.endsWith('/ghost/get/movie/people-movie-1')
@@ -311,6 +385,23 @@ globalThis.fetch = async (input) => {
   }
 
   if (scenario === 'operator-movie') {
+    if (url.pathname.endsWith('/ghost/get/movie/operator-movie-1')) {
+      return jsonResponse({
+        status: 'success',
+        data: {
+          movie: {
+            id: 'operator-movie-1',
+            type: 'movie',
+            name: 'Operator Movie',
+            name_fa: 'فیلم ویژه همراه',
+            year: 2026,
+            poster: 'https://example.test/operator-poster.jpg',
+            backdrop: 'https://example.test/operator-backdrop.jpg',
+            overview: 'Operator regression fixture',
+          },
+        },
+      });
+    }
     if (url.pathname.endsWith('/ghost/get/movies/sort')) {
       return jsonResponse({
         status: 'success',
@@ -365,6 +456,24 @@ globalThis.fetch = async (input) => {
           ],
         },
       });
+    }
+  }
+
+  if (scenario === 'panel-public-movie') {
+    if (url.pathname.endsWith('/ghost/get/movie/panel-public-movie-1')) {
+      return jsonResponse({ status: 'success', data: { movie: {
+        id: 'panel-public-movie-1', type: 'movie', name: 'Public Stream Movie',
+        name_fa: 'فیلم پخش عمومی', year: 2023,
+        poster: 'https://example.test/public-poster.jpg',
+        backdrop: 'https://example.test/public-backdrop.jpg',
+      } } });
+    }
+    if (url.pathname.endsWith('/ghost/get/getaffiliatelinks')) {
+      return jsonResponse({ status: 'success', data: { links: [{
+        amount: 0,
+        link: 'https://aparatchi.upera.tv/stream/movie/panel-public-movie-1?ref=test',
+        title: 'لینک پلیر',
+      }] } });
     }
   }
 

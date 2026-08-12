@@ -11,6 +11,8 @@ import {
 } from './classification.mjs';
 
 const API_BASE = 'https://seeko.film/api/v1';
+const PANEL_API_BASE = 'https://panel-api.upera.tv/api/v1';
+const FILIMO_OWNER_ID = 9194919;
 const IRANIAN_SERIES_SCAN_VERSION = 3;
 const SERIES_COMPLETENESS_AUDIT_VERSION = 2;
 const MEDIA_LANGUAGE_AUDIT_VERSION = 5;
@@ -33,6 +35,7 @@ const execFileAsync = promisify(execFile);
 
 const refId = String(process.env.UPERA_REF_ID || '').trim();
 const token = String(process.env.UPERA_TOKEN || '').trim();
+const panelToken = String(process.env.UPERA_PANEL_TOKEN || '').trim();
 const tmdbBearerToken = String(process.env.TMDB_BEARER_TOKEN || '').trim();
 
 const peopleEnrichmentTitlesPerRun = Math.min(
@@ -924,7 +927,7 @@ for (const [id, originalSeries] of originalSeriesById.entries()) {
 // A title can exist twice in Upera: the ordinary Upera edition and a separate
 // mobile-operator/Filimo edition. They must remain two independent catalog
 // posts even when their name, year and IMDb id are identical.
-items = splitOperatorCatalogVariants(items);
+items = collapseInvalidatedOperatorDuplicates(splitOperatorCatalogVariants(items));
 
 items.sort((a, b) => {
   const aDate = String(
@@ -1104,10 +1107,28 @@ async function collectRecentPageCandidates(kind, pageCount) {
 }
 
 function movieHasUsableMedia(item) {
-  if (isDirectMediaUrl(item?.streamUrl)) return true;
+  if (isDirectMediaUrl(item?.streamUrl) || operatorPortalDetails(item?.streamUrl)) return true;
   return (Array.isArray(item?.downloads) ? item.downloads : []).some(
     (section) => (Array.isArray(section?.files) ? section.files : []).some((file) =>
-      isDirectMediaUrl(file?.url) || isValidStoredOperatorFile(file),
+      isDirectMediaUrl(file?.url) || isValidStoredOperatorFile(file) || isValidStoredPublicPortalFile(file),
+    ),
+  );
+}
+
+function catalogHasDownload(item) {
+  return (Array.isArray(item?.downloads) ? item.downloads : []).some((section) =>
+    (Array.isArray(section?.files) ? section.files : []).some((file) =>
+      file?.mode === 'download' && isDownloadableMediaUrl(file?.url),
+    ),
+  );
+}
+
+function catalogHasPublicPlayback(item) {
+  if (isPlayableMediaUrl(item?.streamUrl) || operatorPortalDetails(item?.streamUrl)) return true;
+  return (Array.isArray(item?.downloads) ? item.downloads : []).some((section) =>
+    (Array.isArray(section?.files) ? section.files : []).some((file) =>
+      isValidStoredPublicPortalFile(file) ||
+      (file?.mode === 'play' && isPlayableMediaUrl(file?.url)),
     ),
   );
 }
@@ -2187,9 +2208,10 @@ async function syncOperatorSeriesArchive() {
 
       try {
         const result = await processSeries(series, 'operator-priority', {
-          requireOperator: true,
-          operatorProbe: true,
-          episodeLimit: operatorProbeEpisodesPerSeries,
+          requirePortalStream: true,
+          panelCandidate: Boolean(panelToken),
+          operatorProbe: !panelToken,
+          episodeLimit: panelToken ? priorityEpisodesPerSeries : operatorProbeEpisodesPerSeries,
         });
         retryLater = Boolean(result?.retryLater);
         rememberDiagnostic('operatorDiagnostics', {
@@ -2274,7 +2296,8 @@ async function syncOperatorMovieArchive() {
 
       try {
         const result = await processMovie(movie, 'operator-priority', {
-          requireOperator: true,
+          requirePortalStream: true,
+          panelCandidate: Boolean(panelToken),
         });
         retryLater = Boolean(result?.retryLater);
         rememberDiagnostic('operatorDiagnostics', {
@@ -2526,8 +2549,9 @@ async function processMovie(candidate, source, options = {}) {
 
   let movie = candidate;
 
-  if (!hasBasicMetadata(movie)) {
-    movie = await fetchMovieDetail(id);
+  if (!hasBasicMetadata(movie) || options.panelCandidate === true) {
+    const detail = await fetchMovieDetail(id);
+    movie = detail ? { ...candidate, ...detail, id } : movie;
   }
 
   if (!movie) {
@@ -2551,6 +2575,10 @@ async function processMovie(candidate, source, options = {}) {
     return { retryLater: false, added: false, reason: 'no-operator-link' };
   }
 
+  if (options.requirePortalStream && !media.portalFiles.length) {
+    return { retryLater: false, added: false, reason: 'no-panel-player-link' };
+  }
+
   if (!media.downloads.length && !media.streamUrl) {
     console.log(
       `فیلم ${id} لینک رایگان مستقیم یا ویژه اینترنت همراه نداشت؛ مورد قبلی حذف نشد.`,
@@ -2559,7 +2587,19 @@ async function processMovie(candidate, source, options = {}) {
     return { retryLater: false, added: false, reason: 'no-usable-links' };
   }
 
-  const existing = findExistingItem(movie, 'movie');
+  const existing = options.panelCandidate === true
+    ? findExistingPanelTitle(movie, 'movie')
+    : findExistingItem(movie, 'movie');
+  if (
+    options.panelCandidate === true &&
+    media.operatorFiles.length === 0 &&
+    media.publicPortalFiles.length > 0 &&
+    existing &&
+    catalogHasDownload(existing) &&
+    catalogHasPublicPlayback(existing)
+  ) {
+    return { retryLater: false, added: false, reason: 'existing-public-title-already-complete' };
+  }
   // The affiliate response is a complete language/media snapshot. During a
   // language audit, replace stale ordinary sections instead of merging them;
   // merging kept an old unlabeled URL beside its dubbed copy and the mobile
@@ -2722,6 +2762,14 @@ async function processSeries(
   }
 
   const detail = await fetchSeriesDetail(id);
+  if (options.panelCandidate === true) {
+    try {
+      const panelEpisodes = await fetchPanelSeriesEpisodes(id);
+      if (panelEpisodes.length) detail.episodes = panelEpisodes;
+    } catch (error) {
+      rememberError(`panel-series-episodes-${id}`, error);
+    }
+  }
   const series = detail.series;
   const episodeDiscoveryComplete = detail.episodeDiscoveryComplete !== false;
 
@@ -2775,7 +2823,9 @@ async function processSeries(
     episodesByCoordinate.push(episode);
   }
 
-  const existing = findExistingItem(series, 'series');
+  const existing = options.panelCandidate === true
+    ? findExistingPanelTitle(series, 'series')
+    : findExistingItem(series, 'series');
   const unavailableEpisodeMap = existingUnavailableEpisodeMap(id, existing);
   let unavailableMarked = 0;
   const previousGroups = Array.isArray(existing?.downloads)
@@ -2808,6 +2858,11 @@ async function processSeries(
       (episode) => String(episode.id) === String(options.onlyEpisodeId),
     );
     if (matched) selectedEpisodes = [matched];
+  } else if (options.panelCandidate === true) {
+    const limit = positiveInt(options.episodeLimit, priorityEpisodesPerSeries);
+    const savedCursor = nonNegativeInt(state.seriesEpisodeCursor[id], 0);
+    cursor = savedCursor < episodes.length ? savedCursor : 0;
+    selectedEpisodes = episodes.slice(cursor, cursor + limit);
   } else if (options.operatorProbe === true) {
     selectedEpisodes = selectOperatorProbeEpisodes(
       episodes,
@@ -2874,6 +2929,17 @@ async function processSeries(
         continue;
       }
 
+
+      if (options.requirePortalStream && !media.portalFiles.length) {
+        rejectedEpisodes.push({
+          id: String(episode.id),
+          seasonNumber: episodeSeasonNumber(episode),
+          episodeNumber: episodeNumberValue(episode),
+          reason: 'no-panel-player-link',
+        });
+        continue;
+      }
+
       if (!media.downloads.length && !media.streamUrl) {
         stats.episodesRejectedNoLinks += 1;
         rejectedEpisodes.push({
@@ -2890,6 +2956,16 @@ async function processSeries(
 
       clearArchiveEpisodeFailure(id, episode, unavailableEpisodeMap);
       const previousGroup = findEpisodeGroup(mergedGroups, episode);
+      if (
+        options.panelCandidate === true &&
+        media.operatorFiles.length === 0 &&
+        media.publicPortalFiles.length > 0 &&
+        previousGroup &&
+        catalogHasDownload({ downloads: [previousGroup] }) &&
+        catalogHasPublicPlayback({ downloads: [previousGroup] })
+      ) {
+        continue;
+      }
       const nextGroup = episodeGroup(episode, media, series);
       upsertEpisodeGroup(mergedGroups, nextGroup);
 
@@ -2917,7 +2993,7 @@ async function processSeries(
     const nextCursor = cursor + processedEpisodes;
     mediaLanguageAuditComplete = !stoppedByBudget && nextCursor >= episodes.length;
     state.seriesLanguageAuditCursor[id] = mediaLanguageAuditComplete ? 0 : nextCursor;
-  } else if (source === 'backfill') {
+  } else if (source === 'backfill' || options.panelCandidate === true) {
     const nextCursor = cursor + processedEpisodes;
     completeBackfill = nextCursor >= episodes.length;
     state.seriesEpisodeCursor[id] = completeBackfill ? 0 : nextCursor;
@@ -3153,6 +3229,7 @@ async function fetchIranianSeriesPage(page) {
 }
 
 async function fetchOperatorSeriesPage(page) {
+  if (panelToken) return fetchPanelFilimoPage('series', page);
   return fetchScopedArchivePage('series', page, {
     free: '',
     persian: '',
@@ -3161,11 +3238,62 @@ async function fetchOperatorSeriesPage(page) {
 }
 
 async function fetchOperatorMoviePage(page) {
+  if (panelToken) return fetchPanelFilimoPage('movies', page);
   return fetchScopedArchivePage('movies', page, {
     free: '',
     persian: '',
     traffic: 1,
   });
+}
+
+function panelAuthorizationValue() {
+  return /^Bearer\s+/i.test(panelToken) ? panelToken : `Bearer ${panelToken}`;
+}
+
+async function fetchPanelJson(input, options = {}) {
+  if (!panelToken) throw new Error('UPERA_PANEL_TOKEN تنظیم نشده است.');
+  return fetchJson(input, {
+    ...options,
+    headers: {
+      Authorization: panelAuthorizationValue(),
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+  });
+}
+
+async function fetchPanelFilimoPage(kind, page) {
+  const endpoint = kind === 'movies' ? 'movies' : 'series';
+  const json = await fetchPanelJson(`${PANEL_API_BASE}/owner/get/${endpoint}`, {
+    method: 'POST',
+    body: JSON.stringify({
+      query: '',
+      ir: -1,
+      sale_method: 3,
+      payment_method: 0,
+      specific_id: null,
+      nodata: 1,
+      owner: FILIMO_OWNER_ID,
+      page: positiveInt(page, 1),
+    }),
+  });
+  return pagedResult(json, endpoint);
+}
+
+async function fetchPanelSeriesEpisodes(seriesId) {
+  const episodes = [];
+  let page = 1;
+  let lastPage = 1;
+  do {
+    const url = new URL(`${PANEL_API_BASE}/owner/get/series/season/${encodeURIComponent(seriesId)}`);
+    url.searchParams.set('page', String(page));
+    const json = await fetchPanelJson(url);
+    const result = pagedResult(json, 'season');
+    episodes.push(...result.items);
+    lastPage = Math.min(maxEpisodePaginationPages, positiveInt(result.lastPage, 1));
+    page += 1;
+  } while (page <= lastPage && !runTimeBudgetReached('panel-series-episodes', 50000));
+  return dedupeEpisodes(episodes).sort(compareEpisodes);
 }
 
 async function fetchScopedArchivePage(kind, page, filters = {}) {
@@ -3410,6 +3538,20 @@ function extractAffiliateLinkRecords(value, hints = [], output = []) {
   return output;
 }
 
+async function fetchPanelShowLinks(id, type) {
+  if (!panelToken || !['movie', 'episode'].includes(String(type))) return [];
+  const json = await fetchPanelJson(
+    `${PANEL_API_BASE}/owner/show_links/${encodeURIComponent(type)}/${encodeURIComponent(id)}`,
+  );
+  const data = json?.data ?? json ?? {};
+  const trafficOo = Number(data?.traffic_oo) === 1 ? 1 : 0;
+  return extractAffiliateLinkRecords(data?.links ?? []).map((link) => ({
+    ...link,
+    _panel_verified: true,
+    _traffic_oo: trafficOo,
+  }));
+}
+
 async function fetchAffiliateLinks(
   id,
   type,
@@ -3465,6 +3607,13 @@ async function fetchAffiliateLinks(
     token,
   });
 
+  let panelLinks = [];
+  try {
+    panelLinks = await fetchPanelShowLinks(id, type);
+  } catch (error) {
+    rememberError(`panel-show-links-${type}-${id}`, error);
+  }
+
   try {
     const json = await fetchJson(
       url,
@@ -3476,11 +3625,18 @@ async function fetchAffiliateLinks(
       json?.links ??
       json?.data ??
       [];
+    const publicLinks = extractAffiliateLinkRecords(rawLinks);
     const result = {
       // Upera has returned both flat arrays and grouped objects (for example
       // dubbed/subtitle buckets) across deployments. Flatten every link-like
       // record while preserving the parent group names as language hints.
-      links: uniqueByUrl(extractAffiliateLinkRecords(rawLinks)),
+      links: uniqueByUrl([
+        ...publicLinks.filter((link) => !operatorPortalDetails(link?.link)),
+        ...panelLinks,
+        ...(!panelLinks.length
+          ? publicLinks.filter((link) => operatorPortalDetails(link?.link))
+          : []),
+      ]),
       skipped: false,
     };
     affiliateLinkCache.set(cacheKey, result);
@@ -3491,7 +3647,7 @@ async function fetchAffiliateLinks(
     if (Number(error?.status) === 404) {
       stats.affiliateNotFound += 1;
       const result = {
-        links: [],
+        links: uniqueByUrl(panelLinks),
         skipped: false,
         notFound: true,
       };
@@ -3657,14 +3813,20 @@ function parseMediaLinks(links) {
   // accepted only when it is free and can be positively identified as mobile
   // operator playback/download; an ordinary Upera purchase page must never be
   // promoted into «ویژه اینترنت همراه».
+  const portalLinks = uniqueByUrl(
+    normalizedLinks.filter((link) =>
+      link._media_price_tier !== 'paid' && isVerifiedPortalAccessLink(link),
+    ),
+  );
   const operatorLinks = uniqueByUrl(
     normalizedLinks.filter((link) =>
       link._media_price_tier !== 'paid' && isOperatorAccessLink(link),
     ),
   );
+  const publicPortalLinks = portalLinks.filter((link) => !isOperatorAccessLink(link));
 
   const ordinaryLinks = normalizedLinks.filter((link) =>
-    !isOperatorAccessLink(link) && link._media_price_tier !== 'paid',
+    !operatorPortalDetails(link?.link) && link._media_price_tier !== 'paid',
   );
   const byLanguage = new Map();
   for (const link of ordinaryLinks) {
@@ -3733,6 +3895,22 @@ function parseMediaLinks(links) {
     .map((link) => toOperatorFile(link))
     .filter(Boolean);
 
+  const publicPortalFiles = publicPortalLinks
+    .map((link) => toPortalPlayFile(link, false))
+    .filter(Boolean);
+
+  if (publicPortalFiles.length) {
+    downloads.push({
+      id: 'online-public-stream',
+      title: 'پخش آنلاین رایگان',
+      subtitle: 'قابل پخش با همه اینترنت‌ها',
+      badge: 'پخش',
+      files: publicPortalFiles,
+    });
+    hasFreeAcquisition = true;
+    hasAnyAcquisition = true;
+  }
+
   if (operatorFiles.length) {
     const hasOperatorPlay = operatorFiles.some((file) => file.mode === 'operator-play');
     const hasOperatorDownload = operatorFiles.some((file) => file.mode === 'operator-download');
@@ -3762,6 +3940,8 @@ function parseMediaLinks(links) {
     hls: hls[0]?.link || null,
     mp4: sortedMp4,
     operatorFiles,
+    publicPortalFiles,
+    portalFiles: [...publicPortalFiles, ...operatorFiles],
     access: onlyOperator ? 'operator' : 'free',
     paidFallback: false,
     operatorAccess: operatorAccessFromFiles(operatorFiles),
@@ -5094,13 +5274,11 @@ function normalizeSeries(
     );
 
   const operatorFiles = groups.flatMap((group) =>
-    (Array.isArray(group?.files) ? group.files : []).filter((file) =>
-      file?.mode === 'operator-play' || file?.mode === 'operator-download',
-    ),
+    (Array.isArray(group?.files) ? group.files : []).filter(isMobileOperatorFile),
   );
   const directFiles = groups.flatMap((group) =>
     (Array.isArray(group?.files) ? group.files : []).filter((file) =>
-      file?.mode !== 'operator-play' && file?.mode !== 'operator-download',
+      !isMobileOperatorFile(file),
     ),
   );
   const hasOperator = operatorFiles.length > 0;
@@ -5466,6 +5644,32 @@ function findExistingItem(
   );
 }
 
+function normalizedPosterIdentity(value) {
+  try {
+    const url = new URL(cleanText(value));
+    const source = url.searchParams.get('src');
+    return path.basename(source || url.pathname).toLowerCase();
+  } catch {
+    return path.basename(cleanText(value)).toLowerCase();
+  }
+}
+
+function findExistingPanelTitle(candidate, type) {
+  const direct = findExistingItem(candidate, type);
+  if (direct) return direct;
+  const year = identityYear(candidate?.year);
+  const posterIdentity = normalizedPosterIdentity(candidate?.poster);
+  return items.find((item) => {
+    if (catalogVariant(item) !== 'standard' || item?.type !== type) return false;
+    if (!namesOverlap(candidate, item)) return false;
+    if (yearsAreCompatible(year, item?.year)) return true;
+    return Boolean(
+      posterIdentity &&
+      posterIdentity === normalizedPosterIdentity(item?.poster),
+    );
+  }) || null;
+}
+
 function replaceItem(next) {
   const nextVariant = catalogVariant(next);
   items = items.filter((item) => {
@@ -5564,7 +5768,7 @@ function findEpisodeGroup(
 
 function episodeGroupHasUsableMedia(group) {
   return Boolean((Array.isArray(group?.files) ? group.files : []).some((file) =>
-    isDirectMediaUrl(file?.url) || isValidStoredOperatorFile(file),
+    isDirectMediaUrl(file?.url) || isValidStoredOperatorFile(file) || isValidStoredPublicPortalFile(file),
   ));
 }
 
@@ -6729,14 +6933,27 @@ function scalarLinkText(link) {
 function isOperatorAccessLink(link) {
   if (!link || !isHttp(link.link) || isDirectMediaUrl(link.link)) return false;
   const portal = operatorPortalDetails(link.link);
-  // Purchase pages often reuse the same operator wording. Only Upera's exact
-  // /stream/movie/... or /stream/episode/... route is safe to expose.
-  return Boolean(portal?.exactStream);
+  // The exact /stream route exists for both public playback and mobile-only
+  // playback. Only the authenticated panel's traffic_oo flag can distinguish
+  // them; the URL alone must never create a «ویژه همراه» badge.
+  return Boolean(
+    portal?.exactStream &&
+    link?._panel_verified === true &&
+    Number(link?._traffic_oo) === 1,
+  );
+}
+
+function isVerifiedPortalAccessLink(link) {
+  if (!link || !isHttp(link.link) || isDirectMediaUrl(link.link)) return false;
+  return Boolean(
+    operatorPortalDetails(link.link)?.exactStream &&
+    link?._panel_verified === true,
+  );
 }
 
 function operatorModeForLink(link) {
   const portal = operatorPortalDetails(link?.link);
-  return portal?.exactStream ? 'operator-play' : null;
+  return portal?.exactStream && link?._panel_verified === true ? 'operator-play' : null;
 }
 
 function supportedOperatorsForLink(link) {
@@ -6760,7 +6977,7 @@ function supportedOperatorsForLink(link) {
   return uniqueStrings(operators);
 }
 
-function toOperatorFile(link) {
+function toPortalPlayFile(link, operatorOnly) {
   const mode = operatorModeForLink(link);
   if (!mode) return null;
 
@@ -6769,11 +6986,13 @@ function toOperatorFile(link) {
     link.title ||
     link.label ||
     link.name ||
-    (mode === 'operator-download'
-      ? 'دانلود با اینترنت همراه'
-      : portal?.mediaType === 'episode'
+    (operatorOnly
+      ? portal?.mediaType === 'episode'
         ? 'پخش قسمت با اینترنت همراه'
-        : 'پخش فیلم با اینترنت همراه'),
+        : 'پخش فیلم با اینترنت همراه'
+      : portal?.mediaType === 'episode'
+        ? 'پخش آنلاین رایگان قسمت'
+        : 'پخش آنلاین رایگان فیلم'),
   );
   const supportedOperators = supportedOperatorsForLink(link);
 
@@ -6784,9 +7003,25 @@ function toOperatorFile(link) {
     ...(link.size && Number(link.size) !== 0 ? { size: String(link.size) } : {}),
     url: link.link,
     mode,
-    operatorOnly: true,
+    operatorOnly: Boolean(operatorOnly),
+    panelVerified: true,
+    trafficOo: operatorOnly ? 1 : 0,
     ...(supportedOperators.length ? { supportedOperators } : {}),
   };
+}
+
+function toOperatorFile(link) {
+  return toPortalPlayFile(link, true);
+}
+
+function isMobileOperatorFile(file) {
+  return Boolean(
+    file?.mode === 'operator-play' &&
+    file?.operatorOnly === true &&
+    file?.panelVerified === true &&
+    Number(file?.trafficOo) === 1 &&
+    operatorPortalDetails(file?.url),
+  );
 }
 
 function operatorAccessFromFiles(files) {
@@ -6801,15 +7036,22 @@ function operatorAccessFromFiles(files) {
 
 function groupsHaveOperatorLinks(groups) {
   return (Array.isArray(groups) ? groups : []).some((group) =>
-    (Array.isArray(group?.files) ? group.files : []).some((file) =>
-      file?.mode === 'operator-play' || file?.mode === 'operator-download',
-    ),
+    (Array.isArray(group?.files) ? group.files : []).some(isMobileOperatorFile),
   );
 }
 
 function isValidStoredOperatorFile(file) {
-  if (!file || !['operator-play', 'operator-download'].includes(file.mode)) return false;
-  return Boolean(operatorPortalDetails(file.url));
+  return isMobileOperatorFile(file);
+}
+
+function isValidStoredPublicPortalFile(file) {
+  return Boolean(
+    file?.mode === 'operator-play' &&
+    file?.operatorOnly === false &&
+    file?.panelVerified === true &&
+    Number(file?.trafficOo) === 0 &&
+    operatorPortalDetails(file?.url),
+  );
 }
 
 function recoverDirectFileFromInvalidOperator(file) {
@@ -6850,14 +7092,18 @@ function sanitizeCatalogUnsupportedPurchases(sourceItems) {
 function sanitizeCatalogOperatorAccess(sourceItems) {
   let removed = 0;
   const sanitized = (Array.isArray(sourceItems) ? sourceItems : []).map((item) => {
+    let invalidOperatorRemoved = false;
     const downloads = (Array.isArray(item?.downloads) ? item.downloads : []).flatMap((section) => {
       const nextFiles = [];
       for (const file of Array.isArray(section?.files) ? section.files : []) {
         if (file?.mode === 'operator-play' || file?.mode === 'operator-download') {
           if (isValidStoredOperatorFile(file)) {
             nextFiles.push(file);
+          } else if (isValidStoredPublicPortalFile(file)) {
+            nextFiles.push(file);
           } else {
             removed += 1;
+            invalidOperatorRemoved = true;
             const recovered = recoverDirectFileFromInvalidOperator(file);
             if (recovered) nextFiles.push(recovered);
           }
@@ -6874,7 +7120,7 @@ function sanitizeCatalogOperatorAccess(sourceItems) {
     );
     const hasOperator = operatorFiles.length > 0;
     const directFiles = downloads.flatMap((section) =>
-      (section.files || []).filter((file) => !['operator-play', 'operator-download'].includes(file?.mode)),
+      (section.files || []).filter((file) => !isMobileOperatorFile(file)),
     );
     const hasDirect = directFiles.length > 0 || isDirectMediaUrl(item?.streamUrl);
     const operatorOnly = hasOperator && !hasDirect;
@@ -6896,6 +7142,7 @@ function sanitizeCatalogOperatorAccess(sourceItems) {
       operatorOnly,
       categoryKeys: uniqueStrings(categoryKeys),
       categoryLabels: uniqueStrings(categoryLabels),
+      ...(invalidOperatorRemoved ? { operatorClassificationInvalidated: true } : {}),
     };
 
     if (hasOperator) {
@@ -6916,6 +7163,40 @@ function sanitizeCatalogOperatorAccess(sourceItems) {
   return { items: sanitized, removed };
 }
 
+function collapseInvalidatedOperatorDuplicates(sourceItems) {
+  const result = [];
+  for (const item of Array.isArray(sourceItems) ? sourceItems : []) {
+    if (!item?.operatorClassificationInvalidated) {
+      result.push(item);
+      continue;
+    }
+    const duplicate = result.find((entry) =>
+      entry?.type === item?.type &&
+      catalogVariant(entry) === 'standard' &&
+      namesOverlap(entry, item) &&
+      yearsAreCompatible(entry?.year, item?.year),
+    );
+    if (duplicate) {
+      const merged = mergeDuplicateCatalogPair(duplicate, item);
+      delete merged.operatorClassificationInvalidated;
+      result[result.indexOf(duplicate)] = merged;
+      continue;
+    }
+    const next = { ...item };
+    delete next.operatorClassificationInvalidated;
+    // An old row whose only media was an unverified /stream URL has no usable
+    // content after correction. Keep it server-side only if other real media
+    // remains; otherwise remove the stale duplicate entirely.
+    if (!movieHasUsableMedia(next) && next?.type === 'movie') continue;
+    if (
+      next?.type === 'series' &&
+      !(Array.isArray(next.downloads) && next.downloads.some(episodeGroupHasUsableMedia))
+    ) continue;
+    result.push(next);
+  }
+  return result;
+}
+
 function catalogVariant(item) {
   return item?.contentVariant === 'operator' ? 'operator' : 'standard';
 }
@@ -6927,7 +7208,7 @@ function baseCatalogId(item) {
 function filesByVariant(item, operator) {
   return (Array.isArray(item?.downloads) ? item.downloads : []).flatMap((section) => {
     const files = (Array.isArray(section?.files) ? section.files : []).filter((file) => {
-      const isOperator = file?.mode === 'operator-play' || file?.mode === 'operator-download';
+      const isOperator = isMobileOperatorFile(file);
       return operator ? isOperator : !isOperator;
     });
     return files.length ? [{ ...section, files }] : [];
@@ -7062,6 +7343,8 @@ function applyVerifiedOperatorStreamOverrides(sourceItems) {
             url,
             mode: 'operator-play',
             operatorOnly: true,
+            panelVerified: true,
+            trafficOo: 1,
           },
         ]),
       };
@@ -7621,7 +7904,7 @@ function redact(url) {
 
 async function persistSyncCheckpoint(reason = 'checkpoint') {
   const now = new Date().toISOString();
-  const checkpointItems = splitOperatorCatalogVariants(items)
+  const checkpointItems = collapseInvalidatedOperatorDuplicates(splitOperatorCatalogVariants(items))
     .map(reclassifyCatalogItem)
     .map((item) => withSeriesPublicationState(item));
   const checkpointOutput = {
