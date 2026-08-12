@@ -26,7 +26,7 @@ test('narrative films with children/family wording are not child-program content
   assert.ok(result.categoryKeys.includes('foreign-movies'));
 });
 
-test('actual child programs stay in Kids and are excluded from Iranian cinema', () => {
+test('actual child programs stay only in Kids and are excluded from Iranian cinema/program shelf', () => {
   const result = classify({
     name: "Aunt Nasrin's Songs for Kids 5",
     nameFa: 'ترانه های کودکانه خاله نسرین ۵',
@@ -36,7 +36,7 @@ test('actual child programs stay in Kids and are excluded from Iranian cinema', 
   });
   assert.equal(result.isChildrenProgram, true);
   assert.ok(result.categoryKeys.includes('kids'));
-  assert.ok(result.categoryKeys.includes('programs'));
+  assert.ok(!result.categoryKeys.includes('programs'));
   assert.ok(!result.categoryKeys.includes('iranian-movies'));
 });
 
@@ -101,6 +101,7 @@ test('specialized episodic content stays out of generic series shelves', () => {
 
   const kids = classify({ type: 'series', nameFa: 'هشتگ خاله سوسکه', originalLanguage: 'fa', countryCodes: ['IR'] });
   assert.ok(kids.categoryKeys.includes('kids'));
+  assert.ok(!kids.categoryKeys.includes('programs'));
   assert.ok(!kids.categoryKeys.includes('series'));
 
   const documentary = classify({ type: 'series', nameFa: 'از به', genres: ['درام'], originalLanguage: 'fa', countryCodes: ['IR'] });
@@ -126,4 +127,50 @@ test('reality competitions are programs, not cinema, even when source type says 
   assert.ok(result.categoryKeys.includes('programs'));
   assert.ok(result.categoryKeys.includes('reality'));
   assert.ok(!result.categoryKeys.includes('iranian-movies'));
+});
+
+test('narrative films do not become reality programs because their synopsis mentions a TV contest', () => {
+  const result = classify({
+    name: 'Slumdog Millionaire',
+    nameFa: 'میلیونر زاغه نشین',
+    genres: ['درام', 'عاشقانه', 'جنایی'],
+    originalLanguage: 'hi',
+    countryCodes: ['IN'],
+    overview: 'پس از متهم شدن به تقلب در مسابقه تلویزیونی، جوانی داستان زندگی خود را بازگو می‌کند.',
+    contentKind: 'reality-competition',
+    categoryKeys: ['programs', 'reality'],
+    tmdbValidationVersion: 7,
+  });
+  assert.equal(result.isRealityCompetition, false);
+  assert.ok(result.categoryKeys.includes('indian-movies'));
+  assert.ok(!result.categoryKeys.includes('programs'));
+  assert.ok(!result.categoryKeys.includes('reality'));
+});
+
+test('religious matching uses whole terms and does not match imam inside Sita Ramam', () => {
+  const result = classify({
+    name: 'Sita Ramam',
+    nameFa: 'سیتا رامام',
+    genres: ['درام', 'عاشقانه'],
+    originalLanguage: 'te',
+    countryCodes: ['IN'],
+    contentKind: 'religious-movie',
+    categoryKeys: ['religious'],
+    tmdbValidationVersion: 7,
+  });
+  assert.ok(result.categoryKeys.includes('indian-movies'));
+  assert.ok(!result.categoryKeys.includes('religious'));
+});
+
+test('known genuine religious films stay in religious while also remaining films', () => {
+  const result = classify({
+    name: 'The Kingdom of Solomon',
+    nameFa: 'ملک سلیمان',
+    genres: ['درام', 'تاریخی'],
+    originalLanguage: 'fa',
+    countryCodes: ['IR'],
+  });
+  assert.ok(result.categoryKeys.includes('religious'));
+  assert.ok(result.categoryKeys.includes('iranian-movies'));
+  assert.equal(result.contentKind, 'religious-movie');
 });
