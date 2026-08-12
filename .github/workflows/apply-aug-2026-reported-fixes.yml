@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'scripts/apply-aug-2026-reported-fixes-v3.mjs'
+      - 'scripts/apply-aug-2026-reported-fixes-v4.mjs'
   workflow_dispatch:
 
 permissions:
@@ -30,7 +30,9 @@ jobs:
           node-version: '22'
 
       - name: Apply root-cause fixes
-        run: node scripts/apply-aug-2026-reported-fixes-v3.mjs
+        run: |
+          node scripts/apply-aug-2026-reported-fixes-v4.mjs
+          git checkout -- .github/workflows/sync-upera.yml .github/workflows/enrich-tmdb-cast.yml
 
       - name: Syntax-check patched scripts
         run: |
@@ -54,12 +56,12 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/sync-upera.mjs scripts/enrich-persian-titles.mjs scripts/tests/sync-upera-regression.test.mjs .github/workflows/sync-upera.yml .github/workflows/enrich-tmdb-cast.yml catalog.json catalog-index.json catalog-items catalog-manifest.json persian-title-cache.json sync-state.json || true
+          git add scripts/sync-upera.mjs scripts/enrich-persian-titles.mjs scripts/tests/sync-upera-regression.test.mjs catalog.json catalog-index.json catalog-items catalog-manifest.json persian-title-cache.json sync-state.json || true
           if git diff --cached --quiet; then
             echo "No generated changes."
             exit 0
           fi
-          git commit -m "fix: exact episode artwork, Persian titles and sync pushes"
+          git commit -m "fix: exact episode artwork and Persian titles"
           PUSHED=0
           for attempt in 1 2 3 4 5; do
             if git pull --rebase origin main && git push origin HEAD:main; then
