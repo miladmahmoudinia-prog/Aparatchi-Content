@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-08-12T21:03:35.985Z",
-  "runTimeLimitMinutes": 14,
-  "runDeadlineAt": "2026-08-12T21:17:35.413Z",
+  "startedAt": "2026-08-12T21:18:18.989Z",
+  "runTimeLimitMinutes": 15,
+  "runDeadlineAt": "2026-08-12T21:33:18.597Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 814940,
+  "remainingRunMsAtFinish": 842953,
   "imageMirroringSkipped": true,
-  "originalCount": 2609,
-  "finalCount": 2609,
+  "originalCount": 2643,
+  "finalCount": 2643,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
-  "backfillQueueTotal": 2603,
-  "backfillBacklogRemaining": 2603,
+  "backfillQueueTotal": 2470,
+  "backfillBacklogRemaining": 2470,
   "backfillBlockedTotal": 6,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
@@ -42,18 +42,18 @@
   "recentSeriesDeferredByArchiveQueue": 0,
   "affiliateRequestScopes": {
     "operator-movies": {
-      "limit": 12,
+      "limit": 8,
       "used": 0,
       "exhausted": false
     },
     "operator-series": {
-      "limit": 12,
+      "limit": 8,
       "used": 0,
       "exhausted": false
     },
     "iranian-series": {
-      "limit": 160,
-      "used": 2,
+      "limit": 180,
+      "used": 17,
       "exhausted": false
     }
   },
@@ -73,13 +73,13 @@
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 0,
-  "episodesProcessed": 2,
+  "episodesProcessed": 17,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 1,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
   "iranianSeriesRejectedNoLinks": 1,
-  "operatorSeriesPagesProcessed": 1,
+  "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 6,
   "operatorSeriesAddedOrUpdated": 0,
   "operatorSeriesRejectedNoOperatorLink": 0,
@@ -89,11 +89,11 @@
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 0,
+  "duplicateCatalogItemsMerged": 9,
   "iranianSeriesDiagnostics": [
     {
-      "id": "83875e00-8f4f-11f1-ae48-9967235ecf21",
-      "title": "اعتراف می کنم",
+      "id": "60e0aa90-669c-11f1-8f25-3b03c468e47b",
+      "title": "درجام",
       "result": "rejected",
       "reason": "no-usable-links",
       "addedEpisodes": 0,
@@ -535,6 +535,20 @@
       "isAiring": false
     },
     {
+      "seriesId": "88c59200-895d-11f0-8c7b-8d0be9327ffe",
+      "title": "سرنوشت/عجیب و غریب جعلی",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 9
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
       "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
       "title": "كله گنده ها",
       "missing": [],
@@ -876,18 +890,18 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 19,
+  "episodesDiscovered": 34,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 2,
+  "episodesRejectedNoLinks": 17,
   "moviesAddedOrUpdated": 0,
   "seriesAddedOrUpdated": 0,
-  "affiliateRequests": 2,
+  "affiliateRequests": 17,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 2,
+  "affiliateNotFound": 17,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -896,7 +910,7 @@
   "episodeFramesGenerated": 0,
   "episodeFrameErrors": 0,
   "seriesKeptVisibleDuringBackfill": 0,
-  "seriesRestoredByMonotonicGuard": 0,
+  "seriesRestoredByMonotonicGuard": 1,
   "peopleEnrichmentCandidates": 0,
   "peopleEnrichmentProcessed": 0,
   "peopleEnrichmentSucceeded": 0,
@@ -922,66 +936,66 @@
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
-      "scope": "operator-movie-0d890b60-0102-11f1-8dd7-39f729011011",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/0d890b60-0102-11f1-8dd7-39f729011011"
+      "scope": "operator-movie-a35bd920-0102-11f1-9910-1bb31f760d77",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/a35bd920-0102-11f1-9910-1bb31f760d77"
     },
     {
-      "scope": "operator-movie-22ee28f0-0102-11f1-a1be-335be7568aaf",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/22ee28f0-0102-11f1-a1be-335be7568aaf"
+      "scope": "operator-movie-abf8ce90-0102-11f1-8cd6-6b6b6ebfb7a9",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/abf8ce90-0102-11f1-8cd6-6b6b6ebfb7a9"
     },
     {
-      "scope": "operator-movie-2338a560-0102-11f1-b42a-5f9edd26587f",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/2338a560-0102-11f1-b42a-5f9edd26587f"
+      "scope": "operator-movie-ace7d3d0-0102-11f1-b7c9-73edcbc15f62",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/ace7d3d0-0102-11f1-b7c9-73edcbc15f62"
     },
     {
-      "scope": "operator-movie-28326960-0102-11f1-8888-d71bf06c8776",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/28326960-0102-11f1-8888-d71bf06c8776"
+      "scope": "operator-movie-b0023180-0102-11f1-bd93-4756c356999e",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/b0023180-0102-11f1-bd93-4756c356999e"
     },
     {
-      "scope": "operator-movie-28592020-0102-11f1-8254-35225e725891",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/28592020-0102-11f1-8254-35225e725891"
+      "scope": "operator-movie-b2aed370-0102-11f1-8cb5-5f47f9b6c437",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/b2aed370-0102-11f1-8cb5-5f47f9b6c437"
     },
     {
-      "scope": "operator-movie-289d9c90-0102-11f1-8360-47790945f16e",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/289d9c90-0102-11f1-8360-47790945f16e"
+      "scope": "operator-movie-b7949cf0-0102-11f1-b2bf-a387a222e1c1",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/b7949cf0-0102-11f1-b2bf-a387a222e1c1"
     },
     {
-      "scope": "operator-movie-2999d700-0102-11f1-9219-fb3e78105741",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/2999d700-0102-11f1-9219-fb3e78105741"
+      "scope": "operator-movie-baed9620-0102-11f1-8aa7-e9ef92f048f9",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/baed9620-0102-11f1-8aa7-e9ef92f048f9"
     },
     {
-      "scope": "operator-movie-335d19a0-0102-11f1-a8dc-cf996e3bacc9",
-      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/335d19a0-0102-11f1-a8dc-cf996e3bacc9"
+      "scope": "operator-movie-be4d8680-0102-11f1-ad68-292fac5fe6a9",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/be4d8680-0102-11f1-ad68-292fac5fe6a9"
     },
     {
-      "scope": "operator-series-ea99a750-64c8-11f1-9b32-670a1b3419cc",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/ea99a750-64c8-11f1-9b32-670a1b3419cc?affiliate=1"
+      "scope": "operator-series-eda99560-1951-11f1-bf08-fd202cca7888",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/eda99560-1951-11f1-bf08-fd202cca7888?affiliate=1"
     },
     {
-      "scope": "operator-series-eb7379e0-3102-11f1-8e32-170d572c6123",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/eb7379e0-3102-11f1-8e32-170d572c6123?affiliate=1"
+      "scope": "operator-series-2e4dbf20-1968-11f1-9cb9-0f71f4b5f47c",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/2e4dbf20-1968-11f1-9cb9-0f71f4b5f47c?affiliate=1"
     },
     {
-      "scope": "operator-series-e7d61640-28cd-11f1-928a-0bbf4f1c9d8a",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/e7d61640-28cd-11f1-928a-0bbf4f1c9d8a?affiliate=1"
+      "scope": "operator-series-80c478b0-1969-11f1-9ad5-8dea3739e93b",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/80c478b0-1969-11f1-9ad5-8dea3739e93b?affiliate=1"
     },
     {
-      "scope": "operator-series-531039d0-1e95-11f1-b695-4b2fd792b4fb",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/531039d0-1e95-11f1-b695-4b2fd792b4fb?affiliate=1"
+      "scope": "operator-series-84a8ace0-ff8f-11f0-9312-d39164ffabe3",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/84a8ace0-ff8f-11f0-9312-d39164ffabe3?affiliate=1"
     },
     {
-      "scope": "operator-series-27fb8bb0-196d-11f1-8a56-1394ee70b4f5",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/27fb8bb0-196d-11f1-8a56-1394ee70b4f5?affiliate=1"
+      "scope": "operator-series-0831f130-ff92-11f0-85fd-8956ea6a2f48",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/0831f130-ff92-11f0-85fd-8956ea6a2f48?affiliate=1"
     },
     {
-      "scope": "operator-series-4b90e3c0-1968-11f1-92ee-91cd1f137d43",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/4b90e3c0-1968-11f1-92ee-91cd1f137d43?affiliate=1"
+      "scope": "operator-series-ff2c88c0-ff91-11f0-9efd-cf25b9d6712e",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/ff2c88c0-ff91-11f0-9efd-cf25b9d6712e?affiliate=1"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 28,
-  "lastCheckpointAt": "2026-08-12T21:03:57.366Z",
-  "lastCheckpointReason": "iranian-skip-83875e00-8f4f-11f1-ae48-9967235ecf21",
-  "remainingRunMsAtCheckpoint": 817442,
-  "finishedAt": "2026-08-12T21:04:00.473Z"
+  "apiRequests": 57,
+  "lastCheckpointAt": "2026-08-12T21:19:13.362Z",
+  "lastCheckpointReason": "iranian-skip-60e0aa90-669c-11f1-8f25-3b03c468e47b",
+  "remainingRunMsAtCheckpoint": 844760,
+  "finishedAt": "2026-08-12T21:19:15.644Z"
 }
