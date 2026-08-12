@@ -12,7 +12,15 @@ const normalize = (value) => clean(value)
 
 const includesAny = (textValue, terms) => {
   const text = normalize(textValue);
-  return terms.some((term) => text.includes(normalize(term)));
+  return terms.some((termValue) => {
+    const term = normalize(termValue);
+    if (!term) return false;
+    if (/^[a-z0-9 ]+$/i.test(term)) {
+      const latinText = text.replace(/[^a-z0-9]+/gi, ' ').replace(/\\s+/g, ' ').trim();
+      return (` ` + latinText + ` `).includes(` ` + term + ` `);
+    }
+    return text.includes(term);
+  });
 };
 
 const unique = (values) => [...new Set(values.filter(Boolean))];
@@ -50,7 +58,7 @@ const childrenProgramTerms = [
   'ترانه‌های کودک', 'ترانه کودکانه', 'سرود کودک', 'قصه کودک', 'خاله نسرین', 'aunt nasrin',
   'songs for kids', "children's songs", 'childrens songs', 'nursery rhyme', 'nursery rhymes',
   'kids show', "children's program", 'childrens program', 'preschool show',
-  'هشتگ خاله سوسکه',
+  'هشتگ خاله سوسکه', 'خاله سوسکه', 'عمو پورنگ', 'کلاه قرمزی', 'فیتیله',
 ];
 
 const talkShowTerms = ['تاک شو', 'تاک‌شو', 'talk show'];
@@ -58,6 +66,7 @@ const realityTerms = [
   'رئالیتی شو', 'رئالیتی‌شو', 'مسابقه تلویزیونی', 'مسابقه واقع نما', 'مسابقه واقع‌نما',
   'reality show', 'reality tv', 'game show', 'talent show', 'competition show',
   'مسابقه مافیا', 'شب های مافیا', 'شب‌های مافیا', 'سیزده شمالی', '13 shomali',
+  'مسابقه بین دو گروه', 'رقابت بین دو گروه', 'شرکت کنندگان با هم رقابت',
 ];
 
 const quranTerms = ['قرآن', 'قرآنی', 'ترتیل', 'تلاوت', 'quran', 'recitation'];
@@ -76,10 +85,12 @@ const wildlifeSubjectTerms = [
   'elephant', 'elephants', 'gorilla', 'gorillas', 'penguin', 'penguins', 'birdlife',
   'bee', 'bees', 'bumblebee', 'insect', 'insects', 'bird', 'birds', 'fish', 'reptile', 'reptiles',
   'mammal', 'mammals', 'amphibian', 'amphibians', 'coral', 'octopus', 'turtle', 'turtles',
+  'squirrel', 'squirrels', 'otter', 'otters', 'rodent', 'rodents',
   'پلنگ', 'یوزپلنگ', 'شیرها', 'ببرها', 'گرگ ها', 'گرگ‌ها', 'خرس ها', 'خرس‌ها',
   'کوسه', 'نهنگ', 'دلفین', 'فیل ها', 'فیل‌ها', 'گوریل', 'پنگوئن', 'پرندگان وحشی',
   'زنبور', 'زنبورها', 'حشرات', 'پرنده', 'پرندگان', 'ماهی', 'ماهیان', 'خزندگان', 'پستانداران',
   'دوزیستان', 'لاک پشت', 'لاک‌پشت', 'مرجان', 'اختاپوس',
+  'سنجاب', 'سنجاب ها', 'سنجاب‌ها', 'سمور', 'سمورها', 'موش صحرایی', 'جوندگان',
 ];
 const wildlifeWeakHabitatTerms = [
   'طبیعت', 'جنگل', 'اقیانوس', 'دریا', 'ساوانا', 'زیست بوم', 'زیست‌بوم',
@@ -144,7 +155,7 @@ export function classifyCatalogItem(input = {}) {
     ? Boolean(input.isDocumentary)
     : Boolean(documentaryGenre && !narrativeGenre);
 
-  const programText = `${titleText} ${genreText}`;
+  const programText = `${titleText} ${genreText} ${normalize(overview)}`;
   const isChildrenProgram = Boolean(
     !isAnimation &&
     (
