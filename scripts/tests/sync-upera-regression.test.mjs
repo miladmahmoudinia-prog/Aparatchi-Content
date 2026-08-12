@@ -431,7 +431,7 @@ test('foreign episode rows cannot add gaps or operator access to the wrong serie
   }
 });
 
-test('episode artwork is stored with a newly discovered playable episode', async () => {
+test('unverified source artwork is not trusted for a newly discovered playable episode', async () => {
   const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-episode-artwork-'));
   await writeJson(path.join(fixtureDirectory, 'catalog.json'), initialCatalog());
   await writeJson(path.join(fixtureDirectory, 'sync-state.json'), { legacySeriesVisibilityMigrationCompleted: true });
@@ -441,7 +441,7 @@ test('episode artwork is stored with a newly discovered playable episode', async
     const secondEpisode = result.catalog.items[0].downloads.find(
       (group) => group.sourceEpisodeId === 'episode-2',
     );
-    assert.equal(secondEpisode?.artwork, 'https://example.test/episode-2.jpg');
+    assert.ok(!secondEpisode?.artwork, 'source still is withheld until an exact episode frame is generated');
     assert.ok(secondEpisode?.files.some((file) => file.url === 'https://cdn.example.test/episode-2.mp4'));
     assert.equal(result.manifest.catalogVersion, result.catalog.version);
     assert.equal(result.manifest.catalogUpdatedAt, result.catalog.updatedAt);

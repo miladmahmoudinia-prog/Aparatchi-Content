@@ -12,8 +12,15 @@ const apiBase = String(process.env.TMDB_API_BASE || 'https://api.themoviedb.org/
 const maxTitles = Math.max(1, Math.min(5000, positiveInt(process.env.PERSIAN_TITLE_MAX_TITLES_PER_RUN, 1200)));
 const delayMs = Math.max(0, Math.min(2000, nonNegativeInt(process.env.PERSIAN_TITLE_REQUEST_DELAY_MS, 90)));
 const cacheDays = Math.max(1, Math.min(180, positiveInt(process.env.PERSIAN_TITLE_CACHE_DAYS, 45)));
+const negativeCacheHours = Math.max(1, Math.min(72, positiveInt(process.env.PERSIAN_TITLE_NEGATIVE_CACHE_HOURS, 6)));
 const VERIFIED_PERSIAN_TITLE_OVERRIDES = new Map([
   ['dance with the jackals 4', 'رقص با شغال‌ها ۴'],
+  ['the passage', 'گذرگاه'],
+  ['the bloody hundredth', 'صدمین گروه خونین'],
+  ['music by john williams', 'موسیقی از جان ویلیامز'],
+  ["the devil's climb", 'صعود شیطان'],
+  ['the lionheart', 'شیردل'],
+  ['our father', 'پدر ما'],
 ]);
 const VERIFIED_PERSIAN_COLLECTION_OVERRIDES = new Map([
   ['dance with the jackals collection', 'مجموعه رقص با شغال‌ها'],
@@ -71,7 +78,11 @@ for (const item of candidates) {
   considered += 1;
   const key = String(item.id || item.slug || normalizeImdbId(item.imdb) || normalizeTitle(item.name));
   const cached = cache.items[key];
-  const freshCache = cached && isFresh(cached.fetchedAt, cacheDays);
+  const cachedHasPersianTitle = containsPersian(cached?.titleFa);
+  const cacheWindowDays = needsPersianTitle(item) && !cachedHasPersianTitle
+    ? negativeCacheHours / 24
+    : cacheDays;
+  const freshCache = cached && isFresh(cached.fetchedAt, cacheWindowDays);
 
   if (freshCache) {
     const result = applyRepair(item, cached);
@@ -188,6 +199,25 @@ async function fetchPersianMetadata(item) {
       if (containsPersian(translated)) titleFa = translated;
     } catch {
       // Keep poster/details even if translations endpoint is unavailable.
+    }
+  }
+
+  if (!titleFa) {
+    try {
+      const alternatives = await tmdbJson(`/${mediaType}/${candidate.id}/alternative_titles`);
+      const values = [
+        ...(Array.isArray(alternatives?.titles) ? alternatives.titles : []),
+        ...(Array.isArray(alternatives?.results) ? alternatives.results : []),
+      ];
+      const iranian = values.find((entry) =>
+        String(entry?.iso_3166_1 || '').toUpperCase() === 'IR' && containsPersian(entry?.title || entry?.name),
+      );
+      const anyPersian = values.find((entry) => containsPersian(entry?.title || entry?.name));
+      const chosen = iranian || anyPersian;
+      const alternative = cleanText(chosen?.title || chosen?.name);
+      if (containsPersian(alternative)) titleFa = alternative;
+    } catch {
+      // Missing alternative-title metadata is not fatal.
     }
   }
 

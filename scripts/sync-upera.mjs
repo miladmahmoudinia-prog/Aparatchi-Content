@@ -18,7 +18,7 @@ const SERIES_COMPLETENESS_AUDIT_VERSION = 2;
 const MEDIA_LANGUAGE_AUDIT_VERSION = 7;
 const IRANIAN_SERIES_REBUILD_VERSION = 1;
 const ARCHIVE_COMPLETION_ORDER_VERSION = 1;
-const CATALOG_VERSION = '0.23.1-media-language-truth';
+const CATALOG_VERSION = '0.24.0-exact-episode-artwork';
 const AFFILIATE_URL_KEYS = [
   'link', 'url', 'href', 'download_url', 'downloadUrl', 'download_link', 'downloadLink',
   'stream_url', 'streamUrl', 'stream_link', 'streamLink', 'file_url', 'fileUrl', 'file',
@@ -405,6 +405,23 @@ const defaultState = {
 
 const catalog = await readJson(catalogPath, defaultCatalog);
 const state = await readJson(statePath, defaultState);
+
+const isTrustedGeneratedEpisodeArtwork = (value) =>
+  /^(?:\.\/)?assets\/media\/episodes\/[a-f0-9]{24}\.jpg$/i.test(cleanText(value));
+
+let removedUntrustedEpisodeArtwork = 0;
+for (const item of Array.isArray(catalog.items) ? catalog.items : []) {
+  if (item?.type !== 'series') continue;
+  for (const group of Array.isArray(item.downloads) ? item.downloads : []) {
+    if (Number(group?.episodeNumber || 0) <= 0) continue;
+    if (!cleanText(group.artwork) || isTrustedGeneratedEpisodeArtwork(group.artwork)) continue;
+    group.artwork = '';
+    removedUntrustedEpisodeArtwork += 1;
+  }
+}
+if (removedUntrustedEpisodeArtwork) {
+  console.log('Removed ' + removedUntrustedEpisodeArtwork + ' untrusted episode artwork references; exact frames will be regenerated.');
+}
 
 state.moviePage = positiveInt(state.moviePage, 1);
 state.movieOffset = nonNegativeInt(state.movieOffset, 0);
@@ -4732,7 +4749,7 @@ function episodeGroupNeedsGeneratedFrame(item, group, usage = episodeArtworkUsag
   if (!group || Number(group?.episodeNumber || 0) <= 0) return false;
   const artwork = cleanText(group.artwork);
   if (!artwork) return true;
-  if (/^(?:\.\/)?assets\/media\/episodes\//i.test(artwork)) return false;
+  if (isTrustedGeneratedEpisodeArtwork(artwork)) return false;
 
   // Final rule: an episode card must use a frame captured from that exact
   // episode, never a remote poster/backdrop/still whose provenance can be
@@ -5299,7 +5316,7 @@ function episodeGroup(episode, media, series) {
     episode.created_at,
     new Date().toISOString(),
   );
-  const artwork = episodeArtworkUrl(episode);
+  const artwork = '';
 
   return {
     id:
@@ -6060,17 +6077,10 @@ function episodeGroupHasUsableMedia(group) {
   ));
 }
 
-function hydrateEpisodeGroupArtwork(groups, episodes) {
-  let added = 0;
-  for (const episode of Array.isArray(episodes) ? episodes : []) {
-    const group = findEpisodeGroup(groups, episode);
-    if (!group || cleanText(group.artwork)) continue;
-    const artwork = episodeArtworkUrl(episode);
-    if (!artwork) continue;
-    group.artwork = artwork;
-    added += 1;
-  }
-  return added;
+function hydrateEpisodeGroupArtwork(_groups, _episodes) {
+  // Upera stills can be cross-linked. Only a frame captured from the exact
+  // episode media is accepted as episode-specific artwork.
+  return 0;
 }
 
 function upsertEpisodeGroup(
