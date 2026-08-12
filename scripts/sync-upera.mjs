@@ -5370,7 +5370,6 @@ function reclassifyCatalogItem(item) {
       return '';
     }).filter(Boolean));
 
-  const previousLanguages = Array.isArray(item.availableLanguages) ? item.availableLanguages : [];
   return {
     ...item,
     ir: classification.ir,
@@ -5380,7 +5379,8 @@ function reclassifyCatalogItem(item) {
     isDocumentary: classification.isDocumentary,
     isWildlife: classification.isWildlife,
     isTalkShow: classification.isTalkShow,
-    availableLanguages: uniqueStrings([...previousLanguages, ...directLanguages]),
+    // Rebuild badges from currently validated media; never preserve stale dubbing/subtitle claims.
+    availableLanguages: directLanguages,
     categoryKeys: uniqueStrings([...classification.categoryKeys, ...preservedKeys]),
     categoryLabels: uniqueStrings([...classification.categoryLabels, ...preservedLabels]),
   };
@@ -6728,45 +6728,15 @@ function scalarLinkText(link) {
 
 function isOperatorAccessLink(link) {
   if (!link || !isHttp(link.link) || isDirectMediaUrl(link.link)) return false;
-
   const portal = operatorPortalDetails(link.link);
-  const explicitFlag = [
-    link.operatorOnly,
-    link.operator_only,
-    link.is_operator,
-    link.isOperator,
-    link.mobile_only,
-    link.mobileOnly,
-    link.cellular_only,
-    link.cellularOnly,
-  ].some((value) =>
-    value === true ||
-    value === 1 ||
-    String(value).toLowerCase() === 'true' ||
-    String(value) === '1',
-  );
-
-  const text = scalarLinkText(link);
-  const explicitText = /ویژه\s*(?:اینترنت\s*)?(?:همراه|اپراتور)|همراه\s*اول|ایرانسل|رایتل|شاتل\s*موبایل|mobile\s*(?:operator|internet|data)|cellular\s*(?:only|access)|operator[-_\s]*(?:only|play|download)/i.test(text);
-
-  if (!portal) return false;
-  if (portal.exactStream) return true;
-  // Generic watch/play/download pages can also be ordinary purchase portals.
-  // Require an explicit operator hint unless this is the dedicated /stream/
-  // route used for mobile-operator playback.
-  return explicitFlag || explicitText;
+  // Purchase pages often reuse the same operator wording. Only Upera's exact
+  // /stream/movie/... or /stream/episode/... route is safe to expose.
+  return Boolean(portal?.exactStream);
 }
 
 function operatorModeForLink(link) {
   const portal = operatorPortalDetails(link?.link);
-  if (!portal) return null;
-  if (portal.exactStream) return 'operator-play';
-
-  const text = scalarLinkText(link);
-  if (portal.action === 'download' || /دانلود|دریافت|download|save/i.test(text)) {
-    return 'operator-download';
-  }
-  return 'operator-play';
+  return portal?.exactStream ? 'operator-play' : null;
 }
 
 function supportedOperatorsForLink(link) {
