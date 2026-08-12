@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'scripts/apply-aug-2026-reported-fixes.mjs'
+      - 'scripts/apply-aug-2026-reported-fixes-v2.mjs'
   workflow_dispatch:
 
 permissions:
@@ -30,7 +30,7 @@ jobs:
           node-version: '22'
 
       - name: Apply root-cause fixes
-        run: node scripts/apply-aug-2026-reported-fixes.mjs
+        run: node scripts/apply-aug-2026-reported-fixes-v2.mjs
 
       - name: Syntax-check patched scripts
         run: |
