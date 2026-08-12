@@ -110,9 +110,11 @@ jobs:
         run: node scripts/sync-upera.mjs
 
       - name: Commit new-content progress
+        id: commit_normal
         if: always()
         shell: bash
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
@@ -125,8 +127,20 @@ jobs:
             echo "No new-content changes."
           else
             git commit -m "chore: discover new movies and series"
-            git pull --rebase origin main
-            git push origin HEAD:main
+            PUSHED=0
+            for attempt in 1 2 3 4 5; do
+              if git pull --rebase origin main && git push origin HEAD:main; then
+                PUSHED=1
+                break
+              fi
+              git rebase --abort >/dev/null 2>&1 || true
+              echo "Repository changed during push; retry ${attempt}/5"
+              sleep $((attempt * 2))
+            done
+            if [ "$PUSHED" -ne 1 ]; then
+              echo "::error::Could not push new-content progress after 5 attempts."
+              exit 1
+            fi
           fi
 
       - name: Complete one Iranian series sequentially
@@ -156,9 +170,11 @@ jobs:
         run: node scripts/sync-upera.mjs
 
       - name: Commit Iranian-series progress
+        id: commit_iranian
         if: always()
         shell: bash
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add catalog.json catalog-index.json catalog-items catalog-manifest.json sync-state.json sync-report*.json
@@ -166,8 +182,20 @@ jobs:
             echo "No Iranian-series changes."
           else
             git commit -m "chore: advance Iranian series sequentially"
-            git pull --rebase origin main
-            git push origin HEAD:main
+            PUSHED=0
+            for attempt in 1 2 3 4 5; do
+              if git pull --rebase origin main && git push origin HEAD:main; then
+                PUSHED=1
+                break
+              fi
+              git rebase --abort >/dev/null 2>&1 || true
+              echo "Repository changed during push; retry ${attempt}/5"
+              sleep $((attempt * 2))
+            done
+            if [ "$PUSHED" -ne 1 ]; then
+              echo "::error::Could not push Iranian-series progress after 5 attempts."
+              exit 1
+            fi
           fi
 
       - name: Ensure ffmpeg for episode thumbnails
@@ -201,9 +229,11 @@ jobs:
         run: node scripts/sync-upera.mjs
 
       - name: Commit cast and crew progress
+        id: commit_people
         if: always()
         shell: bash
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
@@ -216,8 +246,20 @@ jobs:
             echo "No cast/crew changes."
           else
             git commit -m "chore: enrich cast and crew metadata"
-            git pull --rebase origin main
-            git push origin HEAD:main
+            PUSHED=0
+            for attempt in 1 2 3 4 5; do
+              if git pull --rebase origin main && git push origin HEAD:main; then
+                PUSHED=1
+                break
+              fi
+              git rebase --abort >/dev/null 2>&1 || true
+              echo "Repository changed during push; retry ${attempt}/5"
+              sleep $((attempt * 2))
+            done
+            if [ "$PUSHED" -ne 1 ]; then
+              echo "::error::Could not push cast/crew progress after 5 attempts."
+              exit 1
+            fi
           fi
 
       - name: Release stale archive cursor before backfill
@@ -253,9 +295,11 @@ jobs:
         run: node scripts/sync-upera.mjs
 
       - name: Commit archive progress
+        id: commit_archive
         if: always()
         shell: bash
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
@@ -265,8 +309,20 @@ jobs:
             echo "No archive changes."
           else
             git commit -m "chore: advance oldest-year archive completion"
-            git pull --rebase origin main
-            git push origin HEAD:main
+            PUSHED=0
+            for attempt in 1 2 3 4 5; do
+              if git pull --rebase origin main && git push origin HEAD:main; then
+                PUSHED=1
+                break
+              fi
+              git rebase --abort >/dev/null 2>&1 || true
+              echo "Repository changed during push; retry ${attempt}/5"
+              sleep $((attempt * 2))
+            done
+            if [ "$PUSHED" -ne 1 ]; then
+              echo "::error::Could not push archive progress after 5 attempts."
+              exit 1
+            fi
           fi
 
       - name: Report sync status
@@ -275,9 +331,13 @@ jobs:
         run: |
           FAILED_STAGES=""
           if [ '${{ steps.normal_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} normal"; fi
+          if [ '${{ steps.commit_normal.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} commit-normal"; fi
           if [ '${{ steps.iranian_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} iranian"; fi
+          if [ '${{ steps.commit_iranian.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} commit-iranian"; fi
           if [ '${{ steps.people_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} people"; fi
+          if [ '${{ steps.commit_people.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} commit-people"; fi
           if [ '${{ steps.archive_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} archive"; fi
+          if [ '${{ steps.commit_archive.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} commit-archive"; fi
           if [ -n "$FAILED_STAGES" ]; then
             echo "::warning title=Partial sync::Saved all available progress; retry these stages on the next hourly run:$FAILED_STAGES"
           else
