@@ -154,12 +154,45 @@ const isClientVisibleItem = (item) => {
   return item.publicationStatus === 'published' || item.archiveComplete === true || item.visibilityLocked === true;
 };
 
+const parsedTimestamp = (value) => {
+  const timestamp = Date.parse(String(value || ''));
+  return Number.isFinite(timestamp) ? timestamp : 0;
+};
+
+const clientCatalogFreshness = (item) => {
+  // Do not use lastSyncedAt: it changes every hourly pass and would make the
+  // entire archive look new. firstSeenAt represents a newly discovered title;
+  // meaningfulUpdatedAt represents a genuinely new episode/content update.
+  const candidates = item?.type === 'series'
+    ? [
+        item?.meaningfulUpdatedAt,
+        item?.firstSeenAt,
+        item?.sourceUpdatedAt,
+        item?.sourceCreatedAt,
+        item?.updatedAt,
+        item?.createdAt,
+      ]
+    : [
+        item?.firstSeenAt,
+        item?.sourceCreatedAt,
+        item?.createdAt,
+        item?.sourceUpdatedAt,
+        item?.updatedAt,
+      ];
+  return candidates.reduce((latest, value) => Math.max(latest, parsedTimestamp(value)), 0);
+};
+
 export function buildClientCatalogArtifacts(catalog) {
   const detailFiles = [];
   const items = [];
   const peopleWorks = Object.create(null);
+  // Home and category rails intentionally preserve index order for speed.
+  // Sort the lightweight index once here so a newly discovered title or a
+  // series with a meaningful new episode naturally appears at the front.
+  const sourceItems = [...(Array.isArray(catalog?.items) ? catalog.items : [])]
+    .sort((a, b) => clientCatalogFreshness(b) - clientCatalogFreshness(a));
 
-  for (const item of Array.isArray(catalog?.items) ? catalog.items : []) {
+  for (const item of sourceItems) {
     if (!isClientVisibleItem(item)) continue;
     const { summary, detailSerialized } = clientSummaryForItem(item);
     // Every series admitted to the lightweight client index is intentionally
