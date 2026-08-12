@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'scripts/apply-user-bugfix-followup.mjs'
+      - 'scripts/apply-user-bugfix-finalize.mjs'
   workflow_dispatch:
 
 permissions:
@@ -30,6 +31,9 @@ jobs:
 
       - name: Apply follow-up hardening
         run: node scripts/apply-user-bugfix-followup.mjs
+
+      - name: Apply final test alignment
+        run: node scripts/apply-user-bugfix-finalize.mjs
 
       - name: Run all regression tests
         run: node --test scripts/tests/*.test.mjs
@@ -65,11 +69,13 @@ jobs:
         shell: bash
         run: |
           if [ '${{ steps.source_check.outcome }}' = 'failure' ]; then
-            echo '::warning title=Source verification::Real-source check failed; source changes are still committed only after local regression tests passed.'
+            echo '::warning title=Source verification::Real-source check failed; source changes are still committed only after regression tests passed.'
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts .github/workflows catalog.json catalog-index.json catalog-items catalog-manifest.json sync-state.json sync-report*.json
+          # GitHub Actions GITHUB_TOKEN cannot update workflow files. The hourly
+          # workflow is updated separately through the connected GitHub API.
+          git add scripts catalog.json catalog-index.json catalog-items catalog-manifest.json sync-state.json sync-report*.json
           if git diff --cached --quiet; then
             echo "No changes."
           else
