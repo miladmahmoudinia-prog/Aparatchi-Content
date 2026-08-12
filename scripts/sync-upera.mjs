@@ -1277,7 +1277,18 @@ async function syncIncompleteMovieMedia() {
     stats.mediaRepairChecked += 1;
     visited += 1;
 
-    const result = await processMovie(item, 'media-repair', { fullMediaAudit: true });
+    let result;
+    try {
+      result = await processMovie(item, 'media-repair', { fullMediaAudit: true });
+    } catch (error) {
+      if (isRunTimeBudgetError(error)) throw error;
+      // A single slow/broken affiliate response must not abort the whole
+      // hourly sync. Keep the existing media untouched and move the cursor so
+      // this title is retried in a later run after the rest make progress.
+      rememberError(`media-repair-${id}`, error);
+      stats.mediaRepairStillMissing += 1;
+      continue;
+    }
     const current = items.find((entry) => entry?.type === 'movie' && String(entry?.id) === id);
 
     if (result?.added && current && movieHasUsableMedia(current)) {
