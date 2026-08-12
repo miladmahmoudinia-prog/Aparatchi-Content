@@ -20,8 +20,8 @@ mustReplace(
   'catalog version',
 );
 
-// Never infer a missing Upera language from the presence of the other one.
-// An unlabeled row is ambiguous evidence, not proof of a dubbed/subtitled twin.
+// An unlabeled row is ambiguous evidence; it must never be turned into the
+// opposite language simply because one real language was detected elsewhere.
 mustReplace(
 `  if (explicit.size === 1) {
     const counterpart = explicit.has('dubbed') ? 'subtitled' : 'dubbed';
@@ -30,10 +30,12 @@ mustReplace(
   return source;
 }`,
 `  if (explicit.size === 1) {
-    // Keep only positively identified language rows. Older code manufactured
-    // the opposite language here, which could expose a fake Dubbed button that
-    // played the exact same subtitled stream.
-    return source.filter((file) => file.language === 'dubbed' || file.language === 'subtitled');
+    return source.filter((file) =>
+      file.language === 'dubbed' ||
+      file.language === 'subtitled' ||
+      isValidStoredOperatorFile(file) ||
+      isValidStoredPublicPortalFile(file)
+    );
   }
   return source;
 }`,
@@ -52,9 +54,16 @@ mustReplace(
       }
       return [{`,
 `      if (explicit.size === 1) {
-        // A neutral legacy section cannot become the missing language merely
-        // because another section has a known language. Drop the ambiguous
-        // stale section and let the versioned source audit rebuild truthfully.
+        const verifiedPortalFiles = (Array.isArray(section.files) ? section.files : [])
+          .filter((file) => isValidStoredOperatorFile(file) || isValidStoredPublicPortalFile(file));
+        if (verifiedPortalFiles.length) {
+          return [{
+            ...section,
+            title: 'پخش آنلاین',
+            badge: 'پخش',
+            files: verifiedPortalFiles,
+          }];
+        }
         return [];
       }
       return [{`,
@@ -72,8 +81,6 @@ mustReplace(
   return list;
 }`,
 `  if (explicit.size === 1) {
-    // One explicit language plus an unlabeled row is NOT evidence for the
-    // opposite language. Keep ambiguous rows out of language-labelled media.
     for (const link of unknown) link._drop_ambiguous_language = true;
   }
   return list;
@@ -81,21 +88,55 @@ mustReplace(
   'fresh affiliate counterpart fabrication',
 );
 
-// A full language audit is a complete provider snapshot. It must replace stale
-// ordinary media instead of merging old fabricated language rows back in.
+// A replacement audit may only discard old media when the fresh provider
+// snapshot actually contains usable ordinary media. An empty/transient source
+// response must never erase a working legacy download or player URL.
 mustReplace(
 `  const mergedMedia = options.replaceMedia === true
     ? media
     : mergeMovieMedia(existing, media);`,
-`  const mergedMedia = options.replaceMedia === true || options.fullMediaAudit === true
+`  const freshHasUsableOrdinaryMedia = Boolean(
+    media?.streamUrl ||
+    (Array.isArray(media?.downloads) && media.downloads.some((section) =>
+      (Array.isArray(section?.files) ? section.files : []).some((file) =>
+        file?.mode === 'download' || file?.mode === 'play' || !file?.mode,
+      ),
+    ))
+  );
+  const mergedMedia = options.replaceMedia === true && freshHasUsableOrdinaryMedia
     ? media
     : mergeMovieMedia(existing, media);`,
-  'movie full-audit replacement',
+  'safe movie replacement guard',
 );
 
-// During a series language audit, replace this episode's old ordinary direct
-// files. Preserve only panel-verified public/operator portal access, because it
-// is an independent authenticated access channel rather than a language guess.
+// The NORMAL repair lane is where old movie language metadata is refreshed.
+// Request replacement there, but the guard above preserves old working media
+// if Upera returns no usable ordinary files on that attempt.
+mustReplace(
+  "result = await processMovie(item, 'media-repair', { fullMediaAudit: true });",
+  "result = await processMovie(item, 'media-repair', { fullMediaAudit: true, replaceMedia: true });",
+  'movie repair language replacement',
+);
+
+// Keep strict oldest-year ordering during BACKFILL. When that active movie is
+// being audited and already has usable media, a successful fresh snapshot may
+// replace its stale language rows; a failed/empty snapshot is still protected
+// by freshHasUsableOrdinaryMedia above.
+mustReplace(
+`      result = await processMovie(item, 'year-backfill', {
+        fullMediaAudit: true,
+        replaceMedia: false,
+      });`,
+`      result = await processMovie(item, 'year-backfill', {
+        fullMediaAudit: true,
+        replaceMedia: hadUsableMedia,
+      });`,
+  'year-backfill language replacement',
+);
+
+// A series language audit must replace the old ordinary episode rows rather
+// than merge a formerly fabricated language back into the fresh snapshot.
+// Authenticated public/operator portal access is independent and is preserved.
 mustReplace(
 `      const nextGroup = episodeGroup(episode, media, series);
       upsertEpisodeGroup(mergedGroups, nextGroup);`,
@@ -114,46 +155,31 @@ mustReplace(
   'series language-audit replacement',
 );
 
-// Even while the archive backfill is active, spend a tiny bounded slice on old
-// movie language audits. This prevents a long series backlog from leaving fake
-// dubbed/subtitled movie variants in production for weeks.
-mustReplace(
-`  stats.normalSyncSkippedForBackfill = true;
-  await syncSequentialArchiveBackfill();`,
-`  stats.normalSyncSkippedForBackfill = true;
-  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-backfill-language-repair', 90000)) {
-    await withAffiliateRequestScope(
-      'backfill-language-repair',
-      Math.min(4, mediaRepairRequestQuota),
-      syncIncompleteMovieMedia,
-    );
-  }
-  if (!affiliateBudgetExhausted) await syncSequentialArchiveBackfill();`,
-  'bounded movie audit during backfill',
-);
-
 if (source.includes("const counterpart = explicit.has('dubbed') ? 'subtitled' : 'dubbed';")) {
   throw new Error('A counter-language fabrication path still exists in sync-upera.mjs');
 }
 if (!source.includes('const MEDIA_LANGUAGE_AUDIT_VERSION = 7;')) {
   throw new Error('Media language audit version did not advance to 7');
 }
-if (!source.includes("options.replaceMedia === true || options.fullMediaAudit === true")) {
-  throw new Error('Movie full language audits are not replacing stale media');
+if (!source.includes('freshHasUsableOrdinaryMedia')) {
+  throw new Error('Movie replacement is not protected from empty provider snapshots');
+}
+if (!source.includes("replaceMedia: hadUsableMedia")) {
+  throw new Error('Backfill movie language audit is not replacing stale media safely');
 }
 if (!source.includes('preservedVerifiedPortalFiles')) {
-  throw new Error('Series full language audits are not replacing stale ordinary media');
+  throw new Error('Series language audit is not replacing stale ordinary media');
 }
 
 await fs.writeFile(syncPath, source, 'utf8');
 
-// Align existing source-level assertions with the new versioned audit.
 const testsDir = 'scripts/tests';
 for (const name of await fs.readdir(testsDir)) {
   if (!name.endsWith('.test.mjs')) continue;
   const filePath = path.join(testsDir, name);
   let testSource = await fs.readFile(filePath, 'utf8');
   testSource = testSource.replaceAll('MEDIA_LANGUAGE_AUDIT_VERSION = 6', 'MEDIA_LANGUAGE_AUDIT_VERSION = 7');
+  testSource = testSource.replaceAll('oldMovie?.mediaLanguageAuditVersion, 6', 'oldMovie?.mediaLanguageAuditVersion, 7');
   await fs.writeFile(filePath, testSource, 'utf8');
 }
 
@@ -166,16 +192,18 @@ const source = fs.readFileSync(new URL('../sync-upera.mjs', import.meta.url), 'u
 test('an unlabeled Upera row never manufactures the opposite media language', () => {
   assert.ok(!source.includes("const counterpart = explicit.has('dubbed') ? 'subtitled' : 'dubbed';"));
   assert.ok(source.includes('for (const link of unknown) link._drop_ambiguous_language = true;'));
-  assert.ok(source.includes("return source.filter((file) => file.language === 'dubbed' || file.language === 'subtitled');"));
+  assert.ok(source.includes("file.language === 'dubbed' ||"));
 });
 
-test('versioned media audits replace stale direct movie and series language rows', () => {
+test('language audits replace stale rows only from a usable fresh snapshot', () => {
   assert.ok(source.includes('MEDIA_LANGUAGE_AUDIT_VERSION = 7'));
-  assert.ok(source.includes('options.replaceMedia === true || options.fullMediaAudit === true'));
+  assert.ok(source.includes('freshHasUsableOrdinaryMedia'));
+  assert.ok(source.includes("fullMediaAudit: true, replaceMedia: true"));
+  assert.ok(source.includes('replaceMedia: hadUsableMedia'));
   assert.ok(source.includes('preservedVerifiedPortalFiles'));
-  assert.ok(source.includes("Math.min(4, mediaRepairRequestQuota)"));
+  assert.ok(!source.includes("'backfill-language-repair'"));
 });
 `;
 await fs.writeFile(path.join(testsDir, 'media-language-truth.test.mjs'), regression, 'utf8');
 
-console.log('Applied strict Upera media-language truth hotfix (audit v7).');
+console.log('Applied non-destructive Upera media-language truth hotfix (audit v7).');
