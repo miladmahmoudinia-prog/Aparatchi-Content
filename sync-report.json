@@ -1,27 +1,59 @@
 {
-  "startedAt": "2026-08-12T12:10:32.128Z",
-  "runTimeLimitMinutes": 6,
-  "runDeadlineAt": "2026-08-12T12:16:31.750Z",
+  "startedAt": "2026-08-12T12:14:22.023Z",
+  "runTimeLimitMinutes": 18,
+  "runDeadlineAt": "2026-08-12T12:32:21.612Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 139204,
-  "imageMirroringSkipped": false,
+  "remainingRunMsAtFinish": 1054291,
+  "imageMirroringSkipped": true,
   "originalCount": 2413,
   "finalCount": 2413,
-  "requestedSyncMode": "PEOPLE",
-  "effectiveSyncMode": "PEOPLE",
-  "backfillQueueTotal": 2399,
-  "backfillBacklogRemaining": 2399,
+  "requestedSyncMode": "BACKFILL",
+  "effectiveSyncMode": "BACKFILL",
+  "backfillQueueTotal": 2407,
+  "backfillBacklogRemaining": 2405,
   "backfillBlockedTotal": 9,
-  "backfillActiveSeries": null,
+  "backfillActiveSeries": {
+    "id": "223b4500-d7ca-11ef-a2a5-65ed70f68a2b",
+    "title": "دلبندان",
+    "year": 2013,
+    "country": "IR",
+    "missingBefore": [
+      {
+        "seasonNumber": 1,
+        "episodeNumber": 1
+      },
+      {
+        "seasonNumber": 1,
+        "episodeNumber": 2
+      },
+      {
+        "seasonNumber": 1,
+        "episodeNumber": 3
+      },
+      {
+        "seasonNumber": 1,
+        "episodeNumber": 4
+      }
+    ],
+    "pendingBefore": 0,
+    "noProgressRuns": 3
+  },
   "backfillSeriesCompletedThisRun": [],
-  "backfillSeriesBlockedThisRun": [],
+  "backfillSeriesBlockedThisRun": [
+    {
+      "id": "223b4500-d7ca-11ef-a2a5-65ed70f68a2b",
+      "title": "دلبندان",
+      "reason": "added-or-updated",
+      "attempts": 4
+    }
+  ],
   "backfillEpisodesAdded": 0,
-  "backfillSeriesVisited": 0,
-  "backfillCheckpoints": 0,
+  "backfillSeriesVisited": 1,
+  "backfillCheckpoints": 1,
   "episodesMarkedUnavailable": 0,
-  "backfillNoProgressRuns": 0,
-  "normalSyncSkippedForBackfill": false,
+  "backfillNoProgressRuns": 4,
+  "normalSyncSkippedForBackfill": true,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
   "backfillNextSeries": null,
   "episodePaginationPagesFetched": 0,
@@ -40,43 +72,253 @@
   "recentSeriesNewCandidates": 0,
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
-  "affiliateRequestScopes": {},
-  "skippedByScopedBudget": 0,
+  "affiliateRequestScopes": {
+    "operator-movies": {
+      "limit": 8,
+      "used": 8,
+      "exhausted": false
+    },
+    "operator-series": {
+      "limit": 9,
+      "used": 9,
+      "exhausted": true
+    }
+  },
+  "skippedByScopedBudget": 1,
   "moviePagesProcessed": 0,
   "movieTitlesProcessed": 0,
   "seriesPagesProcessed": 0,
   "seriesTitlesProcessed": 0,
-  "airingSeriesCandidates": 0,
-  "airingSeriesChecked": 0,
+  "airingSeriesCandidates": 34,
+  "airingSeriesChecked": 6,
   "airingSeriesUpdated": 0,
-  "incompleteSeriesCandidates": 0,
+  "incompleteSeriesCandidates": 126,
   "incompleteSeriesRepaired": 0,
-  "incompleteSeriesStillMissing": 0,
+  "incompleteSeriesStillMissing": 1,
   "seriesHiddenUntilComplete": 0,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
-  "episodesProcessed": 0,
+  "iranianSeriesProcessed": 1,
+  "episodesProcessed": 10,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
   "iranianSeriesRejectedNoLinks": 0,
   "operatorSeriesPagesProcessed": 0,
-  "operatorSeriesCandidates": 0,
+  "operatorSeriesCandidates": 4,
   "operatorSeriesAddedOrUpdated": 0,
-  "operatorSeriesRejectedNoOperatorLink": 0,
+  "operatorSeriesRejectedNoOperatorLink": 4,
   "operatorMoviePagesProcessed": 0,
-  "operatorMovieCandidates": 0,
+  "operatorMovieCandidates": 8,
   "operatorMoviesAddedOrUpdated": 0,
-  "operatorMoviesRejectedNoOperatorLink": 0,
+  "operatorMoviesRejectedNoOperatorLink": 8,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 1,
+  "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [],
-  "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "operatorDiagnostics": [
+    {
+      "type": "movie",
+      "id": "1a6fa4d0-d6ee-11ef-93dd-7f6ddc169cda",
+      "title": "کتاب جهانِ توماس",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "aad68200-d701-11ef-bab9-19c2441efd35",
+      "title": "طوفان",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "968d77b0-d597-11ef-b91e-7d66172e1364",
+      "title": "دابه ۵: نفرین شیاطین",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "9fd5c560-d597-11ef-83e7-37dacb288665",
+      "title": "دابه ۶: بازگشت شیاطین",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "6ee50130-d700-11ef-9cf1-e75e32efa538",
+      "title": "پوشپا ۲ - قانون",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "db7fdb80-d6fe-11ef-8c71-4313dae88159",
+      "title": "سفر پرماجرا",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "e09b8220-d1b3-11ef-9516-4dbe10ac36f4",
+      "title": "مکانیک راکی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "d4a90da0-c510-11ef-9f22-c193ecb05dab",
+      "title": "راکی مکانیک",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "series",
+      "id": "ed6394d0-3895-11f0-98a7-d387f8e8f754",
+      "title": "آشپزی در دنیایی دیگر",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "series",
+      "id": "3a98e010-1963-11f1-a0e6-b10c6731d85a",
+      "title": "خط مرزی",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "series",
+      "id": "8bd3eee0-0408-11f1-90d7-db731b371095",
+      "title": "فراری",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": false
+    },
+    {
+      "type": "series",
+      "id": "76765190-f12f-11f0-9e3a-6db14d3516a8",
+      "title": "تب بهاری",
+      "result": "rejected",
+      "reason": "no-operator-link",
+      "retryLater": true
+    }
+  ],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "223b4500-d7ca-11ef-a2a5-65ed70f68a2b",
+      "title": "دلبندان",
+      "source": "fast-backfill",
+      "discoveredEpisodeCount": 11,
+      "catalogEpisodeCount": 11,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "223b4500-d7ca-11ef-a2a5-65ed70f68a2b",
+      "title": "دلبندان",
+      "source": "fast-backfill-summary",
+      "missingBefore": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        }
+      ],
+      "pendingBefore": 0,
+      "missingAfter": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        }
+      ],
+      "pendingAfter": 0,
+      "publicationStatus": "published",
+      "result": "no-progress",
+      "addedEpisodes": 0,
+      "unavailableMarked": 0
+    },
+    {
+      "seriesId": "fe39a480-1963-11f1-b10b-c5787626b6f9",
+      "title": "سی آی ای",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 13,
+      "catalogEpisodeCount": 12,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "2a7fdf90-d8d2-11f0-8be3-37191b954cc8",
+      "title": "ملاقات با مرد آهنی و دوستان شگفت‌انگیزش",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 19,
+      "catalogEpisodeCount": 19,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "9dcad570-cdf0-11f0-a0a0-eddd96259c2c",
+      "title": "ناینیای قدرتمند",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 8,
+      "catalogEpisodeCount": 8,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "1af21e70-46db-11ec-8281-67b7f87ff6c0",
+      "title": "شهردار کینگزتاون",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 40,
+      "catalogEpisodeCount": 40,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "4feeeb30-b7dc-11f0-a6fc-79902a83e715",
+      "title": "آن:به دری خوش آمدید",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 8,
+      "catalogEpisodeCount": 8,
+      "missing": [],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "581efd70-5698-11ef-8956-f95068daf4da",
@@ -1022,38 +1264,38 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 0,
+  "episodesDiscovered": 326,
   "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 85,
-  "episodeArtworkSeriesChecked": 24,
+  "episodeArtworkCandidates": 0,
+  "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
-  "episodeArtworkMirrored": 4,
+  "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
-  "affiliateRequests": 0,
+  "seriesAddedOrUpdated": 6,
+  "affiliateRequests": 17,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
-  "imagesMirrored": 13,
-  "imageMirrorErrors": 32,
+  "imagesMirrored": 0,
+  "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
-  "episodeFrameErrors": 32,
+  "episodeFrameErrors": 0,
   "seriesKeptVisibleDuringBackfill": 0,
-  "seriesRestoredByMonotonicGuard": 0,
-  "peopleEnrichmentCandidates": 240,
-  "peopleEnrichmentProcessed": 20,
-  "peopleEnrichmentSucceeded": 3,
-  "peopleEnrichmentFailed": 17,
-  "peopleEnrichmentSkippedFresh": 37,
+  "seriesRestoredByMonotonicGuard": 1,
+  "peopleEnrichmentCandidates": 0,
+  "peopleEnrichmentProcessed": 0,
+  "peopleEnrichmentSucceeded": 0,
+  "peopleEnrichmentFailed": 0,
+  "peopleEnrichmentSkippedFresh": 0,
   "peopleEnrichmentFromSource": 0,
-  "peopleEnrichmentFromTmdb": 3,
+  "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
-  "peopleAdded": 10,
-  "tmdbRequests": 23,
-  "imdbRequests": 27,
+  "peopleAdded": 0,
+  "tmdbRequests": 0,
+  "imdbRequests": 0,
   "mediaRepairCandidates": 0,
   "mediaRepairChecked": 0,
   "mediaRepairRecovered": 0,
@@ -1068,331 +1310,14 @@
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
-      "scope": "episode-frame-0211f520-f2b9-11eb-8904-6179943b9168-1",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 82 -i https://aparatchi.upera.tv/2758217-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/53121d321409057db2d420aa.jpg\n[tcp @ 0x5620847a2340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5620844e4e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2758217-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-0211f520-f2b9-11eb-8904-6179943b9168-2",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 119 -i https://aparatchi.upera.tv/2758218-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/2f8cf2721bb7849d5b800b3b.jpg\n[tcp @ 0x55c42ddc3340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55c42db05e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2758218-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-0211f520-f2b9-11eb-8904-6179943b9168-3",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 156 -i https://aparatchi.upera.tv/2758221-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/8e1c40735e33a6d1e9c7b22a.jpg\n[tcp @ 0x55af65b6e340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55af658b0e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2758221-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-0211f520-f2b9-11eb-8904-6179943b9168-4",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 193 -i https://aparatchi.upera.tv/2758223-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/57b26088a91afb6e1083f56a.jpg\n[tcp @ 0x558b71295340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x558b70fd7e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2758223-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-0211f520-f2b9-11eb-8904-6179943b9168-5",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 230 -i https://aparatchi.upera.tv/2758224-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/72d5f63f68641c4c3fe31368.jpg\n[tcp @ 0x5647accb8340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5647ac9fae40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2758224-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-0211f520-f2b9-11eb-8904-6179943b9168-6",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 57 -i https://aparatchi.upera.tv/2758227-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/c60f8738be0969a36f101deb.jpg\n[tcp @ 0x55730b24a340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55730af8ce40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2758227-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-0211f520-f2b9-11eb-8904-6179943b9168-7",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 94 -i https://aparatchi.upera.tv/2758229-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/d62004dbf875ed328fa2eb65.jpg\n[tcp @ 0x559eadc99340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x559ead9dbe40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2758229-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-0211f520-f2b9-11eb-8904-6179943b9168-8",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 131 -i https://aparatchi.upera.tv/2758230-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/3e65b6252f334ee0ca57916c.jpg\n[tcp @ 0x555df10d8340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x555df0e1ae40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2758230-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-0211f520-f2b9-11eb-8904-6179943b9168-9",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 168 -i https://aparatchi.upera.tv/2758231-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/32ff179dafecbe351547da0f.jpg\n[tcp @ 0x5562d1ea4340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5562d1be6e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2758231-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-0211f520-f2b9-11eb-8904-6179943b9168-10",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 205 -i https://aparatchi.upera.tv/2758232-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/69b7a7cd46bfa76e12f3035c.jpg\n[tcp @ 0x55ca8c2bd340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55ca8bfffe40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2758232-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-0211f520-f2b9-11eb-8904-6179943b9168-11",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 242 -i https://aparatchi.upera.tv/2758233-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/3733385f0c8bdef5b0b2d046.jpg\n[tcp @ 0x5562ce7c2340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5562ce504e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2758233-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-0211f520-f2b9-11eb-8904-6179943b9168-12",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 69 -i https://aparatchi.upera.tv/2758235-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/7efe525df1630c312e60c565.jpg\n[tcp @ 0x55adf2fbe340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55adf2d00e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2758235-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-cfb27d20-e77e-11ef-b8d9-2dd842bea893-1",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 82 -i https://aparatchi.upera.tv/3021851-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/921a5af6a8756b83fb548c1c.jpg\n[tcp @ 0x558730f6a340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x558730cace40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3021851-0-BLURAY.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-cfb27d20-e77e-11ef-b8d9-2dd842bea893-2",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 119 -i https://aparatchi.upera.tv/3021852-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/fab9464740459b4cb2f1efad.jpg\n[tcp @ 0x55c6a68c5340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55c6a6607e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3021852-0-BLURAY.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-cfb27d20-e77e-11ef-b8d9-2dd842bea893-3",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 156 -i https://aparatchi.upera.tv/3021853-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/317007905d1ee7006160229f.jpg\n[tcp @ 0x55d7dc00c340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55d7dbd4ee40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3021853-0-BLURAY.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-cfb27d20-e77e-11ef-b8d9-2dd842bea893-4",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 193 -i https://aparatchi.upera.tv/3021854-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/7695d8c2c4800580015996ee.jpg\n[tcp @ 0x55d1ffd6d340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55d1ffaafe40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3021854-0-BLURAY.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-cfb27d20-e77e-11ef-b8d9-2dd842bea893-5",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 230 -i https://aparatchi.upera.tv/3021855-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/1328eab1e4a6d88a0ee2d7a9.jpg\n[tcp @ 0x5555f47de340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5555f4520e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3021855-0-BLURAY.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-cfb27d20-e77e-11ef-b8d9-2dd842bea893-6",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 57 -i https://aparatchi.upera.tv/3021856-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/85157dde6d88fc43e79f1834.jpg\n[tcp @ 0x56168b627340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x56168b369e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3021856-0-BLURAY.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-cfb27d20-e77e-11ef-b8d9-2dd842bea893-7",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 94 -i https://aparatchi.upera.tv/3021857-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/14306b6ef6a12127eaa48d5c.jpg\n[tcp @ 0x55f345fcb340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55f345d0de40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3021857-0-BLURAY.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-cfb27d20-e77e-11ef-b8d9-2dd842bea893-8",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 131 -i https://aparatchi.upera.tv/3021858-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/1255f6985137fb6cc2a55835.jpg\n[tcp @ 0x55d4800f1340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55d47fe33e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3021858-0-BLURAY.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-cfb27d20-e77e-11ef-b8d9-2dd842bea893-9",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 168 -i https://aparatchi.upera.tv/3021859-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/82a89441affc4f880f423504.jpg\n[tcp @ 0x56120356e340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5612032b0e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3021859-0-BLURAY.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-cfb27d20-e77e-11ef-b8d9-2dd842bea893-10",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 205 -i https://aparatchi.upera.tv/3021860-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/12975f7a65e75cf668a0ea8f.jpg\n[tcp @ 0x558912253340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x558911f95e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3021860-0-BLURAY.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-cfb27d20-e77e-11ef-b8d9-2dd842bea893-11",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 242 -i https://aparatchi.upera.tv/3021861-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/f67ad83c4f433e44c6c0bbab.jpg\n[tcp @ 0x55a53b40f340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55a53b151e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3021861-0-BLURAY.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-cfb27d20-e77e-11ef-b8d9-2dd842bea893-12",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 69 -i https://aparatchi.upera.tv/3021862-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/a8624e2d147a1ae39e212085.jpg\n[tcp @ 0x558073d12340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x558073a54e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3021862-0-BLURAY.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-cfb27d20-e77e-11ef-b8d9-2dd842bea893-13",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 106 -i https://aparatchi.upera.tv/3021873-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/275f93c20ff8026cd8e8be37.jpg\n[tcp @ 0x561cade25340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x561cadb67e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3021873-0-BLURAY.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-cfb27d20-e77e-11ef-b8d9-2dd842bea893-14",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 143 -i https://aparatchi.upera.tv/3021874-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/7c52d9976e4e372b7d350540.jpg\n[tcp @ 0x5635df10e340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5635dee50e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3021874-0-BLURAY.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-cfb27d20-e77e-11ef-b8d9-2dd842bea893-15",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 180 -i https://aparatchi.upera.tv/3021875-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/2319cb18c292347d647afd3d.jpg\n[tcp @ 0x562823070340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x562822db2e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3021875-0-BLURAY.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
-    },
-    {
-      "scope": "episode-frame-d108f210-bba4-11ef-8df3-15196406763c-1",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 82 -i https://aparatchi.upera.tv/3012264-11-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/92bd49eaee7ec9c3a287b834.jpg\n[in#0 @ 0x55952718be40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3012264-11-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-d108f210-bba4-11ef-8df3-15196406763c-2",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 119 -i https://aparatchi.upera.tv/3012265-11-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/a6282fadf7af0401fcecd06b.jpg\n[in#0 @ 0x55916b6f0e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3012265-11-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-d108f210-bba4-11ef-8df3-15196406763c-3",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 156 -i https://aparatchi.upera.tv/3012266-11-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/1fd42c59c2af8b924199de0e.jpg\n[in#0 @ 0x563069b11e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3012266-11-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-d108f210-bba4-11ef-8df3-15196406763c-4",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 193 -i https://aparatchi.upera.tv/3012267-11-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/91b595c70bf43ee3826d41b5.jpg\n[in#0 @ 0x555da8872e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3012267-11-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-d108f210-bba4-11ef-8df3-15196406763c-5",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 230 -i https://aparatchi.upera.tv/3012268-11-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/bf619c0079defd78ec3025b8.jpg\n[in#0 @ 0x55e362824e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3012268-11-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "people-d586e570-235f-11f0-a5f7-018aa989daed",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-24c3b1a0-74f4-11f0-8da8-7508e07f538a",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-97f01e60-56a0-11f1-be3a-85e89eed5724",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-1007ef10-7696-11f0-b2b5-832fabff1294",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-1bd652e0-7a94-11f0-8e6c-271671cf1eec",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-1e6f0fb0-7b64-11f0-bb2c-8be347f45a69",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-23891560-363f-11f1-9959-2d1f5b3db301",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-c4244b30-51f2-11f1-aafb-b1a1834bdd75",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-de099220-51f4-11f1-a98e-5b10523ac721",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-58de1300-51f5-11f1-9c52-afb629a10f0d",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-c1203380-5424-11f1-8374-1f2a75058122",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-b6e14590-4171-11f1-b8ad-97209dbcf9e6",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-ae9dfb90-5431-11f1-b29b-41461b450fcb",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-8f289220-5286-11f1-b41f-e9fb187cbd95",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-d92587c0-5286-11f1-8cf9-fde60b74f8f8",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-07df50f0-46b6-11f1-9868-31bc2bdb9b3b",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-f9b3d300-0922-11f1-abc6-6b384876b292",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
-    },
-    {
-      "scope": "image-episodes",
-      "message": "HTTP 404"
+      "scope": "airing-series-fbb54130-89c7-11ee-b35e-63f53dbb63af",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/fbb54130-89c7-11ee-b35e-63f53dbb63af?affiliate=1"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 84,
-  "finishedAt": "2026-08-12T12:14:12.546Z"
+  "apiRequests": 30,
+  "lastCheckpointAt": "2026-08-12T12:14:43.713Z",
+  "lastCheckpointReason": "backfill-paused-223b4500-d7ca-11ef-a2a5-65ed70f68a2b",
+  "remainingRunMsAtCheckpoint": 1057530,
+  "finishedAt": "2026-08-12T12:14:47.321Z"
 }
