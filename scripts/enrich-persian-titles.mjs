@@ -12,6 +12,12 @@ const apiBase = String(process.env.TMDB_API_BASE || 'https://api.themoviedb.org/
 const maxTitles = Math.max(1, Math.min(5000, positiveInt(process.env.PERSIAN_TITLE_MAX_TITLES_PER_RUN, 1200)));
 const delayMs = Math.max(0, Math.min(2000, nonNegativeInt(process.env.PERSIAN_TITLE_REQUEST_DELAY_MS, 90)));
 const cacheDays = Math.max(1, Math.min(180, positiveInt(process.env.PERSIAN_TITLE_CACHE_DAYS, 45)));
+const VERIFIED_PERSIAN_TITLE_OVERRIDES = new Map([
+  ['dance with the jackals 4', 'رقص با شغال‌ها ۴'],
+]);
+const VERIFIED_PERSIAN_COLLECTION_OVERRIDES = new Map([
+  ['dance with the jackals collection', 'مجموعه رقص با شغال‌ها'],
+]);
 
 if (!token) {
   console.log('TMDB token unavailable; Persian title repair skipped.');
@@ -33,6 +39,20 @@ let titlesFilled = 0;
 let postersFilled = 0;
 let matched = 0;
 let errors = 0;
+
+for (const item of catalog.items) {
+  const titleOverride = VERIFIED_PERSIAN_TITLE_OVERRIDES.get(normalizeTitle(item?.name));
+  if (titleOverride && item.nameFa !== titleOverride) {
+    item.nameFa = titleOverride;
+    changed = true;
+    titlesFilled += 1;
+  }
+  const collectionOverride = VERIFIED_PERSIAN_COLLECTION_OVERRIDES.get(normalizeTitle(item?.collectionName));
+  if (collectionOverride && item.collectionNameFa !== collectionOverride) {
+    item.collectionNameFa = collectionOverride;
+    changed = true;
+  }
+}
 
 const candidates = catalog.items
   .filter((item) => item && ['movie', 'series'].includes(item.type))
