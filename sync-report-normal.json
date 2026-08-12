@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-08-12T15:40:17.116Z",
+  "startedAt": "2026-08-12T17:04:10.100Z",
   "runTimeLimitMinutes": 14,
-  "runDeadlineAt": "2026-08-12T15:54:16.703Z",
+  "runDeadlineAt": "2026-08-12T17:18:09.649Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 540177,
+  "remainingRunMsAtFinish": 355282,
   "imageMirroringSkipped": true,
-  "originalCount": 2506,
-  "finalCount": 2549,
+  "originalCount": 2541,
+  "finalCount": 2584,
   "requestedSyncMode": "NORMAL",
   "effectiveSyncMode": "NORMAL",
-  "backfillQueueTotal": 2068,
-  "backfillBacklogRemaining": 1968,
+  "backfillQueueTotal": 1968,
+  "backfillBacklogRemaining": 1868,
   "backfillBlockedTotal": 9,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
@@ -43,12 +43,12 @@
   "affiliateRequestScopes": {
     "operator-movies": {
       "limit": 24,
-      "used": 24,
-      "exhausted": true
+      "used": 0,
+      "exhausted": false
     },
     "operator-series": {
       "limit": 12,
-      "used": 9,
+      "used": 0,
       "exhausted": false
     },
     "airing-series": {
@@ -63,7 +63,7 @@
     },
     "recent-series": {
       "limit": 96,
-      "used": 52,
+      "used": 57,
       "exhausted": false
     },
     "media-repair": {
@@ -87,13 +87,13 @@
       "exhausted": true
     }
   },
-  "skippedByScopedBudget": 3,
-  "moviePagesProcessed": 0,
+  "skippedByScopedBudget": 2,
+  "moviePagesProcessed": 1,
   "movieTitlesProcessed": 32,
   "seriesPagesProcessed": 0,
   "seriesTitlesProcessed": 0,
-  "airingSeriesCandidates": 40,
-  "airingSeriesChecked": 40,
+  "airingSeriesCandidates": 43,
+  "airingSeriesChecked": 43,
   "airingSeriesUpdated": 0,
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
@@ -103,305 +103,26 @@
   "airingSeriesKeptPublished": 1,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 4,
-  "episodesProcessed": 61,
+  "episodesProcessed": 57,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
   "iranianSeriesRejectedNoLinks": 0,
-  "operatorSeriesPagesProcessed": 0,
+  "operatorSeriesPagesProcessed": 1,
   "operatorSeriesCandidates": 3,
   "operatorSeriesAddedOrUpdated": 0,
   "operatorSeriesRejectedNoOperatorLink": 0,
-  "operatorMoviePagesProcessed": 0,
-  "operatorMovieCandidates": 25,
+  "operatorMoviePagesProcessed": 3,
+  "operatorMovieCandidates": 39,
   "operatorMoviesAddedOrUpdated": 0,
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [],
-  "operatorDiagnostics": [
-    {
-      "type": "movie",
-      "id": "60bd18c0-3b81-11ef-864c-53ef3bf72e87",
-      "title": "خیالی",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "cc38f670-4c70-11ef-bf22-2521f78c6e99",
-      "title": "دسته جنگل : عملیات ملتداون",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "729567d0-8c81-11ef-a2bd-517716f3fb0a",
-      "title": "توت فرنگی کوچولو و جانور بری باگ",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "26d2c1f0-c511-11ef-a37e-491fe013c5b0",
-      "title": "دور دوم",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "ce2c77c0-831f-11ef-aeb4-532fed26782b",
-      "title": "دختر توت فرنگی تعطیلات تابستانی",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "b1e40570-bf92-11ef-beff-8ffeb80c39be",
-      "title": "زک و وُوُ : افسانه لندریس",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "76d34440-90b5-11ef-bfc0-f101c80390b8",
-      "title": "فیلم دورامون: یوتوپیای آسمانی نوبیتا",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "b38971e0-1e27-11ee-8ba8-5d894043f993",
-      "title": "لیگ عدالت: جنگ",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "dc99e770-0491-11ef-af53-d1c6c2a2149c",
-      "title": "لیگ عدالت: بحران در زمین های بی نهایت قسمت دوم",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "a1993420-b0d5-11ee-a3ef-1d56e49f62e5",
-      "title": "لیگ عدالت: بحران در زمین های بی نهایت قسمت اول",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "766d8030-1e27-11ee-8875-a9718c61c66d",
-      "title": "لیگ عدالت: امپراطوری آتلانتیس",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "69f081f0-6044-11ee-9ef5-7fbaabe4c2fe",
-      "title": "لیگ عدالت: فاجعه در دو زمین",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "47413170-4a6c-11ef-8040-5df77201bbe4",
-      "title": "لیگ عدالت: بحران در زمین های بی نهایت قسمت سوم",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "332f51a0-c205-11ee-96a0-fbeb2aa4e1f8",
-      "title": "شاگرد ببر",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "b7a3de80-c212-11ee-9880-a964b515a181",
-      "title": "شکارچی و تاریکی",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "4c282430-7e56-11ef-ab75-2f6906af67d0",
-      "title": "سگ های جنگ",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "5750ba40-9a80-11ef-b755-7b1e6171ebf3",
-      "title": "طبقه بندی شده",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "161e8dd0-c697-11ef-9768-93546479d029",
-      "title": "کریسمس در عمارت پلومهیل",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "294d5920-c02b-11ee-830e-8fc760cbbfc1",
-      "title": "مهاجرت",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "4ddc1be0-c6ba-11ef-a29f-739a1b05b686",
-      "title": "نفس عمیق",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "cefdc570-5d59-11eb-9269-1fe18027d2f4",
-      "title": "کماندو ۳",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "6a1ed540-c26f-11ef-80c8-6d9dc89283e9",
-      "title": "افسانه گرگینه‌ها",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "84a99200-bac4-11ef-b152-f93d9f20f4b2",
-      "title": "آقا",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "9dd67830-bac4-11ef-a5d9-630f3bdc7f52",
-      "title": "هر وقت، هر جا، هر زمان",
-      "result": "rejected",
-      "reason": "no-panel-player-link",
-      "retryLater": false
-    },
-    {
-      "type": "movie",
-      "id": "464d2690-c5c4-11ef-8459-27b06173771f",
-      "title": "اولین آدم",
-      "result": "rejected",
-      "reason": "request-budget",
-      "retryLater": true
-    },
-    {
-      "type": "series",
-      "id": "f3b69e60-f96e-11ee-853e-2526cad15a02",
-      "title": "فال آوت",
-      "result": "rejected",
-      "reason": "no-usable-links",
-      "retryLater": false
-    },
-    {
-      "type": "series",
-      "id": "57c38160-ea10-11f0-bf67-0d0919493e37",
-      "title": "مدیر شب",
-      "result": "rejected",
-      "reason": "no-usable-links",
-      "retryLater": false
-    },
-    {
-      "type": "series",
-      "id": "ebe885a0-e30d-11f0-a47c-6d16fbb7736b",
-      "title": "شهر اسرارآمیز",
-      "result": "rejected",
-      "reason": "no-usable-links",
-      "retryLater": false
-    }
-  ],
+  "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
-    {
-      "seriesId": "0d106700-5dc6-11f1-8eee-25008b011db9",
-      "title": "شهر ستارگان",
-      "source": "airing-refresh",
-      "discoveredEpisodeCount": 7,
-      "catalogEpisodeCount": 7,
-      "missing": [],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "b75c87f0-5ba0-11f1-a039-6b8733b1be04",
-      "title": "عنکبوت نوآر",
-      "source": "airing-refresh",
-      "discoveredEpisodeCount": 8,
-      "catalogEpisodeCount": 8,
-      "missing": [],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "b3ece820-10b4-11f1-9ef7-7979d07c314d",
-      "title": "شرلوک نابینا",
-      "source": "airing-refresh",
-      "discoveredEpisodeCount": 6,
-      "catalogEpisodeCount": 6,
-      "missing": [],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "dbc33f50-25ed-11f1-a1a2-db65c4336225",
-      "title": "مدیسون",
-      "source": "airing-refresh",
-      "discoveredEpisodeCount": 6,
-      "catalogEpisodeCount": 6,
-      "missing": [],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "e90f2ab0-63fa-11f1-8c27-019f8c3b36c5",
-      "title": "کارآگاه هوله",
-      "source": "airing-refresh",
-      "discoveredEpisodeCount": 9,
-      "catalogEpisodeCount": 9,
-      "missing": [],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "28d52520-1d72-11f0-9fa1-332372dce575",
-      "title": "دوستان و همسایگانتان",
-      "source": "airing-refresh",
-      "discoveredEpisodeCount": 19,
-      "catalogEpisodeCount": 19,
-      "missing": [],
-      "rejectedEpisodes": []
-    },
     {
       "seriesId": "51165810-42e3-11f1-8665-7dfe12b3f97c",
       "title": "چیزهای عجیب: داستان‌هایی از ۸۵",
@@ -547,6 +268,33 @@
       "source": "airing-refresh",
       "discoveredEpisodeCount": 7,
       "catalogEpisodeCount": 7,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "05a22ae0-4840-11ee-af14-3bdec20ca8a4",
+      "title": "وان پیس",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 16,
+      "catalogEpisodeCount": 16,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "ccc81ec0-15ff-11ee-9cda-bd8d2c04de0e",
+      "title": "ربودن",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 15,
+      "catalogEpisodeCount": 15,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "6c0b53c0-3bcb-11f1-ab6c-95570bd808db",
+      "title": "گلدی",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 13,
+      "catalogEpisodeCount": 13,
       "missing": [],
       "rejectedEpisodes": []
     },
@@ -749,7 +497,61 @@
       "rejectedEpisodes": []
     },
     {
+      "seriesId": "0d106700-5dc6-11f1-8eee-25008b011db9",
+      "title": "شهر ستارگان",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 7,
+      "catalogEpisodeCount": 7,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
       "seriesId": "156f81c0-5f9b-11f1-94bc-81c6b8fb4b53",
+      "title": "عنکبوت نوآر",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 8,
+      "catalogEpisodeCount": 8,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "b3ece820-10b4-11f1-9ef7-7979d07c314d",
+      "title": "شرلوک نابینا",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 6,
+      "catalogEpisodeCount": 6,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "dbc33f50-25ed-11f1-a1a2-db65c4336225",
+      "title": "مدیسون",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 6,
+      "catalogEpisodeCount": 6,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "e90f2ab0-63fa-11f1-8c27-019f8c3b36c5",
+      "title": "کارآگاه هوله",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 9,
+      "catalogEpisodeCount": 9,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "28d52520-1d72-11f0-9fa1-332372dce575",
+      "title": "دوستان و همسایگانتان",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 19,
+      "catalogEpisodeCount": 19,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "b75c87f0-5ba0-11f1-a039-6b8733b1be04",
       "title": "عنکبوت نوآر",
       "source": "recent-discovery",
       "discoveredEpisodeCount": 8,
@@ -758,29 +560,29 @@
       "rejectedEpisodes": []
     },
     {
-      "seriesId": "05a22ae0-4840-11ee-af14-3bdec20ca8a4",
-      "title": "وان پیس",
+      "seriesId": "82e55da0-b322-11f0-ae6b-8bf80ee220fb",
+      "title": "خانواده پراد: پر سر و صداتر",
       "source": "recent-discovery",
-      "discoveredEpisodeCount": 16,
-      "catalogEpisodeCount": 16,
+      "discoveredEpisodeCount": 29,
+      "catalogEpisodeCount": 29,
       "missing": [],
       "rejectedEpisodes": []
     },
     {
-      "seriesId": "ccc81ec0-15ff-11ee-9cda-bd8d2c04de0e",
-      "title": "ربودن",
+      "seriesId": "29c0ce60-bbb7-11f0-9a73-1d8acfb85522",
+      "title": "هولیوش",
+      "source": "recent-discovery",
+      "discoveredEpisodeCount": 5,
+      "catalogEpisodeCount": 5,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "d5938a90-db90-11ed-a49d-f554fe4a0fed",
+      "title": "آخرین چیزی که او به من گفت",
       "source": "recent-discovery",
       "discoveredEpisodeCount": 15,
       "catalogEpisodeCount": 15,
-      "missing": [],
-      "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "6c0b53c0-3bcb-11f1-ab6c-95570bd808db",
-      "title": "گلدی",
-      "source": "recent-discovery",
-      "discoveredEpisodeCount": 13,
-      "catalogEpisodeCount": 13,
       "missing": [],
       "rejectedEpisodes": []
     }
@@ -1730,18 +1532,18 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 1493,
-  "episodeGroupsAdded": 52,
+  "episodesDiscovered": 1514,
+  "episodeGroupsAdded": 57,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 139,
-  "seriesAddedOrUpdated": 43,
-  "affiliateRequests": 234,
+  "seriesAddedOrUpdated": 46,
+  "affiliateRequests": 206,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 11,
+  "affiliateNotFound": 10,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1762,25 +1564,233 @@
   "peopleAdded": 0,
   "tmdbRequests": 0,
   "imdbRequests": 0,
-  "mediaRepairCandidates": 1953,
+  "mediaRepairCandidates": 1853,
   "mediaRepairChecked": 101,
   "mediaRepairRecovered": 100,
   "mediaRepairStillMissing": 0,
   "mediaRepairHiddenConfirmed": 0,
-  "mediaHealthCandidates": 39,
-  "mediaHealthChecked": 24,
+  "mediaHealthCandidates": 15,
+  "mediaHealthChecked": 15,
   "mediaHealthHealthy": 0,
   "mediaHealthDead": 0,
-  "mediaHealthUnknown": 24,
+  "mediaHealthUnknown": 15,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
+      "scope": "operator-movie-d1d66d80-0100-11f1-bd95-7d72dfada464",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/d1d66d80-0100-11f1-bd95-7d72dfada464"
+    },
+    {
+      "scope": "operator-movie-e10f5810-0100-11f1-b389-eb7861e86e48",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/e10f5810-0100-11f1-b389-eb7861e86e48"
+    },
+    {
+      "scope": "operator-movie-e1d89e40-0100-11f1-ba0c-b54b2ed78a22",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/e1d89e40-0100-11f1-ba0c-b54b2ed78a22"
+    },
+    {
+      "scope": "operator-movie-e95bc310-0100-11f1-a1c4-05df759bbc96",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/e95bc310-0100-11f1-a1c4-05df759bbc96"
+    },
+    {
+      "scope": "operator-movie-eb2675d0-0100-11f1-88fb-97fa6113a5ed",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/eb2675d0-0100-11f1-88fb-97fa6113a5ed"
+    },
+    {
+      "scope": "operator-movie-eba6ee40-0100-11f1-91e5-75c24f7b4b95",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/eba6ee40-0100-11f1-91e5-75c24f7b4b95"
+    },
+    {
+      "scope": "operator-movie-ebcefa30-0100-11f1-9f90-91daae2c84eb",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/ebcefa30-0100-11f1-9f90-91daae2c84eb"
+    },
+    {
+      "scope": "operator-movie-f1341a00-0100-11f1-99a2-51462a94c588",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/f1341a00-0100-11f1-99a2-51462a94c588"
+    },
+    {
+      "scope": "operator-movie-f97c3990-0100-11f1-b067-ab3e6e25c41a",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/f97c3990-0100-11f1-b067-ab3e6e25c41a"
+    },
+    {
+      "scope": "operator-movie-02e42b60-0101-11f1-be3f-67794f56e347",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/02e42b60-0101-11f1-be3f-67794f56e347"
+    },
+    {
+      "scope": "operator-movie-030f8100-0101-11f1-937a-71568d94ca40",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/030f8100-0101-11f1-937a-71568d94ca40"
+    },
+    {
+      "scope": "operator-movie-066a4f70-0101-11f1-a8aa-0d766b3f3d75",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/066a4f70-0101-11f1-a8aa-0d766b3f3d75"
+    },
+    {
+      "scope": "operator-movie-095c2740-0101-11f1-90e6-45c1416cafa6",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/095c2740-0101-11f1-90e6-45c1416cafa6"
+    },
+    {
+      "scope": "operator-movie-09860260-0101-11f1-9c80-7b204f56603c",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/09860260-0101-11f1-9c80-7b204f56603c"
+    },
+    {
+      "scope": "operator-movie-0de5c780-0101-11f1-b6d8-f133ca7581ce",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/0de5c780-0101-11f1-b6d8-f133ca7581ce"
+    },
+    {
+      "scope": "operator-movie-0e089160-0101-11f1-8af0-8180534c2647",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/0e089160-0101-11f1-8af0-8180534c2647"
+    },
+    {
+      "scope": "operator-movie-112ebe60-0101-11f1-a30c-2ff7f64b6ff3",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/112ebe60-0101-11f1-a30c-2ff7f64b6ff3"
+    },
+    {
+      "scope": "operator-movie-1233ecb0-0101-11f1-8d0d-d798b2f7da93",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/1233ecb0-0101-11f1-8d0d-d798b2f7da93"
+    },
+    {
+      "scope": "operator-movie-125d5b00-0101-11f1-8a86-7db829c5c55e",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/125d5b00-0101-11f1-8a86-7db829c5c55e"
+    },
+    {
+      "scope": "operator-movie-12866a10-0101-11f1-adc9-d397be22ba50",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/12866a10-0101-11f1-adc9-d397be22ba50"
+    },
+    {
+      "scope": "operator-movie-12b526f0-0101-11f1-8fb0-614513ad7133",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/12b526f0-0101-11f1-8fb0-614513ad7133"
+    },
+    {
+      "scope": "operator-movie-12e067a0-0101-11f1-8dc8-5b16b5edb635",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/12e067a0-0101-11f1-8dc8-5b16b5edb635"
+    },
+    {
+      "scope": "operator-movie-16090050-0101-11f1-ade7-0dfb3e931ebf",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/16090050-0101-11f1-ade7-0dfb3e931ebf"
+    },
+    {
+      "scope": "operator-movie-16722020-0101-11f1-8ac5-3bd4657990b6",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/16722020-0101-11f1-8ac5-3bd4657990b6"
+    },
+    {
+      "scope": "operator-movie-169c63b0-0101-11f1-9169-27b0e919467c",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/169c63b0-0101-11f1-9169-27b0e919467c"
+    },
+    {
+      "scope": "operator-movie-1961b390-0101-11f1-a9c5-df43e7a602b3",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/1961b390-0101-11f1-a9c5-df43e7a602b3"
+    },
+    {
+      "scope": "operator-movie-1cb5ec70-0101-11f1-a045-31fbcdeec2c4",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/1cb5ec70-0101-11f1-a045-31fbcdeec2c4"
+    },
+    {
+      "scope": "operator-movie-1d105720-0101-11f1-8615-0b9e924b49db",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/1d105720-0101-11f1-8615-0b9e924b49db"
+    },
+    {
+      "scope": "operator-movie-1d3bcb30-0101-11f1-814e-55b7ec2dc637",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/1d3bcb30-0101-11f1-814e-55b7ec2dc637"
+    },
+    {
+      "scope": "operator-movie-2087d480-0101-11f1-8c45-33afe937895d",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/2087d480-0101-11f1-8c45-33afe937895d"
+    },
+    {
+      "scope": "operator-movie-23acc300-0101-11f1-b983-610d57850ee9",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/23acc300-0101-11f1-b983-610d57850ee9"
+    },
+    {
+      "scope": "operator-movie-23ddaac0-0101-11f1-bb50-89638f56f311",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/23ddaac0-0101-11f1-bb50-89638f56f311"
+    },
+    {
+      "scope": "operator-movie-23fef5b0-0101-11f1-ae68-cd747b9cd281",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/23fef5b0-0101-11f1-ae68-cd747b9cd281"
+    },
+    {
+      "scope": "operator-movie-2424b8b0-0101-11f1-a79c-db1c817e3bf6",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/2424b8b0-0101-11f1-a79c-db1c817e3bf6"
+    },
+    {
+      "scope": "operator-movie-24681ab0-0101-11f1-97fa-07766d153c8c",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/24681ab0-0101-11f1-97fa-07766d153c8c"
+    },
+    {
+      "scope": "operator-movie-2490e860-0101-11f1-97c8-c7cc5db50ac8",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/2490e860-0101-11f1-97c8-c7cc5db50ac8"
+    },
+    {
+      "scope": "operator-movie-24d616b0-0101-11f1-bacd-6dc9dc17f252",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/24d616b0-0101-11f1-bacd-6dc9dc17f252"
+    },
+    {
+      "scope": "operator-movie-2504e460-0101-11f1-aba5-6911810b4bda",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/2504e460-0101-11f1-aba5-6911810b4bda"
+    },
+    {
+      "scope": "operator-movie-25329680-0101-11f1-97b0-21146ad022dd",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/25329680-0101-11f1-97b0-21146ad022dd"
+    },
+    {
+      "scope": "operator-series-e5ea1cc0-4c8e-11f1-90f9-bb5a9341cd0b",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/e5ea1cc0-4c8e-11f1-90f9-bb5a9341cd0b?affiliate=1"
+    },
+    {
+      "scope": "operator-series-18ac8a90-4a34-11f1-befe-f3a34dc61a04",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/18ac8a90-4a34-11f1-befe-f3a34dc61a04?affiliate=1"
+    },
+    {
+      "scope": "operator-series-4452eda0-4bb4-11f1-88da-37bdad26aa9e",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/4452eda0-4bb4-11f1-88da-37bdad26aa9e?affiliate=1"
+    },
+    {
       "scope": "airing-series-fbb54130-89c7-11ee-b35e-63f53dbb63af",
       "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/fbb54130-89c7-11ee-b35e-63f53dbb63af?affiliate=1"
+    },
+    {
+      "scope": "panel-show-links-movie-9c71d520-e27f-11ef-8fe4-6ffa7bd9dd9e",
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/show_links/movie/9c71d520-e27f-11ef-8fe4-6ffa7bd9dd9e"
+    },
+    {
+      "scope": "panel-show-links-movie-03e71530-e280-11ef-9a16-b15f194ef85f",
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/show_links/movie/03e71530-e280-11ef-9a16-b15f194ef85f"
+    },
+    {
+      "scope": "panel-show-links-movie-1cae1890-729c-11e9-aa06-c39fe4e3ce4d",
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/show_links/movie/1cae1890-729c-11e9-aa06-c39fe4e3ce4d"
+    },
+    {
+      "scope": "panel-show-links-movie-6b841a50-672f-11f1-b09b-5958e5d92f9d",
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/show_links/movie/6b841a50-672f-11f1-b09b-5958e5d92f9d"
+    },
+    {
+      "scope": "panel-show-links-movie-45a33f40-672f-11f1-ae19-1bbe695c8032",
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/show_links/movie/45a33f40-672f-11f1-ae19-1bbe695c8032"
+    },
+    {
+      "scope": "panel-show-links-movie-a128dd20-5db1-11f1-bdc1-4713cb75dfa1",
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/show_links/movie/a128dd20-5db1-11f1-bdc1-4713cb75dfa1"
+    },
+    {
+      "scope": "panel-show-links-movie-3ae22590-5db1-11f1-9f8f-e5ad93b280dd",
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/show_links/movie/3ae22590-5db1-11f1-9f8f-e5ad93b280dd"
+    },
+    {
+      "scope": "panel-show-links-movie-21ac55a0-5db1-11f1-96df-a5e98b8a37f1",
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/show_links/movie/21ac55a0-5db1-11f1-96df-a5e98b8a37f1"
+    },
+    {
+      "scope": "panel-show-links-movie-424c4220-5cd8-11f1-813d-dd29c21e65d8",
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/show_links/movie/424c4220-5cd8-11f1-813d-dd29c21e65d8"
+    },
+    {
+      "scope": "panel-show-links-movie-7afdf650-1964-11f1-a717-1199030bc58e",
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/show_links/movie/7afdf650-1964-11f1-a717-1199030bc58e"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 309,
-  "finishedAt": "2026-08-12T15:45:16.525Z"
+  "apiRequests": 533,
+  "finishedAt": "2026-08-12T17:12:14.367Z"
 }
