@@ -34,7 +34,7 @@ await fs.writeFile('scripts/tests/client-catalog.test.mjs', tests, 'utf8');
 
 let finalTests = await fs.readFile('scripts/tests/final-user-batch-20260814.test.mjs', 'utf8');
 if (!finalTests.includes("operator URL truth uses an actual HTTPS boolean check")) {
-  finalTests += `\n\ntest('operator URL truth uses an actual HTTPS boolean check', () => {\n  const source = require('node:fs').readFileSync(new URL('../client-catalog.mjs', import.meta.url), 'utf8');\n  assert.ok(source.includes("startsWith('https://')"));\n  assert.ok(!source.includes('/^https:///i.test'));\n});\n`;
+  finalTests += `\n\ntest('operator URL truth uses an actual HTTPS boolean check', async () => {\n  const { readFile } = await import('node:fs/promises');\n  const source = await readFile(new URL('../client-catalog.mjs', import.meta.url), 'utf8');\n  assert.ok(source.includes("startsWith('https://')"));\n  assert.ok(!source.includes('/^https:///i.test'));\n});\n`;
 }
 await fs.writeFile('scripts/tests/final-user-batch-20260814.test.mjs', finalTests, 'utf8');
 
