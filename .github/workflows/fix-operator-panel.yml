@@ -26,91 +26,75 @@ jobs:
       - name: Patch operator panel handling
         shell: bash
         run: |
-          node <<'NODE'
-          const fs = require('fs');
-          const file = 'scripts/sync-upera.mjs';
-          let src = fs.readFileSync(file, 'utf8');
-          const replaceOnce = (oldText, newText, label) => {
-            const count = src.split(oldText).length - 1;
-            if (count !== 1) throw new Error(`${label}: expected exactly 1 match, found ${count}`);
-            src = src.replace(oldText, newText);
-          };
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
 
-          replaceOnce(
-`  if (!hasBasicMetadata(movie) || options.panelCandidate === true) {
-    const detail = await fetchMovieDetail(id);
-    movie = detail ? { ...candidate, ...detail, id } : movie;
-  }`,
-`  // Panel rows use their own Upera IDs. Calling the public Seeko detail API
-  // with those IDs returns 404 even though the title is valid in the owner
-  // panel. The panel row already carries the metadata needed for a catalog
-  // shell, so only ordinary Seeko candidates should fetch a public detail.
-  if (!hasBasicMetadata(movie) && options.panelCandidate !== true) {
-    const detail = await fetchMovieDetail(id);
-    movie = detail ? { ...candidate, ...detail, id } : movie;
-  }`,
-            'panel movie detail guard',
-          );
+          path = Path('scripts/sync-upera.mjs')
+          src = path.read_text()
 
-          replaceOnce(
-`  const detail = await fetchSeriesDetail(id);
-  if (options.panelCandidate === true) {
-    try {
-      const panelEpisodes = await fetchPanelSeriesEpisodes(id);
-      if (panelEpisodes.length) detail.episodes = panelEpisodes;
-    } catch (error) {
-      rememberError(\`panel-series-episodes-\${id}\`, error);
-    }
-  }
-  const series = detail.series;`,
-`  let detail;
-  if (options.panelCandidate === true) {
-    // Owner-panel series IDs are not Seeko public-series IDs. Build the detail
-    // from the authenticated panel row and fetch its panel episode list using
-    // that same exact ID; each episode is then resolved through show_links.
-    let panelEpisodes = [];
-    let episodeDiscoveryComplete = true;
-    try {
-      panelEpisodes = await fetchPanelSeriesEpisodes(id);
-    } catch (error) {
-      episodeDiscoveryComplete = false;
-      rememberError(\`panel-series-episodes-\${id}\`, error);
-    }
-    detail = {
-      series: { ...candidate, id, type: 'series' },
-      episodes: panelEpisodes,
-      episodeDiscoveryComplete,
-      episodePaginationPagesFetched: 0,
-      episodePaginationErrors: episodeDiscoveryComplete ? 0 : 1,
-    };
-  } else {
-    detail = await fetchSeriesDetail(id);
-  }
-  const series = detail.series;`,
-            'panel series detail source',
-          );
+          old_movie = "if (!hasBasicMetadata(movie) || options.panelCandidate === true) {"
+          new_movie = "if (!hasBasicMetadata(movie) && options.panelCandidate !== true) {"
+          if src.count(old_movie) != 1:
+              raise SystemExit(f'panel movie detail guard: expected 1 match, got {src.count(old_movie)}')
+          src = src.replace(old_movie, new_movie)
 
-          replaceOnce(
-`      links: uniqueByUrl([
-        ...publicLinks.filter((link) => !operatorPortalDetails(link?.link)),
-        ...panelLinks,
-        ...(!panelLinks.length
-          ? publicLinks.filter((link) => operatorPortalDetails(link?.link))
-          : []),
-      ]),`,
-`      links: uniqueByUrl([
-        ...publicLinks.filter((link) => !operatorPortalDetails(link?.link)),
-        ...panelLinks,
-        // Keep verified portal/operator rows returned by the public affiliate
-        // endpoint too. A non-empty panel response must not suppress a second
-        // valid operator variant; uniqueByUrl removes true duplicates safely.
-        ...publicLinks.filter((link) => operatorPortalDetails(link?.link)),
-      ]),`,
-            'affiliate portal merge',
-          );
+          series_pattern = re.compile(
+              r"  const detail = await fetchSeriesDetail\(id\);\n"
+              r"  if \(options\.panelCandidate === true\) \{\n"
+              r"    try \{\n"
+              r"      const panelEpisodes = await fetchPanelSeriesEpisodes\(id\);\n"
+              r"      if \(panelEpisodes\.length\) detail\.episodes = panelEpisodes;\n"
+              r"    \} catch \(error\) \{\n"
+              r"      rememberError\(`panel-series-episodes-\$\{id\}`, error\);\n"
+              r"    \}\n"
+              r"  \}\n"
+              r"  const series = detail\.series;"
+          )
+          series_lines = [
+              "  let detail;",
+              "  if (options.panelCandidate === true) {",
+              "    // Panel series IDs belong to Upera's owner API, not Seeko's public API.",
+              "    // Use the authenticated panel row as metadata and resolve episodes with the same ID.",
+              "    let panelEpisodes = [];",
+              "    let episodeDiscoveryComplete = true;",
+              "    try {",
+              "      panelEpisodes = await fetchPanelSeriesEpisodes(id);",
+              "    } catch (error) {",
+              "      episodeDiscoveryComplete = false;",
+              "      rememberError(`panel-series-episodes-${id}`, error);",
+              "    }",
+              "    detail = {",
+              "      series: { ...candidate, id, type: 'series' },",
+              "      episodes: panelEpisodes,",
+              "      episodeDiscoveryComplete,",
+              "      episodePaginationPagesFetched: 0,",
+              "      episodePaginationErrors: episodeDiscoveryComplete ? 0 : 1,",
+              "    };",
+              "  } else {",
+              "    detail = await fetchSeriesDetail(id);",
+              "  }",
+              "  const series = detail.series;",
+          ]
+          src, count = series_pattern.subn('\n'.join(series_lines), src, count=1)
+          if count != 1:
+              raise SystemExit(f'panel series detail source: expected 1 match, got {count}')
 
-          fs.writeFileSync(file, src);
-          NODE
+          portal_pattern = re.compile(
+              r"\.\.\.\(!panelLinks\.length\n"
+              r"\s*\? publicLinks\.filter\(\(link\) => operatorPortalDetails\(link\?\.link\)\)\n"
+              r"\s*: \[\]\),"
+          )
+          src, count = portal_pattern.subn(
+              "...publicLinks.filter((link) => operatorPortalDetails(link?.link)),",
+              src,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit(f'affiliate portal merge: expected 1 match, got {count}')
+
+          path.write_text(src)
+          PY
 
       - name: Run regression tests
         run: node --test scripts/tests/*.test.mjs
