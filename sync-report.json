@@ -1,27 +1,40 @@
 {
-  "startedAt": "2026-08-13T18:50:51.936Z",
-  "runTimeLimitMinutes": 6,
-  "runDeadlineAt": "2026-08-13T18:56:51.421Z",
+  "startedAt": "2026-08-13T18:52:17.429Z",
+  "runTimeLimitMinutes": 18,
+  "runDeadlineAt": "2026-08-13T19:10:16.906Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 283611,
-  "imageMirroringSkipped": false,
+  "remainingRunMsAtFinish": 996162,
+  "imageMirroringSkipped": true,
   "originalCount": 2919,
   "finalCount": 2919,
-  "requestedSyncMode": "PEOPLE",
-  "effectiveSyncMode": "PEOPLE",
-  "backfillQueueTotal": 2041,
-  "backfillBacklogRemaining": 2041,
+  "requestedSyncMode": "BACKFILL",
+  "effectiveSyncMode": "BACKFILL",
+  "backfillQueueTotal": 2061,
+  "backfillBacklogRemaining": 2060,
   "backfillBlockedTotal": 6,
-  "backfillActiveSeries": null,
-  "backfillSeriesCompletedThisRun": [],
+  "backfillActiveSeries": {
+    "id": "7f0e60a0-e07b-11ea-83c4-2144b9a142fa",
+    "title": "قلب یخی",
+    "year": 2012,
+    "country": "IR",
+    "missingBefore": [],
+    "pendingBefore": 0,
+    "noProgressRuns": 0
+  },
+  "backfillSeriesCompletedThisRun": [
+    {
+      "id": "7f0e60a0-e07b-11ea-83c4-2144b9a142fa",
+      "title": "قلب یخی"
+    }
+  ],
   "backfillSeriesBlockedThisRun": [],
-  "backfillEpisodesAdded": 0,
-  "backfillSeriesVisited": 0,
-  "backfillCheckpoints": 0,
+  "backfillEpisodesAdded": 54,
+  "backfillSeriesVisited": 1,
+  "backfillCheckpoints": 1,
   "episodesMarkedUnavailable": 0,
   "backfillNoProgressRuns": 0,
-  "normalSyncSkippedForBackfill": false,
+  "normalSyncSkippedForBackfill": true,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
   "backfillNextSeries": null,
   "episodePaginationPagesFetched": 0,
@@ -40,43 +53,228 @@
   "recentSeriesNewCandidates": 0,
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
-  "affiliateRequestScopes": {},
-  "skippedByScopedBudget": 0,
+  "affiliateRequestScopes": {
+    "operator-movies": {
+      "limit": 8,
+      "used": 8,
+      "exhausted": false
+    },
+    "operator-series": {
+      "limit": 9,
+      "used": 9,
+      "exhausted": true
+    }
+  },
+  "skippedByScopedBudget": 1,
   "moviePagesProcessed": 0,
   "movieTitlesProcessed": 0,
   "seriesPagesProcessed": 0,
   "seriesTitlesProcessed": 0,
-  "airingSeriesCandidates": 0,
-  "airingSeriesChecked": 0,
+  "airingSeriesCandidates": 51,
+  "airingSeriesChecked": 6,
   "airingSeriesUpdated": 0,
-  "incompleteSeriesCandidates": 0,
-  "incompleteSeriesRepaired": 0,
+  "incompleteSeriesCandidates": 124,
+  "incompleteSeriesRepaired": 1,
   "incompleteSeriesStillMissing": 0,
   "seriesHiddenUntilComplete": 0,
-  "seriesPublishedAfterCompletion": 0,
+  "seriesPublishedAfterCompletion": 1,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
-  "episodesProcessed": 0,
+  "iranianSeriesProcessed": 1,
+  "episodesProcessed": 64,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
   "iranianSeriesRejectedNoLinks": 0,
   "operatorSeriesPagesProcessed": 0,
-  "operatorSeriesCandidates": 0,
+  "operatorSeriesCandidates": 4,
   "operatorSeriesAddedOrUpdated": 0,
   "operatorSeriesRejectedNoOperatorLink": 0,
   "operatorMoviePagesProcessed": 0,
-  "operatorMovieCandidates": 0,
+  "operatorMovieCandidates": 8,
   "operatorMoviesAddedOrUpdated": 0,
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [],
-  "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "operatorDiagnostics": [
+    {
+      "type": "movie",
+      "id": "f34b6af0-d34d-11eb-808d-c706bf5a0506",
+      "title": "ناجورها",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "f35447d0-148f-11eb-9e9b-97374f35d1f6",
+      "title": "سرسخت",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "f3796820-17a1-11ea-aa43-335e959e7fce",
+      "title": "قصر شیرین",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "f38149e0-4dee-11ef-9abe-9bdb79ed958a",
+      "title": "جاسوس من: شهر ابدی",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "f38b2a40-dd88-11ee-b75e-2915bc39aa1a",
+      "title": "وونگنامی",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "f3b29ef0-30e2-11ed-8838-3387bc7be089",
+      "title": "انتهای جاده",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "f3c1e9a0-6890-11ec-8f14-8963c8ca2659",
+      "title": "چهره",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "f3d70520-e705-11ec-af4e-457d3815d47d",
+      "title": "افسانه‌های اسپایدرویک",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "series",
+      "id": "68f6fa90-205e-11ed-8b05-c5845bd10ca7",
+      "title": "پیاز و سیب",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "retryLater": false
+    },
+    {
+      "type": "series",
+      "id": "5a181d30-602d-11ed-91cf-e3497a0eb443",
+      "title": "کهکشان بوبوی بوی",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "retryLater": false
+    },
+    {
+      "type": "series",
+      "id": "7e975bf0-63f9-11ed-aa7f-6b6e46e23211",
+      "title": "نادی کارآگاه شهر اسباب بازی ها",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "retryLater": false
+    },
+    {
+      "type": "series",
+      "id": "a3b5cd90-68c5-11ed-8698-93347c94dc64",
+      "title": "بزن بریم جت",
+      "result": "rejected",
+      "reason": "request-budget",
+      "retryLater": true
+    }
+  ],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "7f0e60a0-e07b-11ea-83c4-2144b9a142fa",
+      "title": "قلب یخی",
+      "source": "fast-backfill",
+      "discoveredEpisodeCount": 54,
+      "catalogEpisodeCount": 54,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "7f0e60a0-e07b-11ea-83c4-2144b9a142fa",
+      "title": "قلب یخی",
+      "source": "fast-backfill-summary",
+      "missingBefore": [],
+      "pendingBefore": 0,
+      "missingAfter": [],
+      "pendingAfter": 0,
+      "publicationStatus": "published",
+      "result": "completed",
+      "addedEpisodes": 54,
+      "unavailableMarked": 0
+    },
+    {
+      "seriesId": "6a8cca00-8594-11ee-b76c-11dc81a81b58",
+      "title": "فرمانروا: میراث هیولاها",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 19,
+      "catalogEpisodeCount": 19,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "0af529f0-494f-11f1-bb46-473ff3edc5e5",
+      "title": "مردی در آتش",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 7,
+      "catalogEpisodeCount": 7,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "3ad3f3d0-32cc-11f1-a6de-8ddbe07af1e2",
+      "title": "جنگ ستارگان: ماول – ارباب سایه",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 10,
+      "catalogEpisodeCount": 10,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "d8c42b30-1c68-11f1-9d98-b36ecfe4cc67",
+      "title": "روستر",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 7,
+      "catalogEpisodeCount": 7,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "05a22ae0-4840-11ee-af14-3bdec20ca8a4",
+      "title": "وان پیس",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 16,
+      "catalogEpisodeCount": 16,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "ccc81ec0-15ff-11ee-9cda-bd8d2c04de0e",
+      "title": "ربودن",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 15,
+      "catalogEpisodeCount": 15,
+      "missing": [],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "581efd70-5698-11ef-8956-f95068daf4da",
@@ -783,15 +981,6 @@
       "isAiring": false
     },
     {
-      "seriesId": "7f0e60a0-e07b-11ea-83c4-2144b9a142fa",
-      "title": "قلب یخی",
-      "missing": [],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
       "seriesId": "89546ca0-34d6-11ed-804f-2daa476fafb8",
       "title": "احضار",
       "missing": [],
@@ -900,16 +1089,16 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 0,
-  "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 142,
-  "episodeArtworkSeriesChecked": 24,
+  "episodesDiscovered": 586,
+  "episodeGroupsAdded": 54,
+  "episodeArtworkCandidates": 0,
+  "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
-  "affiliateRequests": 0,
+  "seriesAddedOrUpdated": 7,
+  "affiliateRequests": 71,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -918,20 +1107,20 @@
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
-  "episodeFrameErrors": 32,
+  "episodeFrameErrors": 0,
   "seriesKeptVisibleDuringBackfill": 0,
   "seriesRestoredByMonotonicGuard": 0,
-  "peopleEnrichmentCandidates": 309,
-  "peopleEnrichmentProcessed": 20,
-  "peopleEnrichmentSucceeded": 6,
-  "peopleEnrichmentFailed": 14,
-  "peopleEnrichmentSkippedFresh": 57,
+  "peopleEnrichmentCandidates": 0,
+  "peopleEnrichmentProcessed": 0,
+  "peopleEnrichmentSucceeded": 0,
+  "peopleEnrichmentFailed": 0,
+  "peopleEnrichmentSkippedFresh": 0,
   "peopleEnrichmentFromSource": 0,
-  "peopleEnrichmentFromTmdb": 6,
+  "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
-  "peopleAdded": 10,
-  "tmdbRequests": 27,
-  "imdbRequests": 20,
+  "peopleAdded": 0,
+  "tmdbRequests": 0,
+  "imdbRequests": 0,
   "mediaRepairCandidates": 0,
   "mediaRepairChecked": 0,
   "mediaRepairRecovered": 0,
@@ -944,193 +1133,11 @@
   "mediaHealthUnknown": 0,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [
-    {
-      "scope": "episode-frame-646ad1d0-3ca0-11f1-80c7-2713d4b22472-1",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 82 -i https://aparatchi.upera.tv/3074060-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/1834e684fcc8b57df1423e94.jpg\n[in#0 @ 0x5623c0e6ae40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3074060-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-646ad1d0-3ca0-11f1-80c7-2713d4b22472-2",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 119 -i https://aparatchi.upera.tv/3074061-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/026d3e9f37405f97f4471b7b.jpg\n[in#0 @ 0x565530b0ee40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3074061-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-646ad1d0-3ca0-11f1-80c7-2713d4b22472-3",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 156 -i https://aparatchi.upera.tv/3074062-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/c9711120dcda84b9a4c32ee0.jpg\n[in#0 @ 0x55bf7cb78e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3074062-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-646ad1d0-3ca0-11f1-80c7-2713d4b22472-4",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 193 -i https://aparatchi.upera.tv/3074063-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/17d3a743be441b5a954440f5.jpg\n[in#0 @ 0x5583ba784e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3074063-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-646ad1d0-3ca0-11f1-80c7-2713d4b22472-5",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 230 -i https://aparatchi.upera.tv/3074452-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/21515743ed7a075e4f9436eb.jpg\n[in#0 @ 0x55cb1e27de40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3074452-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-646ad1d0-3ca0-11f1-80c7-2713d4b22472-6",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 57 -i https://aparatchi.upera.tv/3074453-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/b6086274b5bd1d83c42e3e4a.jpg\n[in#0 @ 0x55a59fd6de40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3074453-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-cbeacfc0-5121-11f1-a97c-a7cfc3f4e1b6-1",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 82 -i https://aparatchi.upera.tv/3076112-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/d4e8b5817becfec7f2e3aff1.jpg\n[in#0 @ 0x558487397e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3076112-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-cbeacfc0-5121-11f1-a97c-a7cfc3f4e1b6-2",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 119 -i https://aparatchi.upera.tv/3076132-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/9b114c31b124ddc1b95ee236.jpg\n[in#0 @ 0x5653cd21fe40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3076132-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-cbeacfc0-5121-11f1-a97c-a7cfc3f4e1b6-3",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 156 -i https://aparatchi.upera.tv/3076267-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/3c64e5e5075d5be1e3387f16.jpg\n[in#0 @ 0x5585c89ede40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3076267-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-cbeacfc0-5121-11f1-a97c-a7cfc3f4e1b6-4",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 193 -i https://aparatchi.upera.tv/3076268-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/34b9ee0db13896e2c2704266.jpg\n[in#0 @ 0x55ca0ed7be40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3076268-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-cbeacfc0-5121-11f1-a97c-a7cfc3f4e1b6-5",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 230 -i https://aparatchi.upera.tv/3076628-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/d9db3579f8f9f4869e240687.jpg\n[in#0 @ 0x55aaf7849e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3076628-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-cbeacfc0-5121-11f1-a97c-a7cfc3f4e1b6-6",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 57 -i https://aparatchi.upera.tv/3076658-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/1ab637c83267f2e137fd6f0c.jpg\n[in#0 @ 0x55c1658d7e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3076658-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-cbeacfc0-5121-11f1-a97c-a7cfc3f4e1b6-7",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 94 -i https://aparatchi.upera.tv/3076664-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/96a3815287ca8c84b1122a12.jpg\n[in#0 @ 0x55e4d45efe40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3076664-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-cbeacfc0-5121-11f1-a97c-a7cfc3f4e1b6-8",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 131 -i https://aparatchi.upera.tv/3076665-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/301b0bc7572a3794c4202bd9.jpg\n[in#0 @ 0x5594c6f7ee40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3076665-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-cbeacfc0-5121-11f1-a97c-a7cfc3f4e1b6-9",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 168 -i https://aparatchi.upera.tv/3077052-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/8e93446ffcd97cd2d5e9aac7.jpg\n[in#0 @ 0x563169ea4e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3077052-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-cbeacfc0-5121-11f1-a97c-a7cfc3f4e1b6-10",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 205 -i https://aparatchi.upera.tv/3077053-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/a882a67fa1804f5f8c6b90b6.jpg\n[in#0 @ 0x56100a872e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3077053-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-cbeacfc0-5121-11f1-a97c-a7cfc3f4e1b6-11",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 242 -i https://aparatchi.upera.tv/3077129-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/158bce404932b6ab17a9927b.jpg\n[in#0 @ 0x55f6521c1e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3077129-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-cbeacfc0-5121-11f1-a97c-a7cfc3f4e1b6-12",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 69 -i https://aparatchi.upera.tv/3077261-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/7c12649d057e06df50449a6e.jpg\n[in#0 @ 0x560cff45ae40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3077261-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-2f3be920-d8c1-11f0-a5bc-2fe8487c56f1-1",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 82 -i https://aparatchi.upera.tv/3064024-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/2c437d67891d84b65d21bac9.jpg\n[in#0 @ 0x55d561566e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3064024-0-BLURAY.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-2f3be920-d8c1-11f0-a5bc-2fe8487c56f1-2",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 119 -i https://aparatchi.upera.tv/3064025-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/f2b4a4099ce61221ada29662.jpg\n[in#0 @ 0x562df7ec2e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3064025-0-BLURAY.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-2f3be920-d8c1-11f0-a5bc-2fe8487c56f1-3",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 156 -i https://aparatchi.upera.tv/3064026-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/d9c068f06afd0cadbe49bfaa.jpg\n[in#0 @ 0x55ecce8fce40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3064026-0-BLURAY.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-2f3be920-d8c1-11f0-a5bc-2fe8487c56f1-4",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 193 -i https://aparatchi.upera.tv/3064027-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/60eb333673026638a422fa6f.jpg\n[in#0 @ 0x55bde2b37e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3064027-0-BLURAY.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-2f3be920-d8c1-11f0-a5bc-2fe8487c56f1-5",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 230 -i https://aparatchi.upera.tv/3064028-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/40c90e82ddff4ff8ac3427d6.jpg\n[in#0 @ 0x55c2a75dde40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3064028-0-BLURAY.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-2f3be920-d8c1-11f0-a5bc-2fe8487c56f1-6",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 57 -i https://aparatchi.upera.tv/3066263-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/f0b1e37f251960550d50107e.jpg\n[in#0 @ 0x56092e51de40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3066263-0-BLURAY.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-2f3be920-d8c1-11f0-a5bc-2fe8487c56f1-7",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 94 -i https://aparatchi.upera.tv/3066269-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/e80abcb6d6396579f7109d81.jpg\n[in#0 @ 0x559864fe7e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3066269-0-BLURAY.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-2f3be920-d8c1-11f0-a5bc-2fe8487c56f1-8",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 131 -i https://aparatchi.upera.tv/3066270-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/8a61e1b5eb209d99e6171ce3.jpg\n[in#0 @ 0x55e47ab91e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3066270-0-BLURAY.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-d1fece20-90c8-11f1-aec9-fb38be46e40d-1",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 82 -i https://aparatchi.upera.tv/3082361-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/5f109e047643c646343e6ad2.jpg\n[in#0 @ 0x563fd8ca9e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3082361-0-BLURAY.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-d1fece20-90c8-11f1-aec9-fb38be46e40d-2",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 119 -i https://aparatchi.upera.tv/3082362-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/f9d2015e8a9454490b558e40.jpg\n[in#0 @ 0x55983a23fe40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3082362-0-BLURAY.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-d1fece20-90c8-11f1-aec9-fb38be46e40d-3",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 156 -i https://aparatchi.upera.tv/3082363-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/da13ed4fd3821523ca6293a7.jpg\n[in#0 @ 0x55e0af493e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3082363-0-BLURAY.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-d1fece20-90c8-11f1-aec9-fb38be46e40d-4",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 193 -i https://aparatchi.upera.tv/3082364-0-BLURAY.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/e8d983072e54e8d00a2eca90.jpg\n[in#0 @ 0x55673e846e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3082364-0-BLURAY.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-f499d7e0-8295-11f1-bd3d-314904460dcd-1",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 82 -i https://aparatchi.upera.tv/3081265-11-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/c0ad15d041da94d4873f74fa.jpg\n[in#0 @ 0x5654606fae40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3081265-11-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "episode-frame-f499d7e0-8295-11f1-bd3d-314904460dcd-2",
-      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 119 -i https://aparatchi.upera.tv/3081266-11-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/ffb6ee4e97bf48c676334011.jpg\n[in#0 @ 0x558938f52e40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3081266-11-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
-    },
-    {
-      "scope": "people-de05e360-2f1c-11f0-839c-8d8920100bdb",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-ed099290-af38-11ec-8d60-39da22fea12e",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-bbaef570-b060-11ec-b36f-c1f0b9436cc8",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-59272440-3b96-11f0-80ae-e95ba3406c78",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-1d277c50-45e1-11f0-9228-abfe0f871c54",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-19749a00-cc1d-11ef-9b62-29ec6b06311e",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-710c8f90-405c-11f0-84f6-4bc107b2762a",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-d586e570-235f-11f0-a5f7-018aa989daed",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-24c3b1a0-74f4-11f0-8da8-7508e07f538a",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-97f01e60-56a0-11f1-be3a-85e89eed5724",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-1007ef10-7696-11f0-b2b5-832fabff1294",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-1bd652e0-7a94-11f0-8e6c-271671cf1eec",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-1e6f0fb0-7b64-11f0-bb2c-8be347f45a69",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-23891560-363f-11f1-9959-2d1f5b3db301",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    }
-  ],
+  "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 85,
-  "finishedAt": "2026-08-13T18:52:07.810Z"
+  "apiRequests": 84,
+  "lastCheckpointAt": "2026-08-13T18:53:37.025Z",
+  "lastCheckpointReason": "backfill-completed-7f0e60a0-e07b-11ea-83c4-2144b9a142fa",
+  "remainingRunMsAtCheckpoint": 999184,
+  "finishedAt": "2026-08-13T18:53:40.744Z"
 }
