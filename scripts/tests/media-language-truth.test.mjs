@@ -11,7 +11,7 @@ test('an unlabeled Upera row never manufactures the opposite media language', ()
 });
 
 test('language audits replace stale rows only from a usable fresh snapshot', () => {
-  assert.ok(source.includes('MEDIA_LANGUAGE_AUDIT_VERSION = 7'));
+  assert.ok(source.includes('MEDIA_LANGUAGE_AUDIT_VERSION = 8'));
   assert.ok(source.includes('freshHasUsableOrdinaryMedia'));
   assert.ok(source.includes("fullMediaAudit: true, replaceMedia: true"));
   assert.ok(source.includes('replaceMedia: hadUsableMedia'));

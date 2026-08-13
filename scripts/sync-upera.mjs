@@ -15,10 +15,10 @@ const PANEL_API_BASE = 'https://panel-api.upera.tv/api/v1';
 const FILIMO_OWNER_ID = 9194919;
 const IRANIAN_SERIES_SCAN_VERSION = 4;
 const SERIES_COMPLETENESS_AUDIT_VERSION = 2;
-const MEDIA_LANGUAGE_AUDIT_VERSION = 7;
+const MEDIA_LANGUAGE_AUDIT_VERSION = 8;
 const IRANIAN_SERIES_REBUILD_VERSION = 1;
 const ARCHIVE_COMPLETION_ORDER_VERSION = 1;
-const CATALOG_VERSION = '0.24.0-exact-episode-artwork';
+const CATALOG_VERSION = '0.25.0-language-operator-artwork-truth';
 const AFFILIATE_URL_KEYS = [
   'link', 'url', 'href', 'download_url', 'downloadUrl', 'download_link', 'downloadLink',
   'stream_url', 'streamUrl', 'stream_link', 'streamLink', 'file_url', 'fileUrl', 'file',
@@ -40,8 +40,8 @@ const panelToken = String(process.env.UPERA_PANEL_TOKEN || '').trim();
 const tmdbBearerToken = String(process.env.TMDB_BEARER_TOKEN || '').trim();
 
 const peopleEnrichmentTitlesPerRun = Math.min(
-  24,
-  positiveInt(process.env.APARATCHI_PEOPLE_TITLES_PER_RUN, 10),
+  120,
+  positiveInt(process.env.APARATCHI_PEOPLE_TITLES_PER_RUN, 40),
 );
 
 const peopleEnrichmentMaxPeople = Math.min(
@@ -55,8 +55,8 @@ const peopleEnrichmentRetryHours = Math.min(
 );
 
 const episodeArtworkSeriesPerRun = Math.min(
-  24,
-  positiveInt(process.env.APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN, 6),
+  120,
+  positiveInt(process.env.APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN, 24),
 );
 
 const episodeArtworkMirrorPerRun = Math.min(
@@ -65,8 +65,8 @@ const episodeArtworkMirrorPerRun = Math.min(
 );
 
 const episodeFrameCapturesPerRun = Math.min(
-  32,
-  nonNegativeInt(process.env.APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN, 12),
+  160,
+  nonNegativeInt(process.env.APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN, 48),
 );
 
 const moviePagesPerRun = Math.min(
@@ -5365,6 +5365,25 @@ function episodeGroup(episode, media, series) {
   };
 }
 
+
+function sourcePersianTitle(payload) {
+  const candidates = [
+    payload?.name_fa, payload?.nameFa, payload?.title_fa, payload?.titleFa,
+    payload?.persian_name, payload?.persianName, payload?.fa_name, payload?.faName,
+    payload?.persian_title, payload?.persianTitle, payload?.title, payload?.name,
+  ].map(cleanText).filter(Boolean);
+  return candidates.find((value) => /[\u0600-\u06ff]/.test(value)) || candidates[0] || '';
+}
+
+function sourceOverview(payload) {
+  const candidates = [
+    payload?.overview_fa, payload?.description_fa, payload?.story_fa, payload?.synopsis_fa,
+    payload?.summary_fa, payload?.plot_fa, payload?.overview, payload?.description,
+    payload?.story, payload?.synopsis, payload?.summary, payload?.plot, payload?.caption, payload?.about,
+  ].map(cleanText).filter((value) => value && value !== 'توضیحی ثبت نشده است.');
+  return candidates.find((value) => value.length >= 18) || candidates[0] || 'توضیحی ثبت نشده است.';
+}
+
 function normalizeMovie(
   movie,
   media,
@@ -5418,7 +5437,7 @@ function normalizeMovie(
       ir,
       genres,
       {
-        nameFa: movie.name_fa || movie.name,
+        nameFa: sourcePersianTitle(movie) || movie.name,
         name: movie.name || movie.name_fa,
         existing,
       },
@@ -5455,7 +5474,7 @@ function normalizeMovie(
     year: numericYear(movie.year),
 
     nameFa: cleanText(
-      movie.name_fa ||
+      sourcePersianTitle(movie) ||
       movie.name ||
       'بدون نام',
     ),
@@ -5473,11 +5492,7 @@ function normalizeMovie(
     poster,
     backdrop,
 
-    overview: cleanText(
-      movie.overview_fa ||
-      movie.overview ||
-      'توضیحی ثبت نشده است.',
-    ),
+    overview: sourceOverview(movie),
 
     genres,
 
@@ -5596,7 +5611,7 @@ function normalizeSeries(
       ir,
       genres,
       {
-        nameFa: series.name_fa || series.name,
+        nameFa: sourcePersianTitle(series) || series.name,
         name: series.name || series.name_fa,
         existing,
       },
@@ -5644,7 +5659,7 @@ function normalizeSeries(
     year: numericYear(series.year),
 
     nameFa: cleanText(
-      series.name_fa ||
+      sourcePersianTitle(series) ||
       series.name ||
       'بدون نام',
     ),
@@ -5662,11 +5677,7 @@ function normalizeSeries(
     poster,
     backdrop,
 
-    overview: cleanText(
-      series.overview_fa ||
-      series.overview ||
-      'توضیحی ثبت نشده است.',
-    ),
+    overview: sourceOverview(series),
 
     genres,
 

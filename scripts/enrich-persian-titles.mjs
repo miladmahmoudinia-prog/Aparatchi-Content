@@ -21,6 +21,10 @@ const VERIFIED_PERSIAN_TITLE_OVERRIDES = new Map([
   ["the devil's climb", 'صعود شیطان'],
   ['the lionheart', 'شیردل'],
   ['our father', 'پدر ما'],
+  ['aunt nasrin and heavenly children', 'خاله نسرین و کودکان آسمانی'],
+  ["aunt nasrin's songs for kids 4", 'ترانه‌های کودکانه خاله نسرین ۴'],
+  ["aunt nasrin's songs for kids 5", 'ترانه‌های کودکانه خاله نسرین ۵'],
+  ["aunt nasrin's songs for kids 7", 'ترانه‌های کودکانه خاله نسرین ۷'],
 ]);
 const VERIFIED_PERSIAN_COLLECTION_OVERRIDES = new Map([
   ['dance with the jackals collection', 'مجموعه رقص با شغال‌ها'],
@@ -63,7 +67,7 @@ for (const item of catalog.items) {
 
 const candidates = catalog.items
   .filter((item) => item && ['movie', 'series'].includes(item.type))
-  .filter((item) => needsPersianTitle(item) || !isUsableArtwork(item.poster))
+  .filter((item) => needsPersianTitle(item) || needsPersianCollection(item) || !isUsableArtwork(item.poster))
   .sort((a, b) => {
     const aMissingPoster = Number(!isUsableArtwork(a.poster));
     const bMissingPoster = Number(!isUsableArtwork(b.poster));
@@ -132,6 +136,12 @@ function needsPersianTitle(item) {
   return !value || !containsPersian(value) || normalizeTitle(value) === normalizeTitle(item?.name);
 }
 
+function needsPersianCollection(item) {
+  if (!item?.collectionId && !item?.collectionName) return false;
+  const value = cleanText(item?.collectionNameFa);
+  return !value || !containsPersian(value) || normalizeTitle(value) === normalizeTitle(item?.collectionName);
+}
+
 function applyRepair(item, metadata) {
   let didChange = false;
   let titleFilled = 0;
@@ -140,6 +150,11 @@ function applyRepair(item, metadata) {
   if (needsPersianTitle(item) && containsPersian(titleFa)) {
     item.nameFa = titleFa;
     titleFilled = 1;
+    didChange = true;
+  }
+  const collectionNameFa = cleanText(metadata?.collectionNameFa);
+  if (needsPersianCollection(item) && containsPersian(collectionNameFa)) {
+    item.collectionNameFa = collectionNameFa;
     didChange = true;
   }
   const poster = cleanText(metadata?.poster);
@@ -189,6 +204,17 @@ async function fetchPersianMetadata(item) {
   const localized = cleanText(details?.title || details?.name || candidate?.title || candidate?.name);
   let titleFa = containsPersian(localized) ? localized : '';
   let posterPath = cleanText(details?.poster_path || candidate?.poster_path);
+  let collectionNameFa = '';
+  const collectionId = positiveInt(details?.belongs_to_collection?.id || item?.collectionId, 0);
+  if (collectionId > 0) {
+    try {
+      const collection = await tmdbJson(`/collection/${collectionId}?language=fa-IR`);
+      const localizedCollection = cleanText(collection?.name);
+      if (containsPersian(localizedCollection)) collectionNameFa = localizedCollection;
+    } catch {
+      // Collection translation is an enhancement; title repair must continue.
+    }
+  }
 
   if (!titleFa) {
     try {
@@ -224,6 +250,7 @@ async function fetchPersianMetadata(item) {
   return {
     tmdbId: Number(candidate.id),
     ...(titleFa ? { titleFa } : {}),
+    ...(collectionNameFa ? { collectionNameFa } : {}),
     ...(posterPath ? { poster: `https://image.tmdb.org/t/p/w500/${posterPath.replace(/^\/+/, '')}` } : {}),
   };
 }

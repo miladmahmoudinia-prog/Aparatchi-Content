@@ -41,7 +41,7 @@ test('client catalog remains much smaller by not embedding episode files and ful
     downloads: Array.from({ length: 80 }, (_, index) => ({
       id: `e${index + 1}`,
       title: `قسمت ${index + 1}`,
-      files: Array.from({ length: 4 }, (_v, q) => ({ id: `f${index}-${q}`, url: `https://cdn.test/${index}/${q}.mp4`, quality: `${q}` })),
+      files: Array.from({ length: 4 }, (_v, q) => ({ id: `f${index}-${q}`, url: `https://cdn.test/${index}/${q}.mp4`, quality: `${q}`, language: 'subtitled' })),
     })),
     people: Array.from({ length: 25 }, (_, index) => ({
       id: `p${index}`, nameFa: `نفر ${index}`, name: `Person ${index}`, role: 'actor', tmdbId: 1000 + index,

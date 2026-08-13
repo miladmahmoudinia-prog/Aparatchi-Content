@@ -76,28 +76,119 @@ const peopleWorkKeysForPerson = (person) => {
   return [...new Set(keys)];
 };
 
+
+const clientLanguageFromText = (value) => {
+  const text = String(value || '');
+  if (/دوبله|دو\s*زبانه|دوزبانه|صوت\s*فارسی|صدای\s*فارسی|persian\s*(?:dub|audio|voice)|farsi\s*(?:dub|audio|voice)|dubbed|\bdub\b/i.test(text)) return 'dubbed';
+  if (/زیر\s*نویس|زير\s*نويس|هارد\s*ساب|سافت\s*ساب|persian\s*sub|farsi\s*sub|subtitle|subbed|\bsub\b/i.test(text)) return 'subtitled';
+  return '';
+};
+
+const clientFileLanguage = (file, section) => {
+  if (file?.language === 'dubbed' || file?.language === 'subtitled') return file.language;
+  return clientLanguageFromText([section?.title, section?.badge, section?.language, file?.label].filter(Boolean).join(' '));
+};
+
+const verifiedOperatorOnlyFile = (file) => Boolean(
+  file?.mode === 'operator-play' && file?.operatorOnly === true && file?.panelVerified === true &&
+  Number(file?.trafficOo) === 1 && /^https:///i.test(String(file?.url || '').trim())
+);
+
+const sanitizeClientMediaItem = (item) => {
+  if (!item || !['movie', 'series'].includes(item.type)) return item;
+  const iranian = item.ir !== false || (Array.isArray(item.countryCodes) && item.countryCodes.includes('IR'));
+  const operatorVariant = item.operatorOnly === true;
+  const prepared = (Array.isArray(item.downloads) ? item.downloads : []).map((section) => ({
+    ...section,
+    files: (Array.isArray(section?.files) ? section.files : []).flatMap((file) => {
+      if (!file || typeof file !== 'object') return [];
+      if (String(file.mode || '').startsWith('operator-')) {
+        return operatorVariant && verifiedOperatorOnlyFile(file) ? [{ ...file }] : [];
+      }
+      if (operatorVariant) return [];
+      const language = clientFileLanguage(file, section);
+      if (!iranian && language !== 'dubbed' && language !== 'subtitled') return [];
+      return [{ ...file, ...(language ? { language } : {}) }];
+    }),
+  }));
+
+  const languagesByUrl = new Map();
+  for (const section of prepared) {
+    for (const file of section.files || []) {
+      if (file.language !== 'dubbed' && file.language !== 'subtitled') continue;
+      const url = String(file.url || '').trim();
+      if (!url) continue;
+      const set = languagesByUrl.get(url) || new Set();
+      set.add(file.language);
+      languagesByUrl.set(url, set);
+    }
+  }
+  const conflicts = new Set([...languagesByUrl.entries()]
+    .filter(([, set]) => set.has('dubbed') && set.has('subtitled'))
+    .map(([url]) => url));
+
+  const downloads = prepared.flatMap((section) => {
+    const files = (section.files || []).filter((file) => !conflicts.has(String(file.url || '').trim()));
+    if (!files.length) return [];
+    const languages = [...new Set(files.map((file) => file.language).filter((value) => value === 'dubbed' || value === 'subtitled'))];
+    if (languages.length === 1 && !Number(section?.episodeNumber || 0)) {
+      const language = languages[0];
+      return [{
+        ...section,
+        title: language === 'dubbed' ? 'دوبله فارسی' : 'زیرنویس فارسی',
+        badge: language === 'dubbed' ? 'دوبله' : 'زیرنویس',
+        language,
+        files,
+      }];
+    }
+    return [{ ...section, files }];
+  });
+
+  const availableLanguages = [...new Set(downloads.flatMap((section) =>
+    (section.files || []).map((file) => file.language)
+      .filter((value) => value === 'dubbed' || value === 'subtitled')
+  ))];
+  const hasVerifiedOperator = downloads.some((section) => (section.files || []).some(verifiedOperatorOnlyFile));
+  if (operatorVariant && !hasVerifiedOperator) return null;
+
+  const next = {
+    ...item,
+    downloads,
+    availableLanguages,
+    ...(operatorVariant ? {
+      access: 'operator',
+      operatorOnly: true,
+      categoryKeys: [...new Set([...(item.categoryKeys || []).filter((key) => key !== 'mobile-operator'), 'mobile-operator'])],
+      categoryLabels: [...new Set([...(item.categoryLabels || []).filter((label) => label !== 'ویژه اینترنت همراه'), 'ویژه اینترنت همراه'])],
+    } : {
+      operatorOnly: false,
+      operatorAccess: undefined,
+      supportedOperators: undefined,
+      categoryKeys: (item.categoryKeys || []).filter((key) => key !== 'mobile-operator'),
+      categoryLabels: (item.categoryLabels || []).filter((label) => label !== 'ویژه اینترنت همراه'),
+    }),
+  };
+  if (!iranian && !operatorVariant) {
+    delete next.streamUrl;
+    delete next.streamMode;
+  }
+  return next;
+};
+
+const deriveClientLanguages = (item) => [...new Set(
+  (Array.isArray(item?.downloads) ? item.downloads : []).flatMap((section) =>
+    (Array.isArray(section?.files) ? section.files : [])
+      .map((file) => clientFileLanguage(file, section))
+  ).filter((value) => value === 'dubbed' || value === 'subtitled')
+)];
+
 export function clientSummaryForItem(item) {
   const summary = {};
   for (const field of SUMMARY_FIELDS) {
     if (Object.prototype.hasOwnProperty.call(item || {}, field)) summary[field] = item[field];
   }
   if (summary.overview) summary.overview = truncateOverview(summary.overview);
-  if (!Array.isArray(summary.availableLanguages) || !summary.availableLanguages.length) {
-    const text = (Array.isArray(item?.downloads) ? item.downloads : [])
-      .flatMap((section) => [
-        section?.title,
-        section?.badge,
-        ...(Array.isArray(section?.files)
-          ? section.files.flatMap((file) => [file?.label, file?.language])
-          : []),
-      ])
-      .filter(Boolean)
-      .join(' ');
-    summary.availableLanguages = [
-      /دوبله|دو\s*زبانه|دوزبانه|صوت\s*فارسی|صدای\s*فارسی|فارسی\s*(?:دوبله|صدا)|persian\s*(?:dub|audio|voice)|farsi\s*(?:dub|audio|voice)|dual\s*audio|dubbed|\bdub\b/i.test(text) ? 'dubbed' : '',
-      /زیر\s*نویس|زير\s*نويس|هارد\s*ساب|سافت\s*ساب|persian\s*sub|farsi\s*sub|subtitle|subbed|\bsub\b/i.test(text) ? 'subtitled' : '',
-    ].filter(Boolean);
-  }
+  summary.availableLanguages = deriveClientLanguages(item);
 
   // Actor/director profile pages need a reverse lookup from person -> titles.
   // Keep only identity fields in the lightweight index; photos, character names,
@@ -199,8 +290,9 @@ export function buildClientCatalogArtifacts(catalog) {
   const sourceItems = [...(Array.isArray(catalog?.items) ? catalog.items : [])]
     .sort((a, b) => clientCatalogFreshness(b) - clientCatalogFreshness(a));
 
-  for (const item of sourceItems) {
-    if (!isClientVisibleItem(item)) continue;
+  for (const sourceItem of sourceItems) {
+    const item = sanitizeClientMediaItem(sourceItem);
+    if (!item || !isClientVisibleItem(item)) continue;
     const { summary, detailSerialized } = clientSummaryForItem(item);
     // Every series admitted to the lightweight client index is intentionally
     // visible. Normalize this bit so an older catalog missing the field cannot
