@@ -35,7 +35,9 @@ jobs:
             : [];
           const recordsFrom = (payload, key) => {
             const root = payload?.data ?? payload ?? {};
+            const bucket = root?.[key];
             const candidates = [
+              bucket?.data, bucket?.items, bucket?.results, bucket?.rows,
               root?.[key], root?.data?.[key], root?.data,
               root?.items, root?.results, root?.rows, root?.list,
               payload?.[key], payload?.items, payload?.results, payload?.rows,
@@ -50,7 +52,7 @@ jobs:
               'id','t_id','source_id','sourceId','content_id','contentId','target_id','targetId',
               'post_id','postId','upera_id','uperaId','movie_id','series_id','episode_id','specific_id',
               'uuid','slug','name','title','name_fa','title_fa','traffic','traffic_oo','trafficOo',
-              'amount','sale_method','payment_method','type','kind','ref_id','refId'
+              'amount','sale_method','payment_method','type','kind','ref_id','refId','source','seeko_id','seekoId'
             ]) {
               const value = record[key];
               if (value !== undefined && value !== null && value !== '') {
@@ -85,7 +87,8 @@ jobs:
             });
             const {payload} = await request(`/owner/get/${kind}`, {method:'POST', body});
             const root = payload?.data ?? payload ?? {};
-            console.log(`SHAPE ${kind}: payload=${JSON.stringify(keysOf(payload))} root=${JSON.stringify(keysOf(root))} root.data=${JSON.stringify(keysOf(root?.data))}`);
+            const bucket = root?.[kind];
+            console.log(`SHAPE ${kind}: payload=${JSON.stringify(keysOf(payload))} root=${JSON.stringify(keysOf(root))} bucket=${JSON.stringify(keysOf(bucket))} bucket.data=${JSON.stringify(keysOf(bucket?.data))}`);
             const records = recordsFrom(payload, kind);
             console.log(`LIST ${kind}: count=${records.length}`);
             records.slice(0,3).forEach((row, i) => console.log(`ROW ${kind} ${i}:`, JSON.stringify(summarize(row))));
@@ -94,8 +97,9 @@ jobs:
             if (!row) continue;
             const ids = [...new Set([
               row.id,row.t_id,row.source_id,row.sourceId,row.content_id,row.contentId,row.target_id,row.targetId,
-              row.post_id,row.postId,row.upera_id,row.uperaId,row.movie_id,row.series_id,row.episode_id,row.specific_id,row.uuid
-            ].filter(Boolean).map(String))].slice(0,8);
+              row.post_id,row.postId,row.upera_id,row.uperaId,row.movie_id,row.series_id,row.episode_id,row.specific_id,
+              row.uuid,row.seeko_id,row.seekoId
+            ].filter(Boolean).map(String))].slice(0,10);
             const type = kind === 'movies' ? 'movie' : 'series';
             for (const id of ids) {
               for (const method of ['GET','POST']) {
