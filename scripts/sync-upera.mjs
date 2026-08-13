@@ -2768,8 +2768,15 @@ async function processMovie(candidate, source, options = {}) {
   let movie = candidate;
 
   if (!hasBasicMetadata(movie) || options.panelCandidate === true) {
-    const detail = await fetchMovieDetail(id);
-    movie = detail ? { ...candidate, ...detail, id } : movie;
+    try {
+      const detail = await fetchMovieDetail(id);
+      movie = detail ? { ...candidate, ...detail, id } : movie;
+    } catch (error) {
+      // Upera owner-panel IDs are not always valid Seeko public IDs.
+      // Keep the authenticated panel metadata and continue to show_links.
+      if (options.panelCandidate !== true) throw error;
+      rememberError(`panel-movie-detail-${id}`, error);
+    }
   }
 
   if (!movie) {
@@ -2987,12 +2994,32 @@ async function processSeries(
     return { retryLater: false, completeBackfill: true, added: false, reason: 'missing-id' };
   }
 
-  const detail = await fetchSeriesDetail(id);
+  let detail;
+  try {
+    detail = await fetchSeriesDetail(id);
+  } catch (error) {
+    if (options.panelCandidate !== true) throw error;
+    // Owner-panel series IDs can be absent from Seeko. Fall back to the
+    // authenticated panel row instead of rejecting a valid operator title.
+    rememberError(`panel-series-detail-${id}`, error);
+    detail = {
+      series: { ...candidate, id, type: 'series' },
+      episodes: [],
+      episodeDiscoveryComplete: true,
+      episodePaginationPagesFetched: 0,
+      episodePaginationErrors: 0,
+    };
+  }
   if (options.panelCandidate === true) {
     try {
       const panelEpisodes = await fetchPanelSeriesEpisodes(id);
-      if (panelEpisodes.length) detail.episodes = panelEpisodes;
+      // The owner panel is the authoritative episode list for panel IDs.
+      detail.episodes = panelEpisodes;
+      detail.episodeDiscoveryComplete = true;
+      detail.episodePaginationErrors = 0;
     } catch (error) {
+      detail.episodeDiscoveryComplete = false;
+      detail.episodePaginationErrors = Math.max(1, Number(detail.episodePaginationErrors || 0));
       rememberError(`panel-series-episodes-${id}`, error);
     }
   }
@@ -3912,9 +3939,7 @@ async function fetchAffiliateLinks(
       links: uniqueByUrl([
         ...publicLinks.filter((link) => !operatorPortalDetails(link?.link)),
         ...panelLinks,
-        ...(!panelLinks.length
-          ? publicLinks.filter((link) => operatorPortalDetails(link?.link))
-          : []),
+        ...publicLinks.filter((link) => operatorPortalDetails(link?.link)),
       ]),
       skipped: false,
     };
