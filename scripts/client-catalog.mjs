@@ -91,7 +91,7 @@ const clientFileLanguage = (file, section) => {
 
 const verifiedOperatorOnlyFile = (file) => Boolean(
   file?.mode === 'operator-play' && file?.operatorOnly === true && file?.panelVerified === true &&
-  Number(file?.trafficOo) === 1 && /^https:///i.test(String(file?.url || '').trim())
+  Number(file?.trafficOo) === 1 && String(file?.url || '').trim().toLowerCase().startsWith('https://')
 );
 
 const sanitizeClientMediaItem = (item) => {

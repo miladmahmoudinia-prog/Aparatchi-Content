@@ -50,3 +50,11 @@ test('verified operator-only records stay visible and keep their badge category'
   assert.equal(index.items[0].operatorOnly, true);
   assert.ok(index.items[0].categoryKeys.includes('mobile-operator'));
 });
+
+
+test('operator URL truth uses an actual HTTPS boolean check', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile(new URL('../client-catalog.mjs', import.meta.url), 'utf8');
+  assert.ok(source.includes("startsWith('https://')"));
+  assert.ok(!source.includes('/^https:///i.test'));
+});
