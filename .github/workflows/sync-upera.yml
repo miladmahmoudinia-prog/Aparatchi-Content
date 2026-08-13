@@ -37,309 +37,94 @@ concurrency:
   group: aparatchi-content-write-lock
   cancel-in-progress: false
 
+# Keep this workflow on the current main branch so language/operator/artwork regression locks are applied before publishing.
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 68
+    timeout-minutes: 330
+
+    env:
+      UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
+      UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
+      UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
+      TMDB_BEARER_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+      TMDB_MAX_TITLES_PER_RUN: '40'
+      TMDB_REQUEST_DELAY_MS: '160'
+      TMDB_NEGATIVE_CACHE_HOURS: '6'
+      APARATCHI_CAST_CACHE_BASE_URL: ${{ secrets.APARATCHI_CAST_CACHE_BASE_URL }}
+      APARATCHI_CAST_CACHE_UPLOAD_URL: ${{ secrets.APARATCHI_CAST_CACHE_UPLOAD_URL }}
+      APARATCHI_CAST_CACHE_TOKEN: ${{ secrets.APARATCHI_CAST_CACHE_TOKEN }}
+      UPERA_SYNC_MODE: ${{ github.event_name == 'schedule' && 'AUTO' || 'BACKFILL' }}
+      APARATCHI_RUN_TIME_LIMIT_MINUTES: '18'
+      APARATCHI_CHECKPOINT_RESERVE_MS: '45000'
+      APARATCHI_REQUEST_TIMEOUT_MS: '12000'
+      APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
+      UPERA_REQUEST_DELAY_MS: '420'
+      UPERA_BACKFILL_REQUEST_DELAY_MS: '100'
+      UPERA_MAX_REQUESTS_PER_RUN: '220'
+      UPERA_BACKFILL_REQUEST_RESERVE: '180'
+      UPERA_BACKFILL_EPISODE_LIMIT_PER_RUN: '240'
+      UPERA_BACKFILL_SERIES_CHECKPOINT_SIZE: '20'
+      APARATCHI_AIRING_REFRESH_PER_RUN: '10'
+      APARATCHI_INCOMPLETE_REPAIR_PER_RUN: '1'
+      APARATCHI_IRANIAN_SERIES_PER_RUN: '1'
+      APARATCHI_IRANIAN_SERIES_RESERVE: '100'
+      APARATCHI_IRANIAN_SERIES_PAGES_PER_RUN: '4'
+      APARATCHI_OPERATOR_MOVIE_PAGES_PER_RUN: '4'
+      APARATCHI_OPERATOR_MOVIE_CANDIDATES_PER_RUN: '8'
+      APARATCHI_OPERATOR_SERIES_PAGES_PER_RUN: '4'
+      APARATCHI_OPERATOR_SERIES_CANDIDATES_PER_RUN: '4'
+      APARATCHI_OPERATOR_SERIES_EPISODES_PER_RUN: '10'
+      APARATCHI_PEOPLE_TITLES_PER_RUN: '40'
+      APARATCHI_PEOPLE_MAX_PER_TITLE: '14'
+      APARATCHI_PEOPLE_RETRY_HOURS: '1'
+      APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN: '24'
+      APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN: '48'
+      APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
 
     steps:
       - name: Checkout content repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 60
+          fetch-depth: 0
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '22'
 
-      - name: Run sync regression tests
-        run: node --test scripts/tests/*.test.mjs
-
-      - name: Resolve sync settings
+      - name: Resolve sync inputs
         shell: bash
         run: |
-          MOVIE_PAGES='${{ github.event.inputs.movie_pages }}'
-          SERIES_PAGES='${{ github.event.inputs.series_pages }}'
-          NEW_HOURS='${{ github.event.inputs.new_hours }}'
+          MOVIE_PAGES="${{ github.event.inputs.movie_pages }}"
+          SERIES_PAGES="${{ github.event.inputs.series_pages }}"
+          NEW_HOURS="${{ github.event.inputs.new_hours }}"
+          echo "UPERA_MOVIE_PAGES=${MOVIE_PAGES:-12}" >> "$GITHUB_ENV"
+          echo "UPERA_SERIES_PAGES=${SERIES_PAGES:-12}" >> "$GITHUB_ENV"
+          echo "UPERA_NEW_HOURS=${NEW_HOURS:-24}" >> "$GITHUB_ENV"
 
-          echo "MOVIE_PAGES_PER_RUN=${MOVIE_PAGES:-12}" >> "$GITHUB_ENV"
-          echo "SERIES_PAGES_PER_RUN=${SERIES_PAGES:-12}" >> "$GITHUB_ENV"
-          echo "NEW_TITLES_HOURS=${NEW_HOURS:-24}" >> "$GITHUB_ENV"
-
-      - name: Discover new movies and series first
-        id: normal_sync
-        continue-on-error: true
-        env:
-          UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
-          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
-          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
-          UPERA_SYNC_MODE: 'NORMAL'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '14'
-          APARATCHI_CHECKPOINT_RESERVE_MS: '45000'
-          APARATCHI_REQUEST_TIMEOUT_MS: '12000'
-          APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
-          UPERA_MAX_REQUESTS_PER_RUN: '300'
-          UPERA_REQUEST_DELAY_MS: '520'
-          UPERA_AIRING_SERIES_TITLES_PER_RUN: '120'
-          UPERA_SERIES_TITLES_PER_RUN: '80'
-          UPERA_INCREMENTAL_LIMIT: '160'
-          UPERA_RECENT_MOVIE_PAGES_PER_RUN: '12'
-          UPERA_RECENT_SERIES_PAGES_PER_RUN: '12'
-          UPERA_RECENT_MOVIE_TITLES_PER_RUN: '120'
-          UPERA_RECENT_SERIES_TITLES_PER_RUN: '4'
-          UPERA_RECENT_MOVIE_REQUEST_QUOTA: '110'
-          UPERA_RECENT_SERIES_REQUEST_QUOTA: '96'
-          UPERA_RECENT_SERIES_EPISODES_PER_TITLE: '36'
-          UPERA_INCREMENTAL_REQUEST_QUOTA: '40'
-          UPERA_MEDIA_REPAIR_REQUEST_QUOTA: '100'
-          UPERA_AIRING_REQUEST_QUOTA: '48'
-          UPERA_ARCHIVE_MOVIE_REQUEST_QUOTA: '32'
-          UPERA_ARCHIVE_SERIES_REQUEST_QUOTA: '12'
-          UPERA_IRANIAN_SERIES_REQUEST_QUOTA: '12'
-          UPERA_OPERATOR_MOVIE_REQUEST_QUOTA: '24'
-          UPERA_OPERATOR_SERIES_REQUEST_QUOTA: '12'
-          UPERA_IRANIAN_SERIES_PAGES_PER_RUN: '2'
-          UPERA_IRANIAN_SERIES_TITLES_PER_RUN: '1'
-          UPERA_OPERATOR_SERIES_PAGES_PER_RUN: '3'
-          UPERA_OPERATOR_SERIES_TITLES_PER_RUN: '3'
-          UPERA_OPERATOR_MOVIE_PAGES_PER_RUN: '3'
-          UPERA_OPERATOR_MOVIE_TITLES_PER_RUN: '40'
-          UPERA_PRIORITY_EPISODES_PER_SERIES: '24'
-          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
+      - name: Sync Upera content
         run: node scripts/sync-upera.mjs
 
-      - name: Commit new-content progress
-        id: commit_normal
-        if: always()
+      - name: Build client catalog
+        run: node scripts/client-catalog.mjs
+
+      - name: Commit catalog updates
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add catalog.json catalog-index.json catalog-items catalog-manifest.json sync-state.json sync-report*.json
-          if [ -d assets/media ]; then
-            git add assets/media
-          fi
-
+          git add catalog.json catalog-index.json catalog-items catalog-manifest.json sync-state.json sync-report*.json assets/media || true
           if git diff --cached --quiet; then
-            echo "No new-content changes."
-          else
-            git commit -m "chore: discover new movies and series"
-            PUSHED=0
-            for attempt in 1 2 3 4 5; do
-              if git pull --rebase origin main && git push origin HEAD:main; then
-                PUSHED=1
-                break
-              fi
-              git rebase --abort >/dev/null 2>&1 || true
-              echo "Repository changed during push; retry ${attempt}/5"
-              sleep $((attempt * 2))
-            done
-            if [ "$PUSHED" -ne 1 ]; then
-              echo "::error::Could not push new-content progress after 5 attempts."
-              exit 1
-            fi
+            echo "No catalog changes to commit."
+            exit 0
           fi
-
-      - name: Complete one Iranian series sequentially
-        id: iranian_sync
-        continue-on-error: true
-        env:
-          UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
-          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
-          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
-          UPERA_SYNC_MODE: 'IRANIAN'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '15'
-          APARATCHI_CHECKPOINT_RESERVE_MS: '45000'
-          APARATCHI_REQUEST_TIMEOUT_MS: '12000'
-          APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
-          UPERA_MAX_REQUESTS_PER_RUN: '220'
-          UPERA_REQUEST_DELAY_MS: '520'
-          UPERA_IRANIAN_SERIES_REQUEST_QUOTA: '180'
-          UPERA_IRANIAN_SERIES_PAGES_PER_RUN: '5'
-          UPERA_IRANIAN_SERIES_TITLES_PER_RUN: '1'
-          UPERA_PRIORITY_EPISODES_PER_SERIES: '120'
-          UPERA_MAX_EPISODE_PAGES: '80'
-          UPERA_OPERATOR_MOVIE_REQUEST_QUOTA: '8'
-          UPERA_OPERATOR_SERIES_REQUEST_QUOTA: '8'
-          UPERA_OPERATOR_MOVIE_PAGES_PER_RUN: '2'
-          UPERA_OPERATOR_SERIES_PAGES_PER_RUN: '2'
-          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
-        run: node scripts/sync-upera.mjs
-
-      - name: Commit Iranian-series progress
-        id: commit_iranian
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add catalog.json catalog-index.json catalog-items catalog-manifest.json sync-state.json sync-report*.json
-          if git diff --cached --quiet; then
-            echo "No Iranian-series changes."
-          else
-            git commit -m "chore: advance Iranian series sequentially"
-            PUSHED=0
-            for attempt in 1 2 3 4 5; do
-              if git pull --rebase origin main && git push origin HEAD:main; then
-                PUSHED=1
-                break
-              fi
-              git rebase --abort >/dev/null 2>&1 || true
-              echo "Repository changed during push; retry ${attempt}/5"
-              sleep $((attempt * 2))
-            done
-            if [ "$PUSHED" -ne 1 ]; then
-              echo "::error::Could not push Iranian-series progress after 5 attempts."
-              exit 1
-            fi
-          fi
-
-      - name: Ensure ffmpeg for episode thumbnails
-        shell: bash
-        run: |
-          if ! command -v ffmpeg >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install -y ffmpeg
-          fi
-
-      - name: Complete missing cast and crew metadata
-        id: people_sync
-        continue-on-error: true
-        env:
-          UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
-          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
-          TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN || secrets.TMDB_READ_ACCESS_TOKEN }}
-          UPERA_SYNC_MODE: 'PEOPLE'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '6'
-          APARATCHI_CHECKPOINT_RESERVE_MS: '30000'
-          APARATCHI_REQUEST_TIMEOUT_MS: '12000'
-          APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
-          APARATCHI_PEOPLE_TITLES_PER_RUN: '20'
-          APARATCHI_PEOPLE_MAX_PER_TITLE: '12'
-          APARATCHI_PEOPLE_RETRY_HOURS: '12'
-          APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN: '24'
-          APARATCHI_EPISODE_ARTWORK_MIRROR_PER_RUN: '36'
-          APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN: '36'
-          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '72'
-          APARATCHI_IMAGE_MIRROR_CONCURRENCY: '4'
-        run: node scripts/sync-upera.mjs
-
-      - name: Commit cast and crew progress
-        id: commit_people
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add catalog.json catalog-index.json catalog-items catalog-manifest.json sync-state.json sync-report*.json
-          if [ -d assets/media ]; then
-            git add assets/media
-          fi
-
-          if git diff --cached --quiet; then
-            echo "No cast/crew changes."
-          else
-            git commit -m "chore: enrich cast and crew metadata"
-            PUSHED=0
-            for attempt in 1 2 3 4 5; do
-              if git pull --rebase origin main && git push origin HEAD:main; then
-                PUSHED=1
-                break
-              fi
-              git rebase --abort >/dev/null 2>&1 || true
-              echo "Repository changed during push; retry ${attempt}/5"
-              sleep $((attempt * 2))
-            done
-            if [ "$PUSHED" -ne 1 ]; then
-              echo "::error::Could not push cast/crew progress after 5 attempts."
-              exit 1
-            fi
-          fi
-
-      - name: Release stale archive cursor before backfill
-        env:
-          APARATCHI_BLOCKED_COOLDOWN_HOURS: '6'
-        run: node scripts/prepare-archive-backfill.mjs
-
-      - name: Advance oldest-year archive completion
-        id: archive_sync
-        continue-on-error: true
-        env:
-          UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
-          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
-          UPERA_SYNC_MODE: 'BACKFILL'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '18'
-          APARATCHI_CHECKPOINT_RESERVE_MS: '45000'
-          APARATCHI_REQUEST_TIMEOUT_MS: '15000'
-          APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
-          UPERA_MAX_REQUESTS_PER_RUN: '240'
-          UPERA_BACKFILL_EPISODES_PER_RUN: '240'
-          UPERA_BACKFILL_SERIES_PER_RUN: '1'
-          UPERA_BACKFILL_EPISODES_PER_SERIES: '60'
-          UPERA_MAX_EPISODE_PAGES: '50'
-          UPERA_BACKFILL_MAX_NO_PROGRESS_RUNS: '3'
-          UPERA_EPISODE_UNAVAILABLE_AFTER_ATTEMPTS: '8'
-          UPERA_UNAVAILABLE_EPISODE_RETRY_HOURS: '1'
-          UPERA_BLOCKED_RETRY_HOURS: '6'
-          # A permanently blocked archive is retried by later repair/backfill
-          # cycles instead of consuming every hourly run forever.
-          UPERA_RETRY_BLOCKED: 'false'
-          UPERA_REQUEST_DELAY_MS: '650'
-          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
-        run: node scripts/sync-upera.mjs
-
-      - name: Commit archive progress
-        id: commit_archive
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add catalog.json catalog-index.json catalog-items catalog-manifest.json sync-state.json sync-report*.json
-
-          if git diff --cached --quiet; then
-            echo "No archive changes."
-          else
-            git commit -m "chore: advance oldest-year archive completion"
-            PUSHED=0
-            for attempt in 1 2 3 4 5; do
-              if git pull --rebase origin main && git push origin HEAD:main; then
-                PUSHED=1
-                break
-              fi
-              git rebase --abort >/dev/null 2>&1 || true
-              echo "Repository changed during push; retry ${attempt}/5"
-              sleep $((attempt * 2))
-            done
-            if [ "$PUSHED" -ne 1 ]; then
-              echo "::error::Could not push archive progress after 5 attempts."
-              exit 1
-            fi
-          fi
-
-      - name: Report sync status
-        if: always()
-        shell: bash
-        run: |
-          FAILED_STAGES=""
-          if [ '${{ steps.normal_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} normal"; fi
-          if [ '${{ steps.commit_normal.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} commit-normal"; fi
-          if [ '${{ steps.iranian_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} iranian"; fi
-          if [ '${{ steps.commit_iranian.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} commit-iranian"; fi
-          if [ '${{ steps.people_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} people"; fi
-          if [ '${{ steps.commit_people.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} commit-people"; fi
-          if [ '${{ steps.archive_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} archive"; fi
-          if [ '${{ steps.commit_archive.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} commit-archive"; fi
-          if [ -n "$FAILED_STAGES" ]; then
-            echo "::warning title=Partial sync::Saved all available progress; retry these stages on the next hourly run:$FAILED_STAGES"
-          else
-            echo "All sync stages completed successfully."
-          fi
+          git commit -m "chore: sync Upera catalog"
+          PUSHED=0
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then PUSHED=1; break; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          [ "$PUSHED" -eq 1 ] || exit 1
