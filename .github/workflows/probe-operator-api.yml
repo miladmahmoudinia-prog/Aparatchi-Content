@@ -1,0 +1,84 @@
+name: Probe Upera operator API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/probe-operator-api.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe sanitized operator API shape
+        env:
+          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
+        shell: bash
+        run: |
+          node <<'NODE'
+          const base = 'https://panel-api.upera.tv/api/v1';
+          const token = String(process.env.UPERA_PANEL_TOKEN || '').trim();
+          if (!token) throw new Error('UPERA_PANEL_TOKEN missing');
+          const headers = {
+            authorization: /^Bearer\s+/i.test(token) ? token : `Bearer ${token}`,
+            'content-type': 'application/json',
+            accept: 'application/json',
+          };
+          const safeText = (v) => String(v ?? '').replace(/[\r\n]+/g, ' ').slice(0, 100);
+          const recordsFrom = (payload, key) => {
+            const root = payload?.data ?? payload ?? {};
+            const candidates = [root?.[key], root?.items, root?.data, root?.rows, root?.results, payload?.[key]];
+            for (const value of candidates) if (Array.isArray(value)) return value;
+            return [];
+          };
+          const summarize = (record) => {
+            if (!record || typeof record !== 'object') return {};
+            const out = {};
+            for (const key of ['id','t_id','movie_id','series_id','episode_id','specific_id','uuid','slug','name','title','name_fa','title_fa','traffic','traffic_oo','trafficOo','amount','sale_method','payment_method','type']) {
+              if (record[key] !== undefined && record[key] !== null && record[key] !== '') out[key] = typeof record[key] === 'string' ? safeText(record[key]) : record[key];
+            }
+            for (const key of ['link','url','player','player_url','stream','stream_url']) {
+              const value = safeText(record[key]);
+              if (value) {
+                try { const u = new URL(value); out[key] = `${u.origin}${u.pathname}`; }
+                catch { out[key] = value.slice(0, 80); }
+              }
+            }
+            out._keys = Object.keys(record).sort().slice(0, 60);
+            return out;
+          };
+          async function request(path, options = {}) {
+            const response = await fetch(`${base}${path}`, {headers, ...options});
+            let payload = null;
+            const text = await response.text();
+            try { payload = JSON.parse(text); } catch {}
+            console.log(`PROBE ${options.method || 'GET'} ${path} -> ${response.status}`);
+            return {response, payload, text};
+          }
+          for (const kind of ['movies','series']) {
+            const body = JSON.stringify({
+              query: '', ir: -1, sale_method: 3, payment_method: 0,
+              specific_id: null, nodata: 1, owner: 9194919, page: 1,
+            });
+            const {payload} = await request(`/owner/get/${kind}`, {method:'POST', body});
+            const records = recordsFrom(payload, kind);
+            console.log(`LIST ${kind}: count=${records.length}`);
+            records.slice(0,3).forEach((row, i) => console.log(`ROW ${kind} ${i}:`, JSON.stringify(summarize(row))));
+            if (kind === 'movies' && records[0]) {
+              const row = records[0];
+              const ids = [...new Set([row.id,row.t_id,row.movie_id,row.specific_id,row.uuid].filter(Boolean).map(String))].slice(0,4);
+              for (const id of ids) {
+                for (const method of ['GET','POST']) {
+                  const opts = method === 'POST' ? {method, body:'{}'} : {method};
+                  const probe = await request(`/owner/show_links/movie/${encodeURIComponent(id)}`, opts);
+                  if (probe.payload) console.log(`SHOW movie id=${id} ${method}:`, JSON.stringify(summarize(probe.payload?.data ?? probe.payload)));
+                }
+              }
+            }
+          }
+          NODE
