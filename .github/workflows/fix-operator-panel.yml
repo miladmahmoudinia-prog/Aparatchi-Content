@@ -1,0 +1,131 @@
+name: Apply operator panel sync fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-operator-panel.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 5
+
+      - name: Patch operator panel handling
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const file = 'scripts/sync-upera.mjs';
+          let src = fs.readFileSync(file, 'utf8');
+          const replaceOnce = (oldText, newText, label) => {
+            const count = src.split(oldText).length - 1;
+            if (count !== 1) throw new Error(`${label}: expected exactly 1 match, found ${count}`);
+            src = src.replace(oldText, newText);
+          };
+
+          replaceOnce(
+`  if (!hasBasicMetadata(movie) || options.panelCandidate === true) {
+    const detail = await fetchMovieDetail(id);
+    movie = detail ? { ...candidate, ...detail, id } : movie;
+  }`,
+`  // Panel rows use their own Upera IDs. Calling the public Seeko detail API
+  // with those IDs returns 404 even though the title is valid in the owner
+  // panel. The panel row already carries the metadata needed for a catalog
+  // shell, so only ordinary Seeko candidates should fetch a public detail.
+  if (!hasBasicMetadata(movie) && options.panelCandidate !== true) {
+    const detail = await fetchMovieDetail(id);
+    movie = detail ? { ...candidate, ...detail, id } : movie;
+  }`,
+            'panel movie detail guard',
+          );
+
+          replaceOnce(
+`  const detail = await fetchSeriesDetail(id);
+  if (options.panelCandidate === true) {
+    try {
+      const panelEpisodes = await fetchPanelSeriesEpisodes(id);
+      if (panelEpisodes.length) detail.episodes = panelEpisodes;
+    } catch (error) {
+      rememberError(\`panel-series-episodes-\${id}\`, error);
+    }
+  }
+  const series = detail.series;`,
+`  let detail;
+  if (options.panelCandidate === true) {
+    // Owner-panel series IDs are not Seeko public-series IDs. Build the detail
+    // from the authenticated panel row and fetch its panel episode list using
+    // that same exact ID; each episode is then resolved through show_links.
+    let panelEpisodes = [];
+    let episodeDiscoveryComplete = true;
+    try {
+      panelEpisodes = await fetchPanelSeriesEpisodes(id);
+    } catch (error) {
+      episodeDiscoveryComplete = false;
+      rememberError(\`panel-series-episodes-\${id}\`, error);
+    }
+    detail = {
+      series: { ...candidate, id, type: 'series' },
+      episodes: panelEpisodes,
+      episodeDiscoveryComplete,
+      episodePaginationPagesFetched: 0,
+      episodePaginationErrors: episodeDiscoveryComplete ? 0 : 1,
+    };
+  } else {
+    detail = await fetchSeriesDetail(id);
+  }
+  const series = detail.series;`,
+            'panel series detail source',
+          );
+
+          replaceOnce(
+`      links: uniqueByUrl([
+        ...publicLinks.filter((link) => !operatorPortalDetails(link?.link)),
+        ...panelLinks,
+        ...(!panelLinks.length
+          ? publicLinks.filter((link) => operatorPortalDetails(link?.link))
+          : []),
+      ]),`,
+`      links: uniqueByUrl([
+        ...publicLinks.filter((link) => !operatorPortalDetails(link?.link)),
+        ...panelLinks,
+        // Keep verified portal/operator rows returned by the public affiliate
+        // endpoint too. A non-empty panel response must not suppress a second
+        // valid operator variant; uniqueByUrl removes true duplicates safely.
+        ...publicLinks.filter((link) => operatorPortalDetails(link?.link)),
+      ]),`,
+            'affiliate portal merge',
+          );
+
+          fs.writeFileSync(file, src);
+          NODE
+
+      - name: Run regression tests
+        run: node --test scripts/tests/*.test.mjs
+
+      - name: Commit patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/sync-upera.mjs
+          if git diff --cached --quiet; then
+            echo "No patch changes."
+            exit 0
+          fi
+          git commit -m "fix: use Upera panel IDs for operator catalog"
+          git pull --rebase origin main
+          git push origin HEAD:main
