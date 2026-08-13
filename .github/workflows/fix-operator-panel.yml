@@ -33,11 +33,28 @@ jobs:
           path = Path('scripts/sync-upera.mjs')
           src = path.read_text()
 
-          old_movie = "if (!hasBasicMetadata(movie) || options.panelCandidate === true) {"
-          new_movie = "if (!hasBasicMetadata(movie) && options.panelCandidate !== true) {"
-          if src.count(old_movie) != 1:
-              raise SystemExit(f'panel movie detail guard: expected 1 match, got {src.count(old_movie)}')
-          src = src.replace(old_movie, new_movie)
+          movie_pattern = re.compile(
+              r"  if \(!hasBasicMetadata\(movie\) \|\| options\.panelCandidate === true\) \{\n"
+              r"    const detail = await fetchMovieDetail\(id\);\n"
+              r"    movie = detail \? \{ \.\.\.candidate, \.\.\.detail, id \} : movie;\n"
+              r"  \}"
+          )
+          movie_lines = [
+              "  if (!hasBasicMetadata(movie) || options.panelCandidate === true) {",
+              "    try {",
+              "      const detail = await fetchMovieDetail(id);",
+              "      movie = detail ? { ...candidate, ...detail, id } : movie;",
+              "    } catch (error) {",
+              "      // Upera owner-panel IDs are not always valid Seeko public IDs.",
+              "      // Keep the authenticated panel metadata and continue to show_links.",
+              "      if (options.panelCandidate !== true) throw error;",
+              "      rememberError(`panel-movie-detail-${id}`, error);",
+              "    }",
+              "  }",
+          ]
+          src, count = movie_pattern.subn('\n'.join(movie_lines), src, count=1)
+          if count != 1:
+              raise SystemExit(f'panel movie detail fallback: expected 1 match, got {count}')
 
           series_pattern = re.compile(
               r"  const detail = await fetchSeriesDetail\(id\);\n"
@@ -53,32 +70,39 @@ jobs:
           )
           series_lines = [
               "  let detail;",
-              "  if (options.panelCandidate === true) {",
-              "    // Panel series IDs belong to Upera's owner API, not Seeko's public API.",
-              "    // Use the authenticated panel row as metadata and resolve episodes with the same ID.",
-              "    let panelEpisodes = [];",
-              "    let episodeDiscoveryComplete = true;",
-              "    try {",
-              "      panelEpisodes = await fetchPanelSeriesEpisodes(id);",
-              "    } catch (error) {",
-              "      episodeDiscoveryComplete = false;",
-              "      rememberError(`panel-series-episodes-${id}`, error);",
-              "    }",
+              "  try {",
+              "    detail = await fetchSeriesDetail(id);",
+              "  } catch (error) {",
+              "    if (options.panelCandidate !== true) throw error;",
+              "    // Owner-panel series IDs can be absent from Seeko. Fall back to the",
+              "    // authenticated panel row instead of rejecting a valid operator title.",
+              "    rememberError(`panel-series-detail-${id}`, error);",
               "    detail = {",
               "      series: { ...candidate, id, type: 'series' },",
-              "      episodes: panelEpisodes,",
-              "      episodeDiscoveryComplete,",
+              "      episodes: [],",
+              "      episodeDiscoveryComplete: true,",
               "      episodePaginationPagesFetched: 0,",
-              "      episodePaginationErrors: episodeDiscoveryComplete ? 0 : 1,",
+              "      episodePaginationErrors: 0,",
               "    };",
-              "  } else {",
-              "    detail = await fetchSeriesDetail(id);",
+              "  }",
+              "  if (options.panelCandidate === true) {",
+              "    try {",
+              "      const panelEpisodes = await fetchPanelSeriesEpisodes(id);",
+              "      // The owner panel is the authoritative episode list for panel IDs.",
+              "      detail.episodes = panelEpisodes;",
+              "      detail.episodeDiscoveryComplete = true;",
+              "      detail.episodePaginationErrors = 0;",
+              "    } catch (error) {",
+              "      detail.episodeDiscoveryComplete = false;",
+              "      detail.episodePaginationErrors = Math.max(1, Number(detail.episodePaginationErrors || 0));",
+              "      rememberError(`panel-series-episodes-${id}`, error);",
+              "    }",
               "  }",
               "  const series = detail.series;",
           ]
           src, count = series_pattern.subn('\n'.join(series_lines), src, count=1)
           if count != 1:
-              raise SystemExit(f'panel series detail source: expected 1 match, got {count}')
+              raise SystemExit(f'panel series detail fallback: expected 1 match, got {count}')
 
           portal_pattern = re.compile(
               r"\.\.\.\(!panelLinks\.length\n"
