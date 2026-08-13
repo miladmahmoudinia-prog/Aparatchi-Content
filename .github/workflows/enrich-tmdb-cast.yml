@@ -52,11 +52,12 @@ jobs:
           TMDB_REFRESH_DAYS: '30'
         run: node scripts/enrich-tmdb.mjs
 
-      - name: Repair missing Persian titles and posters
+      - name: Repair missing Persian titles, collection names and posters
         env:
           TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
-          PERSIAN_TITLE_MAX_TITLES_PER_RUN: '1200'
+          PERSIAN_TITLE_MAX_TITLES_PER_RUN: '3000'
           PERSIAN_TITLE_REQUEST_DELAY_MS: '90'
+          PERSIAN_TITLE_NEGATIVE_CACHE_HOURS: '1'
         run: node scripts/enrich-persian-titles.mjs
 
       - name: Refresh IMDb Top 100 rankings
@@ -77,6 +78,14 @@ jobs:
             echo "No TMDB enrichment changes to commit."
             exit 0
           fi
-          git commit -m "Enrich cast, countries and anime classification from TMDB"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          git commit -m "Enrich cast, countries and Persian metadata from TMDB"
+          PUSHED=0
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              PUSHED=1
+              break
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          [ "$PUSHED" -eq 1 ] || exit 1
