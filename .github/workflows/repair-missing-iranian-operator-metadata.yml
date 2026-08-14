@@ -1,0 +1,103 @@
+name: Repair missing Iranian and operator metadata
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/apply-metadata-retry-root-fix.mjs
+      - .github/workflows/repair-missing-iranian-operator-metadata.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout latest content
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Apply active TMDB retry repair
+        run: node scripts/apply-metadata-retry-root-fix.mjs
+
+      - name: Verify enrichment syntax and root guards
+        run: |
+          node --check scripts/enrich-tmdb.mjs
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const source = fs.readFileSync('scripts/enrich-tmdb.mjs', 'utf8');
+          const checks = [
+            'const METADATA_RETRY_VERSION = 1;',
+            'cached.tmdb === null && !needsPriorityMetadataRepair(item, cached)',
+            'metadataRetryVersion: needsPriorityMetadataRepair(item, cached)',
+            'hasCompleteTmdbMetadata(item) && hasCompleteTmdbPeople(item.people)',
+            'strongIranianIdentity',
+          ];
+          for (const check of checks) {
+            if (!source.includes(check)) throw new Error(`Missing regression guard: ${check}`);
+          }
+          console.log('TMDB retry regression guards passed.');
+          NODE
+
+      - name: Commit verified enrichment logic
+        run: |
+          git config user.name "aparatchi-content-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add scripts/enrich-tmdb.mjs
+          if ! git diff --cached --quiet; then
+            git commit -m "fix: retry incomplete Iranian and operator TMDB metadata"
+            git push origin HEAD:main
+          fi
+
+      - name: Retry incomplete TMDB metadata
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          TMDB_MAX_TITLES_PER_RUN: '2500'
+          TMDB_REQUEST_DELAY_MS: '120'
+          TMDB_REFRESH_DAYS: '30'
+        run: node scripts/enrich-tmdb.mjs
+
+      - name: Repair Persian titles after fresh matches
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          PERSIAN_TITLE_MAX_TITLES_PER_RUN: '3000'
+          PERSIAN_TITLE_REQUEST_DELAY_MS: '70'
+          PERSIAN_TITLE_NEGATIVE_CACHE_HOURS: '1'
+        run: node scripts/enrich-persian-titles.mjs
+
+      - name: Commit repaired catalog
+        run: |
+          git add catalog.json catalog-index.json catalog-items catalog-manifest.json tmdb-cache.json tmdb-enrichment-report.json persian-title-cache.json
+          if [ -d assets/media ]; then git add assets/media; fi
+          if ! git diff --cached --quiet; then
+            git commit -m "fix: fill recoverable Iranian and operator metadata"
+            PUSHED=0
+            for attempt in 1 2 3 4 5; do
+              if git pull --rebase origin main && git push origin HEAD:main; then
+                PUSHED=1
+                break
+              fi
+              git rebase --abort >/dev/null 2>&1 || true
+              sleep $((attempt * 2))
+            done
+            [ "$PUSHED" -eq 1 ] || exit 1
+          fi
+
+      - name: Audit remaining missing metadata
+        run: node scripts/audit-missing-iranian-operator-metadata.mjs
