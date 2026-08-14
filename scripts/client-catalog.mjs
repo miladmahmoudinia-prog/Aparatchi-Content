@@ -94,6 +94,43 @@ const verifiedOperatorOnlyFile = (file) => Boolean(
   Number(file?.trafficOo) === 1 && String(file?.url || '').trim().toLowerCase().startsWith('https://')
 );
 
+const clientSeriesFileIsUsable = (file) => {
+  const url = typeof file?.url === 'string' ? file.url.trim() : '';
+  if (!/^https?:\/\//i.test(url)) return false;
+  const mode = String(file?.mode || 'download');
+  if (mode === 'operator-download' || mode === 'operator-play') return true;
+  if (mode === 'play') return /\.(?:m3u8|mp4)(?:$|[?#])/i.test(url);
+  return /\.(?:mp4|m4v|mov|webm|mkv)(?:$|[?#])/i.test(url);
+};
+
+const deriveClientSeriesMediaTruth = (downloads) => {
+  const episodes = new Map();
+  for (const section of Array.isArray(downloads) ? downloads : []) {
+    const seasonNumber = Math.max(1, Number(section?.seasonNumber || 1));
+    const episodeNumber = Number(section?.episodeNumber || 0);
+    if (!(episodeNumber > 0)) continue;
+    if (!(Array.isArray(section?.files) && section.files.some(clientSeriesFileIsUsable))) continue;
+    const key = `${seasonNumber}:${episodeNumber}`;
+    const current = episodes.get(key);
+    if (!current || (section.files || []).length > (current.files || []).length) episodes.set(key, section);
+  }
+  const ordered = [...episodes.values()].sort((a, b) =>
+    Number(a.seasonNumber || 1) - Number(b.seasonNumber || 1) ||
+    Number(a.episodeNumber || 0) - Number(b.episodeNumber || 0)
+  );
+  const latest = ordered.at(-1);
+  return {
+    episodeCount: ordered.length,
+    seasonCount: new Set(ordered.map((section) => Number(section.seasonNumber || 1))).size,
+    latestEpisode: latest ? {
+      id: String(latest.sourceEpisodeId || latest.id || `s${latest.seasonNumber || 1}e${latest.episodeNumber || 0}`),
+      seasonNumber: Math.max(1, Number(latest.seasonNumber || 1)),
+      episodeNumber: Number(latest.episodeNumber || 0),
+      ...(latest.title ? { title: latest.title } : {}),
+    } : null,
+  };
+};
+
 const sanitizeClientMediaItem = (item) => {
   if (!item || !['movie', 'series'].includes(item.type)) return item;
   const iranian = item.ir === true || (Array.isArray(item.countryCodes) && item.countryCodes.includes('IR'));
@@ -166,6 +203,8 @@ const sanitizeClientMediaItem = (item) => {
     return [{ ...section, files }];
   });
 
+  const seriesMediaTruth = item.type === 'series' ? deriveClientSeriesMediaTruth(downloads) : null;
+
   const availableLanguages = [...new Set(downloads.flatMap((section) =>
     (section.files || []).map((file) => file.language)
       .filter((value) => value === 'dubbed' || value === 'subtitled')
@@ -177,6 +216,11 @@ const sanitizeClientMediaItem = (item) => {
     ...item,
     downloads,
     availableLanguages,
+    ...(seriesMediaTruth ? {
+      episodeCount: seriesMediaTruth.episodeCount,
+      seasonCount: seriesMediaTruth.seasonCount,
+      latestEpisode: seriesMediaTruth.latestEpisode,
+    } : {}),
     ...(operatorVariant ? {
       access: 'operator',
       operatorOnly: true,
@@ -259,6 +303,13 @@ const isClientVisibleItem = (item) => {
     return movieHasUsableClientMedia(item);
   }
   if (item.type !== 'series') return true;
+  const actualEpisodeCount = Number(item.episodeCount || 0);
+  if (!(actualEpisodeCount > 0) || !item.latestEpisode || !(Number(item.latestEpisode.episodeNumber || 0) > 0)) return false;
+  const expectedEpisodeCount = Number(item.sourceEpisodeCount || 0);
+  // Old/completed archives must not be published partially. Ongoing series may
+  // expose the currently available episodes, but their badge still comes from
+  // the actual sanitized episode list above.
+  if (item.isAiring !== true && expectedEpisodeCount > actualEpisodeCount) return false;
   // Iranian narrative archives are intentionally hidden while their clean
   // sequential rebuild is incomplete. Keep the legacy visibility lock only for
   // other series so a foreign title does not disappear during a background audit.
