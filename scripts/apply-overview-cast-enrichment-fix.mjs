@@ -11,6 +11,15 @@ function replaceOnce(before, after, label) {
 }
 
 replaceOnce(
+`  const cachedMetadataCurrent = cached?.tmdb === null || Number(cached?.metadata?.validationVersion || 0) >= 7;`,
+`  const cachedMetadataCurrent = cached?.tmdb === null || Boolean(
+    Number(cached?.metadata?.validationVersion || 0) >= 7 &&
+    Number(cached?.metadata?.overviewAuditVersion || 0) >= 1
+  );`,
+  'overview audit cache gate',
+);
+
+replaceOnce(
 `      append_to_response: 'aggregate_credits,keywords,images',`,
 `      append_to_response: 'aggregate_credits,keywords,images,translations',`,
   'TV translations response',
@@ -36,6 +45,15 @@ replaceOnce(
   const overview = translatedOverview || cleanText(details?.overview);
   const posterPath = cleanText(details?.poster_path) || bestTmdbImagePath(details?.images?.posters, 'poster');`,
   'derive translated overview',
+);
+
+replaceOnce(
+`    isDocumentary,
+    validationVersion: 7,`,
+`    isDocumentary,
+    validationVersion: 7,
+    overviewAuditVersion: 1,`,
+  'overview audit version',
 );
 
 replaceOnce(
@@ -99,9 +117,10 @@ test('missing overview prefers Persian TMDB translation and falls back to TMDB o
   assert.ok(source.includes('...(overview ? { overview } : {})'));
 });
 
-test('enrichment never overwrites an existing catalog overview', () => {
+test('overview audit invalidates old TMDB cache once without overwriting existing descriptions', () => {
+  assert.ok(source.includes('Number(cached?.metadata?.overviewAuditVersion || 0) >= 1'));
+  assert.ok(source.includes('overviewAuditVersion: 1'));
   assert.ok(source.includes('if (!cleanText(item.overview) && metadataOverview) item.overview = metadataOverview;'));
-  assert.ok(!source.includes('item.overview = metadataOverview;\n  if (metadataOverview)'));
 });
 `;
 await fs.writeFile(regressionPath, regression, 'utf8');
