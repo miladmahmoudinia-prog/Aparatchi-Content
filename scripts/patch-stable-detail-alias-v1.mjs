@@ -7,6 +7,12 @@ const replaceOnce = (source, from, to, label) => {
   return source.slice(0, index) + to + source.slice(index + from.length);
 };
 
+const replaceFirst = (source, from, to, label) => {
+  const index = source.indexOf(from);
+  if (index < 0) throw new Error(`Missing patch marker: ${label}`);
+  return source.slice(0, index) + to + source.slice(index + from.length);
+};
+
 let client = await fs.readFile('scripts/client-catalog.mjs', 'utf8');
 
 client = replaceOnce(
@@ -68,11 +74,11 @@ client = replaceOnce(
 await fs.writeFile('scripts/client-catalog.mjs', client);
 
 let test = await fs.readFile('scripts/tests/client-catalog.test.mjs', 'utf8');
-test = replaceOnce(
+test = replaceFirst(
   test,
   "  const { summary } = clientSummaryForItem(item);",
   "  const { summary, stableDetailPath } = clientSummaryForItem(item);",
-  'test stable path destructure',
+  'first test stable path destructure',
 );
 test = replaceOnce(
   test,
