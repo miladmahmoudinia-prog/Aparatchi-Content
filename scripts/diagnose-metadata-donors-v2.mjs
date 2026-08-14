@@ -17,8 +17,7 @@ const people = (item) => (item?.people || []).filter((p) =>
   p && ['actor','director'].includes(String(p.role || '')) && (clean(p.name) || clean(p.nameFa))
 );
 const operator = (item) => Boolean(
-  item?.operatorOnly || item?.operatorAccess || (item?.supportedOperators || []).length ||
-  (item?.downloads || []).some((g) => (g?.files || []).some((f) => /^operator-(?:play|download)$/.test(String(f?.mode || ''))))
+  item?.operatorOnly || item?.operatorAccess || (item?.supportedOperators || []).length
 );
 const iranian = (item) => Boolean(
   item?.ir === true || item?.isIranian === true ||
@@ -29,40 +28,6 @@ const target = (item) => (iranian(item) || operator(item)) && (placeholderOvervi
 const donorQuality = (item) => Number(!placeholderOverview(item?.overview)) + Number(people(item).length > 0) * 2;
 const imdbId = (v) => clean(v).match(/tt\d{6,12}/i)?.[0]?.toLowerCase() || '';
 const tmdbId = (item) => Number(item?.tmdb?.id || item?.tmdbId || 0) || 0;
-
-function compactMediaUrls(item) {
-  const urls = [];
-  for (const value of [item?.streamUrl, item?.operatorUrl, item?.sourceUrl, item?.url]) {
-    if (typeof value === 'string' && value) urls.push(value);
-  }
-  let seen = 0;
-  for (const section of Array.isArray(item?.downloads) ? item.downloads : []) {
-    for (const file of Array.isArray(section?.files) ? section.files : []) {
-      if (typeof file?.url === 'string' && file.url) urls.push(file.url);
-      seen += 1;
-      if (seen >= 120) return urls;
-    }
-  }
-  return urls;
-}
-
-function uperaKeys(item) {
-  const keys = new Set();
-  for (const value of compactMediaUrls(item)) {
-    let match;
-    const portal = /https?:\/\/[^/]*upera\.tv\/stream\/(movie|episode)\/([^/?#]+)/ig;
-    while ((match = portal.exec(value))) keys.add(`portal:${match[1].toLowerCase()}:${decodeURIComponent(match[2]).toLowerCase()}`);
-    const numeric = /(?:^|[^0-9])(\d{5,10})(?:[^0-9]|$)/g;
-    if (/upera\.tv/i.test(value)) {
-      while ((match = numeric.exec(value))) {
-        keys.add(`upera-num:${match[1]}`);
-        if (keys.size >= 30) break;
-      }
-    }
-    if (keys.size >= 30) break;
-  }
-  return [...keys];
-}
 
 const keyIndex = new Map();
 function addKey(key, item) {
@@ -81,13 +46,12 @@ for (const item of items) {
     addKey(`${type}:title:${year}:${title}`, item);
     addKey(`${type}:title-any:${title}`, item);
   }
-  for (const key of uperaKeys(item)) addKey(`${type}:${key}`, item);
 }
 
 const targets = items.filter(target);
 const recoverable = [];
 const noDonor = [];
-const byReason = { tmdb:0, imdb:0, titleYear:0, titleAny:0, upera:0 };
+const byReason = { tmdb:0, imdb:0, titleYear:0, titleAny:0 };
 let overviewRecoverable = 0;
 let peopleRecoverable = 0;
 let bothRecoverable = 0;
@@ -104,7 +68,6 @@ for (const item of targets) {
     keys.push(['titleYear', `${type}:title:${year}:${title}`]);
     keys.push(['titleAny', `${type}:title-any:${title}`]);
   }
-  for (const key of uperaKeys(item)) keys.push(['upera', `${type}:${key}`]);
 
   let donor = null;
   let reason = '';
@@ -116,11 +79,11 @@ for (const item of targets) {
   }
 
   if (!donor) {
-    if (noDonor.length < 80) noDonor.push({
+    if (noDonor.length < 100) noDonor.push({
       id:item.id,type:item.type,year:item.year,name:item.name,nameFa:item.nameFa,
       iranian:iranian(item),operator:operator(item),tmdb:tmdb||null,imdb:imdb||null,
       missingOverview:placeholderOverview(item.overview),missingPeople:!people(item).length,
-      uperaKeys:uperaKeys(item).slice(0,8),
+      contentKind:item.contentKind||null,categoryKeys:item.categoryKeys||[],
     });
     continue;
   }
@@ -146,6 +109,6 @@ console.log(JSON.stringify({
   overviewRecoverable,peopleRecoverable,bothRecoverable,byReason,
 }, null, 2));
 console.log('--- RECOVERABLE SAMPLES ---');
-console.log(JSON.stringify(recoverable.slice(0,100), null, 2));
+console.log(JSON.stringify(recoverable.slice(0,120), null, 2));
 console.log('--- NO DONOR SAMPLES ---');
 console.log(JSON.stringify(noDonor, null, 2));
