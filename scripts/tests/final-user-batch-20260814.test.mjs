@@ -25,12 +25,15 @@ test('one URL cannot create both dubbed and subtitled choices', () => {
   assert.equal(index.items.length, 0);
 });
 
-test('foreign unlabeled original media is never exported to the app', () => {
+test('foreign unlabeled original media stays visible without fake language labels', () => {
   const item = base({ downloads: [{ id: 's', files: [
     { id: 'f', mode: 'download', url: 'https://cdn.test/original.mp4' },
   ]}] });
-  const { index } = buildClientCatalogArtifacts({ items: [item] });
-  assert.equal(index.items.length, 0);
+  const { index, detailFiles } = buildClientCatalogArtifacts({ items: [item] });
+  assert.equal(index.items.length, 1);
+  assert.deepEqual(index.items[0].availableLanguages, []);
+  const detail = JSON.parse(detailFiles[0].serialized);
+  assert.equal(detail.downloads[0].files[0].language, undefined);
 });
 
 test('unverified operator-only records are hidden', () => {
