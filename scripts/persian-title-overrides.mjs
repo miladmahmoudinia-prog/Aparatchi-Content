@@ -68,6 +68,18 @@ export function persianCollectionBaseFromTitle(value) {
   return hasPersianScript(title) ? title : '';
 }
 
+function collectionNameLooksLikeInstallment(value, members) {
+  const current = cleanDisplayText(value);
+  if (!current || !hasPersianScript(current)) return false;
+  const normalizedCurrent = normalizePersianOverrideKey(current.replace(/^مجموعه\s+/u, ''));
+  const equalsMember = members.some((item) =>
+    normalizePersianOverrideKey(item?.nameFa) === normalizedCurrent
+  );
+  const numbered = /(?:^|\s)(?:قسمت|بخش|فصل)\s+(?:[۰-۹0-9]+|اول|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم|دهم)\s*$/u.test(current) ||
+    /\s[۰-۹0-9]+\s*$/u.test(current);
+  return equalsMember || numbered;
+}
+
 function deriveMissingPersianCollectionNames(items) {
   const groups = new Map();
   for (const item of items) {
@@ -79,8 +91,17 @@ function deriveMissingPersianCollectionNames(items) {
 
   let changes = 0;
   for (const members of groups.values()) {
-    if (members.some((item) => hasPersianScript(item?.collectionNameFa))) continue;
+    const hasVerifiedOverride = members.some((item) =>
+      VERIFIED_PERSIAN_COLLECTION_OVERRIDES.has(normalizePersianOverrideKey(item?.collectionName))
+    );
+    if (hasVerifiedOverride) continue;
+
     const ordered = [...members].sort(collectionMemberOrder);
+    const currentPersian = members
+      .map((item) => cleanDisplayText(item?.collectionNameFa))
+      .find(hasPersianScript) || '';
+    if (currentPersian && !collectionNameLooksLikeInstallment(currentPersian, members)) continue;
+
     const source = ordered.find((item) => hasPersianScript(item?.nameFa));
     if (!source) continue;
     const base = persianCollectionBaseFromTitle(source.nameFa);
