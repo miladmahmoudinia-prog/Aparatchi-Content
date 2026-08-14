@@ -165,7 +165,7 @@ for (const item of catalog.items) {
 
   const cachedMetadataCurrent = cached?.tmdb === null || Boolean(
     Number(cached?.metadata?.validationVersion || 0) >= 7 &&
-    Number(cached?.metadata?.overviewAuditVersion || 0) >= 1
+    Number(cached?.metadata?.overviewAuditVersion || 0) >= 2
   );
   if (cached && cached.signature === signature && cachedMetadataCurrent && !isCacheStale(cached.fetchedAt, refreshDays)) {
     report.cacheApplied += 1;
@@ -210,7 +210,8 @@ for (const item of catalog.items) {
   if (
     hasCompleteTmdbPeople(item.people) &&
     hasCompleteTmdbMetadata(item) &&
-    Number(item.tmdbValidationVersion || 0) >= 5
+    Number(item.tmdbValidationVersion || 0) >= 5 &&
+    (!isMissingOverview(item.overview) || Number(cached?.metadata?.overviewAuditVersion || 0) >= 2)
   ) {
     report.skippedAlreadyComplete += 1;
     continue;
@@ -534,7 +535,7 @@ function buildTmdbMetadata(details, mediaType, item) {
     isAnime,
     isDocumentary,
     validationVersion: 7,
-    overviewAuditVersion: 1,
+    overviewAuditVersion: 2,
     ...(collection?.id ? {
       collectionId: `tmdb:${collection.id}`,
       collectionName: cleanText(collection.name),
@@ -620,7 +621,7 @@ function applyTmdbMetadata(item, metadataValue) {
   );
   if (originalLanguage) item.originalLanguage = originalLanguage;
   const metadataOverview = cleanText(metadata.overview);
-  if (!cleanText(item.overview) && metadataOverview) item.overview = metadataOverview;
+  if (isMissingOverview(item.overview) && metadataOverview) item.overview = metadataOverview;
   if (metadata.collectionId) item.collectionId = cleanText(metadata.collectionId);
   if (metadata.collectionName) item.collectionName = cleanText(metadata.collectionName);
   if (metadata.collectionNameFa) item.collectionNameFa = cleanText(metadata.collectionNameFa);
@@ -1848,6 +1849,12 @@ function isHttpUrl(value) {
 
 function deepEqualPeople(a, b) {
   return JSON.stringify(Array.isArray(a) ? a : []) === JSON.stringify(Array.isArray(b) ? b : []);
+}
+
+function isMissingOverview(value) {
+  const text = cleanText(value);
+  if (!text) return true;
+  return /^(?:توضیحی\s+ثبت\s+نشده(?:\s+است)?[.!؟]?|بدون\s+توضیح[.!؟]?|خلاصه(?:\s+داستان)?\s+ثبت\s+نشده(?:\s+است)?[.!؟]?|no\s+(?:description|overview)(?:\s+(?:available|provided))?[.!?]?)$/i.test(text);
 }
 
 function cleanText(value) {

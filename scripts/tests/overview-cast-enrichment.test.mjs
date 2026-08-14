@@ -16,8 +16,16 @@ test('missing overview prefers Persian TMDB translation and falls back to TMDB o
   assert.ok(source.includes('...(overview ? { overview } : {})'));
 });
 
-test('overview audit invalidates old TMDB cache once without overwriting existing descriptions', () => {
-  assert.ok(source.includes('Number(cached?.metadata?.overviewAuditVersion || 0) >= 1'));
-  assert.ok(source.includes('overviewAuditVersion: 1'));
-  assert.ok(source.includes('if (!cleanText(item.overview) && metadataOverview) item.overview = metadataOverview;'));
+test('provider placeholder overview is treated as missing and gets a v2 audit', () => {
+  assert.ok(source.includes('function isMissingOverview(value)'));
+  assert.ok(source.includes('توضیحی\\s+ثبت\\s+نشده'));
+  assert.ok(source.includes('Number(cached?.metadata?.overviewAuditVersion || 0) >= 2'));
+  assert.ok(source.includes('overviewAuditVersion: 2'));
+  assert.ok(source.includes('if (isMissingOverview(item.overview) && metadataOverview) item.overview = metadataOverview;'));
+});
+
+test('a real existing overview is still never overwritten', () => {
+  const assignment = 'if (isMissingOverview(item.overview) && metadataOverview) item.overview = metadataOverview;';
+  assert.ok(source.includes(assignment));
+  assert.ok(!source.includes('if (metadataOverview) item.overview = metadataOverview;'));
 });
