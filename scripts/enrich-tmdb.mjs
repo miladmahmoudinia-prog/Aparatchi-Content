@@ -163,7 +163,10 @@ for (const item of catalog.items) {
   const cacheKey = String(item.id || item.slug || signature);
   const cached = cache.items[cacheKey];
 
-  const cachedMetadataCurrent = cached?.tmdb === null || Number(cached?.metadata?.validationVersion || 0) >= 7;
+  const cachedMetadataCurrent = cached?.tmdb === null || Boolean(
+    Number(cached?.metadata?.validationVersion || 0) >= 7 &&
+    Number(cached?.metadata?.overviewAuditVersion || 0) >= 1
+  );
   if (cached && cached.signature === signature && cachedMetadataCurrent && !isCacheStale(cached.fetchedAt, refreshDays)) {
     report.cacheApplied += 1;
 
@@ -413,13 +416,13 @@ async function fetchTitleDetails(mediaType, id) {
   if (mediaType === 'tv') {
     return tmdbGet(`/tv/${id}`, {
       language: 'en-US',
-      append_to_response: 'aggregate_credits,keywords,images',
+      append_to_response: 'aggregate_credits,keywords,images,translations',
       include_image_language: 'null,en,fa',
     });
   }
   return tmdbGet(`/movie/${id}`, {
     language: 'en-US',
-    append_to_response: 'credits,keywords,images',
+    append_to_response: 'credits,keywords,images,translations',
     include_image_language: 'null,en,fa',
   });
 }
@@ -446,6 +449,15 @@ function buildTmdbMetadata(details, mediaType, item) {
       .filter(([code]) => Boolean(code)),
   );
   const originalLanguage = cleanText(details?.original_language || item?.originalLanguage).toLowerCase();
+  const translations = Array.isArray(details?.translations?.translations)
+    ? details.translations.translations
+    : [];
+  const persianTranslation = translations.find((entry) =>
+    cleanText(entry?.iso_639_1).toLowerCase() === 'fa' ||
+    cleanText(entry?.iso_3166_1).toUpperCase() === 'IR'
+  );
+  const translatedOverview = cleanText(persianTranslation?.data?.overview);
+  const overview = translatedOverview || cleanText(details?.overview);
   const posterPath = cleanText(details?.poster_path) || bestTmdbImagePath(details?.images?.posters, 'poster');
   const backdropPath = cleanText(details?.backdrop_path) || bestTmdbImagePath(details?.images?.backdrops, 'backdrop');
   const posterFallback =
@@ -515,12 +527,14 @@ function buildTmdbMetadata(details, mediaType, item) {
     countryLabels: countryCodes.map((code) => COUNTRY_LABELS_FA[code] || namesByCode.get(code) || code),
     countryNames: countryCodes.map((code) => namesByCode.get(code) || COUNTRY_NAMES_EN[code] || code),
     originalLanguage,
+    ...(overview ? { overview } : {}),
     ...(posterFallback ? { posterFallback } : {}),
     ...(backdropFallback ? { backdropFallback } : {}),
     isAnimation,
     isAnime,
     isDocumentary,
     validationVersion: 7,
+    overviewAuditVersion: 1,
     ...(collection?.id ? {
       collectionId: `tmdb:${collection.id}`,
       collectionName: cleanText(collection.name),
@@ -573,6 +587,7 @@ function applyTmdbMetadata(item, metadataValue) {
     countryLabels: item.countryLabels,
     countryNames: item.countryNames,
     originalLanguage: item.originalLanguage,
+    overview: item.overview,
     poster: item.poster,
     posterFallback: item.posterFallback,
     backdrop: item.backdrop,
@@ -604,6 +619,8 @@ function applyTmdbMetadata(item, metadataValue) {
     cleanText(metadata.countryNames?.[index]) || COUNTRY_NAMES_EN[code] || code,
   );
   if (originalLanguage) item.originalLanguage = originalLanguage;
+  const metadataOverview = cleanText(metadata.overview);
+  if (!cleanText(item.overview) && metadataOverview) item.overview = metadataOverview;
   if (metadata.collectionId) item.collectionId = cleanText(metadata.collectionId);
   if (metadata.collectionName) item.collectionName = cleanText(metadata.collectionName);
   if (metadata.collectionNameFa) item.collectionNameFa = cleanText(metadata.collectionNameFa);
@@ -675,6 +692,7 @@ function applyTmdbMetadata(item, metadataValue) {
     countryLabels: item.countryLabels,
     countryNames: item.countryNames,
     originalLanguage: item.originalLanguage,
+    overview: item.overview,
     poster: item.poster,
     posterFallback: item.posterFallback,
     backdrop: item.backdrop,
