@@ -44,7 +44,17 @@ test = replaceOnce(
 );
 await fs.writeFile('scripts/tests/client-catalog.test.mjs', test);
 
+let stability = await fs.readFile('scripts/tests/final-stability.test.mjs', 'utf8');
+stability = replaceOnce(
+  stability,
+  `  assert.deepEqual(index.peopleWorks['tmdb:123'], ['m1', 'm2']);\n  assert.deepEqual(index.peopleWorks['name:test actor'], ['m1', 'm2']);\n  assert.deepEqual(index.peopleWorks['name:بازیگر تست'], ['m1', 'm2']);\n`,
+  `  assert.deepEqual(index.peopleWorks['tmdb:123'], [0, 1]);\n  assert.deepEqual(index.peopleWorks['name:test actor'], [0, 1]);\n  assert.deepEqual(index.peopleWorks['name:بازیگر تست'], [0, 1]);\n`,
+  'people works stability assertions',
+);
+await fs.writeFile('scripts/tests/final-stability.test.mjs', stability);
+
 console.log(JSON.stringify({
   perItemPeopleRemoved: true,
   peopleWorksUsesItemIndexes: true,
+  stabilityRegressionAligned: true,
 }, null, 2));
