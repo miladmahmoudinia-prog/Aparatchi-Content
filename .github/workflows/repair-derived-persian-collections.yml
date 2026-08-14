@@ -1,0 +1,107 @@
+name: Repair derived Persian collection names
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/persian-title-overrides.mjs
+      - .github/workflows/repair-derived-persian-collections.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout latest content
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Verify collection base-name logic
+        run: |
+          node --input-type=module <<'NODE'
+          import { applyVerifiedPersianTitleOverrides, persianCollectionBaseFromTitle } from './scripts/persian-title-overrides.mjs';
+          if (persianCollectionBaseFromTitle('زوتوپیا ۲') !== 'زوتوپیا') throw new Error('Zootopia sequel number was not removed.');
+          if (persianCollectionBaseFromTitle('کی.جی.اف: بخش ۱') !== 'کی.جی.اف') throw new Error('Collection subtitle was not removed.');
+          const fixture = { items: [
+            { id: 'a', type: 'movie', year: 2025, collectionId: 'x', collectionOrder: 2, nameFa: 'زوتوپیا ۲', collectionNameFa: 'زوتوپیا ۲', collectionName: 'Zootopia Collection' },
+            { id: 'b', type: 'movie', year: 2016, collectionId: 'x', collectionOrder: 1, nameFa: 'زوتوپیا', collectionNameFa: 'زوتوپیا ۲', collectionName: 'Zootopia Collection' },
+          ] };
+          applyVerifiedPersianTitleOverrides(fixture);
+          for (const item of fixture.items) {
+            if (item.collectionNameFa !== 'زوتوپیا') throw new Error(`Bad collection base: ${item.collectionNameFa}`);
+          }
+          console.log('Collection base-name regression guards passed.');
+          NODE
+
+      - name: Apply Persian collection repair to catalog
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          PERSIAN_TITLE_MAX_TITLES_PER_RUN: '1'
+          PERSIAN_TITLE_REQUEST_DELAY_MS: '0'
+        run: node scripts/enrich-persian-titles.mjs
+
+      - name: Audit Persian collection names
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
+          const hasPersian = (v) => /[\u0600-\u06FF]/.test(String(v || ''));
+          const groups = new Map();
+          for (const item of catalog.items || []) {
+            if (!item?.collectionId) continue;
+            const id = String(item.collectionId);
+            if (!groups.has(id)) groups.set(id, []);
+            groups.get(id).push(item);
+          }
+          const missing = [];
+          const numbered = [];
+          for (const [id, members] of groups) {
+            const nameFa = String(members.find((m) => m.collectionNameFa)?.collectionNameFa || '').trim();
+            if (!hasPersian(nameFa)) missing.push(id);
+            if (hasPersian(nameFa) && /\s[۰-۹0-9]+\s*$/.test(nameFa)) numbered.push({ id, nameFa });
+          }
+          console.log(`MISSING_PERSIAN_COLLECTIONS=${missing.length}`);
+          console.log(`NUMBERED_PERSIAN_COLLECTIONS=${numbered.length}`);
+          console.log(JSON.stringify(numbered.slice(0, 30), null, 2));
+          if (missing.length > 82) throw new Error(`Expected at most 82 unrecoverable collection names, found ${missing.length}.`);
+          if (numbered.length) throw new Error(`${numbered.length} Persian collection labels still end in installment numbers.`);
+          NODE
+
+      - name: Commit verified collection repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "aparatchi-content-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add catalog.json catalog-index.json catalog-items catalog-manifest.json persian-title-cache.json
+          if git diff --cached --quiet; then
+            echo "No collection changes to commit."
+            exit 0
+          fi
+          git commit -m "fix: use Persian franchise base names for collections"
+          PUSHED=0
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              PUSHED=1
+              break
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          [ "$PUSHED" -eq 1 ] || exit 1
