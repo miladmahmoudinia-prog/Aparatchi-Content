@@ -144,7 +144,9 @@ const sanitizeClientMediaItem = (item) => {
       }
       if (operatorVariant) return [];
       const language = clientFileLanguage(file, section);
-      if (!iranian && language !== 'dubbed' && language !== 'subtitled') return [];
+      // Missing language metadata is not proof that a real Upera file is bad.
+      // Preserve it neutrally; the mobile UI must not invent dubbed/subtitled
+      // labels for these rows. Positively identified languages still win.
       return [{ ...file, ...(language ? { language } : {}) }];
     }),
   }));
