@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/apply-overview-cast-enrichment-fix.mjs'
+      - 'scripts/rebuild-client-catalog.mjs'
       - '.github/workflows/verify-overview-cast-enrichment.yml'
   workflow_dispatch:
 
@@ -36,6 +37,8 @@ jobs:
         run: node scripts/apply-overview-cast-enrichment-fix.mjs
       - name: Check enrichment syntax
         run: node --check scripts/enrich-tmdb.mjs
+      - name: Check rebuild command syntax
+        run: node --check scripts/rebuild-client-catalog.mjs
       - name: Run regression locks before live enrichment
         run: node --test scripts/tests/overview-cast-enrichment.test.mjs scripts/tests/final-stability.test.mjs
       - name: Enrich missing overview, cast and crew from TMDB
@@ -48,7 +51,7 @@ jobs:
           TMDB_MAX_DIRECTORS: '4'
         run: node scripts/enrich-tmdb.mjs
       - name: Rebuild client catalog
-        run: node scripts/client-catalog.mjs
+        run: node scripts/rebuild-client-catalog.mjs
       - name: Run full regression suite
         run: node --test scripts/tests/*.test.mjs
       - name: Commit verified metadata enrichment
