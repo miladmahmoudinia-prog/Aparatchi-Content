@@ -8,7 +8,7 @@ test('client index strips heavy media fields but preserves browse metadata and c
     nameFa: 'نمونه', name: 'Sample', poster: 'p.jpg', backdrop: 'b.jpg',
     overview: 'الف'.repeat(500), genres: ['درام'], access: 'free',
     publicationStatus: 'published', episodeCount: 20, categoryKeys: ['series', 'foreign-series'],
-    downloads: [{ id: 'e1', files: [{ id: 'f1', url: 'https://example.test/a.mp4' }] }],
+    downloads: [{ id: 'e1', seasonNumber: 1, episodeNumber: 1, files: [{ id: 'f1', url: 'https://example.test/a.mp4' }] }],
     people: [{
       id: 'p1', nameFa: 'بازیگر', name: 'Actor', role: 'actor', tmdbId: 42,
       image: 'https://image.test/p1.jpg', character: 'Hero', popularity: 99,
@@ -40,6 +40,8 @@ test('client catalog remains much smaller by not embedding episode files and ful
     poster: 'p', backdrop: 'b', overview: 'شرح', genres: ['درام'], access: 'free', publicationStatus: 'published',
     downloads: Array.from({ length: 80 }, (_, index) => ({
       id: `e${index + 1}`,
+      seasonNumber: 1,
+      episodeNumber: index + 1,
       title: `قسمت ${index + 1}`,
       files: Array.from({ length: 4 }, (_v, q) => ({ id: `f${index}-${q}`, url: `https://cdn.test/${index}/${q}.mp4`, quality: `${q}`, language: 'subtitled' })),
     })),
@@ -57,7 +59,7 @@ test('client catalog remains much smaller by not embedding episode files and ful
 });
 
 test('client index hides zero-media movies/series but keeps previously visible series with usable media', () => {
-  const playableEpisode = [{ id: 'e1', files: [{ id: 'f1', mode: 'download', url: 'https://cdn.test/e1.mp4', language: 'subtitled' }] }];
+  const playableEpisode = [{ id: 'e1', seasonNumber: 1, episodeNumber: 1, files: [{ id: 'f1', mode: 'download', url: 'https://cdn.test/e1.mp4', language: 'subtitled' }] }];
   const catalog = {
     version: '1', updatedAt: 'now',
     items: [
