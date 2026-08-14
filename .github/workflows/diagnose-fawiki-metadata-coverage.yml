@@ -12,7 +12,9 @@ on:
 jobs:
   diagnose:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 10
+    env:
+      FAWIKI_DIAG_LIMIT: '5'
     steps:
       - name: Checkout catalog
         uses: actions/checkout@v6
