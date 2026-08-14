@@ -145,7 +145,7 @@ console.log(
 
 function needsPersianTitle(item) {
   const value = cleanText(item?.nameFa);
-  return !value || !containsPersian(value) || normalizeTitle(value) === normalizeTitle(item?.name);
+  return item?.nameFaGenerated === true || !value || !containsPersian(value) || normalizeTitle(value) === normalizeTitle(item?.name);
 }
 
 function needsPersianCollection(item) {
@@ -161,6 +161,8 @@ function applyRepair(item, metadata) {
   const titleFa = cleanText(metadata?.titleFa);
   if (needsPersianTitle(item) && containsPersian(titleFa)) {
     item.nameFa = titleFa;
+    delete item.nameFaGenerated;
+    item.nameFaSource = 'authoritative-metadata';
     titleFilled = 1;
     didChange = true;
   }
