@@ -1,0 +1,88 @@
+name: Backfill missing cast and crew
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/backfill-missing-people.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+
+    steps:
+      - name: Checkout latest content
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Run four cast backfill passes
+        shell: bash
+        env:
+          UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
+          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
+          TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN || secrets.TMDB_READ_ACCESS_TOKEN }}
+          UPERA_SYNC_MODE: 'PEOPLE'
+          APARATCHI_RUN_TIME_LIMIT_MINUTES: '12'
+          APARATCHI_CHECKPOINT_RESERVE_MS: '30000'
+          APARATCHI_REQUEST_TIMEOUT_MS: '10000'
+          APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
+          APARATCHI_PEOPLE_TITLES_PER_RUN: '120'
+          APARATCHI_PEOPLE_MAX_PER_TITLE: '16'
+          APARATCHI_PEOPLE_RETRY_HOURS: '1'
+          APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN: '1'
+          APARATCHI_EPISODE_ARTWORK_MIRROR_PER_RUN: '0'
+          APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN: '0'
+          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
+        run: |
+          set -euo pipefail
+          for pass in 1 2 3 4; do
+            echo "===== CAST BACKFILL PASS ${pass}/4 ====="
+            node scripts/sync-upera.mjs
+          done
+
+      - name: Rebuild app-facing catalog
+        run: node scripts/rebuild-client-catalog.mjs
+
+      - name: Commit recovered cast and crew
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "aparatchi-content-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add catalog.json catalog-index.json catalog-items catalog-manifest.json sync-state.json sync-report*.json
+          if [ -d assets/media ]; then git add assets/media; fi
+          if git diff --cached --quiet; then
+            echo "No cast/crew changes to commit."
+          else
+            git commit -m "fix: backfill missing cast and crew from available sources"
+            PUSHED=0
+            for attempt in 1 2 3 4 5; do
+              if git pull --rebase origin main && git push origin HEAD:main; then
+                PUSHED=1
+                break
+              fi
+              git rebase --abort >/dev/null 2>&1 || true
+              sleep $((attempt * 2))
+            done
+            [ "$PUSHED" -eq 1 ] || exit 1
+          fi
+
+      - name: Audit remaining missing metadata
+        run: node scripts/audit-missing-iranian-operator-metadata.mjs
