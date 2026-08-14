@@ -11,6 +11,11 @@ const normalize = (value) => String(value || '')
 const index = JSON.parse(await fs.readFile('catalog-index.json', 'utf8'));
 const items = Array.isArray(index.items) ? index.items : [];
 
+const playableStreamUrl = (value) => {
+  const url = String(value || '').trim();
+  return /^https?:\/\//i.test(url) && /\.(?:m3u8|mp4)(?:$|[?#])/i.test(url);
+};
+
 const directFileUsable = (file) => {
   const url = String(file?.url || '').trim();
   if (!/^https?:\/\//i.test(url)) return false;
@@ -28,7 +33,11 @@ const episodeKey = (section) => {
   return `${Math.max(1, Number(section?.seasonNumber || 1))}:${episode}`;
 };
 
-const sampleQueries = ['ویلای من', 'قلب یخی', 'درد مشترک'];
+const sampleQueries = [
+  ['ویلای من'],
+  ['قلب یخی'],
+  ['درد مشترک', 'dard e moshtarak'],
+];
 const sampleResults = [];
 const failures = [];
 let missingDetailFiles = 0;
@@ -54,9 +63,10 @@ for (const summary of items) {
   const sections = Array.isArray(detail.downloads) ? detail.downloads : [];
   const files = sections.flatMap((section) => Array.isArray(section?.files) ? section.files : []);
   const usableFiles = files.filter(directFileUsable);
+  const hasDirectStream = playableStreamUrl(detail.streamUrl);
 
   if (summary.type === 'movie') {
-    if (!usableFiles.length) {
+    if (!usableFiles.length && !hasDirectStream) {
       visibleMoviesWithoutMedia += 1;
       failures.push({ id: summary.id, title: summary.nameFa || summary.name, reason: 'visible-movie-no-usable-media' });
     }
@@ -84,10 +94,12 @@ for (const summary of items) {
   }
 
   const haystack = normalize([summary.nameFa, summary.name].filter(Boolean).join(' '));
-  for (const query of sampleQueries) {
-    if (!haystack.includes(normalize(query))) continue;
+  for (const queryVariants of sampleQueries) {
+    const matchedQuery = queryVariants.find((query) => haystack.includes(normalize(query)));
+    if (!matchedQuery) continue;
     sampleResults.push({
-      query,
+      query: queryVariants[0],
+      matchedQuery,
       id: summary.id,
       type: summary.type,
       nameFa: summary.nameFa,
@@ -95,6 +107,7 @@ for (const summary of items) {
       detailPath: summary.detailPath,
       sectionCount: sections.length,
       usableFileCount: usableFiles.length,
+      hasDirectStream,
       episodeCount: summary.episodeCount || 0,
       usableEpisodeCount: summary.type === 'series'
         ? new Set(sections.filter((section) => (section.files || []).some(directFileUsable)).map(episodeKey).filter(Boolean)).size
@@ -104,9 +117,17 @@ for (const summary of items) {
   }
 }
 
+const missingSamples = sampleQueries
+  .map((variants) => variants[0])
+  .filter((label) => !sampleResults.some((sample) => sample.query === label));
+if (missingSamples.length) {
+  failures.push({ reason: 'real-sample-missing', samples: missingSamples });
+}
+
 console.log(JSON.stringify({
   indexItems: items.length,
   sampleResults,
+  missingSamples,
   missingDetailFiles,
   visibleMoviesWithoutMedia,
   visibleSeriesWithoutEpisodes,
@@ -115,6 +136,4 @@ console.log(JSON.stringify({
   firstFailures: failures.slice(0, 50),
 }, null, 2));
 
-if (missingDetailFiles || visibleMoviesWithoutMedia || visibleSeriesWithoutEpisodes || seriesCountMismatch) {
-  process.exitCode = 1;
-}
+if (failures.length) process.exitCode = 1;
