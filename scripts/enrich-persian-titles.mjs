@@ -16,6 +16,7 @@ const cacheDays = Math.max(1, Math.min(180, positiveInt(process.env.PERSIAN_TITL
 const negativeCacheHours = Math.max(1, Math.min(72, positiveInt(process.env.PERSIAN_TITLE_NEGATIVE_CACHE_HOURS, 6)));
 const WIKIDATA_TITLE_VERSION = 1;
 const VERIFIED_PERSIAN_TITLE_OVERRIDES = new Map([
+  ['last appointment', 'آخرین قرار'],
   ['dance with the jackals 4', 'رقص با شغال‌ها ۴'],
   ['the passage', 'گذرگاه'],
   ['the bloody hundredth', 'صدمین گروه خونین'],

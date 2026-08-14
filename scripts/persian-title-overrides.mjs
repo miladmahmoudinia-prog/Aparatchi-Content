@@ -12,6 +12,7 @@ export function normalizePersianOverrideKey(value) {
 }
 
 const VERIFIED_PERSIAN_TITLE_ENTRIES = [
+  ['last appointment', 'آخرین قرار'],
   ['dance with the jackals 4', 'رقص با شغال‌ها ۴'],
   ['the passage', 'گذرگاه'],
   ['the bloody hundredth', 'صدمین گروه خونین'],
@@ -160,19 +161,16 @@ function applyGeneratedPersianDisplayTitles(items) {
   let changes = 0;
   for (const item of items) {
     if (!item || !['movie', 'series'].includes(item.type)) continue;
-    const current = cleanDisplayText(item.nameFa);
-    const currentHasLatin = LATIN_SCRIPT_RE.test(current);
-    const needsGenerated = !current || currentHasLatin || item.nameFaGenerated === true;
-    if (!needsGenerated) continue;
-    if (item.nameFaGenerated === true && current && !currentHasLatin) continue;
-    const generated = generatedPersianDisplayTitle(item.name || current);
-    if (!generated || LATIN_SCRIPT_RE.test(generated)) continue;
-    if (item.nameFa !== generated || item.nameFaGenerated !== true || item.nameFaSource !== GENERATED_TITLE_SOURCE) {
-      item.nameFa = generated;
-      item.nameFaGenerated = true;
-      item.nameFaSource = GENERATED_TITLE_SOURCE;
+    const wasGenerated = item.nameFaGenerated === true || item.nameFaSource === GENERATED_TITLE_SOURCE;
+    if (!wasGenerated) continue;
+
+    const original = cleanDisplayText(item.name);
+    if (original && item.nameFa !== original) {
+      item.nameFa = original;
       changes += 1;
     }
+    delete item.nameFaGenerated;
+    item.nameFaSource = 'original-title-fallback';
   }
   return changes;
 }
