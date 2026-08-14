@@ -9,7 +9,6 @@ const norm = (v) => clean(v).toLowerCase().normalize('NFKC')
   .replace(/[يى]/g, 'ی').replace(/ك/g, 'ک')
   .replace(/\b(?:dubbed|subtitle(?:d)?|persian|farsi|operator|mobile|special|version|نسخه|دوبله|زیرنویس|فارسی|ویژه|همراه)\b/giu, ' ')
   .replace(/[^\p{L}\p{N}]+/gu, ' ').replace(/\s+/g, ' ').trim();
-const hasPersian = (v) => /[\u0600-\u06FF]/.test(clean(v));
 const placeholderOverview = (v) => {
   const s = norm(v);
   return !s || /توضیحی ثبت نشده|توضیحات ثبت نشده|خلاصه داستان ثبت نشده|اطلاعاتی ثبت نشده|بدون توضیح|no description|no overview|description not available/.test(s);
@@ -31,22 +30,36 @@ const donorQuality = (item) => Number(!placeholderOverview(item?.overview)) + Nu
 const imdbId = (v) => clean(v).match(/tt\d{6,12}/i)?.[0]?.toLowerCase() || '';
 const tmdbId = (item) => Number(item?.tmdb?.id || item?.tmdbId || 0) || 0;
 
-function collectStrings(value, out = []) {
-  if (typeof value === 'string') out.push(value);
-  else if (Array.isArray(value)) value.forEach((entry) => collectStrings(entry, out));
-  else if (value && typeof value === 'object') Object.values(value).forEach((entry) => collectStrings(entry, out));
-  return out;
+function compactMediaUrls(item) {
+  const urls = [];
+  for (const value of [item?.streamUrl, item?.operatorUrl, item?.sourceUrl, item?.url]) {
+    if (typeof value === 'string' && value) urls.push(value);
+  }
+  let seen = 0;
+  for (const section of Array.isArray(item?.downloads) ? item.downloads : []) {
+    for (const file of Array.isArray(section?.files) ? section.files : []) {
+      if (typeof file?.url === 'string' && file.url) urls.push(file.url);
+      seen += 1;
+      if (seen >= 120) return urls;
+    }
+  }
+  return urls;
 }
+
 function uperaKeys(item) {
   const keys = new Set();
-  for (const value of collectStrings(item)) {
+  for (const value of compactMediaUrls(item)) {
     let match;
     const portal = /https?:\/\/[^/]*upera\.tv\/stream\/(movie|episode)\/([^/?#]+)/ig;
     while ((match = portal.exec(value))) keys.add(`portal:${match[1].toLowerCase()}:${decodeURIComponent(match[2]).toLowerCase()}`);
-    const media = /https?:\/\/[^/]*upera\.tv\/(\d+)(?:-\d+)?-(?:hls|\d+p|hq|sd|hd)?/ig;
-    while ((match = media.exec(value))) keys.add(`media:${match[1]}`);
     const numeric = /(?:^|[^0-9])(\d{5,10})(?:[^0-9]|$)/g;
-    if (/upera\.tv/i.test(value)) while ((match = numeric.exec(value))) keys.add(`upera-num:${match[1]}`);
+    if (/upera\.tv/i.test(value)) {
+      while ((match = numeric.exec(value))) {
+        keys.add(`upera-num:${match[1]}`);
+        if (keys.size >= 30) break;
+      }
+    }
+    if (keys.size >= 30) break;
   }
   return [...keys];
 }
