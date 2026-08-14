@@ -14,6 +14,7 @@ const maxTitles = Math.max(1, Math.min(5000, positiveInt(process.env.PERSIAN_TIT
 const delayMs = Math.max(0, Math.min(2000, nonNegativeInt(process.env.PERSIAN_TITLE_REQUEST_DELAY_MS, 90)));
 const cacheDays = Math.max(1, Math.min(180, positiveInt(process.env.PERSIAN_TITLE_CACHE_DAYS, 45)));
 const negativeCacheHours = Math.max(1, Math.min(72, positiveInt(process.env.PERSIAN_TITLE_NEGATIVE_CACHE_HOURS, 6)));
+const WIKIDATA_TITLE_VERSION = 1;
 const VERIFIED_PERSIAN_TITLE_OVERRIDES = new Map([
   ['dance with the jackals 4', 'رقص با شغال‌ها ۴'],
   ['the passage', 'گذرگاه'],
@@ -87,7 +88,11 @@ for (const item of candidates) {
   const cacheWindowDays = needsPersianTitle(item) && !cachedHasPersianTitle
     ? negativeCacheHours / 24
     : cacheDays;
-  const freshCache = cached && isFresh(cached.fetchedAt, cacheWindowDays);
+  const needsWikidataUpgrade = Boolean(
+    cached && needsPersianTitle(item) && !cachedHasPersianTitle &&
+    Number(cached?.wikidataTitleVersion || 0) < WIKIDATA_TITLE_VERSION
+  );
+  const freshCache = cached && isFresh(cached.fetchedAt, cacheWindowDays) && !needsWikidataUpgrade;
 
   if (freshCache) {
     const result = applyRepair(item, cached);
@@ -205,7 +210,7 @@ async function fetchPersianMetadata(item) {
     const results = Array.isArray(payload?.results) ? payload.results : [];
     candidate = results.find((entry) => entry?.id) || null;
   }
-  if (!candidate?.id) return {};
+  if (!candidate?.id) return { wikidataTitleVersion: WIKIDATA_TITLE_VERSION };
 
   const details = await tmdbJson(`/${mediaType}/${candidate.id}?language=fa-IR`);
   const localized = cleanText(details?.title || details?.name || candidate?.title || candidate?.name);
@@ -254,12 +259,52 @@ async function fetchPersianMetadata(item) {
     }
   }
 
+  let wikidataId = '';
+  if (!titleFa) {
+    try {
+      const externalIds = await tmdbJson(`/${mediaType}/${candidate.id}/external_ids`);
+      wikidataId = cleanText(externalIds?.wikidata_id);
+      if (/^Q\d+$/i.test(wikidataId)) {
+        const wikidataTitle = await wikidataPersianTitle(wikidataId);
+        if (containsPersian(wikidataTitle)) titleFa = wikidataTitle;
+      }
+    } catch {
+      // Wikidata is a final title-only fallback. TMDB metadata remains usable.
+    }
+  }
+
   return {
     tmdbId: Number(candidate.id),
+    wikidataTitleVersion: WIKIDATA_TITLE_VERSION,
+    ...(wikidataId ? { wikidataId } : {}),
     ...(titleFa ? { titleFa } : {}),
     ...(collectionNameFa ? { collectionNameFa } : {}),
     ...(posterPath ? { poster: `https://image.tmdb.org/t/p/w500/${posterPath.replace(/^\/+/, '')}` } : {}),
   };
+}
+
+async function wikidataPersianTitle(entityId) {
+  const url = new URL('https://www.wikidata.org/w/api.php');
+  url.searchParams.set('action', 'wbgetentities');
+  url.searchParams.set('format', 'json');
+  url.searchParams.set('ids', entityId);
+  url.searchParams.set('props', 'labels|sitelinks');
+  url.searchParams.set('languages', 'fa');
+  url.searchParams.set('sitefilter', 'fawiki');
+  const response = await fetch(url, {
+    headers: {
+      accept: 'application/json',
+      'user-agent': 'Aparatchi-Metadata/1.0 (Persian title enrichment)',
+    },
+    signal: AbortSignal.timeout(9000),
+  });
+  if (!response.ok) throw new Error(`Wikidata HTTP ${response.status}`);
+  const payload = await response.json();
+  const entity = payload?.entities?.[entityId];
+  const label = cleanText(entity?.labels?.fa?.value);
+  if (containsPersian(label)) return label;
+  const pageTitle = cleanText(entity?.sitelinks?.fawiki?.title);
+  return containsPersian(pageTitle) ? pageTitle : '';
 }
 
 async function tmdbJson(pathname) {
