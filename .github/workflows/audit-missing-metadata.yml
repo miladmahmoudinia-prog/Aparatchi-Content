@@ -1,0 +1,26 @@
+name: Audit Iranian and operator metadata
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/audit-missing-iranian-operator-metadata.mjs
+      - .github/workflows/audit-missing-metadata.yml
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout catalog
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Audit missing metadata
+        run: node scripts/audit-missing-iranian-operator-metadata.mjs
