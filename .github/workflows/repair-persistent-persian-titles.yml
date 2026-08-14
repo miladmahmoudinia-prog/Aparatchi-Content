@@ -1,0 +1,112 @@
+name: Repair persistent Persian titles
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/persian-title-overrides.mjs
+      - scripts/apply-persistent-persian-title-overrides.mjs
+      - .github/workflows/repair-persistent-persian-titles.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout latest content
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Apply persistence repair
+        run: node scripts/apply-persistent-persian-title-overrides.mjs
+
+      - name: Verify syntax and persistence guards
+        run: |
+          node --check scripts/sync-upera.mjs
+          node --check scripts/enrich-persian-titles.mjs
+          node --check scripts/persian-title-overrides.mjs
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import { applyVerifiedPersianTitleOverrides } from './scripts/persian-title-overrides.mjs';
+          const sync = fs.readFileSync('scripts/sync-upera.mjs', 'utf8');
+          const enrich = fs.readFileSync('scripts/enrich-persian-titles.mjs', 'utf8');
+          if (!sync.includes('applyVerifiedPersianTitleOverrides(value);')) throw new Error('Sync writer does not preserve Persian overrides.');
+          if (!enrich.includes('applyVerifiedPersianTitleOverrides(catalog)')) throw new Error('Persian enrich does not reapply verified overrides before write.');
+          const fixture = { items: [
+            { name: "Aunt Nasrin's Songs for Kids 4", nameFa: "Aunt Nasrin's Songs for Kids 4" },
+            { name: "Aunt Nasrin's Songs for Kids 5", nameFa: "Aunt Nasrin's Songs for Kids 5" },
+            { name: "Aunt Nasrin's Songs for Kids 7", nameFa: "Aunt Nasrin's Songs for Kids 7" },
+          ] };
+          applyVerifiedPersianTitleOverrides(fixture);
+          const expected = ['ترانه‌های کودکانه خاله نسرین ۴','ترانه‌های کودکانه خاله نسرین ۵','ترانه‌های کودکانه خاله نسرین ۷'];
+          fixture.items.forEach((item, index) => {
+            if (item.nameFa !== expected[index]) throw new Error(`Override failed for ${item.name}`);
+          });
+          console.log('Verified Persian override persistence guards passed.');
+          NODE
+
+      - name: Apply verified titles to current catalog
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          PERSIAN_TITLE_MAX_TITLES_PER_RUN: '1'
+          PERSIAN_TITLE_REQUEST_DELAY_MS: '0'
+        run: node scripts/enrich-persian-titles.mjs
+
+      - name: Verify reported Aunt Nasrin titles in catalog
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
+          const expected = new Map([
+            ["aunt nasrin's songs for kids 4", 'ترانه‌های کودکانه خاله نسرین ۴'],
+            ["aunt nasrin's songs for kids 5", 'ترانه‌های کودکانه خاله نسرین ۵'],
+            ["aunt nasrin's songs for kids 7", 'ترانه‌های کودکانه خاله نسرین ۷'],
+          ]);
+          const normalize = (v) => String(v || '').trim().toLowerCase();
+          for (const [name, titleFa] of expected) {
+            const item = catalog.items.find((entry) => normalize(entry.name) === name);
+            if (!item) throw new Error(`Missing catalog sample: ${name}`);
+            if (item.nameFa !== titleFa) throw new Error(`Persian title not persisted: ${name} -> ${item.nameFa}`);
+          }
+          console.log('Reported Aunt Nasrin titles are Persian in catalog.');
+          NODE
+
+      - name: Commit verified Persian title persistence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "aparatchi-content-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add scripts/sync-upera.mjs scripts/enrich-persian-titles.mjs scripts/persian-title-overrides.mjs catalog.json catalog-index.json catalog-items catalog-manifest.json persian-title-cache.json
+          if git diff --cached --quiet; then
+            echo "No Persian-title changes to commit."
+            exit 0
+          fi
+          git commit -m "fix: persist verified Persian titles across syncs"
+          PUSHED=0
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              PUSHED=1
+              break
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          [ "$PUSHED" -eq 1 ] || exit 1
