@@ -57,7 +57,7 @@ test('client catalog remains much smaller by not embedding episode files and ful
 });
 
 test('client index hides zero-media movies/series but keeps previously visible series with usable media', () => {
-  const playableEpisode = [{ id: 'e1', files: [{ id: 'f1', mode: 'download', url: 'https://cdn.test/e1.mp4' }] }];
+  const playableEpisode = [{ id: 'e1', files: [{ id: 'f1', mode: 'download', url: 'https://cdn.test/e1.mp4', language: 'subtitled' }] }];
   const catalog = {
     version: '1', updatedAt: 'now',
     items: [

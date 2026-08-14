@@ -96,7 +96,7 @@ const verifiedOperatorOnlyFile = (file) => Boolean(
 
 const sanitizeClientMediaItem = (item) => {
   if (!item || !['movie', 'series'].includes(item.type)) return item;
-  const iranian = item.ir !== false || (Array.isArray(item.countryCodes) && item.countryCodes.includes('IR'));
+  const iranian = item.ir === true || (Array.isArray(item.countryCodes) && item.countryCodes.includes('IR'));
   const operatorVariant = item.operatorOnly === true;
   const prepared = (Array.isArray(item.downloads) ? item.downloads : []).map((section) => ({
     ...section,
