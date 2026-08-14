@@ -1,0 +1,82 @@
+name: Verify client neutral movie media
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/apply-client-neutral-media-preservation.mjs'
+      - 'scripts/test-client-neutral-media-preservation.mjs'
+      - '.github/workflows/verify-client-neutral-media-preservation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  patch-test-rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout content
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Preserve neutral movie media
+        run: node scripts/apply-client-neutral-media-preservation.mjs
+      - name: Check client catalog syntax
+        run: node --check scripts/client-catalog.mjs
+      - name: Audit neutral movie media
+        run: node scripts/test-client-neutral-media-preservation.mjs
+      - name: Rebuild client catalog artifacts
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs/promises';
+          import { createHash } from 'node:crypto';
+          import { writeClientCatalogArtifacts } from './scripts/client-catalog.mjs';
+          const raw = await fs.readFile('catalog.json', 'utf8');
+          const catalog = JSON.parse(raw);
+          const artifacts = await writeClientCatalogArtifacts(process.cwd(), catalog);
+          const manifest = {
+            schemaVersion: 2,
+            revision: createHash('sha256').update(raw).digest('hex'),
+            clientRevision: artifacts.clientRevision,
+            catalogVersion: String(catalog.version || '').trim(),
+            catalogUpdatedAt: String(catalog.updatedAt || '').trim(),
+            sizeBytes: Buffer.byteLength(raw),
+            clientSizeBytes: artifacts.clientSizeBytes,
+            clientIndex: 'catalog-index.json',
+            detailBase: 'catalog-items/',
+          };
+          await fs.writeFile('catalog-manifest.json', `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+          console.log(JSON.stringify({ clientItems: artifacts.index.items.length, details: artifacts.detailFiles.length, clientSizeBytes: artifacts.clientSizeBytes }, null, 2));
+          NODE
+      - name: Re-audit rebuilt movie media
+        run: node scripts/test-client-neutral-media-preservation.mjs
+      - name: Commit verified client media
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "aparatchi-content-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add scripts/client-catalog.mjs catalog-index.json catalog-items catalog-manifest.json
+          if git diff --cached --quiet; then
+            echo "Neutral client media already applied."
+            exit 0
+          fi
+          git commit -m "fix: preserve real unlabelled movie media"
+          PUSHED=0
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then PUSHED=1; break; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          [ "$PUSHED" -eq 1 ] || exit 1
