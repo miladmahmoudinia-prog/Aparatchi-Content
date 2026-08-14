@@ -58,7 +58,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/client-catalog.mjs scripts/tests/client-catalog.test.mjs catalog-index.json catalog-manifest.json catalog-items
+          git add scripts/client-catalog.mjs scripts/tests/client-catalog.test.mjs scripts/tests/final-stability.test.mjs catalog-index.json catalog-manifest.json catalog-items
           if git diff --cached --quiet; then
             echo "No compact-index changes to commit."
             exit 0
