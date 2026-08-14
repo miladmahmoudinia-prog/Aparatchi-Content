@@ -1,13 +1,6 @@
 name: Repair persistent Persian titles
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - scripts/persian-title-overrides.mjs
-      - scripts/apply-persistent-persian-title-overrides.mjs
-      - .github/workflows/repair-persistent-persian-titles.yml
   workflow_dispatch:
 
 permissions:
