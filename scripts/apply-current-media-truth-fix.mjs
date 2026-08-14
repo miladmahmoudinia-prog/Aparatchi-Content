@@ -14,14 +14,15 @@ if (source.includes(before)) {
 
 await fs.writeFile(clientPath, source, 'utf8');
 
-// Older transport tests intentionally exercise visibility/people indexing rather
-// than language classification. Make those fixtures explicitly Iranian so their
-// unlabeled local media cannot be mistaken for foreign original media.
+// Older transport tests exercise visibility/people indexing rather than
+// language inference. Give their foreign playable fixture an explicit real
+// language instead of weakening the production foreign-media rule.
 const clientCatalogTestPath = path.join('scripts', 'tests', 'client-catalog.test.mjs');
 let clientCatalogTests = await fs.readFile(clientCatalogTestPath, 'utf8');
-clientCatalogTests = clientCatalogTests
-  .replace("{ id: 'locked', type: 'series', nameFa:", "{ id: 'locked', type: 'series', ir: true, nameFa:")
-  .replace("{ id: 'published', type: 'series', nameFa:", "{ id: 'published', type: 'series', ir: true, nameFa:");
+const oldPlayable = "const playableEpisode = [{ id: 'e1', files: [{ id: 'f1', mode: 'download', url: 'https://cdn.test/e1.mp4' }] }];";
+const newPlayable = "const playableEpisode = [{ id: 'e1', files: [{ id: 'f1', mode: 'download', url: 'https://cdn.test/e1.mp4', language: 'subtitled' }] }];";
+if (clientCatalogTests.includes(oldPlayable)) clientCatalogTests = clientCatalogTests.replace(oldPlayable, newPlayable);
+else if (!clientCatalogTests.includes(newPlayable)) throw new Error('Could not update legacy playableEpisode fixture');
 await fs.writeFile(clientCatalogTestPath, clientCatalogTests, 'utf8');
 
 const finalStabilityTestPath = path.join('scripts', 'tests', 'final-stability.test.mjs');
