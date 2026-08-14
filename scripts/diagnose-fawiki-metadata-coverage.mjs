@@ -29,50 +29,38 @@ const iranian = (item) => Boolean(
 );
 const target = (item) => (iranian(item) || operator(item)) && (placeholderOverview(item?.overview) || !people(item).length);
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const requestHeaders = {
+  accept: 'application/json',
+  'user-agent': 'Aparatchi-Metadata/1.0 (contact: github.com/miladmahmoudinia-prog/Aparatchi-Content)',
+};
 
 async function faWikiSearch(query) {
-  const url = new URL('https://fa.wikipedia.org/w/api.php');
-  url.searchParams.set('action', 'query');
-  url.searchParams.set('format', 'json');
-  url.searchParams.set('generator', 'search');
-  url.searchParams.set('gsrsearch', `intitle:"${query.replace(/"/g, '')}"`);
-  url.searchParams.set('gsrnamespace', '0');
-  url.searchParams.set('gsrlimit', '8');
-  url.searchParams.set('prop', 'pageprops');
-  url.searchParams.set('ppprop', 'wikibase_item');
-  const response = await fetch(url, {
-    headers: {
-      accept: 'application/json',
-      'user-agent': 'Aparatchi-Metadata/1.0 (contact: github.com/miladmahmoudinia-prog/Aparatchi-Content)',
-    },
-    signal: AbortSignal.timeout(10000),
-  });
+  const url = new URL('https://fa.wikipedia.org/w/rest.php/v1/search/page');
+  url.searchParams.set('q', query);
+  url.searchParams.set('limit', '8');
+  const response = await fetch(url, { headers: requestHeaders, signal: AbortSignal.timeout(10000) });
   if (!response.ok) {
     const body = clean(await response.text()).slice(0, 240);
-    throw new Error(`faWiki HTTP ${response.status}${body ? `: ${body}` : ''}`);
+    throw new Error(`faWiki REST HTTP ${response.status}${body ? `: ${body}` : ''}`);
   }
   const payload = await response.json();
-  if (payload?.error) throw new Error(`faWiki API ${payload.error.code}: ${payload.error.info}`);
-  return Object.values(payload?.query?.pages || {});
+  return Array.isArray(payload?.pages) ? payload.pages : [];
 }
 
-async function wikidataEntity(id) {
+async function wikidataEntityForFaTitle(title) {
   const url = new URL('https://www.wikidata.org/w/api.php');
   url.searchParams.set('action', 'wbgetentities');
   url.searchParams.set('format', 'json');
-  url.searchParams.set('ids', id);
+  url.searchParams.set('sites', 'fawiki');
+  url.searchParams.set('titles', title);
   url.searchParams.set('props', 'labels|claims|sitelinks');
   url.searchParams.set('languages', 'fa|en');
   url.searchParams.set('sitefilter', 'fawiki|enwiki');
-  const response = await fetch(url, {
-    headers: {
-      accept: 'application/json',
-      'user-agent': 'Aparatchi-Metadata/1.0 (contact: github.com/miladmahmoudinia-prog/Aparatchi-Content)',
-    },
-    signal: AbortSignal.timeout(10000),
-  });
+  const response = await fetch(url, { headers: requestHeaders, signal: AbortSignal.timeout(10000) });
   if (!response.ok) throw new Error(`Wikidata HTTP ${response.status}`);
-  return (await response.json())?.entities?.[id] || null;
+  const entities = (await response.json())?.entities || {};
+  const entity = Object.values(entities).find((value) => value && value.missing !== '');
+  return entity || null;
 }
 
 function claimIds(entity, property) {
@@ -110,6 +98,7 @@ function validate(item, entity, pageTitle) {
   const actualTitles = entityTitleCandidates(entity, pageTitle).map(norm).filter(Boolean);
   if (!expectedTitles.some((title) => actualTitles.includes(title))) return null;
   return {
+    qid: clean(entity?.id),
     years,
     countries,
     directors: claimIds(entity, 'P57'),
@@ -135,22 +124,22 @@ for (let index = 0; index < eligible.length; index += 1) {
     if (errorSamples.length < 12) errorSamples.push({ id:item.id, nameFa:item.nameFa, error:String(error?.message || error) });
     continue;
   }
-  await sleep(80);
+  await sleep(180);
 
   let found = null;
   for (const page of pages) {
-    const qid = clean(page?.pageprops?.wikibase_item);
-    if (!/^Q\d+$/i.test(qid)) continue;
+    const pageTitle = clean(page?.title);
+    if (!pageTitle) continue;
     let entity = null;
-    try { entity = await wikidataEntity(qid); }
+    try { entity = await wikidataEntityForFaTitle(pageTitle); }
     catch (error) {
       errors += 1;
-      if (errorSamples.length < 12) errorSamples.push({ id:item.id, nameFa:item.nameFa, qid, error:String(error?.message || error) });
+      if (errorSamples.length < 12) errorSamples.push({ id:item.id, nameFa:item.nameFa, pageTitle, error:String(error?.message || error) });
       continue;
     }
-    await sleep(80);
-    const verdict = validate(item, entity, page?.title);
-    if (verdict) { found = { qid, ...verdict }; break; }
+    await sleep(180);
+    const verdict = validate(item, entity, pageTitle);
+    if (verdict) { found = verdict; break; }
   }
   if (found) {
     matches.push({
