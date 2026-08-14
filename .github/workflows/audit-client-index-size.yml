@@ -1,0 +1,26 @@
+name: Audit mobile client index size
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/audit-client-index-size.mjs'
+      - '.github/workflows/audit-client-index-size.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout content
+        uses: actions/checkout@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Audit client index size
+        run: node scripts/audit-client-index-size.mjs
