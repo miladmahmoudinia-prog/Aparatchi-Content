@@ -1,0 +1,24 @@
+name: Diagnose metadata repair paths
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/diagnose-metadata-repair-paths.mjs
+      - .github/workflows/diagnose-metadata-repair.yml
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout catalog
+        uses: actions/checkout@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Diagnose repair sources
+        run: node scripts/diagnose-metadata-repair-paths.mjs
