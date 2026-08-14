@@ -7,6 +7,7 @@ const helperAnchor = "const cleanDisplayText = (value) => String(value ?? '').re
 const helperBlock = `${helperAnchor}
 const GENERATED_TITLE_SOURCE = 'generated-transliteration';
 const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
+const LATIN_SCRIPT_RE = /\\p{Script=Latin}/u;
 
 const TITLE_WORD_OVERRIDES = new Map([
   ['the', 'دِ'], ['a', 'اِ'], ['an', 'اَن'], ['and', 'اَند'], ['or', 'اور'],
@@ -18,6 +19,11 @@ const TITLE_WORD_OVERRIDES = new Map([
   ['boy', 'بوی'], ['girl', 'گرل'], ['man', 'من'], ['woman', 'وومن'], ['world', 'ورلد'], ['day', 'دی'],
   ['night', 'نایت'], ['summer', 'سامر'], ['winter', 'وینتر'], ['fire', 'فایر'], ['black', 'بلک'],
   ['white', 'وایت'], ['red', 'رد'], ['blue', 'بلو'], ['green', 'گرین'], ['gold', 'گلد'],
+]);
+
+const ROMAN_NUMERALS = new Map([
+  ['i', '۱'], ['ii', '۲'], ['iii', '۳'], ['iv', '۴'], ['v', '۵'], ['vi', '۶'],
+  ['vii', '۷'], ['viii', '۸'], ['ix', '۹'], ['x', '۱۰'],
 ]);
 
 const VERIFIED_ROMANIZED_IRANIAN_TITLES = new Map([
@@ -51,10 +57,21 @@ function toPersianDigits(value) {
   return String(value ?? '').replace(/\\d/g, (digit) => PERSIAN_DIGITS[Number(digit)]);
 }
 
+function foldLatin(value) {
+  return String(value || '')
+    .replace(/ı/g, 'i').replace(/Ł|ł/g, 'l').replace(/Đ|đ/g, 'd')
+    .replace(/Ð|ð/g, 'th').replace(/Þ|þ/g, 'th').replace(/Æ|æ/g, 'ae')
+    .replace(/Œ|œ/g, 'oe').replace(/ß/g, 'ss')
+    .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
+    .toLowerCase();
+}
+
 function transliterateLatinWord(value) {
   const raw = String(value || '');
-  const ascii = raw.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();
+  const ascii = foldLatin(raw);
   if (!/[a-z]/.test(ascii)) return toPersianDigits(raw);
+  const roman = ROMAN_NUMERALS.get(ascii);
+  if (roman && /^[ivx]+$/i.test(raw)) return roman;
   const known = TITLE_WORD_OVERRIDES.get(ascii);
   if (known) return known;
 
@@ -85,20 +102,23 @@ export function generatedPersianDisplayTitle(value) {
   const iranianKnown = VERIFIED_ROMANIZED_IRANIAN_TITLES.get(normalized);
   if (iranianKnown) return iranianKnown;
 
-  const converted = source
-    .normalize('NFD')
-    .replace(/[\\u0300-\\u036f]/g, '')
-    .split(/([A-Za-z]+|\\d+|[^A-Za-z\\d]+)/g)
+  const folded = source
+    .replace(/ı/g, 'i').replace(/Ł|ł/g, 'l').replace(/Đ|đ/g, 'd')
+    .replace(/Ð|ð/g, 'th').replace(/Þ|þ/g, 'th').replace(/Æ|æ/g, 'ae')
+    .replace(/Œ|œ/g, 'oe').replace(/ß/g, 'ss')
+    .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+  const converted = folded
+    .split(/(\\p{Script=Latin}+|\\d+|[^\\p{Script=Latin}\\d]+)/gu)
     .filter((part) => part !== '')
     .map((part) => {
-      if (/^[A-Za-z]+$/.test(part)) return transliterateLatinWord(part);
+      if (/^\\p{Script=Latin}+$/u.test(part)) return transliterateLatinWord(part);
       if (/^\\d+$/.test(part)) return toPersianDigits(part);
       return part;
     })
     .join('')
     .replace(/\\s+/g, ' ')
     .trim();
-  return /[A-Za-z]/.test(converted) ? '' : converted;
+  return LATIN_SCRIPT_RE.test(converted) ? '' : converted;
 }
 
 function applyGeneratedPersianDisplayTitles(items) {
@@ -106,11 +126,12 @@ function applyGeneratedPersianDisplayTitles(items) {
   for (const item of items) {
     if (!item || !['movie', 'series'].includes(item.type)) continue;
     const current = cleanDisplayText(item.nameFa);
-    const needsGenerated = !current || /[A-Za-z]/.test(current) || item.nameFaGenerated === true;
+    const currentHasLatin = LATIN_SCRIPT_RE.test(current);
+    const needsGenerated = !current || currentHasLatin || item.nameFaGenerated === true;
     if (!needsGenerated) continue;
-    if (item.nameFaGenerated === true && current && !/[A-Za-z]/.test(current)) continue;
+    if (item.nameFaGenerated === true && current && !currentHasLatin) continue;
     const generated = generatedPersianDisplayTitle(item.name || current);
-    if (!generated || /[A-Za-z]/.test(generated)) continue;
+    if (!generated || LATIN_SCRIPT_RE.test(generated)) continue;
     if (item.nameFa !== generated || item.nameFaGenerated !== true || item.nameFaSource !== GENERATED_TITLE_SOURCE) {
       item.nameFa = generated;
       item.nameFaGenerated = true;
