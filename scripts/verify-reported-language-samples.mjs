@@ -41,9 +41,13 @@ for (const sample of samples) {
       mode: file.mode || '',
       url: file.url,
       sectionId: section.id,
+      sectionTitle: section.title || '',
+      sectionBadge: section.badge || '',
+      sectionSubtitle: section.subtitle || '',
       season: section.seasonNumber,
       episode: section.episodeNumber,
       label: file.label || file.quality || '',
+      fileTitle: file.title || '',
     });
     byLanguage.set(language, list);
   }
@@ -72,6 +76,18 @@ for (const sample of samples) {
     const modes = [...new Set(files.map((entry) => entry.mode))];
     const uniqueUrls = new Set(files.map((entry) => entry.url));
     console.log(`${language}: files=${files.length}, urls=${uniqueUrls.size}, modes=${modes.join(',')}`);
+    console.log(`${language} samples=`, JSON.stringify(files.slice(0, 6).map((entry) => ({
+      mode: entry.mode,
+      sectionId: entry.sectionId,
+      sectionTitle: entry.sectionTitle,
+      sectionBadge: entry.sectionBadge,
+      sectionSubtitle: entry.sectionSubtitle,
+      season: entry.season,
+      episode: entry.episode,
+      label: entry.label,
+      fileTitle: entry.fileTitle,
+      url: entry.url,
+    }))));
   }
   if (duplicateCrossLanguageUrls.length) {
     console.error('cross-language duplicate URLs=', JSON.stringify(duplicateCrossLanguageUrls.slice(0, 10)));
