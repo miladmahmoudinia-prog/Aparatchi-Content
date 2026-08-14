@@ -28,6 +28,7 @@ const target = (item) => (iranian(item) || operator(item)) && (placeholderOvervi
 const donorQuality = (item) => Number(!placeholderOverview(item?.overview)) + Number(people(item).length > 0) * 2;
 const imdbId = (v) => clean(v).match(/tt\d{6,12}/i)?.[0]?.toLowerCase() || '';
 const tmdbId = (item) => Number(item?.tmdb?.id || item?.tmdbId || 0) || 0;
+const codes = (item) => [...new Set((item?.countryCodes || []).map((c) => String(c).toUpperCase()).filter(Boolean))].sort();
 
 const keyIndex = new Map();
 function addKey(key, item) {
@@ -94,7 +95,32 @@ for (const item of targets) {
   if (canPeople) peopleRecoverable += 1;
   if (canOverview && canPeople) bothRecoverable += 1;
   recoverable.push({
-    id:item.id,nameFa:item.nameFa,donorId:donor.id,donorNameFa:donor.nameFa,reason,
+    id:item.id,
+    type:item.type,
+    year:Number(item.year||0),
+    name:item.name,
+    nameFa:item.nameFa,
+    countryCodes:codes(item),
+    iranian:iranian(item),
+    operator:operator(item),
+    contentKind:item.contentKind||null,
+    tmdb:tmdbId(item)||null,
+    imdb:imdbId(item.imdb)||null,
+    donorId:donor.id,
+    donorType:donor.type,
+    donorYear:Number(donor.year||0),
+    donorName:donor.name,
+    donorNameFa:donor.nameFa,
+    donorCountryCodes:codes(donor),
+    donorIranian:iranian(donor),
+    donorOperator:operator(donor),
+    donorContentKind:donor.contentKind||null,
+    donorTmdb:tmdbId(donor)||null,
+    donorImdb:imdbId(donor.imdb)||null,
+    reason,
+    sameYear:Number(item.year||0)>0 && Number(item.year||0)===Number(donor.year||0),
+    sameCountry:codes(item).length>0 && codes(donor).length>0 && codes(item).some((code)=>codes(donor).includes(code)),
+    sameIranianState:iranian(item)===iranian(donor),
     canOverview,canPeople,donorPeople:people(donor).length,
   });
 }
