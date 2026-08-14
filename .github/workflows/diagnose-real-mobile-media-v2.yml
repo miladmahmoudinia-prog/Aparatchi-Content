@@ -1,0 +1,28 @@
+name: Diagnose real mobile media v2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/diagnose-real-mobile-media-v2.mjs'
+      - '.github/workflows/diagnose-real-mobile-media-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout content
+        uses: actions/checkout@v6
+        with:
+          ref: main
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Diagnose real media samples
+        run: node scripts/diagnose-real-mobile-media-v2.mjs
