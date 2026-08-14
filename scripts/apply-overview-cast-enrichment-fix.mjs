@@ -4,97 +4,70 @@ import path from 'node:path';
 const target = 'scripts/enrich-tmdb.mjs';
 let source = await fs.readFile(target, 'utf8');
 
-function replaceOnce(before, after, label) {
+function replaceRequired(before, after, label) {
   if (source.includes(after)) return;
   if (!source.includes(before)) throw new Error(`Missing patch target: ${label}`);
   source = source.replace(before, after);
 }
 
-replaceOnce(
-`  const cachedMetadataCurrent = cached?.tmdb === null || Number(cached?.metadata?.validationVersion || 0) >= 7;`,
+// v1 already added TMDB translations/overview. v2 also treats provider placeholder
+// prose ("توضیحی ثبت نشده است") as a missing overview instead of valid metadata.
+replaceRequired(
 `  const cachedMetadataCurrent = cached?.tmdb === null || Boolean(
     Number(cached?.metadata?.validationVersion || 0) >= 7 &&
     Number(cached?.metadata?.overviewAuditVersion || 0) >= 1
   );`,
-  'overview audit cache gate',
+`  const cachedMetadataCurrent = cached?.tmdb === null || Boolean(
+    Number(cached?.metadata?.validationVersion || 0) >= 7 &&
+    Number(cached?.metadata?.overviewAuditVersion || 0) >= 2
+  );`,
+  'overview audit cache gate v2',
 );
 
-replaceOnce(
-`      append_to_response: 'aggregate_credits,keywords,images',`,
-`      append_to_response: 'aggregate_credits,keywords,images,translations',`,
-  'TV translations response',
-);
-replaceOnce(
-`    append_to_response: 'credits,keywords,images',`,
-`    append_to_response: 'credits,keywords,images,translations',`,
-  'movie translations response',
-);
-
-replaceOnce(
-`  const originalLanguage = cleanText(details?.original_language || item?.originalLanguage).toLowerCase();
-  const posterPath = cleanText(details?.poster_path) || bestTmdbImagePath(details?.images?.posters, 'poster');`,
-`  const originalLanguage = cleanText(details?.original_language || item?.originalLanguage).toLowerCase();
-  const translations = Array.isArray(details?.translations?.translations)
-    ? details.translations.translations
-    : [];
-  const persianTranslation = translations.find((entry) =>
-    cleanText(entry?.iso_639_1).toLowerCase() === 'fa' ||
-    cleanText(entry?.iso_3166_1).toUpperCase() === 'IR'
-  );
-  const translatedOverview = cleanText(persianTranslation?.data?.overview);
-  const overview = translatedOverview || cleanText(details?.overview);
-  const posterPath = cleanText(details?.poster_path) || bestTmdbImagePath(details?.images?.posters, 'poster');`,
-  'derive translated overview',
+replaceRequired(
+`  if (
+    hasCompleteTmdbPeople(item.people) &&
+    hasCompleteTmdbMetadata(item) &&
+    Number(item.tmdbValidationVersion || 0) >= 5
+  ) {`,
+`  if (
+    hasCompleteTmdbPeople(item.people) &&
+    hasCompleteTmdbMetadata(item) &&
+    Number(item.tmdbValidationVersion || 0) >= 5 &&
+    (!isMissingOverview(item.overview) || Number(cached?.metadata?.overviewAuditVersion || 0) >= 2)
+  ) {`,
+  'do not skip unaudited placeholder overview',
 );
 
-replaceOnce(
-`    isDocumentary,
-    validationVersion: 7,`,
-`    isDocumentary,
-    validationVersion: 7,
-    overviewAuditVersion: 1,`,
-  'overview audit version',
+replaceRequired(
+`    overviewAuditVersion: 1,`,
+`    overviewAuditVersion: 2,`,
+  'overview audit version v2',
 );
 
-replaceOnce(
-`    originalLanguage,
-    ...(posterFallback ? { posterFallback } : {}),`,
-`    originalLanguage,
-    ...(overview ? { overview } : {}),
-    ...(posterFallback ? { posterFallback } : {}),`,
-  'overview metadata field',
+replaceRequired(
+`  if (!cleanText(item.overview) && metadataOverview) item.overview = metadataOverview;`,
+`  if (isMissingOverview(item.overview) && metadataOverview) item.overview = metadataOverview;`,
+  'replace placeholder overview',
 );
 
-replaceOnce(
-`    originalLanguage: item.originalLanguage,
-    poster: item.poster,`,
-`    originalLanguage: item.originalLanguage,
-    overview: item.overview,
-    poster: item.poster,`,
-  'before snapshot overview',
-);
-
-replaceOnce(
-`  if (originalLanguage) item.originalLanguage = originalLanguage;
-  if (metadata.collectionId) item.collectionId = cleanText(metadata.collectionId);`,
-`  if (originalLanguage) item.originalLanguage = originalLanguage;
-  const metadataOverview = cleanText(metadata.overview);
-  if (!cleanText(item.overview) && metadataOverview) item.overview = metadataOverview;
-  if (metadata.collectionId) item.collectionId = cleanText(metadata.collectionId);`,
-  'apply missing overview',
-);
-
-const firstOverviewSnapshot = source.indexOf('overview: item.overview,');
-const secondSnapshotAnchor = source.indexOf('  const after = JSON.stringify({');
-if (secondSnapshotAnchor < 0) throw new Error('Missing after snapshot');
-const secondOverviewSnapshot = source.indexOf('overview: item.overview,', secondSnapshotAnchor);
-if (secondOverviewSnapshot < 0) {
-  const anchor = `    originalLanguage: item.originalLanguage,\n    poster: item.poster,`;
-  const pos = source.indexOf(anchor, secondSnapshotAnchor);
-  if (pos < 0) throw new Error('Missing after snapshot overview anchor');
-  source = source.slice(0, pos) + `    originalLanguage: item.originalLanguage,\n    overview: item.overview,\n    poster: item.poster,` + source.slice(pos + anchor.length);
+if (!source.includes('function isMissingOverview(value) {')) {
+  replaceRequired(
+`function cleanText(value) {
+  return String(value ?? '').replace(/\\s+/g, ' ').trim();
+}`,
+`function isMissingOverview(value) {
+  const text = cleanText(value);
+  if (!text) return true;
+  return /^(?:توضیحی\\s+ثبت\\s+نشده(?:\\s+است)?[.!؟]?|بدون\\s+توضیح[.!؟]?|خلاصه(?:\\s+داستان)?\\s+ثبت\\s+نشده(?:\\s+است)?[.!؟]?|no\\s+(?:description|overview)(?:\\s+(?:available|provided))?[.!?]?)$/i.test(text);
 }
-if (firstOverviewSnapshot < 0) throw new Error('Missing before overview snapshot');
+
+function cleanText(value) {
+  return String(value ?? '').replace(/\\s+/g, ' ').trim();
+}`,
+    'missing-overview helper',
+  );
+}
 
 await fs.writeFile(target, source, 'utf8');
 
@@ -117,12 +90,20 @@ test('missing overview prefers Persian TMDB translation and falls back to TMDB o
   assert.ok(source.includes('...(overview ? { overview } : {})'));
 });
 
-test('overview audit invalidates old TMDB cache once without overwriting existing descriptions', () => {
-  assert.ok(source.includes('Number(cached?.metadata?.overviewAuditVersion || 0) >= 1'));
-  assert.ok(source.includes('overviewAuditVersion: 1'));
-  assert.ok(source.includes('if (!cleanText(item.overview) && metadataOverview) item.overview = metadataOverview;'));
+test('provider placeholder overview is treated as missing and gets a v2 audit', () => {
+  assert.ok(source.includes('function isMissingOverview(value)'));
+  assert.ok(source.includes('توضیحی\\\\s+ثبت\\\\s+نشده'));
+  assert.ok(source.includes('Number(cached?.metadata?.overviewAuditVersion || 0) >= 2'));
+  assert.ok(source.includes('overviewAuditVersion: 2'));
+  assert.ok(source.includes('if (isMissingOverview(item.overview) && metadataOverview) item.overview = metadataOverview;'));
+});
+
+test('a real existing overview is still never overwritten', () => {
+  const assignment = 'if (isMissingOverview(item.overview) && metadataOverview) item.overview = metadataOverview;';
+  assert.ok(source.includes(assignment));
+  assert.ok(!source.includes('if (metadataOverview) item.overview = metadataOverview;'));
 });
 `;
 await fs.writeFile(regressionPath, regression, 'utf8');
 
-console.log('Applied overview + cast/crew enrichment regression fix.');
+console.log('Applied overview + cast/crew enrichment v2 (placeholder-aware).');
