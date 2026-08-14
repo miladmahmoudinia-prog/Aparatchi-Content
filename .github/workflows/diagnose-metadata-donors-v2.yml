@@ -1,0 +1,24 @@
+name: Diagnose metadata donors v2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/diagnose-metadata-donors-v2.mjs
+      - .github/workflows/diagnose-metadata-donors-v2.yml
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout catalog
+        uses: actions/checkout@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Diagnose metadata donors
+        run: node scripts/diagnose-metadata-donors-v2.mjs
