@@ -1,0 +1,115 @@
+name: Repair three strict Wikidata people records
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/repair-three-wikidata-people.mjs
+      - .github/workflows/repair-three-wikidata-people.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout latest content
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Verify repair script syntax
+        run: node --check scripts/repair-three-wikidata-people.mjs
+
+      - name: Repair strictly matched Wikidata people
+        run: node scripts/repair-three-wikidata-people.mjs
+
+      - name: Rebuild app-facing catalog
+        run: node scripts/rebuild-client-catalog.mjs
+
+      - name: Verify exact repaired titles
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
+          const byId = new Map((catalog.items || []).map((item) => [String(item.id), item]));
+          const expectations = [
+            ['d4ce5000-1239-11eb-9b55-81572d8b7f9d', 'Q14755924', 1],
+            ['d48b6550-3504-11ee-8531-8542df699297', 'Q14756175', 5],
+            ['d34d38f0-f21d-11e8-ac04-371dd81d941a', 'Q14756449', 2],
+          ];
+          for (const [id, qid, minPeople] of expectations) {
+            const item = byId.get(id);
+            if (!item) throw new Error(`Missing repaired catalog item ${id}`);
+            const people = (item.people || []).filter((person) =>
+              person && ['actor','director'].includes(String(person.role || '')) &&
+              (String(person.name || '').trim() || String(person.nameFa || '').trim())
+            );
+            if (people.length < minPeople) throw new Error(`${id}: expected >= ${minPeople} people, got ${people.length}`);
+            if (!people.some((person) => person.role === 'director')) throw new Error(`${id}: no director after repair`);
+            if (item.peopleMetadataSource !== 'wikidata-strict') throw new Error(`${id}: people source marker missing`);
+            if (item.wikidata?.id !== qid || item.wikidata?.verifiedPeople !== true) throw new Error(`${id}: Wikidata verification marker mismatch`);
+          }
+          console.log('Exact Wikidata people repairs verified.');
+          NODE
+
+      - name: Verify app-facing details contain repaired people
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const index = JSON.parse(fs.readFileSync('catalog-index.json', 'utf8'));
+          const expectations = new Map([
+            ['d4ce5000-1239-11eb-9b55-81572d8b7f9d', 1],
+            ['d48b6550-3504-11ee-8531-8542df699297', 5],
+            ['d34d38f0-f21d-11e8-ac04-371dd81d941a', 2],
+          ]);
+          const rows = Array.isArray(index) ? index : (index.items || []);
+          for (const [id, minPeople] of expectations) {
+            const row = rows.find((item) => String(item.id) === id);
+            if (!row) throw new Error(`Index missing ${id}`);
+            const detailPath = String(row.detailPath || '').trim();
+            if (!detailPath) throw new Error(`${id}: missing detailPath`);
+            const detail = JSON.parse(fs.readFileSync(detailPath, 'utf8'));
+            const people = (detail.people || []).filter((person) => person && ['actor','director'].includes(String(person.role || '')));
+            if (people.length < minPeople) throw new Error(`${id}: app detail has ${people.length} people, expected >= ${minPeople}`);
+          }
+          console.log('App-facing detail people verified.');
+          NODE
+
+      - name: Commit verified Wikidata people repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "aparatchi-content-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add catalog.json catalog-index.json catalog-items catalog-manifest.json
+          if git diff --cached --quiet; then
+            echo "No Wikidata people changes to commit."
+            exit 0
+          fi
+          git commit -m "fix: add verified people for three Iranian archive titles"
+          PUSHED=0
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              PUSHED=1
+              break
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          [ "$PUSHED" -eq 1 ] || exit 1
