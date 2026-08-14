@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildClientCatalogArtifacts, clientSummaryForItem } from '../client-catalog.mjs';
 
-test('client index strips heavy media fields but preserves browse metadata and compact cast identities', () => {
+test('client item summary strips heavy media and duplicated cast identities', () => {
   const item = {
     id: 'series-1', type: 'series', slug: 'series-1', ir: false, year: 2025,
     nameFa: 'نمونه', name: 'Sample', poster: 'p.jpg', backdrop: 'b.jpg',
@@ -20,10 +20,7 @@ test('client index strips heavy media fields but preserves browse metadata and c
   assert.equal(summary.episodeCount, 20);
   assert.ok(summary.detailPath.startsWith('catalog-items/'));
   assert.equal('downloads' in summary, false);
-  assert.deepEqual(summary.people, [{ id: 'p1', nameFa: 'بازیگر', name: 'Actor', role: 'actor', tmdbId: 42 }]);
-  assert.equal('image' in summary.people[0], false);
-  assert.equal('character' in summary.people[0], false);
-  assert.equal('popularity' in summary.people[0], false);
+  assert.equal('people' in summary, false);
   assert.ok(summary.overview.length < item.overview.length);
 });
 
@@ -54,8 +51,9 @@ test('client catalog remains much smaller by not embedding episode files and ful
   const artifacts = buildClientCatalogArtifacts(catalog);
   const fullBytes = Buffer.byteLength(JSON.stringify(catalog));
   assert.ok(artifacts.clientSizeBytes < fullBytes * 0.35);
-  assert.equal(artifacts.index.items[0].people.length, 25);
-  assert.equal('image' in artifacts.index.items[0].people[0], false);
+  assert.equal('people' in artifacts.index.items[0], false);
+  assert.deepEqual(artifacts.index.peopleWorks['tmdb:1000'], [0]);
+  assert.ok(Object.values(artifacts.index.peopleWorks).every((indexes) => indexes.every(Number.isInteger)));
 });
 
 test('client index hides zero-media movies/series but keeps previously visible series with usable media', () => {

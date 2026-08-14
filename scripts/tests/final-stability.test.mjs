@@ -10,7 +10,7 @@ test('client index exposes a compact reverse people-to-works map', () => {
     { id: 'm2', type: 'movie', ir: true, nameFa: 'دو', name: 'Two', people: [person], downloads: media },
   ] };
   const { index } = buildClientCatalogArtifacts(catalog);
-  assert.deepEqual(index.peopleWorks['tmdb:123'], ['m1', 'm2']);
-  assert.deepEqual(index.peopleWorks['name:test actor'], ['m1', 'm2']);
-  assert.deepEqual(index.peopleWorks['name:بازیگر تست'], ['m1', 'm2']);
+  assert.deepEqual(index.peopleWorks['tmdb:123'], [0, 1]);
+  assert.deepEqual(index.peopleWorks['name:test actor'], [0, 1]);
+  assert.deepEqual(index.peopleWorks['name:بازیگر تست'], [0, 1]);
 });

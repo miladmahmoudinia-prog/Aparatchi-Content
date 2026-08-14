@@ -258,13 +258,9 @@ export function clientSummaryForItem(item) {
   if (summary.overview) summary.overview = truncateOverview(summary.overview);
   summary.availableLanguages = deriveClientLanguages(item);
 
-  // Actor/director profile pages need a reverse lookup from person -> titles.
-  // Keep only identity fields in the lightweight index; photos, character names,
-  // bios and the rest of the heavy cast payload remain in the lazy detail shard.
-  // This preserves fast startup while preventing every person profile from
-  // incorrectly showing "0 titles".
-  const compactPeople = compactPersonReferences(item?.people);
-  if (compactPeople.length) summary.people = compactPeople;
+  // People are intentionally excluded from every item summary. The reverse
+  // peopleWorks index below preserves actor/director search and profile works
+  // without duplicating the same identities inside thousands of catalog rows.
 
   const identityHash = digest(`${item?.type || 'item'}:${item?.id || ''}`, 12);
   const detailSerialized = `${stableJson(item)}\n`;
@@ -373,11 +369,15 @@ export function buildClientCatalogArtifacts(catalog) {
     // visible. Normalize this bit so an older catalog missing the field cannot
     // be hidden again by the mobile publication gate.
     if (item.type === 'series') summary.publicationStatus = 'published';
+    const itemIndex = items.length;
     items.push(summary);
-    for (const person of Array.isArray(summary.people) ? summary.people : []) {
+    for (const person of Array.isArray(item.people) ? item.people : []) {
       for (const key of peopleWorkKeysForPerson(person)) {
         if (!peopleWorks[key]) peopleWorks[key] = [];
-        if (!peopleWorks[key].includes(summary.id)) peopleWorks[key].push(summary.id);
+        // Transport item indexes instead of repeating long string IDs for every
+        // actor alias. The mobile parser resolves these indexes back to the
+        // existing item.id strings without duplicating string payloads.
+        if (!peopleWorks[key].includes(itemIndex)) peopleWorks[key].push(itemIndex);
       }
     }
     detailFiles.push({ path: summary.detailPath, serialized: detailSerialized });
