@@ -9,7 +9,10 @@ const safeFiles = (detail) => (detail.downloads || []).flatMap((section) =>
 
 const samples = [
   { key: 'memory', names: ['memory of a killer', 'خاطرات یک آدمکش'], expected: ['subtitled'] },
-  { key: 'hijack', names: ['hijack', 'ربودن'], expected: ['dubbed'] },
+  // Upera currently exposes two distinct concrete download families for Hijack:
+  // -0- (dubbed) and -11- (explicitly subtitled). Keep both; the Mobile sheet
+  // must label them separately instead of hiding the real subtitle family.
+  { key: 'hijack', names: ['hijack', 'ربودن'], expected: ['dubbed', 'subtitled'] },
   { key: 'fire-force', names: ['fire force', 'نیروی آتش'], expected: ['subtitled'] },
 ];
 
