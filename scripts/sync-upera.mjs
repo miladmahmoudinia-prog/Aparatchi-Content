@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { writeClientCatalogArtifacts } from './client-catalog.mjs';
+import { applyVerifiedPersianTitleOverrides } from './persian-title-overrides.mjs';
 import {
   classifyCatalogItem as classifyCatalogRules,
   isManagedCategoryKey as managedCategoryKey,
@@ -8296,6 +8297,7 @@ async function writeJson(
 }
 
 async function writeCatalogAndManifest(value) {
+  applyVerifiedPersianTitleOverrides(value);
   const serialized = `${JSON.stringify(value, null, 2)}\n`;
   const clientArtifacts = await writeClientCatalogArtifacts(root, value);
   const manifest = {

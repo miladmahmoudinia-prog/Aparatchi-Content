@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { writeClientCatalogArtifacts } from './client-catalog.mjs';
 import { createHash } from 'node:crypto';
+import { applyVerifiedPersianTitleOverrides } from './persian-title-overrides.mjs';
 
 const root = process.cwd();
 const catalogPath = path.join(root, 'catalog.json');
@@ -117,6 +118,12 @@ for (const item of candidates) {
       error: cleanText(error instanceof Error ? error.message : String(error)).slice(0, 240),
     };
   }
+}
+
+const verifiedOverrideResult = applyVerifiedPersianTitleOverrides(catalog);
+if (verifiedOverrideResult.titleChanges || verifiedOverrideResult.collectionChanges) {
+  changed = true;
+  titlesFilled += verifiedOverrideResult.titleChanges;
 }
 
 cache.updatedAt = new Date().toISOString();
