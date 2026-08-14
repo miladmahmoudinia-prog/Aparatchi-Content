@@ -149,6 +149,35 @@ let tvMazeTitlesUsed = 0;
 let personImageLookupsUsed = 0;
 let catalogChanged = false;
 
+const METADATA_RETRY_VERSION = 1;
+
+function hasMeaningfulCastOrDirector(item) {
+  return (Array.isArray(item?.people) ? item.people : []).some((person) =>
+    person && ['actor', 'director'].includes(cleanText(person.role)) &&
+    Boolean(cleanText(person.name) || cleanText(person.nameFa))
+  );
+}
+
+function isOperatorCatalogItem(item) {
+  return Boolean(
+    item?.operatorOnly === true || item?.operatorAccess ||
+    (Array.isArray(item?.supportedOperators) && item.supportedOperators.length) ||
+    (Array.isArray(item?.downloads) && item.downloads.some((section) =>
+      (Array.isArray(section?.files) ? section.files : []).some((media) =>
+        /^operator-(?:play|download)$/.test(cleanText(media?.mode))
+      )
+    ))
+  );
+}
+
+function needsPriorityMetadataRepair(item, cached) {
+  if (!(isIranianCatalogItem(item) || isOperatorCatalogItem(item))) return false;
+  const incomplete = isMissingOverview(item?.overview) ||
+    !hasMeaningfulCastOrDirector(item) ||
+    (isIranianCatalogItem(item) && !containsPersian(item?.nameFa));
+  return incomplete && Number(cached?.metadataRetryVersion || 0) < METADATA_RETRY_VERSION;
+}
+
 for (const item of catalog.items) {
   if (!item || typeof item !== 'object') continue;
   report.considered += 1;
@@ -170,7 +199,7 @@ for (const item of catalog.items) {
   if (cached && cached.signature === signature && cachedMetadataCurrent && !isCacheStale(cached.fetchedAt, refreshDays)) {
     report.cacheApplied += 1;
 
-    if (cached.tmdb === null) {
+    if (cached.tmdb === null && !needsPriorityMetadataRepair(item, cached)) {
       const sanitized = sanitizeInvalidTmdbData(item);
       const localPeople = removeTmdbPeople(item.people);
       const restoredPeople = Array.isArray(cached.people)
@@ -203,7 +232,7 @@ for (const item of catalog.items) {
         if (peopleChanged) report.enrichedPeople += merged.filter((person) => person?.image).length;
         if (metadataChanged) report.classificationUpdated += 1;
       }
-      if (hasCompleteTmdbMetadata(item)) continue;
+      if (hasCompleteTmdbMetadata(item) && hasCompleteTmdbPeople(item.people)) continue;
     }
   }
 
@@ -252,6 +281,9 @@ for (const item of catalog.items) {
         tmdb: null,
         people: peopleWithImages,
         metadata: null,
+        metadataRetryVersion: needsPriorityMetadataRepair(item, cached)
+          ? METADATA_RETRY_VERSION
+          : Number(cached?.metadataRetryVersion || 0),
       };
       continue;
     }
@@ -953,7 +985,9 @@ function isTmdbDetailsCompatible(item, details, mediaType, matchSource = '') {
   const iranian = isIranianCatalogItem(item);
   const codes = detailsCountryCodes(details, mediaType);
   const originalLanguage = cleanText(details?.original_language).toLowerCase();
-  if (iranian && originalLanguage !== 'fa' && !codes.includes('IR')) return false;
+  const strongIranianIdentity = cleanText(item?.originalLanguage).toLowerCase() === 'fa' ||
+    containsPersian(item?.nameFa) || containsPersian(item?.name);
+  if (iranian && strongIranianIdentity && originalLanguage !== 'fa' && !codes.includes('IR')) return false;
 
   const sourceGenreText = (Array.isArray(item?.genres) ? item.genres : []).map(cleanText).join(' ');
   const sourceNarrative = /درام|ترسناک|وحشت|هیجان|اکشن|کمدی|عاشقانه|خانوادگی|جنایی|ماجراجویی|علمی\s*تخیلی|drama|horror|thriller|action|comedy|romance|family|crime|adventure|science\s*fiction|sci-fi/i.test(sourceGenreText);
