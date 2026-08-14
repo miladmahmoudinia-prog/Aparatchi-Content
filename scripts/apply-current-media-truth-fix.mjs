@@ -14,6 +14,23 @@ if (source.includes(before)) {
 
 await fs.writeFile(clientPath, source, 'utf8');
 
+// Older transport tests intentionally exercise visibility/people indexing rather
+// than language classification. Make those fixtures explicitly Iranian so their
+// unlabeled local media cannot be mistaken for foreign original media.
+const clientCatalogTestPath = path.join('scripts', 'tests', 'client-catalog.test.mjs');
+let clientCatalogTests = await fs.readFile(clientCatalogTestPath, 'utf8');
+clientCatalogTests = clientCatalogTests
+  .replace("{ id: 'locked', type: 'series', nameFa:", "{ id: 'locked', type: 'series', ir: true, nameFa:")
+  .replace("{ id: 'published', type: 'series', nameFa:", "{ id: 'published', type: 'series', ir: true, nameFa:");
+await fs.writeFile(clientCatalogTestPath, clientCatalogTests, 'utf8');
+
+const finalStabilityTestPath = path.join('scripts', 'tests', 'final-stability.test.mjs');
+let finalStabilityTests = await fs.readFile(finalStabilityTestPath, 'utf8');
+finalStabilityTests = finalStabilityTests
+  .replace("{ id: 'm1', type: 'movie', nameFa:", "{ id: 'm1', type: 'movie', ir: true, nameFa:")
+  .replace("{ id: 'm2', type: 'movie', nameFa:", "{ id: 'm2', type: 'movie', ir: true, nameFa:");
+await fs.writeFile(finalStabilityTestPath, finalStabilityTests, 'utf8');
+
 const testPath = path.join('scripts', 'tests', 'current-media-truth.test.mjs');
 const regression = `import test from 'node:test';
 import assert from 'node:assert/strict';
