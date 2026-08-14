@@ -1,0 +1,26 @@
+name: Diagnose strict Persian Wikipedia metadata coverage
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/diagnose-fawiki-metadata-coverage.mjs
+      - .github/workflows/diagnose-fawiki-metadata-coverage.yml
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout catalog
+        uses: actions/checkout@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Verify diagnostic syntax
+        run: node --check scripts/diagnose-fawiki-metadata-coverage.mjs
+      - name: Diagnose strict Persian Wikipedia metadata coverage
+        run: node scripts/diagnose-fawiki-metadata-coverage.mjs
