@@ -5,6 +5,7 @@ const items = Array.isArray(catalog?.items) ? catalog.items : [];
 const IRAN_QID = 'Q794';
 const FILM_TYPES = new Set(['Q11424','Q24869','Q24862','Q506240','Q93204','Q202866','Q208569']);
 const SERIES_TYPES = new Set(['Q5398426','Q526877','Q1259759','Q581714']);
+const diagnosticLimit = Math.max(1, Math.min(500, Number(process.env.FAWIKI_DIAG_LIMIT || 500)));
 
 const clean = (v) => String(v ?? '').replace(/\s+/g, ' ').trim();
 const norm = (v) => clean(v).toLowerCase().normalize('NFKC')
@@ -33,7 +34,6 @@ async function faWikiSearch(query) {
   const url = new URL('https://fa.wikipedia.org/w/api.php');
   url.searchParams.set('action', 'query');
   url.searchParams.set('format', 'json');
-  url.searchParams.set('origin', '*');
   url.searchParams.set('generator', 'search');
   url.searchParams.set('gsrsearch', `intitle:"${query.replace(/"/g, '')}"`);
   url.searchParams.set('gsrnamespace', '0');
@@ -41,11 +41,18 @@ async function faWikiSearch(query) {
   url.searchParams.set('prop', 'pageprops');
   url.searchParams.set('ppprop', 'wikibase_item');
   const response = await fetch(url, {
-    headers: { accept: 'application/json', 'user-agent': 'Aparatchi-Metadata/1.0 (strict Persian Wikipedia lookup)' },
+    headers: {
+      accept: 'application/json',
+      'user-agent': 'Aparatchi-Metadata/1.0 (contact: github.com/miladmahmoudinia-prog/Aparatchi-Content)',
+    },
     signal: AbortSignal.timeout(10000),
   });
-  if (!response.ok) throw new Error(`faWiki HTTP ${response.status}`);
+  if (!response.ok) {
+    const body = clean(await response.text()).slice(0, 240);
+    throw new Error(`faWiki HTTP ${response.status}${body ? `: ${body}` : ''}`);
+  }
   const payload = await response.json();
+  if (payload?.error) throw new Error(`faWiki API ${payload.error.code}: ${payload.error.info}`);
   return Object.values(payload?.query?.pages || {});
 }
 
@@ -53,13 +60,15 @@ async function wikidataEntity(id) {
   const url = new URL('https://www.wikidata.org/w/api.php');
   url.searchParams.set('action', 'wbgetentities');
   url.searchParams.set('format', 'json');
-  url.searchParams.set('origin', '*');
   url.searchParams.set('ids', id);
   url.searchParams.set('props', 'labels|claims|sitelinks');
   url.searchParams.set('languages', 'fa|en');
   url.searchParams.set('sitefilter', 'fawiki|enwiki');
   const response = await fetch(url, {
-    headers: { accept: 'application/json', 'user-agent': 'Aparatchi-Metadata/1.0 (strict Persian Wikipedia lookup)' },
+    headers: {
+      accept: 'application/json',
+      'user-agent': 'Aparatchi-Metadata/1.0 (contact: github.com/miladmahmoudinia-prog/Aparatchi-Content)',
+    },
     signal: AbortSignal.timeout(10000),
   });
   if (!response.ok) throw new Error(`Wikidata HTTP ${response.status}`);
@@ -111,16 +120,22 @@ function validate(item, entity, pageTitle) {
 }
 
 const targets = items.filter(target);
-const eligible = targets.filter((item) => item.nameFaGenerated !== true && hasPersian(item.nameFa));
+const allEligible = targets.filter((item) => item.nameFaGenerated !== true && hasPersian(item.nameFa));
+const eligible = allEligible.slice(0, diagnosticLimit);
 const matches = [];
+const errorSamples = [];
 let errors = 0;
 
 for (let index = 0; index < eligible.length; index += 1) {
   const item = eligible[index];
   let pages = [];
   try { pages = await faWikiSearch(clean(item.nameFa)); }
-  catch { errors += 1; continue; }
-  await sleep(25);
+  catch (error) {
+    errors += 1;
+    if (errorSamples.length < 12) errorSamples.push({ id:item.id, nameFa:item.nameFa, error:String(error?.message || error) });
+    continue;
+  }
+  await sleep(80);
 
   let found = null;
   for (const page of pages) {
@@ -128,8 +143,12 @@ for (let index = 0; index < eligible.length; index += 1) {
     if (!/^Q\d+$/i.test(qid)) continue;
     let entity = null;
     try { entity = await wikidataEntity(qid); }
-    catch { errors += 1; continue; }
-    await sleep(25);
+    catch (error) {
+      errors += 1;
+      if (errorSamples.length < 12) errorSamples.push({ id:item.id, nameFa:item.nameFa, qid, error:String(error?.message || error) });
+      continue;
+    }
+    await sleep(80);
     const verdict = validate(item, entity, page?.title);
     if (verdict) { found = { qid, ...verdict }; break; }
   }
@@ -150,17 +169,19 @@ for (let index = 0; index < eligible.length; index += 1) {
       cast: found.cast.length,
     });
   }
-  if ((index + 1) % 25 === 0) console.log(`PROGRESS=${index + 1}/${eligible.length} MATCHED=${matches.length}`);
 }
 
 console.log(JSON.stringify({
   currentTargets: targets.length,
-  eligiblePersianTargets: eligible.length,
+  totalEligiblePersianTargets: allEligible.length,
+  attemptedEligibleTargets: eligible.length,
   strictFaWikiMatches: matches.length,
   matchesWithPeople: matches.filter((m) => m.directors + m.cast > 0).length,
   matchesForMissingPeople: matches.filter((m) => m.missingPeople && m.directors + m.cast > 0).length,
   matchesForMissingOverview: matches.filter((m) => m.missingOverview).length,
   errors,
 }, null, 2));
+console.log('--- ERROR SAMPLES ---');
+console.log(JSON.stringify(errorSamples, null, 2));
 console.log('--- STRICT FAWIKI MATCHES ---');
 console.log(JSON.stringify(matches, null, 2));
