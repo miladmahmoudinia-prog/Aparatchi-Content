@@ -2,13 +2,22 @@ name: Stable detail audit v3
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/client-catalog.mjs'
+      - 'scripts/tests/client-catalog.test.mjs'
+      - 'scripts/test-stable-detail-alias-v1.mjs'
+      - 'scripts/audit-real-mobile-media-v2.mjs'
+      - '.github/workflows/stable-detail-alias-v1.yml'
 
 permissions:
   contents: read
 
-# Stable pointer generation is now native in scripts/client-catalog.mjs and the
+# Stable pointer generation is native in scripts/client-catalog.mjs and the
 # hourly Sync Upera workflow commits catalog-stable together with catalog-index.
-# Keep this workflow as an explicit integrity audit instead of re-patching code.
+# This workflow audits the architecture and the entire currently published
+# catalog without adding another write path or rebuilding generated content.
 jobs:
   verify:
     runs-on: ubuntu-latest
