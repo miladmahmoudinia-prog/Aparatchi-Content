@@ -1,4 +1,4 @@
-name: Stable detail aliases v1
+name: Stable detail aliases v2
 
 on:
   push:
@@ -6,22 +6,24 @@ on:
     paths:
       - 'scripts/patch-stable-detail-alias-v1.mjs'
       - 'scripts/test-stable-detail-alias-v1.mjs'
+      - 'catalog-index.json'
       - '.github/workflows/stable-detail-alias-v1.yml'
   workflow_dispatch:
 
 permissions:
   contents: write
 
-# Stable aliases and the hourly catalog sync both publish generated client files.
-# They must never rewrite main concurrently or the final rebase/push can race.
+# Stable pointers are tiny and can be rebuilt independently of the long hourly
+# catalog sync. If a sync changes catalog-index.json, this workflow runs again
+# from that exact revision so pointers never remain stale after content rotates.
 concurrency:
-  group: aparatchi-content-write-lock
-  cancel-in-progress: false
+  group: aparatchi-content-stable-detail-pointers
+  cancel-in-progress: true
 
 jobs:
   patch-build-verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 25
     steps:
       - name: Checkout content
         uses: actions/checkout@v6
@@ -32,13 +34,13 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: '22'
-      - name: Patch stable detail aliases
+      - name: Patch stable detail pointers
         run: node scripts/patch-stable-detail-alias-v1.mjs
       - name: Run full content regressions
         run: node --test scripts/tests/*.test.mjs
-      - name: Rebuild client artifacts with stable aliases
+      - name: Rebuild client artifacts with stable pointers
         run: node scripts/rebuild-client-index.mjs
-      - name: Verify every published title has a stable detail alias
+      - name: Verify every published title has a stable pointer
         run: node scripts/test-stable-detail-alias-v1.mjs
       - name: Verify real published media audit
         run: node scripts/audit-real-mobile-media-v2.mjs
@@ -49,26 +51,19 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Include generated aliases even though they are new/untracked files.
-          git add -A -- scripts/client-catalog.mjs scripts/tests/client-catalog.test.mjs .github/workflows/sync-upera.yml .github/workflows/compact-client-index-v2.yml catalog-index.json catalog-manifest.json catalog-items catalog-stable
-          echo "Status before commit:"
-          git status --short
+          # Do not republish catalog-index/catalog-items from this runner. Sync owns
+          # those files. We only publish the generator changes and tiny stable
+          # pointers built from the checked-out index/detail revision.
+          git add -A -- scripts/client-catalog.mjs scripts/tests/client-catalog.test.mjs .github/workflows/sync-upera.yml .github/workflows/compact-client-index-v2.yml catalog-stable
           if git diff --cached --quiet; then
             echo "No stable-detail changes to commit."
             exit 0
           fi
-          git commit -m "fix: publish stable detail aliases for every title"
+          git commit -m "fix: publish lightweight stable detail pointers"
 
-          # Generated audit progress outside the intended publication is local to
-          # this runner. The verified files are already captured in HEAD.
+          # Keep only the verified commit, then rebase it onto any harmless main
+          # movement. A later Sync index change triggers this workflow again.
           git reset --hard HEAD
           git clean -fd
-
-          # The shared aparatchi-content-write-lock prevents Sync Upera from
-          # moving main while this publication is in progress.
-          git fetch origin main
-          if [ "$(git rev-parse origin/main)" != "$(git rev-parse HEAD^)" ]; then
-            echo "main moved outside the shared content writer lock; refusing a stale publication."
-            exit 1
-          fi
+          git pull --rebase origin main
           git push origin HEAD:main
