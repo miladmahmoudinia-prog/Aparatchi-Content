@@ -13,7 +13,11 @@ permissions:
 
 concurrency:
   group: aparatchi-content-write-lock
-  cancel-in-progress: false
+  # This is a one-shot catalog repair. If an hourly sync is holding the shared
+  # content writer lock, its committed checkpoints are safe and the next hourly
+  # run can resume them. Prioritize this integrity repair instead of waiting
+  # behind unrelated long-running archive/enrichment stages.
+  cancel-in-progress: true
 
 jobs:
   repair-and-verify:
