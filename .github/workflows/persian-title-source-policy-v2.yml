@@ -1,10 +1,10 @@
-name: Persian title source policy v2
+name: Persian title source policy v3
 
 on:
   push:
     branches: [main]
     paths:
-      - 'scripts/patch-persian-title-source-policy-v2.mjs'
+      - 'scripts/patch-persian-title-source-policy-v3.mjs'
       - '.github/workflows/persian-title-source-policy-v2.yml'
   workflow_dispatch:
 
@@ -13,10 +13,6 @@ permissions:
 
 concurrency:
   group: aparatchi-content-write-lock
-  # This is a one-shot catalog repair. If an hourly sync is holding the shared
-  # content writer lock, its committed checkpoints are safe and the next hourly
-  # run can resume them. Prioritize this integrity repair instead of waiting
-  # behind unrelated long-running archive/enrichment stages.
   cancel-in-progress: true
 
 jobs:
@@ -28,26 +24,32 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: main
-          fetch-depth: 30
+          fetch-depth: 80
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '22'
 
-      - name: Patch permanent Persian title source policy
-        run: node scripts/patch-persian-title-source-policy-v2.mjs
+      - name: Patch conservative Persian title source policy
+        run: node scripts/patch-persian-title-source-policy-v3.mjs
 
-      - name: Verify transliteration regression fixtures
-        run: node --test scripts/tests/persian-title-source-policy-v2.test.mjs
+      - name: Verify transliteration and proper-name regression fixtures
+        run: node --test scripts/tests/persian-title-source-policy-v3.test.mjs
 
-      - name: Repair and audit the whole current catalog
-        run: node scripts/repair-transliterated-persian-titles-v2.mjs
+      - name: Recover titles from before the broad repair
+        shell: bash
+        run: git show 7c3062bed1a36b19ed59569491ca4f80336a2af3:catalog.json > /tmp/catalog-before-broad-title-repair.json
+
+      - name: Repair and audit the whole current catalog conservatively
+        env:
+          PRE_REPAIR_CATALOG: /tmp/catalog-before-broad-title-repair.json
+        run: node scripts/repair-transliterated-persian-titles-v3.mjs
 
       - name: Verify stable detail pointers after title rebuild
         run: node scripts/test-stable-detail-alias-v1.mjs
 
-      - name: Commit verified global title repair
+      - name: Commit verified conservative title repair
         shell: bash
         run: |
           set -euo pipefail
@@ -55,8 +57,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A -- \
             scripts/persian-title-overrides.mjs \
-            scripts/repair-transliterated-persian-titles-v2.mjs \
-            scripts/tests/persian-title-source-policy-v2.test.mjs \
+            scripts/repair-transliterated-persian-titles-v3.mjs \
+            scripts/tests/persian-title-source-policy-v3.test.mjs \
             catalog.json \
             catalog-index.json \
             catalog-items \
@@ -64,11 +66,11 @@ jobs:
             catalog-manifest.json
 
           if git diff --cached --quiet; then
-            echo "No Persian title source-policy changes to commit."
+            echo "No conservative Persian title changes to commit."
             exit 0
           fi
 
-          git commit -m "fix: reject synthetic Persian transliterations globally"
+          git commit -m "fix: preserve valid Persian proper-name titles"
           PUSHED=0
           for attempt in 1 2 3 4 5; do
             if git pull --rebase origin main && git push origin HEAD:main; then
@@ -76,7 +78,7 @@ jobs:
               break
             fi
             git rebase --abort >/dev/null 2>&1 || true
-            echo "Repository changed during title-policy push; retry ${attempt}/5"
+            echo "Repository changed during conservative title-policy push; retry ${attempt}/5"
             sleep $((attempt * 2))
           done
           [ "$PUSHED" -eq 1 ] || exit 1
