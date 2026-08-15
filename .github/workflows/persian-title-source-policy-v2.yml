@@ -1,10 +1,10 @@
-name: Persian title source policy v3
+name: Persian title source policy v4
 
 on:
   push:
     branches: [main]
     paths:
-      - 'scripts/patch-persian-title-source-policy-v3.mjs'
+      - 'scripts/patch-persian-title-source-policy-v4.mjs'
       - '.github/workflows/persian-title-source-policy-v2.yml'
   workflow_dispatch:
 
@@ -32,7 +32,7 @@ jobs:
           node-version: '22'
 
       - name: Patch conservative Persian title source policy
-        run: node scripts/patch-persian-title-source-policy-v3.mjs
+        run: node scripts/patch-persian-title-source-policy-v4.mjs
 
       - name: Verify transliteration and proper-name regression fixtures
         run: node --test scripts/tests/persian-title-source-policy-v3.test.mjs
