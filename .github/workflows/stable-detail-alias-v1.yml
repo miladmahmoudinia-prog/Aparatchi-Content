@@ -51,14 +51,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Persist the real generator/test/workflow changes as well as every
-          # lightweight per-title pointer. catalog-index/catalog-items remain
-          # owned by Sync Upera and are intentionally not staged here.
+          # The patch script also prepares Sync/compact workflow staging, but a
+          # workflow run must not depend on self-modifying other workflow files.
+          # Publish the actual generator/tests and stable pointer data here; the
+          # workflow wiring is managed independently on main.
+          git restore -- \
+            .github/workflows/sync-upera.yml \
+            .github/workflows/compact-client-index-v2.yml
+
           git add -A -- \
             scripts/client-catalog.mjs \
             scripts/tests/client-catalog.test.mjs \
-            .github/workflows/sync-upera.yml \
-            .github/workflows/compact-client-index-v2.yml \
             catalog-stable
 
           echo "Stable publication status:"
