@@ -266,7 +266,14 @@ export function clientSummaryForItem(item) {
   const detailSerialized = `${stableJson(item)}\n`;
   const contentHash = digest(detailSerialized, 12);
   summary.detailPath = `catalog-items/${identityHash}-${contentHash}.json`;
-  return { summary, detailSerialized };
+  const stableDetailPath = `catalog-stable/${identityHash}.json`;
+  const stableDetailSerialized = JSON.stringify({
+    schemaVersion: 1,
+    type: summary.type,
+    id: summary.id,
+    detailPath: summary.detailPath,
+  });
+  return { summary, detailSerialized, stableDetailPath, stableDetailSerialized };
 }
 
 const isStructurallyUsableMediaFile = (file) => {
@@ -353,6 +360,7 @@ const clientCatalogFreshness = (item) => {
 
 export function buildClientCatalogArtifacts(catalog) {
   const detailFiles = [];
+  const stableDetailFiles = [];
   const items = [];
   const peopleWorks = Object.create(null);
   // Home and category rails intentionally preserve index order for speed.
@@ -364,7 +372,7 @@ export function buildClientCatalogArtifacts(catalog) {
   for (const sourceItem of sourceItems) {
     const item = sanitizeClientMediaItem(sourceItem);
     if (!item || !isClientVisibleItem(item)) continue;
-    const { summary, detailSerialized } = clientSummaryForItem(item);
+    const { summary, detailSerialized, stableDetailPath, stableDetailSerialized } = clientSummaryForItem(item);
     // Every series admitted to the lightweight client index is intentionally
     // visible. Normalize this bit so an older catalog missing the field cannot
     // be hidden again by the mobile publication gate.
@@ -381,6 +389,7 @@ export function buildClientCatalogArtifacts(catalog) {
       }
     }
     detailFiles.push({ path: summary.detailPath, serialized: detailSerialized });
+    stableDetailFiles.push({ path: stableDetailPath, serialized: stableDetailSerialized });
   }
 
   const index = {
@@ -402,6 +411,7 @@ export function buildClientCatalogArtifacts(catalog) {
     index,
     indexSerialized,
     detailFiles,
+    stableDetailFiles,
     clientRevision: createHash('sha256').update(indexSerialized).digest('hex'),
     clientSizeBytes: Buffer.byteLength(indexSerialized),
   };
@@ -422,18 +432,29 @@ export async function writeClientCatalogArtifacts(root, catalog) {
   const artifacts = buildClientCatalogArtifacts(catalog);
   const indexPath = path.join(root, 'catalog-index.json');
   const detailsRoot = path.join(root, 'catalog-items');
+  const stableDetailsRoot = path.join(root, 'catalog-stable');
   await fs.mkdir(detailsRoot, { recursive: true });
+  await fs.mkdir(stableDetailsRoot, { recursive: true });
 
   let changedDetailFiles = 0;
+  let changedStableDetailFiles = 0;
   const referenced = new Set();
   for (const detail of artifacts.detailFiles) {
     referenced.add(path.basename(detail.path));
     if (await writeIfChanged(path.join(root, detail.path), detail.serialized)) changedDetailFiles += 1;
   }
 
-  // Old content-addressed detail files are safe to remove once the new index is
-  // written in the same commit. This keeps the repository bounded as links and
-  // episode metadata evolve over time.
+  const stableReferenced = new Set();
+  for (const detail of artifacts.stableDetailFiles) {
+    stableReferenced.add(path.basename(detail.path));
+    if (await writeIfChanged(path.join(root, detail.path), detail.serialized)) changedStableDetailFiles += 1;
+  }
+
+  // Stable aliases are tiny pointers to the current content-addressed detail.
+  // A stale CDN index can derive catalog-stable/<identity>.json from its old
+  // hashed path, then follow the pointer to the current shard. This avoids
+  // duplicating every large movie/series detail while keeping recovery permanent.
+  // Old content-addressed detail files can therefore stay bounded.
   try {
     const existing = await fs.readdir(detailsRoot);
     await Promise.all(existing
@@ -443,6 +464,15 @@ export async function writeClientCatalogArtifacts(root, catalog) {
     // Directory cleanup is an optimization; never fail the hourly sync for it.
   }
 
+  try {
+    const existingStable = await fs.readdir(stableDetailsRoot);
+    await Promise.all(existingStable
+      .filter((name) => name.endsWith('.json') && !stableReferenced.has(name))
+      .map((name) => fs.rm(path.join(stableDetailsRoot, name), { force: true })));
+  } catch {
+    // Stable alias cleanup is bounded housekeeping only.
+  }
+
   const indexChanged = await writeIfChanged(indexPath, artifacts.indexSerialized);
-  return { ...artifacts, indexChanged, changedDetailFiles };
+  return { ...artifacts, indexChanged, changedDetailFiles, changedStableDetailFiles };
 }

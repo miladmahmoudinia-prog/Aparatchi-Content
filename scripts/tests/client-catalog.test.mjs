@@ -14,11 +14,19 @@ test('client item summary strips heavy media and duplicated cast identities', ()
       image: 'https://image.test/p1.jpg', character: 'Hero', popularity: 99,
     }],
   };
-  const { summary } = clientSummaryForItem(item);
+  const { summary, stableDetailPath, stableDetailSerialized } = clientSummaryForItem(item);
   assert.equal(summary.id, item.id);
   assert.equal(summary.publicationStatus, 'published');
   assert.equal(summary.episodeCount, 20);
   assert.ok(summary.detailPath.startsWith('catalog-items/'));
+  assert.ok(stableDetailPath.startsWith('catalog-stable/'));
+  assert.match(stableDetailPath, /^catalog-stable\/[a-f0-9]{12}\.json$/);
+  assert.deepEqual(JSON.parse(stableDetailSerialized), {
+    schemaVersion: 1,
+    type: summary.type,
+    id: summary.id,
+    detailPath: summary.detailPath,
+  });
   assert.equal('downloads' in summary, false);
   assert.equal('people' in summary, false);
   assert.ok(summary.overview.length < item.overview.length);
@@ -54,6 +62,13 @@ test('client catalog remains much smaller by not embedding episode files and ful
   assert.equal('people' in artifacts.index.items[0], false);
   assert.deepEqual(artifacts.index.peopleWorks['tmdb:1000'], [0]);
   assert.ok(Object.values(artifacts.index.peopleWorks).every((indexes) => indexes.every(Number.isInteger)));
+  assert.equal(artifacts.stableDetailFiles.length, 1);
+  assert.match(artifacts.stableDetailFiles[0].path, /^catalog-stable\/[a-f0-9]{12}\.json$/);
+  const stablePointer = JSON.parse(artifacts.stableDetailFiles[0].serialized);
+  assert.equal(stablePointer.id, artifacts.index.items[0].id);
+  assert.equal(stablePointer.type, artifacts.index.items[0].type);
+  assert.equal(stablePointer.detailPath, artifacts.detailFiles[0].path);
+  assert.ok(artifacts.stableDetailFiles[0].serialized.length < 300);
 });
 
 test('client index hides zero-media movies/series but keeps previously visible series with usable media', () => {
