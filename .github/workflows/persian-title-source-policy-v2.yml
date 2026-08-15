@@ -1,0 +1,78 @@
+name: Persian title source policy v2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/patch-persian-title-source-policy-v2.mjs'
+      - '.github/workflows/persian-title-source-policy-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  repair-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout content
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 30
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Patch permanent Persian title source policy
+        run: node scripts/patch-persian-title-source-policy-v2.mjs
+
+      - name: Verify transliteration regression fixtures
+        run: node --test scripts/tests/persian-title-source-policy-v2.test.mjs
+
+      - name: Repair and audit the whole current catalog
+        run: node scripts/repair-transliterated-persian-titles-v2.mjs
+
+      - name: Verify stable detail pointers after title rebuild
+        run: node scripts/test-stable-detail-alias-v1.mjs
+
+      - name: Commit verified global title repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- \
+            scripts/persian-title-overrides.mjs \
+            scripts/repair-transliterated-persian-titles-v2.mjs \
+            scripts/tests/persian-title-source-policy-v2.test.mjs \
+            catalog.json \
+            catalog-index.json \
+            catalog-items \
+            catalog-stable \
+            catalog-manifest.json
+
+          if git diff --cached --quiet; then
+            echo "No Persian title source-policy changes to commit."
+            exit 0
+          fi
+
+          git commit -m "fix: reject synthetic Persian transliterations globally"
+          PUSHED=0
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              PUSHED=1
+              break
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            echo "Repository changed during title-policy push; retry ${attempt}/5"
+            sleep $((attempt * 2))
+          done
+          [ "$PUSHED" -eq 1 ] || exit 1
