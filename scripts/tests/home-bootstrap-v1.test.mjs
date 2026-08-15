@@ -27,7 +27,7 @@ const playableSeries = (id, categoryKeys, updatedAt = '2026-08-15T00:00:00.000Z'
   downloads: [{ id: `${id}-episode`, seasonNumber: 1, episodeNumber: 1, files: [{ id: `${id}-file`, mode: 'download', url: `https://cdn.test/${id}.mp4` }] }],
 });
 
-test('bootstrap contains real Home category samples and IMDb without peopleWorks bulk', () => {
+test('bootstrap contains the complete navigation catalog plus rich Home/IMDb data without peopleWorks bulk', () => {
   const items = [];
   for (let i = 0; i < 20; i += 1) items.push(playableMovie(`foreign-${i}`, ['movies', 'foreign-movies']));
   for (let i = 0; i < 20; i += 1) items.push(playableMovie(`iranian-${i}`, ['movies', 'iranian-movies']));
@@ -60,9 +60,8 @@ test('bootstrap contains real Home category samples and IMDb without peopleWorks
 
   const artifacts = buildClientCatalogArtifacts(catalog);
   const ids = new Set(artifacts.bootstrap.items.map((item) => item.id));
-  assert.ok(ids.has('foreign-0'));
-  assert.ok(ids.has('iranian-0'));
-  assert.ok(ids.has('series-0'));
+  assert.equal(artifacts.bootstrap.items.length, artifacts.index.items.length);
+  for (const item of artifacts.index.items) assert.ok(ids.has(item.id), `bootstrap lost navigation item ${item.id}`);
   assert.ok(ids.has('operator-1'));
   assert.ok(ids.has('animation-1'));
   assert.ok(ids.has('updated-old-index'));
@@ -73,17 +72,28 @@ test('bootstrap contains real Home category samples and IMDb without peopleWorks
   assert.match(artifacts.bootstrapRevision, /^[a-f0-9]{64}$/);
 });
 
-test('real generated bootstrap stays bounded and carries IMDb when current catalog has it', async () => {
-  let raw;
+test('real generated bootstrap stays bounded and exactly preserves navigation/category counts', async () => {
+  let bootstrapRaw;
+  let indexRaw;
   try {
-    raw = await fs.readFile('catalog-bootstrap.json', 'utf8');
+    [bootstrapRaw, indexRaw] = await Promise.all([
+      fs.readFile('catalog-bootstrap.json', 'utf8'),
+      fs.readFile('catalog-index.json', 'utf8'),
+    ]);
   } catch {
-    return; // The workflow rebuild step performs the real-file assertions after generation.
+    return; // Rebuild workflows perform these assertions again after generation.
   }
-  const bootstrap = JSON.parse(raw);
+  const bootstrap = JSON.parse(bootstrapRaw);
+  const index = JSON.parse(indexRaw);
   assert.ok(Array.isArray(bootstrap.items));
-  assert.ok(bootstrap.items.length > 20);
-  assert.ok(Buffer.byteLength(raw) < 1_500_000, 'bootstrap must remain small enough for first paint');
+  assert.ok(Array.isArray(index.items));
+  assert.equal(bootstrap.items.length, index.items.length, 'bootstrap navigation catalog must match full index item count');
+  const count = (payload, key) => payload.items.filter((item) => (item.categoryKeys || []).includes(key)).length;
+  for (const key of ['dubbed', 'subtitled', 'iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series']) {
+    assert.equal(count(bootstrap, key), count(index, key), `bootstrap truncated ${key}`);
+  }
+  assert.ok(Buffer.byteLength(bootstrapRaw) < 5_000_000, 'complete navigation bootstrap exceeded the 5 MB safety bound');
+  assert.ok(Buffer.byteLength(bootstrapRaw) < Buffer.byteLength(indexRaw), 'bootstrap must remain smaller than full index');
   assert.ok(Array.isArray(bootstrap.imdbTop100?.movies) && bootstrap.imdbTop100.movies.length > 0);
   assert.ok(Array.isArray(bootstrap.imdbTop100?.series) && bootstrap.imdbTop100.series.length > 0);
 });
