@@ -1,27 +1,16 @@
-name: Stable detail aliases v2
+name: Stable detail audit v3
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'scripts/patch-stable-detail-alias-v1.mjs'
-      - 'scripts/test-stable-detail-alias-v1.mjs'
-      - 'catalog-index.json'
-      - '.github/workflows/stable-detail-alias-v1.yml'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
-# Stable pointers and the hourly content sync both publish generated client
-# files. Serialize those writers so a verified pointer set cannot lose a push
-# race against a catalog rebuild.
-concurrency:
-  group: aparatchi-content-write-lock
-  cancel-in-progress: false
-
+# Stable pointer generation is now native in scripts/client-catalog.mjs and the
+# hourly Sync Upera workflow commits catalog-stable together with catalog-index.
+# Keep this workflow as an explicit integrity audit instead of re-patching code.
 jobs:
-  patch-build-verify:
+  verify:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -29,63 +18,18 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: main
-          fetch-depth: 40
+          fetch-depth: 20
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '22'
-      - name: Patch stable detail pointers
-        run: node scripts/patch-stable-detail-alias-v1.mjs
-      - name: Run full content regressions
-        run: node --test scripts/tests/*.test.mjs
-      - name: Rebuild client artifacts with stable pointers
-        run: node scripts/rebuild-client-index.mjs
+
+      - name: Verify stable pointer generator contract
+        run: node --test scripts/tests/client-catalog.test.mjs
+
       - name: Verify every published title has a stable pointer
         run: node scripts/test-stable-detail-alias-v1.mjs
+
       - name: Verify real published media audit
         run: node scripts/audit-real-mobile-media-v2.mjs
-      - name: Commit stable detail architecture
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          # The patch script also prepares Sync/compact workflow staging, but a
-          # workflow run must not depend on self-modifying other workflow files.
-          # Publish the actual generator/tests and stable pointer data here; the
-          # workflow wiring is managed independently on main.
-          git restore -- \
-            .github/workflows/sync-upera.yml \
-            .github/workflows/compact-client-index-v2.yml
-
-          git add -A -- \
-            scripts/client-catalog.mjs \
-            scripts/tests/client-catalog.test.mjs \
-            catalog-stable
-
-          echo "Stable publication status:"
-          git status --short
-
-          if git diff --cached --quiet; then
-            echo "No stable-detail changes to commit."
-            exit 0
-          fi
-
-          git commit -m "fix: publish lightweight stable detail pointers"
-
-          PUSHED=0
-          for attempt in 1 2 3 4 5; do
-            if git pull --rebase origin main && git push origin HEAD:main; then
-              PUSHED=1
-              break
-            fi
-            git rebase --abort >/dev/null 2>&1 || true
-            echo "Repository changed during stable-detail push; retry ${attempt}/5"
-            sleep $((attempt * 2))
-          done
-
-          if [ "$PUSHED" -ne 1 ]; then
-            echo "::error::Could not publish stable-detail architecture after 5 attempts."
-            exit 1
-          fi
