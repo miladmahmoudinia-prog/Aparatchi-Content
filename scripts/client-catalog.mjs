@@ -370,6 +370,55 @@ const clientCatalogFreshness = (item) => {
   return candidates.reduce((latest, value) => Math.max(latest, parsedTimestamp(value)), 0);
 };
 
+const BOOTSTRAP_CATEGORY_KEYS = [
+  'mobile-operator', 'iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series',
+  'korean-movies', 'korean-series', 'indian-movies', 'indian-series', 'anime-movies', 'anime-series',
+  'animation-movies', 'animation-series', 'kids', 'programs', 'dubbed', 'subtitled', 'documentaries', 'wildlife', 'collections',
+];
+
+const bootstrapItemsForHome = (items) => {
+  const source = Array.isArray(items) ? items : [];
+  const picked = [];
+  const seen = new Set();
+  const add = (item) => {
+    const id = String(item?.id || '');
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    picked.push(item);
+    return true;
+  };
+
+  // Preserve the newest front of the client index for Hero/latest rails.
+  source.slice(0, 36).forEach(add);
+
+  // Preserve freshly updated titles even if they are not near the catalog head.
+  [...source]
+    .sort((a, b) => {
+      const timestamp = (item) => Math.max(
+        Date.parse(String(item?.meaningfulUpdatedAt || '')) || 0,
+        Date.parse(String(item?.sourceUpdatedAt || '')) || 0,
+        Date.parse(String(item?.updatedAt || '')) || 0,
+      );
+      return timestamp(b) - timestamp(a);
+    })
+    .slice(0, 24)
+    .forEach(add);
+
+  // Home must never wait for the multi-megabyte full index just to populate
+  // a common rail. Keep up to twelve real summaries for every Home category.
+  for (const key of BOOTSTRAP_CATEGORY_KEYS) {
+    let count = 0;
+    for (const item of source) {
+      if (!(Array.isArray(item?.categoryKeys) && item.categoryKeys.includes(key))) continue;
+      if (add(item)) count += 1;
+      else if (seen.has(String(item?.id || ''))) count += 1;
+      if (count >= 12) break;
+    }
+  }
+
+  return picked;
+};
+
 export function buildClientCatalogArtifacts(catalog) {
   const detailFiles = [];
   const stableDetailFiles = [];
@@ -419,13 +468,33 @@ export function buildClientCatalogArtifacts(catalog) {
   // revision, so whitespace is pure network/parse overhead. Detail shards stay
   // human-readable because only one is fetched when a title opens.
   const indexSerialized = `${JSON.stringify(index)}\n`;
+
+  // Fresh installs should paint a truthful Home immediately instead of exposing
+  // the tiny bundled emergency catalog while the full client index is downloading.
+  // The bootstrap is intentionally Home-only; detailPath still points at the
+  // immutable detail shards and the full index replaces it in the background.
+  const bootstrap = {
+    version: index.version,
+    updatedAt: index.updatedAt,
+    items: bootstrapItemsForHome(items),
+    iranianSchedule: index.iranianSchedule,
+    weeklySchedule: index.weeklySchedule,
+    featuredPeople: index.featuredPeople,
+    ...(index.imdbTop100 ? { imdbTop100: index.imdbTop100 } : {}),
+  };
+  const bootstrapSerialized = `${JSON.stringify(bootstrap)}\n`;
+
   return {
     index,
     indexSerialized,
+    bootstrap,
+    bootstrapSerialized,
     detailFiles,
     stableDetailFiles,
     clientRevision: createHash('sha256').update(indexSerialized).digest('hex'),
     clientSizeBytes: Buffer.byteLength(indexSerialized),
+    bootstrapRevision: createHash('sha256').update(bootstrapSerialized).digest('hex'),
+    bootstrapSizeBytes: Buffer.byteLength(bootstrapSerialized),
   };
 }
 
@@ -443,6 +512,7 @@ async function writeIfChanged(file, serialized) {
 export async function writeClientCatalogArtifacts(root, catalog) {
   const artifacts = buildClientCatalogArtifacts(catalog);
   const indexPath = path.join(root, 'catalog-index.json');
+  const bootstrapPath = path.join(root, 'catalog-bootstrap.json');
   const detailsRoot = path.join(root, 'catalog-items');
   const stableDetailsRoot = path.join(root, 'catalog-stable');
   await fs.mkdir(detailsRoot, { recursive: true });
@@ -486,5 +556,6 @@ export async function writeClientCatalogArtifacts(root, catalog) {
   }
 
   const indexChanged = await writeIfChanged(indexPath, artifacts.indexSerialized);
-  return { ...artifacts, indexChanged, changedDetailFiles, changedStableDetailFiles };
+  const bootstrapChanged = await writeIfChanged(bootstrapPath, artifacts.bootstrapSerialized);
+  return { ...artifacts, indexChanged, bootstrapChanged, changedDetailFiles, changedStableDetailFiles };
 }

@@ -8309,6 +8309,9 @@ async function writeCatalogAndManifest(value) {
     sizeBytes: Buffer.byteLength(serialized),
     clientSizeBytes: clientArtifacts.clientSizeBytes,
     clientIndex: 'catalog-index.json',
+    bootstrapRevision: clientArtifacts.bootstrapRevision,
+    bootstrapSizeBytes: clientArtifacts.bootstrapSizeBytes,
+    bootstrapIndex: 'catalog-bootstrap.json',
     detailBase: 'catalog-items/',
   };
   await fs.writeFile(catalogPath, serialized, 'utf8');
