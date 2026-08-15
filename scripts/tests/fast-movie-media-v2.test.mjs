@@ -67,14 +67,22 @@ test('verified movie media is embedded compactly in client and bootstrap summari
   assert.ok(bootstrapDubbed?.downloads?.length);
 });
 
-test('real generated bootstrap stays bounded and contains immediate movie media after rebuild', async () => {
+test('real generated bootstrap stays bounded, complete for navigation, and contains immediate Home movie media after rebuild', async () => {
   if (process.env.EXPECT_GENERATED_FAST_MEDIA !== '1') return;
-  const raw = await fs.readFile('catalog-bootstrap.json', 'utf8');
-  const bootstrap = JSON.parse(raw);
+  const [bootstrapRaw, indexRaw] = await Promise.all([
+    fs.readFile('catalog-bootstrap.json', 'utf8'),
+    fs.readFile('catalog-index.json', 'utf8'),
+  ]);
+  const bootstrap = JSON.parse(bootstrapRaw);
+  const index = JSON.parse(indexRaw);
   const movieMediaCount = (bootstrap.items || []).filter((item) => item.type === 'movie' && (
     (item.downloads || []).some((section) => (section.files || []).some((file) => /^https?:\/\//i.test(String(file.url || '')))) ||
     /^https?:\/\//i.test(String(item.streamUrl || ''))
   )).length;
-  assert.ok(Buffer.byteLength(raw) < 1_500_000, 'Home bootstrap must remain bounded');
-  assert.ok(movieMediaCount >= 5, `expected immediate media for real Home movies, found ${movieMediaCount}`);
+  assert.equal(bootstrap.items.length, index.items.length, 'bootstrap must include every client-visible navigation item');
+  const count = (payload, key) => payload.items.filter((item) => (item.categoryKeys || []).includes(key)).length;
+  assert.equal(count(bootstrap, 'dubbed'), count(index, 'dubbed'), 'bootstrap dubbed category must not be sampled/truncated');
+  assert.ok(Buffer.byteLength(bootstrapRaw) < 5_000_000, 'Complete navigation bootstrap must remain under 5 MB');
+  assert.ok(Buffer.byteLength(bootstrapRaw) < Buffer.byteLength(indexRaw), 'bootstrap must stay smaller than the full client index');
+  assert.ok(movieMediaCount >= 5, `expected immediate media for rich Home movies, found ${movieMediaCount}`);
 });
