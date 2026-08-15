@@ -18,7 +18,7 @@ let client = await fs.readFile('scripts/client-catalog.mjs', 'utf8');
 client = replaceOnce(
   client,
   "  summary.detailPath = `catalog-items/${identityHash}-${contentHash}.json`;\n  return { summary, detailSerialized };",
-  "  summary.detailPath = `catalog-items/${identityHash}-${contentHash}.json`;\n  const stableDetailPath = `catalog-stable/${identityHash}.json`;\n  return { summary, detailSerialized, stableDetailPath };",
+  "  summary.detailPath = `catalog-items/${identityHash}-${contentHash}.json`;\n  const stableDetailPath = `catalog-stable/${identityHash}.json`;\n  const stableDetailSerialized = JSON.stringify({\n    schemaVersion: 1,\n    type: summary.type,\n    id: summary.id,\n    detailPath: summary.detailPath,\n  });\n  return { summary, detailSerialized, stableDetailPath, stableDetailSerialized };",
   'stable detail path',
 );
 
@@ -32,14 +32,14 @@ client = replaceOnce(
 client = replaceOnce(
   client,
   "    const { summary, detailSerialized } = clientSummaryForItem(item);",
-  "    const { summary, detailSerialized, stableDetailPath } = clientSummaryForItem(item);",
+  "    const { summary, detailSerialized, stableDetailPath, stableDetailSerialized } = clientSummaryForItem(item);",
   'stable detail destructure',
 );
 
 client = replaceOnce(
   client,
   "    detailFiles.push({ path: summary.detailPath, serialized: detailSerialized });",
-  "    detailFiles.push({ path: summary.detailPath, serialized: detailSerialized });\n    stableDetailFiles.push({ path: stableDetailPath, serialized: detailSerialized });",
+  "    detailFiles.push({ path: summary.detailPath, serialized: detailSerialized });\n    stableDetailFiles.push({ path: stableDetailPath, serialized: stableDetailSerialized });",
   'stable detail push',
 );
 
@@ -60,7 +60,7 @@ client = replaceOnce(
 client = replaceOnce(
   client,
   "  // Old content-addressed detail files are safe to remove once the new index is\n  // written in the same commit. This keeps the repository bounded as links and\n  // episode metadata evolve over time.",
-  "  const stableReferenced = new Set();\n  for (const detail of artifacts.stableDetailFiles) {\n    stableReferenced.add(path.basename(detail.path));\n    if (await writeIfChanged(path.join(root, detail.path), detail.serialized)) changedStableDetailFiles += 1;\n  }\n\n  // Old content-addressed detail files are safe to remove once the stable per-title\n  // alias exists. A stale CDN index may still reference an old hash, but the mobile\n  // client can always recover through catalog-stable/<identity>.json.\n  // This keeps the hash directory bounded without breaking old CDN revisions.",
+  "  const stableReferenced = new Set();\n  for (const detail of artifacts.stableDetailFiles) {\n    stableReferenced.add(path.basename(detail.path));\n    if (await writeIfChanged(path.join(root, detail.path), detail.serialized)) changedStableDetailFiles += 1;\n  }\n\n  // Stable aliases are tiny pointers to the current content-addressed detail.\n  // A stale CDN index can derive catalog-stable/<identity>.json from its old\n  // hashed path, then follow the pointer to the current shard. This avoids\n  // duplicating every large movie/series detail while keeping recovery permanent.\n  // Old content-addressed detail files can therefore stay bounded.",
   'write stable detail files',
 );
 
@@ -77,20 +77,20 @@ let test = await fs.readFile('scripts/tests/client-catalog.test.mjs', 'utf8');
 test = replaceFirst(
   test,
   "  const { summary } = clientSummaryForItem(item);",
-  "  const { summary, stableDetailPath } = clientSummaryForItem(item);",
+  "  const { summary, stableDetailPath, stableDetailSerialized } = clientSummaryForItem(item);",
   'first test stable path destructure',
 );
 test = replaceOnce(
   test,
   "  assert.ok(summary.detailPath.startsWith('catalog-items/'));",
-  "  assert.ok(summary.detailPath.startsWith('catalog-items/'));\n  assert.ok(stableDetailPath.startsWith('catalog-stable/'));\n  assert.match(stableDetailPath, /^catalog-stable\\/[a-f0-9]{12}\\.json$/);",
+  "  assert.ok(summary.detailPath.startsWith('catalog-items/'));\n  assert.ok(stableDetailPath.startsWith('catalog-stable/'));\n  assert.match(stableDetailPath, /^catalog-stable\\/[a-f0-9]{12}\\.json$/);\n  assert.deepEqual(JSON.parse(stableDetailSerialized), {\n    schemaVersion: 1,\n    type: summary.type,\n    id: summary.id,\n    detailPath: summary.detailPath,\n  });",
   'test stable path shape',
 );
 test = replaceOnce(
   test,
   "  assert.ok(Object.values(artifacts.index.peopleWorks).every((indexes) => indexes.every(Number.isInteger)));",
-  "  assert.ok(Object.values(artifacts.index.peopleWorks).every((indexes) => indexes.every(Number.isInteger)));\n  assert.equal(artifacts.stableDetailFiles.length, 1);\n  assert.match(artifacts.stableDetailFiles[0].path, /^catalog-stable\\/[a-f0-9]{12}\\.json$/);\n  assert.equal(artifacts.stableDetailFiles[0].serialized, artifacts.detailFiles[0].serialized);",
-  'test stable artifact',
+  "  assert.ok(Object.values(artifacts.index.peopleWorks).every((indexes) => indexes.every(Number.isInteger)));\n  assert.equal(artifacts.stableDetailFiles.length, 1);\n  assert.match(artifacts.stableDetailFiles[0].path, /^catalog-stable\\/[a-f0-9]{12}\\.json$/);\n  const stablePointer = JSON.parse(artifacts.stableDetailFiles[0].serialized);\n  assert.equal(stablePointer.id, artifacts.index.items[0].id);\n  assert.equal(stablePointer.type, artifacts.index.items[0].type);\n  assert.equal(stablePointer.detailPath, artifacts.detailFiles[0].path);\n  assert.ok(artifacts.stableDetailFiles[0].serialized.length < 300);",
+  'test stable pointer artifact',
 );
 await fs.writeFile('scripts/tests/client-catalog.test.mjs', test);
 
@@ -107,8 +107,9 @@ compact = compact.replace('catalog-index.json catalog-manifest.json catalog-item
 await fs.writeFile('.github/workflows/compact-client-index-v2.yml', compact);
 
 console.log(JSON.stringify({
-  stableAliasPerVisibleTitle: true,
+  stablePointerPerVisibleTitle: true,
   stableAliasUsesIdentityHashOnly: true,
+  stableAliasDuplicatesLargeDetail: false,
   hourlySyncStagesStableAliases: replacements,
   compactWorkflowStagesStableAliases: true,
 }, null, 2));
