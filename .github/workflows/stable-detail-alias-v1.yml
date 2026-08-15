@@ -13,12 +13,12 @@ on:
 permissions:
   contents: write
 
-# Stable pointers are tiny and can be rebuilt independently of the long hourly
-# catalog sync. If a sync changes catalog-index.json, this workflow runs again
-# from that exact revision so pointers never remain stale after content rotates.
+# Stable pointers and the hourly content sync both publish generated client
+# files. Serialize those writers so a verified pointer set cannot lose a push
+# race against a catalog rebuild.
 concurrency:
-  group: aparatchi-content-stable-detail-pointers
-  cancel-in-progress: true
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
 
 jobs:
   patch-build-verify:
@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: main
-          fetch-depth: 20
+          fetch-depth: 40
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
@@ -51,19 +51,38 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Do not republish catalog-index/catalog-items from this runner. Sync owns
-          # those files. We only publish the generator changes and tiny stable
-          # pointers built from the checked-out index/detail revision.
-          git add -A -- scripts/client-catalog.mjs scripts/tests/client-catalog.test.mjs .github/workflows/sync-upera.yml .github/workflows/compact-client-index-v2.yml catalog-stable
+          # Persist the real generator/test/workflow changes as well as every
+          # lightweight per-title pointer. catalog-index/catalog-items remain
+          # owned by Sync Upera and are intentionally not staged here.
+          git add -A -- \
+            scripts/client-catalog.mjs \
+            scripts/tests/client-catalog.test.mjs \
+            .github/workflows/sync-upera.yml \
+            .github/workflows/compact-client-index-v2.yml \
+            catalog-stable
+
+          echo "Stable publication status:"
+          git status --short
+
           if git diff --cached --quiet; then
             echo "No stable-detail changes to commit."
             exit 0
           fi
+
           git commit -m "fix: publish lightweight stable detail pointers"
 
-          # Keep only the verified commit, then rebase it onto any harmless main
-          # movement. A later Sync index change triggers this workflow again.
-          git reset --hard HEAD
-          git clean -fd
-          git pull --rebase origin main
-          git push origin HEAD:main
+          PUSHED=0
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              PUSHED=1
+              break
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            echo "Repository changed during stable-detail push; retry ${attempt}/5"
+            sleep $((attempt * 2))
+          done
+
+          if [ "$PUSHED" -ne 1 ]; then
+            echo "::error::Could not publish stable-detail architecture after 5 attempts."
+            exit 1
+          fi
