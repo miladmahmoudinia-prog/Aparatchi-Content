@@ -157,12 +157,107 @@ export function generatedPersianDisplayTitle(value) {
   return LATIN_SCRIPT_RE.test(converted) ? '' : converted;
 }
 
+function normalizePersianPhonetic(value) {
+  return cleanDisplayText(value)
+    .normalize('NFKC')
+    .replace(/[\u064B-\u065F\u0670\u0640\u200C\u200D]/g, '')
+    .replace(/[يىئ]/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/[أإٱآ]/g, 'ا')
+    .replace(/[ؤ]/g, 'و')
+    .replace(/[ۀة]/g, 'ه')
+    .replace(/[^\u0600-\u06FF0-9]+/g, '')
+    .trim();
+}
+
+function editDistance(left, right) {
+  const a = Array.from(left);
+  const b = Array.from(right);
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  let previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i += 1) {
+    const current = [i];
+    for (let j = 1; j <= b.length; j += 1) {
+      current[j] = Math.min(
+        current[j - 1] + 1,
+        previous[j] + 1,
+        previous[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+    }
+    previous = current;
+  }
+  return previous[b.length];
+}
+
+function titleWordCount(value) {
+  return cleanDisplayText(value)
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
+}
+
+function itemHasPersianOrigin(item) {
+  if (item?.ir === true || item?.isIranian === true) return true;
+  const values = [
+    item?.country, item?.countryName, item?.countryCode,
+    item?.countryCodes, item?.countryLabels, item?.countryNames,
+    item?.originalLanguage, item?.original_language, item?.originalLang,
+  ];
+  const tokens = [];
+  const visit = (value) => {
+    if (Array.isArray(value)) {
+      for (const entry of value) visit(entry);
+      return;
+    }
+    if (value && typeof value === 'object') {
+      for (const key of ['code', 'name', 'iso_3166_1', 'iso_639_1']) visit(value[key]);
+      return;
+    }
+    const text = cleanDisplayText(value).toLowerCase();
+    if (text) tokens.push(text);
+  };
+  for (const value of values) visit(value);
+  return tokens.some((token) =>
+    token === 'ir' || token === 'iran' || token === 'iranian' || token === 'ایران' ||
+    token === 'fa' || token === 'fas' || token === 'per' || token === 'persian' || token === 'فارسی'
+  );
+}
+
+export function isLikelySyntheticPersianDisplayTitle(item) {
+  if (!item || !['movie', 'series'].includes(item.type)) return false;
+  const original = cleanDisplayText(item.name);
+  const candidate = cleanDisplayText(item.nameFa);
+  if (!original || !candidate || !LATIN_SCRIPT_RE.test(original) || !hasPersianScript(candidate)) return false;
+
+  const key = normalizePersianOverrideKey(original);
+  const verified = VERIFIED_PERSIAN_TITLE_OVERRIDES.get(key);
+  if (verified && normalizePersianOverrideKey(candidate) === normalizePersianOverrideKey(verified)) return false;
+  const verifiedIranian = VERIFIED_ROMANIZED_IRANIAN_TITLES.get(key);
+  if (verifiedIranian && normalizePersianOverrideKey(candidate) === normalizePersianOverrideKey(verifiedIranian)) return false;
+  if (itemHasPersianOrigin(item)) return false;
+
+  const generated = generatedPersianDisplayTitle(original);
+  const generatedCompact = normalizePersianPhonetic(generated);
+  const candidateCompact = normalizePersianPhonetic(candidate);
+  if (!generatedCompact || !candidateCompact) return false;
+  if (generatedCompact === candidateCompact) return true;
+
+  const longest = Math.max(generatedCompact.length, candidateCompact.length);
+  if (longest < 5) return false;
+  const similarity = 1 - editDistance(generatedCompact, candidateCompact) / longest;
+  const wordGap = Math.abs(titleWordCount(generated) - titleWordCount(candidate));
+  return similarity >= 0.72 || (longest >= 10 && similarity >= 0.62 && wordGap <= 1);
+}
+
 function applyGeneratedPersianDisplayTitles(items) {
   let changes = 0;
   for (const item of items) {
     if (!item || !['movie', 'series'].includes(item.type)) continue;
     const wasGenerated = item.nameFaGenerated === true || item.nameFaSource === GENERATED_TITLE_SOURCE;
-    if (!wasGenerated) continue;
+    const looksSynthetic = isLikelySyntheticPersianDisplayTitle(item);
+    if (!wasGenerated && !looksSynthetic) continue;
 
     const original = cleanDisplayText(item.name);
     if (original && item.nameFa !== original) {
