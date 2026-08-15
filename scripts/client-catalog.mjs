@@ -452,6 +452,24 @@ const BOOTSTRAP_CATEGORY_KEYS = [
   'animation-movies', 'animation-series', 'kids', 'programs', 'dubbed', 'subtitled', 'documentaries', 'wildlife', 'collections',
 ];
 
+const BOOTSTRAP_NAVIGATION_FIELDS = [
+  'id', 'slug', 'type', 'ir', 'year', 'nameFa', 'name', 'imdb',
+  'countryCodes', 'originalLanguage', 'collectionId', 'collectionOrder',
+  'poster', 'posterFallback', 'rate', 'access', 'operatorOnly', 'availableLanguages',
+  'episodeCount', 'seasonCount', 'latestEpisode', 'isAiring', 'publicationStatus',
+  'updateLabel', 'meaningfulUpdatedAt', 'categoryKeys', 'categoryLabels',
+  'contentKind', 'isAnimation', 'isAnime', 'isTalkShow', 'isDocumentary', 'isWildlife',
+  'createdAt', 'updatedAt', 'sourceCreatedAt', 'sourceUpdatedAt', 'detailPath',
+];
+
+const compactBootstrapNavigationItem = (item) => {
+  const compact = {};
+  for (const field of BOOTSTRAP_NAVIGATION_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(item || {}, field)) compact[field] = item[field];
+  }
+  return compact;
+};
+
 const bootstrapItemsForHome = (items) => {
   const source = Array.isArray(items) ? items : [];
   const picked = [];
@@ -549,10 +567,19 @@ export function buildClientCatalogArtifacts(catalog) {
   // the tiny bundled emergency catalog while the full client index is downloading.
   // The bootstrap is intentionally Home-only; detailPath still points at the
   // immutable detail shards and the full index replaces it in the background.
+  const richHomeItems = bootstrapItemsForHome(items);
+  const richHomeIds = new Set(richHomeItems.map((item) => String(item?.id || '')).filter(Boolean));
+  // Bootstrap is also the first navigation catalog. Every visible title must be
+  // present so categories/search can never collapse to the old 8–12 item Home
+  // sample. Only Home-critical rows keep their heavier media/overview payload;
+  // the rest retain enough metadata to browse and hydrate their detail shard.
+  const bootstrapItems = items.map((item) =>
+    richHomeIds.has(String(item?.id || '')) ? item : compactBootstrapNavigationItem(item)
+  );
   const bootstrap = {
     version: index.version,
     updatedAt: index.updatedAt,
-    items: bootstrapItemsForHome(items),
+    items: bootstrapItems,
     iranianSchedule: index.iranianSchedule,
     weeklySchedule: index.weeklySchedule,
     featuredPeople: index.featuredPeople,
