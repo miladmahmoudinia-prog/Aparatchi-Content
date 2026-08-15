@@ -43,7 +43,7 @@ jobs:
         run: node scripts/rebuild-client-index.mjs
 
       - name: Verify generated fast media artifacts
-        run: node --test scripts/tests/client-catalog.test.mjs scripts/tests/home-bootstrap-v1.test.mjs scripts/tests/fast-movie-media-v2.test.mjs
+        run: EXPECT_GENERATED_FAST_MEDIA=1 node --test scripts/tests/client-catalog.test.mjs scripts/tests/home-bootstrap-v1.test.mjs scripts/tests/fast-movie-media-v2.test.mjs
 
       - name: Verify catalog safety and size bounds
         shell: bash
