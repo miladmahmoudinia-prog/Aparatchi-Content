@@ -211,6 +211,18 @@ const sanitizeClientMediaItem = (item) => {
     (section.files || []).map((file) => file.language)
       .filter((value) => value === 'dubbed' || value === 'subtitled')
   ))];
+  const languageCategoryKeys = [...new Set([
+    ...(Array.isArray(item.categoryKeys) ? item.categoryKeys : [])
+      .map((key) => String(key || '').trim())
+      .filter((key) => key && key !== 'dubbed' && key !== 'subtitled'),
+    ...availableLanguages,
+  ])];
+  const languageCategoryLabels = [...new Set([
+    ...(Array.isArray(item.categoryLabels) ? item.categoryLabels : [])
+      .filter((label) => label !== 'دوبله فارسی' && label !== 'زیرنویس فارسی'),
+    ...(availableLanguages.includes('dubbed') ? ['دوبله فارسی'] : []),
+    ...(availableLanguages.includes('subtitled') ? ['زیرنویس فارسی'] : []),
+  ])];
   const hasVerifiedOperator = downloads.some((section) => (section.files || []).some(verifiedOperatorOnlyFile));
   if (operatorVariant && !hasVerifiedOperator) return null;
 
@@ -226,14 +238,14 @@ const sanitizeClientMediaItem = (item) => {
     ...(operatorVariant ? {
       access: 'operator',
       operatorOnly: true,
-      categoryKeys: [...new Set([...(item.categoryKeys || []).filter((key) => key !== 'mobile-operator'), 'mobile-operator'])],
-      categoryLabels: [...new Set([...(item.categoryLabels || []).filter((label) => label !== 'ویژه اینترنت همراه'), 'ویژه اینترنت همراه'])],
+      categoryKeys: [...new Set([...languageCategoryKeys.filter((key) => key !== 'mobile-operator'), 'mobile-operator'])],
+      categoryLabels: [...new Set([...languageCategoryLabels.filter((label) => label !== 'ویژه اینترنت همراه'), 'ویژه اینترنت همراه'])],
     } : {
       operatorOnly: false,
       operatorAccess: undefined,
       supportedOperators: undefined,
-      categoryKeys: (item.categoryKeys || []).filter((key) => key !== 'mobile-operator'),
-      categoryLabels: (item.categoryLabels || []).filter((label) => label !== 'ویژه اینترنت همراه'),
+      categoryKeys: languageCategoryKeys.filter((key) => key !== 'mobile-operator'),
+      categoryLabels: languageCategoryLabels.filter((label) => label !== 'ویژه اینترنت همراه'),
     }),
   };
   if (!iranian && !operatorVariant) {
