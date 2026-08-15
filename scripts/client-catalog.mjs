@@ -188,21 +188,67 @@ const sanitizeClientMediaItem = (item) => {
     .filter(([, set]) => set.has('dubbed') && set.has('subtitled'))
     .map(([url]) => url));
 
+  // A contradictory language label must not make a real Upera media URL vanish.
+  // Keep one neutral representative for each conflicted URL instead of deleting
+  // the playable/downloadable media altogether. The neutral row is deliberately
+  // separated from dubbed/subtitled sections so the mobile client cannot infer a
+  // false language from the old section title.
+  const conflictRepresentativeByUrl = new Map();
+  const conflictScore = (file) => {
+    const mode = String(file?.mode || 'download');
+    if (mode === 'download') return 3;
+    if (mode === 'play') return 2;
+    return 1;
+  };
+  for (const section of prepared) {
+    for (const file of section.files || []) {
+      const url = String(file?.url || '').trim();
+      if (!conflicts.has(url)) continue;
+      const current = conflictRepresentativeByUrl.get(url);
+      if (!current || conflictScore(file) > conflictScore(current)) conflictRepresentativeByUrl.set(url, file);
+    }
+  }
+  const emittedConflictUrls = new Set();
+
   const downloads = prepared.flatMap((section) => {
     const files = (section.files || []).filter((file) => !conflicts.has(String(file.url || '').trim()));
-    if (!files.length) return [];
-    const languages = [...new Set(files.map((file) => file.language).filter((value) => value === 'dubbed' || value === 'subtitled'))];
-    if (languages.length === 1 && !Number(section?.episodeNumber || 0)) {
-      const language = languages[0];
-      return [{
-        ...section,
-        title: language === 'dubbed' ? 'دوبله فارسی' : 'زیرنویس فارسی',
-        badge: language === 'dubbed' ? 'دوبله' : 'زیرنویس',
-        language,
-        files,
-      }];
+    const neutralFiles = [];
+    for (const file of section.files || []) {
+      const url = String(file?.url || '').trim();
+      if (!conflicts.has(url) || emittedConflictUrls.has(url)) continue;
+      if (conflictRepresentativeByUrl.get(url) !== file) continue;
+      emittedConflictUrls.add(url);
+      neutralFiles.push({ ...file, language: undefined });
     }
-    return [{ ...section, files }];
+
+    const result = [];
+    if (files.length) {
+      const languages = [...new Set(files.map((file) => file.language).filter((value) => value === 'dubbed' || value === 'subtitled'))];
+      if (languages.length === 1 && !Number(section?.episodeNumber || 0)) {
+        const language = languages[0];
+        result.push({
+          ...section,
+          title: language === 'dubbed' ? 'دوبله فارسی' : 'زیرنویس فارسی',
+          badge: language === 'dubbed' ? 'دوبله' : 'زیرنویس',
+          language,
+          files,
+        });
+      } else {
+        result.push({ ...section, files });
+      }
+    }
+
+    if (neutralFiles.length) {
+      result.push({
+        ...section,
+        id: `${String(section?.id || "media")}-neutral`,
+        title: Number(section?.episodeNumber || 0) ? `قسمت ${Number(section.episodeNumber)}` : 'نسخه قابل پخش',
+        badge: undefined,
+        language: undefined,
+        files: neutralFiles,
+      });
+    }
+    return result;
   });
 
   const seriesMediaTruth = item.type === 'series' ? deriveClientSeriesMediaTruth(downloads) : null;
@@ -262,6 +308,24 @@ const deriveClientLanguages = (item) => [...new Set(
   ).filter((value) => value === 'dubbed' || value === 'subtitled')
 )];
 
+const compactMovieDownloadsForSummary = (downloads) => (Array.isArray(downloads) ? downloads : []).flatMap((section) => {
+  const files = (Array.isArray(section?.files) ? section.files : [])
+    .filter(clientSeriesFileIsUsable)
+    .map((file) => {
+      const compact = {};
+      for (const key of ['id', 'label', 'quality', 'size', 'url', 'mode', 'language', 'operatorOnly', 'panelVerified', 'trafficOo']) {
+        if (file?.[key] !== undefined && file?.[key] !== null && file?.[key] !== '') compact[key] = file[key];
+      }
+      return compact;
+    });
+  if (!files.length) return [];
+  const compactSection = { files };
+  for (const key of ['id', 'title', 'badge', 'language']) {
+    if (section?.[key] !== undefined && section?.[key] !== null && section?.[key] !== '') compactSection[key] = section[key];
+  }
+  return [compactSection];
+});
+
 export function clientSummaryForItem(item) {
   const summary = {};
   for (const field of SUMMARY_FIELDS) {
@@ -269,6 +333,18 @@ export function clientSummaryForItem(item) {
   }
   if (summary.overview) summary.overview = truncateOverview(summary.overview);
   summary.availableLanguages = deriveClientLanguages(item);
+
+  // Movie detail actions should be usable from the lightweight index itself.
+  // Carry only the small, actionable media rows for movies; series episode
+  // archives remain detail-sharded so the client index stays bounded.
+  if (item?.type === 'movie') {
+    const compactDownloads = compactMovieDownloadsForSummary(item.downloads);
+    if (compactDownloads.length) summary.downloads = compactDownloads;
+    if (item.ir === true && /^https?:\/\//i.test(String(item.streamUrl || '').trim())) {
+      summary.streamUrl = item.streamUrl;
+      if (item.streamMode) summary.streamMode = item.streamMode;
+    }
+  }
 
   // People are intentionally excluded from every item summary. The reverse
   // peopleWorks index below preserves actor/director search and profile works

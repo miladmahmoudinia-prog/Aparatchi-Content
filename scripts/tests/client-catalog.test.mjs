@@ -88,7 +88,7 @@ test('client index hides zero-media movies/series but keeps previously visible s
   assert.equal(catalog.items.length, 5, 'server-side catalog records are never deleted by client filtering');
 });
 
-test('client summary carries lightweight dubbing and subtitle badges without media payloads', () => {
+test('client movie summary carries lightweight actionable media with language badges', () => {
   const item = {
     id: 'movie-language', type: 'movie', nameFa: 'نمونه', name: 'Sample',
     downloads: [
@@ -98,7 +98,8 @@ test('client summary carries lightweight dubbing and subtitle badges without med
   };
   const { summary } = clientSummaryForItem(item);
   assert.deepEqual(summary.availableLanguages, ['dubbed', 'subtitled']);
-  assert.equal('downloads' in summary, false);
+  assert.ok(Array.isArray(summary.downloads) && summary.downloads.length === 2);
+  assert.equal(summary.downloads.flatMap((section) => section.files || []).length, 2);
 });
 
 test('client summary recognizes language from lightweight file metadata and carries collection identity', () => {
