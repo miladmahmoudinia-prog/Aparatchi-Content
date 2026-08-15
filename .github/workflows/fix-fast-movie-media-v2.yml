@@ -37,18 +37,23 @@ jobs:
         run: node scripts/fix-fast-movie-media-v2.mjs
 
       - name: Verify client catalog regressions before rebuild
-        run: node --test scripts/tests/client-catalog.test.mjs scripts/tests/final-stability.test.mjs scripts/tests/home-bootstrap-v1.test.mjs scripts/tests/fast-movie-media-v2.test.mjs
+        run: node --test scripts/tests/client-catalog.test.mjs scripts/tests/final-stability.test.mjs scripts/tests/home-bootstrap-v1.test.mjs scripts/tests/fast-movie-media-v2.test.mjs scripts/tests/full-navigation-bootstrap-v1.test.mjs
 
       - name: Rebuild client index, details and Home bootstrap
         run: node scripts/rebuild-client-index.mjs
 
       - name: Verify generated fast media artifacts
-        run: EXPECT_GENERATED_FAST_MEDIA=1 node --test scripts/tests/client-catalog.test.mjs scripts/tests/home-bootstrap-v1.test.mjs scripts/tests/fast-movie-media-v2.test.mjs
+        run: EXPECT_GENERATED_FAST_MEDIA=1 node --test scripts/tests/client-catalog.test.mjs scripts/tests/home-bootstrap-v1.test.mjs scripts/tests/fast-movie-media-v2.test.mjs scripts/tests/full-navigation-bootstrap-v1.test.mjs
 
-      - name: Verify catalog safety and size bounds
+      - name: Verify catalog safety, navigation truth and size bounds
         shell: bash
         run: |
           set -euo pipefail
+          node scripts/diagnose-movie-client-media-loss.mjs | tee /tmp/media-diagnostic.log
+          grep -q '"sourceMediaTitlesMissingFromClient":0' /tmp/media-diagnostic.log
+          grep -q '"sourceUrlsLostFromClientDetailTitles":0' /tmp/media-diagnostic.log
+          grep -q '"sourceUrlsLostFromClientSummaryTitles":0' /tmp/media-diagnostic.log
+          grep -q '"dubbedMoviesLost":0' /tmp/media-diagnostic.log
           node - <<'NODE'
           const fs = require('fs');
           const indexRaw = fs.readFileSync('catalog-index.json', 'utf8');
@@ -57,12 +62,17 @@ jobs:
           const bootstrap = JSON.parse(bootstrapRaw);
           const manifest = JSON.parse(fs.readFileSync('catalog-manifest.json', 'utf8'));
           if (!Array.isArray(index.items) || index.items.length < 100) throw new Error('catalog-index unexpectedly small');
-          if (!Array.isArray(bootstrap.items) || bootstrap.items.length < 20) throw new Error('catalog-bootstrap unexpectedly small');
+          if (!Array.isArray(bootstrap.items) || bootstrap.items.length !== index.items.length) throw new Error(`bootstrap navigation count ${bootstrap.items?.length} != index ${index.items.length}`);
+          const count = (payload, key) => payload.items.filter((item) => (item.categoryKeys || []).includes(key)).length;
+          for (const key of ['dubbed', 'subtitled', 'iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series']) {
+            if (count(bootstrap, key) !== count(index, key)) throw new Error(`bootstrap truncated ${key}: ${count(bootstrap, key)} != ${count(index, key)}`);
+          }
           const immediateMovies = bootstrap.items.filter((item) => item.type === 'movie' && ((item.downloads || []).some((section) => (section.files || []).length) || item.streamUrl));
-          if (immediateMovies.length < 5) throw new Error(`too few immediate movie media summaries: ${immediateMovies.length}`);
-          if (Buffer.byteLength(bootstrapRaw) >= 1500000) throw new Error('bootstrap grew beyond 1.5 MB bound');
+          if (immediateMovies.length < 5) throw new Error(`too few rich Home movie media summaries: ${immediateMovies.length}`);
+          if (Buffer.byteLength(bootstrapRaw) >= 5000000) throw new Error('complete navigation bootstrap grew beyond 5 MB bound');
+          if (Buffer.byteLength(bootstrapRaw) >= Buffer.byteLength(indexRaw)) throw new Error('bootstrap must remain smaller than full client index');
           if (!(Number(manifest.clientSizeBytes) > 0 && Number(manifest.bootstrapSizeBytes) > 0)) throw new Error('manifest sizes missing');
-          console.log({ fullItems: index.items.length, immediateMovies: immediateMovies.length, clientBytes: Buffer.byteLength(indexRaw), bootstrapBytes: Buffer.byteLength(bootstrapRaw) });
+          console.log({ fullItems: index.items.length, bootstrapItems: bootstrap.items.length, dubbed: count(index, 'dubbed'), immediateMovies: immediateMovies.length, clientBytes: Buffer.byteLength(indexRaw), bootstrapBytes: Buffer.byteLength(bootstrapRaw) });
           NODE
 
       - name: Commit only validated Content changes
