@@ -238,6 +238,17 @@ export function isLikelySyntheticPersianDisplayTitle(item) {
   if (verifiedIranian && normalizePersianOverrideKey(candidate) === normalizePersianOverrideKey(verifiedIranian)) return false;
   if (itemHasPersianOrigin(item)) return false;
 
+  // A phonetic Persian spelling can be a legitimate display title for a
+  // proper name (Oppenheimer, John Wick, Sita Ramam, ...). Never classify
+  // short proper-name titles only because they sound like the Latin source.
+  // The bad data we are repairing is full phrase transliteration: three or
+  // more Latin words copied phonetically into Persian instead of a real
+  // Persian title/translation.
+  const originalWordCount = titleWordCount(original);
+  const candidateWordCount = titleWordCount(candidate);
+  if (originalWordCount < 3 || candidateWordCount < 3) return false;
+  if (Math.abs(originalWordCount - candidateWordCount) > 1) return false;
+
   const generated = generatedPersianDisplayTitle(original);
   const generatedCompact = normalizePersianPhonetic(generated);
   const candidateCompact = normalizePersianPhonetic(candidate);
@@ -245,10 +256,10 @@ export function isLikelySyntheticPersianDisplayTitle(item) {
   if (generatedCompact === candidateCompact) return true;
 
   const longest = Math.max(generatedCompact.length, candidateCompact.length);
-  if (longest < 5) return false;
+  if (longest < 10) return false;
   const similarity = 1 - editDistance(generatedCompact, candidateCompact) / longest;
-  const wordGap = Math.abs(titleWordCount(generated) - titleWordCount(candidate));
-  return similarity >= 0.72 || (longest >= 10 && similarity >= 0.62 && wordGap <= 1);
+  const wordGap = Math.abs(titleWordCount(generated) - candidateWordCount);
+  return similarity >= 0.72 || (longest >= 14 && similarity >= 0.64 && wordGap <= 1);
 }
 
 function applyGeneratedPersianDisplayTitles(items) {
