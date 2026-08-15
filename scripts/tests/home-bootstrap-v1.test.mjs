@@ -32,7 +32,21 @@ test('bootstrap contains real Home category samples and IMDb without peopleWorks
   for (let i = 0; i < 20; i += 1) items.push(playableMovie(`foreign-${i}`, ['movies', 'foreign-movies']));
   for (let i = 0; i < 20; i += 1) items.push(playableMovie(`iranian-${i}`, ['movies', 'iranian-movies']));
   for (let i = 0; i < 20; i += 1) items.push(playableSeries(`series-${i}`, ['series', 'foreign-series']));
-  items.push(playableMovie('operator-1', ['movies', 'iranian-movies', 'mobile-operator']));
+  items.push({
+    ...playableMovie('operator-1', ['movies', 'iranian-movies', 'mobile-operator']),
+    operatorOnly: true,
+    downloads: [{
+      id: 'operator-download',
+      files: [{
+        id: 'operator-file',
+        mode: 'operator-play',
+        operatorOnly: true,
+        panelVerified: true,
+        trafficOo: 1,
+        url: 'https://upera.tv/stream/movie/operator-1',
+      }],
+    }],
+  });
   items.push(playableMovie('animation-1', ['movies', 'foreign-movies', 'animation-movies']));
   items.push(playableMovie('updated-old-index', ['movies', 'foreign-movies'], '2026-08-16T00:00:00.000Z'));
 
