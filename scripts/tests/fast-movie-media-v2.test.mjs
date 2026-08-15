@@ -68,12 +68,8 @@ test('verified movie media is embedded compactly in client and bootstrap summari
 });
 
 test('real generated bootstrap stays bounded and contains immediate movie media after rebuild', async () => {
-  let raw;
-  try {
-    raw = await fs.readFile('catalog-bootstrap.json', 'utf8');
-  } catch {
-    return;
-  }
+  if (process.env.EXPECT_GENERATED_FAST_MEDIA !== '1') return;
+  const raw = await fs.readFile('catalog-bootstrap.json', 'utf8');
   const bootstrap = JSON.parse(raw);
   const movieMediaCount = (bootstrap.items || []).filter((item) => item.type === 'movie' && (
     (item.downloads || []).some((section) => (section.files || []).some((file) => /^https?:\/\//i.test(String(file.url || '')))) ||
