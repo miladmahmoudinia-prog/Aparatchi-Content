@@ -52,3 +52,4 @@ jobs:
           console.log('PEOPLE_QUEUE=' + JSON.stringify({catalogItems:catalog.items.length, needsWork:needs.length, emptyPeople:empty.length, offset:state.peopleEnrichmentOffset, lastPeopleEnrichmentAt:state.lastPeopleEnrichmentAt}, null, 2));
           console.log('EMPTY_SAMPLE=' + JSON.stringify(empty.slice(0,20).map(i=>({id:i.id,nameFa:i.nameFa,nameEn:i.nameEn||i.name,createdAt:i.createdAt,sourceCreatedAt:i.sourceCreatedAt,next:i.peopleEnrichmentNextRetryAt})), null, 2));
           NODE
+          # diagnostic revision 2
