@@ -118,6 +118,18 @@ test = replace_once(
     "  assert.equal(summary.downloads?.length, 1);\n  assert.equal(summary.downloads?.[0]?.episodeNumber, 1);\n  assert.equal(summary.downloads?.[0]?.files?.length, 1);\n  assert.equal('people' in summary, false);",
     'summary preview assertion',
 )
+test = replace_once(
+    test,
+    "test('client catalog remains much smaller by not embedding episode files and full cast payloads per item', () => {",
+    "test('client catalog stays bounded while carrying only compact episode previews and no full cast payloads', () => {",
+    'size test title',
+)
+test = replace_once(
+    test,
+    "  assert.ok(artifacts.clientSizeBytes < fullBytes * 0.35);\n  assert.equal('people' in artifacts.index.items[0], false);",
+    "  assert.ok(artifacts.clientSizeBytes < fullBytes * 0.65);\n  assert.ok(artifacts.index.items[0].downloads.every((section) => section.files.length > 0 && section.files.length <= 2));\n  assert.equal('people' in artifacts.index.items[0], false);",
+    'bounded preview size assertion',
+)
 
 append = """
 
