@@ -27,10 +27,10 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
 
-      - name: Apply exact functional patch
+      - name: Apply audited corrective patch
         run: python3 .github/patch-people-v12.py
 
-      - name: Verify syntax and scope
+      - name: Verify syntax, sync lanes and scope
         run: |
           node --check scripts/sync-upera.mjs
           git diff --check
@@ -41,10 +41,22 @@ jobs:
 
           sync = Path('scripts/sync-upera.mjs').read_text()
           mode = sync.index("if (effectiveSyncMode === 'PEOPLE')")
-          assert sync.index('await syncPeopleMetadata();', mode) < sync.index('await syncEpisodeArtworkMetadata();', mode)
-          assert 'const priorityTake = options.preferRecent' in sync
-          assert 'let rotatingVisited = 0;' in sync
-          assert '(start + rotatingVisited) % rotatingCandidates.length' in sync
+          iranian = sync.index("} else if (effectiveSyncMode === 'IRANIAN') {", mode)
+          backfill = sync.index("} else if (effectiveSyncMode === 'BACKFILL') {", iranian)
+          normal = sync.index('} else {', backfill)
+          assert mode < iranian < backfill < normal
+          assert sync.index('await syncPeopleMetadata();', mode, iranian) < sync.index('await syncEpisodeArtworkMetadata();', mode, iranian)
+          for required in (
+              'await syncRecentMovieDiscovery();',
+              'await syncRecentSeriesDiscovery();',
+              'await syncIncompleteMovieMedia();',
+              'await syncMovieArchive();',
+              'await syncSeriesArchive();',
+              "const priorityTake = options.preferRecent",
+              'let rotatingVisited = 0;',
+              '(start + rotatingVisited) % rotatingCandidates.length',
+          ):
+              assert required in sync, required
 
           workflow = Path('.github/workflows/enrich-tmdb-cast.yml').read_text()
           for value in ('catalog-bootstrap.json', 'catalog-stable', 'tmdb-cache.json', 'tmdb-enrichment-report.json'):
@@ -70,30 +82,33 @@ jobs:
           assert all(not (i.get('people') or []) and not i.get('peopleEnrichmentCheckedAt') for i in priority)
           katiusha = next((i for i in items if 'کاتیوشا' in str(i.get('nameFa') or '') or str(i.get('nameEn') or i.get('name') or '').strip().lower() in ('katiusha','katyusha')), None)
           if katiusha and not (katiusha.get('people') or []) and not katiusha.get('peopleEnrichmentCheckedAt'):
-              if katiusha in priority:
-                  print('Katiusha is in the first fresh-empty priority batch.')
-              else:
-                  print('Katiusha is still eligible; newer fresh-empty titles currently precede it.')
+              print('Katiusha remains eligible for fresh-empty priority repair.')
           elif katiusha:
-              print('Katiusha was already attempted/enriched by the moving catalog before validation.')
+              print('Katiusha has already been attempted/enriched in the moving catalog.')
           else:
-              print('Katiusha is not in the current moving catalog snapshot; generic queue assertions still passed.')
+              print('Katiusha is not in this moving catalog snapshot; generic queue assertions passed.')
           print(f'priority={len(priority)} rotating_capacity={20-len(priority)} candidates={len(candidates)}')
           PY
           mapfile -t changed < <(git diff --name-only | sort)
           expected=(scripts/sync-upera.mjs)
           if [ "${changed[*]}" != "${expected[*]}" ]; then
-            echo 'Unexpected functional diff scope' >&2
+            echo 'Unexpected corrective diff scope' >&2
             git diff --name-only >&2
             exit 1
           fi
+          read adds dels file < <(git diff --numstat f25ebc56923360d6116c908f441888b974763301^ -- scripts/sync-upera.mjs)
+          echo "Final source diff vs healthy base: +$adds -$dels $file"
+          if [ "$adds" -gt 80 ] || [ "$dels" -gt 50 ]; then
+            echo 'Final source diff is too large; refusing correction.' >&2
+            exit 1
+          fi
 
-      - name: Commit functional fix
+      - name: Commit corrected functional fix
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add scripts/sync-upera.mjs
-          git commit -m "fix: prioritize cast metadata repair [skip ci]"
+          git commit -m "fix: preserve sync lanes while prioritizing cast repair [skip ci]"
           for attempt in 1 2 3 4 5; do
             if git pull --rebase origin main && git push origin HEAD:main; then
               exit 0
@@ -102,6 +117,6 @@ jobs:
             git fetch origin main
             sleep $((attempt * 3))
           done
-          echo 'Could not push functional fix after retries.' >&2
+          echo 'Could not push corrected functional fix after retries.' >&2
           exit 1
-          # source-only rerun 9
+          # hardened correction 10
