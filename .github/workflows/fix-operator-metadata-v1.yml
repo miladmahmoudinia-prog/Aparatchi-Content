@@ -1,0 +1,370 @@
+name: Fix operator metadata v1
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-operator-metadata-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout latest content main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 20
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Apply narrowly-scoped operator metadata repair
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cat > scripts/operator-metadata-repair.mjs <<'EOF'
+          const PLACEHOLDER_OVERVIEW_RE = /^(?:توضیحی\s*ثبت\s*نشده(?:\s*است)?[.!؟]?|توضیحات?\s*ثبت\s*نشده(?:\s*است)?[.!؟]?|خلاصه(?:\s*داستان)?\s*ثبت\s*نشده(?:\s*است)?[.!؟]?|اطلاعاتی\s*ثبت\s*نشده(?:\s*است)?[.!؟]?|بدون\s*توضیح[.!؟]?|no\s+(?:description|overview)(?:\s+(?:available|provided))?[.!?]?|description\s+not\s+available[.!?]?)$/i;
+
+          const VERIFIED_OPERATOR_METADATA = [
+            {
+              type: 'movie',
+              year: 2021,
+              names: ['کن پامنار'],
+              imdb: 'tt27851124',
+              overview: 'فیلم «کن پامنار» به زندگی کودکان کار در محله‌های فقیرنشین تهران و بخشی از مشکلات اجتماعی آن‌ها می‌پردازد.',
+              people: [
+                { id: 'verified-ashkan-darvishi', nameFa: 'اشکان درویشی', role: 'director', roleLabel: 'کارگردان', order: -1, source: 'verified' },
+                { id: 'verified-siamak-safari', nameFa: 'سیامک صفری', role: 'actor', roleLabel: 'بازیگر', order: 0, source: 'verified' },
+                { id: 'verified-babak-noori', nameFa: 'بابک نوری', role: 'actor', roleLabel: 'بازیگر', order: 1, source: 'verified' },
+                { id: 'verified-alireza-ostadi', nameFa: 'علیرضا استادی', role: 'actor', roleLabel: 'بازیگر', order: 2, source: 'verified' },
+                { id: 'verified-neda-hosseini', nameFa: 'ندا حسینی', role: 'actor', roleLabel: 'بازیگر', order: 3, source: 'verified' },
+                { id: 'verified-siroos-hemati', nameFa: 'سیروس همتی', role: 'actor', roleLabel: 'بازیگر', order: 4, source: 'verified' },
+                { id: 'verified-mehdi-tarokh', nameFa: 'مهدی تارخ', role: 'actor', roleLabel: 'بازیگر', order: 5, source: 'verified' },
+                { id: 'verified-fariba-kowsari', nameFa: 'فریبا کوثری', role: 'actor', roleLabel: 'بازیگر', order: 6, source: 'verified' },
+                { id: 'verified-hossein-sharifi', nameFa: 'حسین شریفی', role: 'actor', roleLabel: 'بازیگر', order: 7, source: 'verified' },
+              ],
+            },
+          ];
+
+          const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
+          const normalizeTitle = (value) => clean(value)
+            .toLowerCase()
+            .normalize('NFKC')
+            .replace(/[\u064B-\u065F\u0670\u0640\u200C\u200D]/g, '')
+            .replace(/[يىئ]/g, 'ی')
+            .replace(/ك/g, 'ک')
+            .replace(/[أإٱآ]/g, 'ا')
+            .replace(/[ۀة]/g, 'ه')
+            .replace(/[^\p{L}\p{N}]+/gu, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+          const titleNames = (item) => [...new Set([
+            normalizeTitle(item?.nameFa),
+            normalizeTitle(item?.name),
+          ].filter(Boolean))];
+
+          const validImdb = (value) => clean(value).match(/tt\d{6,12}/i)?.[0]?.toLowerCase() || '';
+
+          export function isMissingOperatorOverview(value) {
+            const text = clean(value);
+            return !text || PLACEHOLDER_OVERVIEW_RE.test(text);
+          }
+
+          export function isOperatorMetadataItem(item) {
+            return Boolean(
+              item?.contentVariant === 'operator' ||
+              item?.catalogVariant === 'operator' ||
+              item?.operatorOnly === true ||
+              clean(item?.operatorAccess) ||
+              (Array.isArray(item?.categoryKeys) && item.categoryKeys.includes('mobile-operator')) ||
+              /--operator$/i.test(clean(item?.id))
+            );
+          }
+
+          const meaningfulPeople = (item) => (Array.isArray(item?.people) ? item.people : []).filter((person) =>
+            person && ['actor', 'director'].includes(clean(person.role)) && clean(person.nameFa || person.name)
+          );
+
+          const clonePeople = (people) => (Array.isArray(people) ? people : []).map((person) => ({ ...person }));
+
+          const donorQuality = (item) =>
+            (isMissingOperatorOverview(item?.overview) ? 0 : 4) +
+            Math.min(4, meaningfulPeople(item).length) +
+            (validImdb(item?.imdb) ? 2 : 0);
+
+          const overrideFor = (item) => {
+            const type = clean(item?.type);
+            const year = Number(item?.year || 0);
+            const names = titleNames(item);
+            return VERIFIED_OPERATOR_METADATA.find((entry) =>
+              entry.type === type && Number(entry.year) === year &&
+              entry.names.some((name) => names.includes(normalizeTitle(name)))
+            ) || null;
+          };
+
+          function applyMetadataFrom(item, donor, source, stats) {
+            let changed = false;
+            if (isMissingOperatorOverview(item?.overview) && donor && !isMissingOperatorOverview(donor?.overview)) {
+              item.overview = clean(donor.overview);
+              stats.overviewFilled += 1;
+              changed = true;
+            }
+
+            if (meaningfulPeople(item).length === 0 && meaningfulPeople(donor).length > 0) {
+              item.people = clonePeople(donor.people);
+              stats.peopleFilled += 1;
+              changed = true;
+            }
+
+            if (!validImdb(item?.imdb) && validImdb(donor?.imdb)) {
+              item.imdb = validImdb(donor.imdb);
+              stats.imdbFilled += 1;
+              changed = true;
+            }
+
+            if (changed) {
+              item.operatorMetadataRepairSource = source;
+              item.operatorMetadataRepairVersion = 1;
+              stats.changed += 1;
+            }
+            return changed;
+          }
+
+          export function applyOperatorMetadataRepair(items) {
+            const list = Array.isArray(items) ? items : [];
+            const stats = {
+              operatorItems: 0,
+              changed: 0,
+              overrideMatches: 0,
+              donorMatches: 0,
+              overviewFilled: 0,
+              peopleFilled: 0,
+              imdbFilled: 0,
+            };
+
+            const donorIndex = new Map();
+            for (const candidate of list) {
+              if (!candidate || isOperatorMetadataItem(candidate) || !['movie', 'series'].includes(candidate.type)) continue;
+              const year = Number(candidate.year || 0);
+              if (!year) continue;
+              for (const name of titleNames(candidate)) {
+                const key = `${candidate.type}|${year}|${name}`;
+                const existing = donorIndex.get(key);
+                if (!existing || donorQuality(candidate) > donorQuality(existing)) donorIndex.set(key, candidate);
+              }
+            }
+
+            for (const item of list) {
+              if (!item || !isOperatorMetadataItem(item) || !['movie', 'series'].includes(item.type)) continue;
+              stats.operatorItems += 1;
+
+              const verified = overrideFor(item);
+              if (verified) {
+                stats.overrideMatches += 1;
+                applyMetadataFrom(item, verified, 'verified-override', stats);
+              }
+
+              const year = Number(item.year || 0);
+              if (!year) continue;
+              let donor = null;
+              for (const name of titleNames(item)) {
+                const candidate = donorIndex.get(`${item.type}|${year}|${name}`);
+                if (candidate && (!donor || donorQuality(candidate) > donorQuality(donor))) donor = candidate;
+              }
+              if (!donor) continue;
+              stats.donorMatches += 1;
+              applyMetadataFrom(item, donor, 'exact-title-year-donor', stats);
+            }
+
+            return stats;
+          }
+          EOF
+
+          cat > scripts/tests/operator-metadata-repair.test.mjs <<'EOF'
+          import test from 'node:test';
+          import assert from 'node:assert/strict';
+          import {
+            applyOperatorMetadataRepair,
+            isMissingOperatorOverview,
+          } from '../operator-metadata-repair.mjs';
+
+          const protectedFields = (item) => ({
+            downloads: structuredClone(item.downloads),
+            streamUrl: item.streamUrl,
+            access: item.access,
+            operatorOnly: item.operatorOnly,
+            operatorAccess: item.operatorAccess,
+            categoryKeys: structuredClone(item.categoryKeys),
+            categoryLabels: structuredClone(item.categoryLabels),
+            availableLanguages: structuredClone(item.availableLanguages),
+          });
+
+          test('exact same-title/year donor fills only missing operator metadata', () => {
+            const standard = {
+              id: 'normal-1', type: 'movie', year: 2019, nameFa: 'ایده اصلی', name: 'Main Idea',
+              overview: 'یک خلاصه معتبر و کامل برای نسخه عادی.', imdb: 'tt1234567',
+              people: [{ id: 'p1', nameFa: 'بازیگر نمونه', role: 'actor' }],
+              downloads: [{ id: 'normal-media', files: [{ url: 'https://example.com/normal.mp4' }] }],
+            };
+            const operator = {
+              id: 'operator-1--operator', type: 'movie', year: 2019, nameFa: 'ایده اصلی',
+              overview: 'توضیحی ثبت نشده است.', people: [], access: 'operator', operatorOnly: true,
+              operatorAccess: 'stream', categoryKeys: ['movies', 'mobile-operator'],
+              categoryLabels: ['فیلم', 'ویژه اینترنت همراه'], availableLanguages: [],
+              streamUrl: 'https://aparatchi.upera.tv/stream/movie/operator-1',
+              downloads: [{ id: 'operator-mobile-access', files: [{ mode: 'operator-play', url: 'https://aparatchi.upera.tv/stream/movie/operator-1' }] }],
+            };
+            const before = protectedFields(operator);
+            const stats = applyOperatorMetadataRepair([standard, operator]);
+            assert.equal(operator.overview, standard.overview);
+            assert.equal(operator.imdb, 'tt1234567');
+            assert.equal(operator.people[0].nameFa, 'بازیگر نمونه');
+            assert.deepEqual(protectedFields(operator), before);
+            assert.equal(stats.donorMatches, 1);
+          });
+
+          test('wrong year is never accepted as a donor', () => {
+            const standard = { id:'n', type:'movie', year:2018, nameFa:'عنوان یکسان', overview:'خلاصه واقعی', people:[{nameFa:'الف',role:'actor'}] };
+            const operator = { id:'o--operator', type:'movie', year:2019, nameFa:'عنوان یکسان', operatorOnly:true, overview:'توضیحی ثبت نشده است.', people:[] };
+            applyOperatorMetadataRepair([standard, operator]);
+            assert.equal(operator.overview, 'توضیحی ثبت نشده است.');
+            assert.deepEqual(operator.people, []);
+          });
+
+          test('ordinary catalog item is never modified', () => {
+            const normal = { id:'normal', type:'movie', year:2020, nameFa:'فیلم عادی', overview:'توضیحی ثبت نشده است.', people:[] };
+            const before = structuredClone(normal);
+            applyOperatorMetadataRepair([normal]);
+            assert.deepEqual(normal, before);
+          });
+
+          test('verified Kan Pamenar record gets exact trusted metadata without touching operator media', () => {
+            const item = {
+              id:'b8327f70-010c-11f1-a9bd-99c9fc183b8b--operator', type:'movie', year:2021, nameFa:'کن پامنار',
+              contentVariant:'operator', operatorOnly:true, operatorAccess:'stream', access:'operator',
+              overview:'توضیحی ثبت نشده است.', people:[], categoryKeys:['movies','iranian-movies','mobile-operator'],
+              categoryLabels:['فیلم','ایرانی','ویژه اینترنت همراه'], availableLanguages:[],
+              downloads:[{id:'operator-mobile-access',files:[{mode:'operator-play',url:'https://aparatchi.upera.tv/stream/movie/b8327f70'}]}],
+            };
+            const before = protectedFields(item);
+            const stats = applyOperatorMetadataRepair([item]);
+            assert.equal(item.imdb, 'tt27851124');
+            assert.ok(!isMissingOperatorOverview(item.overview));
+            assert.ok(item.people.some((person) => person.role === 'director' && person.nameFa === 'اشکان درویشی'));
+            assert.ok(item.people.some((person) => person.role === 'actor' && person.nameFa === 'سیامک صفری'));
+            assert.deepEqual(protectedFields(item), before);
+            assert.equal(stats.overrideMatches, 1);
+          });
+
+          test('verified override is strict about year', () => {
+            const item = { id:'x--operator', type:'movie', year:2020, nameFa:'کن پامنار', operatorOnly:true, overview:'توضیحی ثبت نشده است.', people:[] };
+            applyOperatorMetadataRepair([item]);
+            assert.equal(item.imdb, undefined);
+            assert.equal(item.overview, 'توضیحی ثبت نشده است.');
+            assert.deepEqual(item.people, []);
+          });
+          EOF
+
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/sync-upera.mjs')
+          source = path.read_text(encoding='utf-8')
+
+          def replace_once(before, after, label):
+              global source
+              count = source.count(before)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly 1 match, got {count}')
+              source = source.replace(before, after, 1)
+
+          replace_once(
+              "import { applyVerifiedPersianTitleOverrides } from './persian-title-overrides.mjs';\n",
+              "import { applyVerifiedPersianTitleOverrides } from './persian-title-overrides.mjs';\nimport { applyOperatorMetadataRepair } from './operator-metadata-repair.mjs';\n",
+              'operator metadata repair import',
+          )
+
+          before_items = """let items = Array.isArray(catalog.items)
+            ? catalog.items.filter(Boolean)
+            : [];
+          """
+          after_items = """let items = Array.isArray(catalog.items)
+            ? catalog.items.filter(Boolean)
+            : [];
+
+          const operatorMetadataRepair = applyOperatorMetadataRepair(items);
+          if (operatorMetadataRepair.changed > 0) {
+            console.log(
+              `ترمیم متادیتای ویژه همراه: ${operatorMetadataRepair.changed} عنوان، ` +
+              `${operatorMetadataRepair.overviewFilled} خلاصه، ${operatorMetadataRepair.peopleFilled} فهرست عوامل و ` +
+              `${operatorMetadataRepair.imdbFilled} شناسه IMDb.`,
+            );
+          }
+          """
+          replace_once(before_items, after_items, 'apply repair after catalog load')
+
+          replace_once(
+              """  const candidates = items
+            .filter((item) => peopleEnrichmentNeedsWork(item))
+            .filter((item) => catalogVariant(item) !== 'operator')
+            .filter((item) => {
+          """,
+              """  const candidates = items
+            .filter((item) => peopleEnrichmentNeedsWork(item))
+            .filter((item) => {
+          """,
+              'allow operator titles in bounded people enrichment',
+          )
+
+          path.write_text(source, encoding='utf-8')
+          PY
+
+      - name: Verify scope and syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/sync-upera.mjs
+          node --check scripts/operator-metadata-repair.mjs
+          CHANGED="$(git status --short | awk '{print $2}' | sort)"
+          printf '%s\n' "$CHANGED"
+          while IFS= read -r path; do
+            [ -z "$path" ] && continue
+            case "$path" in
+              scripts/sync-upera.mjs|scripts/operator-metadata-repair.mjs|scripts/tests/operator-metadata-repair.test.mjs) ;;
+              *) echo "Unexpected changed file: $path" >&2; exit 1 ;;
+            esac
+          done <<< "$CHANGED"
+
+      - name: Run operator metadata regression tests
+        run: node --test scripts/tests/operator-metadata-repair.test.mjs
+
+      - name: Run full Content regression suite
+        run: node --test scripts/tests/*.test.mjs
+
+      - name: Commit only verified repair files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/sync-upera.mjs scripts/operator-metadata-repair.mjs scripts/tests/operator-metadata-repair.test.mjs
+          if git diff --cached --quiet; then
+            echo 'No operator metadata repair changes to commit.'
+            exit 0
+          fi
+          git commit -m 'fix: repair operator synopsis and cast metadata'
+          git pull --rebase origin main
+          git push origin HEAD:main
