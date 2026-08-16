@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: aparatchi-content-write-lock
+  group: aparatchi-maintenance-fix-v12
   cancel-in-progress: false
 
 jobs:
@@ -100,4 +100,4 @@ jobs:
           done
           echo 'Could not push functional fix after retries.' >&2
           exit 1
-          # verified rerun 6
+          # maintenance rerun 7
