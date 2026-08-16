@@ -17,46 +17,75 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Inspect Kan Pamenar source fields
+      - name: Compare Kan Pamenar panel metadata payloads
         shell: node {0}
+        env:
+          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
         run: |
-          const fs = require('fs');
-          const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
-          const items = Array.isArray(catalog) ? catalog : (catalog.items || []);
-          const text = (v) => String(v || '').replace(/\s+/g, ' ').trim();
-          const norm = (v) => text(v).toLowerCase().normalize('NFKC').replace(/[يى]/g, 'ی').replace(/ك/g, 'ک');
-          const target = items.filter((item) => {
-            const joined = `${norm(item?.nameFa)} ${norm(item?.nameEn)}`;
-            return /کن\s*پامنار/.test(joined) || /kan\s*pamenar/.test(joined) || /kan\s*p[aä]menar/.test(joined);
-          });
-          console.log('KAN_PAMENAR_SOURCE_FIELDS=' + JSON.stringify(target.map((item) => ({
-            id: item.id,
-            nameFa: item.nameFa,
-            nameEn: item.nameEn,
-            year: item.year,
-            source: item.source,
-            sourceContentId: item.sourceContentId,
-            contentVariant: item.contentVariant,
-            operatorOnly: item.operatorOnly,
-            operatorAccess: item.operatorAccess,
-            access: item.access,
-            overview: item.overview,
-            people: item.people,
-            downloads: (item.downloads || []).map((group) => ({
-              id: group.id,
-              title: group.title,
-              files: (group.files || []).slice(0, 2).map((file) => ({ id: file.id, label: file.label, url: file.url, operatorOnly: file.operatorOnly, access: file.access }))
-            }))
-          })), null, 2));
+          const token = String(process.env.UPERA_PANEL_TOKEN || '').trim();
+          if (!token) throw new Error('UPERA_PANEL_TOKEN is missing');
+          const auth = /^Bearer\s+/i.test(token) ? token : `Bearer ${token}`;
+          const endpoint = 'https://panel-api.upera.tv/api/v1/owner/get/movies';
+          const targetId = 'b8327f70-010c-11f1-a9bd-99c9fc183b8b';
+          const targetTitle = 'کن پامنار';
 
-      - name: Show panel detail code path
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo '=== PANEL API REFERENCES ==='
-          grep -n -B 8 -A 28 "PANEL_API_BASE" scripts/sync-upera.mjs | head -n 180 || true
-          echo '=== PANEL MOVIE DETAIL ==='
-          grep -n -B 12 -A 45 "fetchPanelMovieDetail" scripts/sync-upera.mjs | head -n 220 || true
-          echo '=== PANEL FETCH HELPERS ==='
-          grep -n -B 10 -A 35 "panelFetch" scripts/sync-upera.mjs | head -n 220 || true
-          grep -n -B 10 -A 35 "fetchPanel" scripts/sync-upera.mjs | head -n 260 || true
+          function text(v) { return String(v ?? '').replace(/\s+/g, ' ').trim(); }
+          function looksLikeTarget(value) {
+            if (!value || typeof value !== 'object') return false;
+            const joined = [value.id, value.t_id, value.title, value.name, value.name_fa, value.nameFa]
+              .map(text).join(' ');
+            return joined.includes(targetId) || joined.includes(targetTitle);
+          }
+          function findTargets(value, out = [], depth = 0) {
+            if (!value || depth > 8) return out;
+            if (Array.isArray(value)) {
+              for (const child of value) findTargets(child, out, depth + 1);
+              return out;
+            }
+            if (typeof value !== 'object') return out;
+            if (looksLikeTarget(value)) out.push(value);
+            for (const child of Object.values(value)) {
+              if (child && typeof child === 'object') findTargets(child, out, depth + 1);
+            }
+            return out;
+          }
+          function pick(record) {
+            if (!record) return null;
+            const fields = [
+              'id','t_id','title','name','name_fa','nameFa','name_en','nameEn','year',
+              'description','description_fa','overview','summary','story','plot','content','about',
+              'actors','actor','cast','people','director','directors','crew','imdb','imdb_id','imdbId',
+              'poster','image','cover','created_at','updated_at'
+            ];
+            const result = { rawKeys: Object.keys(record).sort() };
+            for (const key of fields) {
+              if (record[key] !== undefined && record[key] !== null) result[key] = record[key];
+            }
+            return result;
+          }
+          async function fetchVariant(nodata) {
+            const response = await fetch(endpoint, {
+              method: 'POST',
+              headers: { Authorization: auth, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                query: targetTitle,
+                ir: -1,
+                sale_method: 3,
+                payment_method: 0,
+                specific_id: null,
+                nodata,
+                owner: 9194919,
+                page: 1,
+              }),
+            });
+            if (!response.ok) throw new Error(`panel ${nodata} HTTP ${response.status}`);
+            const json = await response.json();
+            const matches = findTargets(json).map(pick);
+            console.log(`PANEL_NODATA_${nodata}=` + JSON.stringify({
+              topKeys: json && typeof json === 'object' ? Object.keys(json).sort() : [],
+              matches,
+            }, null, 2));
+          }
+
+          await fetchVariant(1);
+          await fetchVariant(0);
