@@ -2794,7 +2794,7 @@ async function processMovie(candidate, source, options = {}) {
     return { retryLater: true, added: false, reason: 'request-budget' };
   }
 
-  const media = parseMediaLinks(linkResult.links);
+  const media = parseMediaLinks(linkResult.links, providerPrimaryMediaLanguage(movie));
 
   if (options.requireOperator && !media.operatorFiles.length) {
     stats.operatorMoviesRejectedNoOperatorLink += 1;
@@ -3170,7 +3170,7 @@ async function processSeries(
         break;
       }
 
-      const media = parseMediaLinks(linkResult.links);
+      const media = parseMediaLinks(linkResult.links, providerPrimaryMediaLanguage(series));
       operatorLinksInThisTitle += media.operatorFiles.length;
 
       if (options.requireOperator && !media.operatorFiles.length) {
@@ -4126,13 +4126,29 @@ function isLikelyDownloadableAffiliateLink(link) {
   return isDownloadableMediaUrl(link?.link);
 }
 
-function parseMediaLinks(links) {
+function providerPrimaryMediaLanguage(source) {
+  if (!source || typeof source !== 'object') return '';
+  const dubbed = source.dubbed === true || Number(source.dubbed) === 1 || /^(?:1|true|yes)$/i.test(cleanText(source.dubbed));
+  return dubbed ? 'dubbed' : '';
+}
+
+function isUperaPrimaryMediaVariant(value) {
+  const text = cleanText(value);
+  if (!/upera\.tv|upera\.link|seeko\.film/i.test(text)) return false;
+  let pathname = text;
+  try { pathname = new URL(text).pathname; } catch {}
+  const filename = pathname.split('/').pop() || '';
+  return /-0-(?:[^/?#]+)$/i.test(filename);
+}
+
+function parseMediaLinks(links, primaryLanguage = '') {
   const normalizedLinks = reconcileUperaLanguageLinks((Array.isArray(links) ? links : [])
     .filter((link) => isHttp(link?.link))
     .map((link) => {
       const next = { ...link, link: rewriteAffiliateRef(link.link) };
       next._media_descriptor = mediaLinkDescriptor(next);
-      next._media_language_tag = mediaLanguageTagForLink(next);
+      next._media_language_tag = mediaLanguageTagForLink(next) ||
+        (primaryLanguage === 'dubbed' && isUperaPrimaryMediaVariant(next.link) ? 'dubbed' : '');
       next._media_language = mediaLanguageLabel(next._media_language_tag);
       next._media_price_tier = mediaPriceTier(next);
       return next;
