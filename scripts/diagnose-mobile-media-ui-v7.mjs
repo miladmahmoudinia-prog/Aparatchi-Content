@@ -4,6 +4,7 @@ import { buildClientCatalogArtifacts } from './client-catalog.mjs';
 const catalog = JSON.parse(await fs.readFile('catalog.json', 'utf8'));
 const artifacts = buildClientCatalogArtifacts(catalog);
 const details = new Map(artifacts.detailFiles.map((entry) => [entry.path, JSON.parse(entry.serialized)]));
+const sourceById = new Map((catalog.items || []).map((item) => [String(item.id), item]));
 
 const LANGUAGE_ORDER = ['dubbed', 'subtitled'];
 const isHttp = (value) => /^https?:\/\//i.test(String(value || '').trim());
@@ -62,58 +63,32 @@ const reconcileCurrent = (files) => {
   return safe;
 };
 
-const reconcileProposed = (files) => {
-  const prepared = files.map((file) => ({ ...file }));
-  const languagesByUrl = new Map();
-  for (const file of prepared) {
-    if (!file?.url || !LANGUAGE_ORDER.includes(file.language)) continue;
-    const key = String(file.url).trim();
-    const set = languagesByUrl.get(key) || new Set();
-    set.add(file.language);
-    languagesByUrl.set(key, set);
-  }
-  const conflicted = new Set([...languagesByUrl.entries()]
-    .filter(([, set]) => set.has('dubbed') && set.has('subtitled'))
-    .map(([url]) => url));
-  if (!conflicted.size) return prepared;
-  const result = [];
-  const emitted = new Set();
-  for (const file of prepared) {
-    const url = String(file?.url || '').trim();
-    if (!conflicted.has(url)) { result.push(file); continue; }
-    if (emitted.has(url)) continue;
-    const same = prepared.filter((candidate) => String(candidate?.url || '').trim() === url);
-    const representative = same.find((candidate) => String(candidate?.mode || 'download') === 'download')
-      || same.find((candidate) => String(candidate?.mode || '') === 'play') || file;
-    if (representative !== file) continue;
-    emitted.add(url);
-    result.push({ ...representative, language: undefined });
-  }
-  return result;
-};
-
 const currentDetailLanguages = (item) => LANGUAGE_ORDER.filter((language) =>
   (item?.downloads || []).some((section) => (section?.files || []).some((file) => !isOperator(file) && file?.language === language))
 );
-const proposedDetailLanguages = (item) => LANGUAGE_ORDER.filter((language) =>
-  (item?.availableLanguages || []).includes(language) ||
-  (item?.downloads || []).some((section) => {
-    const hint = sectionLanguage(section);
-    return hint === language || (section?.files || []).some((file) => !isOperator(file) && file?.language === language);
-  })
-);
-
-const movieActions = (item, reconciler) => {
+const movieActions = (item) => {
   const sections = (item?.downloads || []).filter((section) => !isEpisode(section));
-  const files = reconciler(filesWithSectionLanguage(sections));
+  const files = reconcileCurrent(filesWithSectionLanguage(sections));
   const hasPlay = files.some((file) => !isOperator(file) && isHttp(file?.url) && isDirect(file?.url));
   const hasDownload = files.some((file) => !isOperator(file) && String(file?.mode || 'download') === 'download' && isHttp(file?.url) && isDownloadable(file?.url));
   const hasRawDownloadButton = sections.some((section) => (section?.files || []).some((file) => ['download', 'operator-download'].includes(String(file?.mode || 'download'))));
-  return { hasPlay, hasDownload, hasRawDownloadButton, files };
+  return { hasPlay, hasDownload, hasRawDownloadButton };
 };
+const compactFile = (file) => ({
+  id: file?.id, mode: file?.mode, language: file?.language, label: file?.label,
+  quality: file?.quality, sourceType: file?.sourceType, audio: file?.audio,
+  subtitle: file?.subtitle, urlTail: String(file?.url || '').slice(-90),
+});
+const compactSection = (section) => ({
+  id: section?.id, title: section?.title, badge: section?.badge, language: section?.language,
+  seasonNumber: section?.seasonNumber, episodeNumber: section?.episodeNumber,
+  subtitle: section?.subtitle,
+  files: (section?.files || []).slice(0, 8).map(compactFile),
+});
+const languageishObject = (item) => Object.fromEntries(Object.entries(item || {}).filter(([key]) =>
+  /lang|audio|dub|sub|voice|version|media|tag|label|badge|title/i.test(key)
+));
 
-const uiPlayRecovered = [];
-const badgeRecovered = [];
 const noActionGenerated = [];
 const named = [];
 const wanted = [
@@ -125,47 +100,32 @@ const wanted = [
 for (const summary of artifacts.index.items || []) {
   const detail = details.get(summary.detailPath);
   if (!detail) continue;
+  const source = sourceById.get(String(detail.id));
   const title = `${detail.nameFa || ''} ${detail.name || ''}`.toLowerCase();
   if (wanted.some((term) => title.includes(term.toLowerCase()))) {
-    const current = detail.type === 'movie' ? movieActions(detail, reconcileCurrent) : null;
-    const proposed = detail.type === 'movie' ? movieActions(detail, reconcileProposed) : null;
     named.push({
       id: detail.id, type: detail.type, nameFa: detail.nameFa, name: detail.name,
-      availableLanguages: detail.availableLanguages || [],
-      currentDetailLanguages: currentDetailLanguages(detail),
-      proposedDetailLanguages: proposedDetailLanguages(detail),
-      currentActions: current ? { play: current.hasPlay, download: current.hasDownload, rawDownloadButton: current.hasRawDownloadButton } : undefined,
-      proposedActions: proposed ? { play: proposed.hasPlay, download: proposed.hasDownload, rawDownloadButton: proposed.hasRawDownloadButton } : undefined,
-      sectionCount: (detail.downloads || []).length,
-      fileCount: (detail.downloads || []).reduce((sum, section) => sum + (section.files || []).length, 0),
-      modes: [...new Set((detail.downloads || []).flatMap((section) => (section.files || []).map((file) => String(file?.mode || 'download'))))],
+      sourceLanguageish: languageishObject(source),
+      sourceCategoryKeys: source?.categoryKeys || [], sourceCategoryLabels: source?.categoryLabels || [],
+      sourceDownloads: (source?.downloads || []).slice(0, 16).map(compactSection),
+      generatedAvailableLanguages: detail.availableLanguages || [],
+      generatedLanguages: currentDetailLanguages(detail),
+      generatedActions: detail.type === 'movie' ? movieActions(detail) : undefined,
+      generatedDownloads: (detail.downloads || []).slice(0, 16).map(compactSection),
     });
   }
-
-  const currentLanguages = currentDetailLanguages(detail);
-  const proposedLanguages = proposedDetailLanguages(detail);
-  if (!currentLanguages.includes('dubbed') && proposedLanguages.includes('dubbed')) {
-    badgeRecovered.push({ id: detail.id, type: detail.type, nameFa: detail.nameFa, name: detail.name });
-  }
-
-  if (detail.type !== 'movie') continue;
-  const current = movieActions(detail, reconcileCurrent);
-  const proposed = movieActions(detail, reconcileProposed);
-  if (!current.hasPlay && proposed.hasPlay) {
-    uiPlayRecovered.push({ id: detail.id, nameFa: detail.nameFa, name: detail.name, currentDownload: current.hasDownload, proposedDownload: proposed.hasDownload });
-  }
-  if (!current.hasPlay && !current.hasDownload && !current.hasRawDownloadButton) {
-    noActionGenerated.push({ id: detail.id, nameFa: detail.nameFa, name: detail.name, availableLanguages: detail.availableLanguages || [] });
+  if (detail.type === 'movie') {
+    const actions = movieActions(detail);
+    if (!actions.hasPlay && !actions.hasDownload && !actions.hasRawDownloadButton) {
+      noActionGenerated.push({ id: detail.id, nameFa: detail.nameFa, name: detail.name, operatorOnly: detail.operatorOnly === true });
+    }
   }
 }
 
 console.log('MOBILE_UI_REAL_METRICS=' + JSON.stringify({
   clientItems: artifacts.index.items.length,
-  uiPlayRecoveredByPreservingNeutral: uiPlayRecovered.length,
-  dubbedBadgeRecoveredByUnifiedTruth: badgeRecovered.length,
   generatedMoviesWithNoCurrentAction: noActionGenerated.length,
+  generatedNormalMoviesWithNoCurrentAction: noActionGenerated.filter((item) => !item.operatorOnly).length,
 }));
-console.log('UI_PLAY_RECOVERED_SAMPLE=' + JSON.stringify(uiPlayRecovered.slice(0, 40)));
-console.log('BADGE_RECOVERED_SAMPLE=' + JSON.stringify(badgeRecovered.slice(0, 40)));
 console.log('NO_ACTION_GENERATED_SAMPLE=' + JSON.stringify(noActionGenerated.slice(0, 40)));
 console.log('NAMED_DEVICE_SAMPLES=' + JSON.stringify(named));
