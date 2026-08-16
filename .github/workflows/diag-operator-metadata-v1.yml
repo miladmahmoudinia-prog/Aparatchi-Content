@@ -14,73 +14,56 @@ jobs:
   diagnose:
     runs-on: ubuntu-latest
     steps:
-      - name: Probe trusted metadata sources for Kan Pamenar
+      - name: Verify operator movie_id bridge for Kan Pamenar
         shell: node {0}
         env:
-          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
         run: |
-          const title = 'کن پامنار';
-          const year = 2021;
-          const headers = {
-            accept: 'application/json',
-            'user-agent': 'Aparatchi-Metadata/1.0 (github.com/miladmahmoudinia-prog/Aparatchi-Content)',
-          };
-          const clean = (v) => String(v ?? '').replace(/\s+/g, ' ').trim();
+          const token = String(process.env.UPERA_PANEL_TOKEN || '').trim();
+          if (!token) throw new Error('UPERA_PANEL_TOKEN is missing');
+          const auth = /^Bearer\s+/i.test(token) ? token : `Bearer ${token}`;
+          const targetTitle = 'کن پامنار';
+          const panel = await fetch('https://panel-api.upera.tv/api/v1/owner/get/movies', {
+            method: 'POST',
+            headers: { Authorization: auth, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: targetTitle,
+              ir: -1,
+              sale_method: 3,
+              payment_method: 0,
+              specific_id: null,
+              nodata: 1,
+              owner: 9194919,
+              page: 1,
+            }),
+            signal: AbortSignal.timeout(12000),
+          });
+          if (!panel.ok) throw new Error(`panel HTTP ${panel.status}`);
+          const payload = await panel.json();
+          const rows = payload?.data?.data || payload?.data?.movies || payload?.data || [];
+          const list = Array.isArray(rows) ? rows : Object.values(rows || {}).filter((v) => v && typeof v === 'object');
+          const row = list.find((r) => String(r?.name || '').includes(targetTitle)) || list[0];
+          if (!row) throw new Error('Kan Pamenar panel row not found');
+          console.log('PANEL_IDS=' + JSON.stringify({ id:row.id, movie_id:row.movie_id, name:row.name, year:row.year }, null, 2));
 
-          const wikiUrl = new URL('https://fa.wikipedia.org/w/rest.php/v1/search/page');
-          wikiUrl.searchParams.set('q', title);
-          wikiUrl.searchParams.set('limit', '8');
-          const wikiResponse = await fetch(wikiUrl, { headers, signal: AbortSignal.timeout(12000) });
-          const wiki = wikiResponse.ok ? await wikiResponse.json() : { error: wikiResponse.status };
-          console.log('FAWIKI_SEARCH=' + JSON.stringify((wiki.pages || []).map((p) => ({
-            id: p.id, key: p.key, title: p.title, excerpt: clean(p.excerpt), description: clean(p.description)
-          })), null, 2));
-
-          for (const page of (wiki.pages || []).slice(0, 8)) {
-            const wd = new URL('https://www.wikidata.org/w/api.php');
-            wd.searchParams.set('action', 'wbgetentities');
-            wd.searchParams.set('format', 'json');
-            wd.searchParams.set('sites', 'fawiki');
-            wd.searchParams.set('titles', page.title);
-            wd.searchParams.set('props', 'labels|claims|sitelinks');
-            wd.searchParams.set('languages', 'fa|en');
-            wd.searchParams.set('sitefilter', 'fawiki|enwiki');
-            const response = await fetch(wd, { headers, signal: AbortSignal.timeout(12000) });
-            if (!response.ok) continue;
-            const entities = (await response.json()).entities || {};
-            for (const entity of Object.values(entities)) {
-              if (!entity || entity.missing === '') continue;
-              const ids = (prop) => (entity.claims?.[prop] || []).map((c) => c?.mainsnak?.datavalue?.value?.id).filter(Boolean);
-              const years = (entity.claims?.P577 || []).map((c) => clean(c?.mainsnak?.datavalue?.value?.time).match(/^[+-](\d{4})-/)?.[1]).filter(Boolean);
-              console.log('WIKIDATA_CANDIDATE=' + JSON.stringify({
-                qid: entity.id,
-                pageTitle: page.title,
-                fa: entity.labels?.fa?.value,
-                en: entity.labels?.en?.value,
-                years,
-                types: ids('P31'),
-                countries: ids('P495'),
-                directors: ids('P57'),
-                cast: ids('P161'),
-              }, null, 2));
-            }
-          }
-
-          const tmdbToken = String(process.env.TMDB_READ_ACCESS_TOKEN || '').trim();
-          if (tmdbToken) {
-            for (const language of ['fa-IR', 'en-US']) {
-              const url = new URL('https://api.themoviedb.org/3/search/movie');
-              url.searchParams.set('query', title);
-              url.searchParams.set('year', String(year));
-              url.searchParams.set('language', language);
-              url.searchParams.set('include_adult', 'false');
-              const response = await fetch(url, {
-                headers: { Authorization: `Bearer ${tmdbToken}`, accept: 'application/json' },
-                signal: AbortSignal.timeout(12000),
-              });
-              const payload = response.ok ? await response.json() : { results: [] };
-              console.log(`TMDB_${language}=` + JSON.stringify((payload.results || []).slice(0, 8).map((r) => ({
-                id:r.id,title:r.title,original_title:r.original_title,release_date:r.release_date,original_language:r.original_language,overview:r.overview
-              })), null, 2));
-            }
+          for (const [kind, id] of [['panel_id', row.id], ['movie_id', row.movie_id]]) {
+            if (!id) continue;
+            const url = `https://seeko.film/api/v1/ghost/get/movie/${encodeURIComponent(id)}`;
+            const response = await fetch(url, { headers: { accept:'application/json' }, signal: AbortSignal.timeout(12000) });
+            let body = null;
+            try { body = await response.json(); } catch { body = null; }
+            const data = body?.data ?? body ?? {};
+            const movie = data?.movie || data;
+            console.log(`SEEKO_${kind}=` + JSON.stringify({
+              status: response.status,
+              keys: movie && typeof movie === 'object' ? Object.keys(movie).sort() : [],
+              id: movie?.id,
+              name: movie?.name,
+              name_fa: movie?.name_fa,
+              title: movie?.title,
+              year: movie?.year,
+              overview: movie?.overview || movie?.description || movie?.summary || movie?.story || null,
+              people: movie?.people || movie?.cast || movie?.actors || null,
+              imdb: movie?.imdb || movie?.imdb_id || null,
+            }, null, 2));
           }
