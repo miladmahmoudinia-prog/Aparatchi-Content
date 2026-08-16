@@ -58,7 +58,10 @@ for (const sample of samples) {
   url.searchParams.set('ref', ref);
   url.searchParams.set('traffic', '1');
   url.searchParams.set('token', token);
-  const response = await fetch(url, { headers: { Accept: 'application/json' } });
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { Accept: 'application/json' },
+  });
   const text = await response.text();
   if (!response.ok) {
     console.log(`UPERA_LANGUAGE_SAMPLE_${sample.key}=HTTP_${response.status}`);
