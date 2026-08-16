@@ -36,6 +36,7 @@ jobs:
               peopleCount:people.length,
               people:people.map(p=>({role:p.role,name:p.name,nameFa:p.nameFa,image:Boolean(p.image),source:p.source})),
               peopleEnrichmentAttemptedAt:item.peopleEnrichmentAttemptedAt,
+              peopleEnrichmentCheckedAt:item.peopleEnrichmentCheckedAt,
               peopleEnrichmentNextRetryAt:item.peopleEnrichmentNextRetryAt,
               peopleEnrichmentStatus:item.peopleEnrichmentStatus,
               cacheKey:key,
@@ -52,4 +53,41 @@ jobs:
           console.log('PEOPLE_QUEUE=' + JSON.stringify({catalogItems:catalog.items.length, needsWork:needs.length, emptyPeople:empty.length, offset:state.peopleEnrichmentOffset, lastPeopleEnrichmentAt:state.lastPeopleEnrichmentAt}, null, 2));
           console.log('EMPTY_SAMPLE=' + JSON.stringify(empty.slice(0,20).map(i=>({id:i.id,nameFa:i.nameFa,nameEn:i.nameEn||i.name,createdAt:i.createdAt,sourceCreatedAt:i.sourceCreatedAt,next:i.peopleEnrichmentNextRetryAt})), null, 2));
           NODE
-          # diagnostic revision 2
+      - name: Print PEOPLE mode scheduling block
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          text = Path('scripts/sync-upera.mjs').read_text()
+          needle = "if (runMode === 'PEOPLE')"
+          start = text.find(needle)
+          if start < 0:
+              raise SystemExit('PEOPLE mode block not found')
+          brace = text.find('{', start)
+          depth = 0
+          quote = None
+          escape = False
+          end = None
+          for i in range(brace, len(text)):
+              ch = text[i]
+              if quote:
+                  if escape:
+                      escape = False
+                  elif ch == '\\':
+                      escape = True
+                  elif ch == quote:
+                      quote = None
+                  continue
+              if ch in "'\"`":
+                  quote = ch
+                  continue
+              if ch == '{': depth += 1
+              elif ch == '}':
+                  depth -= 1
+                  if depth == 0:
+                      end = i + 1
+                      break
+          if not end:
+              raise SystemExit('PEOPLE mode closing brace not found')
+          print(text[start:end])
+          PY
+          # diagnostic revision 3
