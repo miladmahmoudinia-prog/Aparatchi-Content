@@ -1,0 +1,48 @@
+name: Cleanup old Sync Upera runs v1
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cleanup-old-sync-runs-v1.yml'
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Delete completed Sync Upera runs except newest five
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          WORKFLOW_ID: '321308935'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t rows < <(
+            gh api --paginate "/repos/${REPO}/actions/workflows/${WORKFLOW_ID}/runs?per_page=100" \
+              --jq '.workflow_runs[] | [.id, .status, .run_number] | @tsv'
+          )
+          keep_completed=5
+          kept=0
+          deleted=0
+          for row in "${rows[@]}"; do
+            IFS=$'\t' read -r id status run_number <<< "$row"
+            if [ "$status" != "completed" ]; then
+              echo "keep active run #${run_number} (${id})"
+              continue
+            fi
+            if [ "$kept" -lt "$keep_completed" ]; then
+              kept=$((kept + 1))
+              echo "keep recent completed run #${run_number} (${id})"
+              continue
+            fi
+            gh api -X DELETE "/repos/${REPO}/actions/runs/${id}"
+            deleted=$((deleted + 1))
+            echo "deleted old run #${run_number} (${id})"
+          done
+          echo "deleted=${deleted}; kept_completed=${kept}"
