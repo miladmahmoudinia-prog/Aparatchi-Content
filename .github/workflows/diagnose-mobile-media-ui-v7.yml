@@ -1,0 +1,33 @@
+name: Diagnose mobile media UI v7
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/diagnose-mobile-media-ui-v7.mjs'
+      - '.github/workflows/diagnose-mobile-media-ui-v7.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aparatchi-content-mobile-media-ui-v7
+  cancel-in-progress: true
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 1
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Audit real generated mobile UI media truth
+        run: node scripts/diagnose-mobile-media-ui-v7.mjs
