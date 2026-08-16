@@ -1,0 +1,119 @@
+name: Diagnose operator metadata v1
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/diag-operator-metadata-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Inspect operator metadata without modifying content
+        shell: node {0}
+        run: |
+          const fs = require('fs');
+
+          const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
+          const items = Array.isArray(catalog) ? catalog : (catalog.items || []);
+
+          const text = (v) => String(v || '').replace(/\s+/g, ' ').trim();
+          const norm = (v) => text(v).toLowerCase()
+            .normalize('NFKC')
+            .replace(/[يى]/g, 'ی')
+            .replace(/ك/g, 'ک');
+          const isOperator = (item) => item?.catalogVariant === 'operator' || item?.mobileOperatorAccess === true;
+          const missingOverview = (item) => {
+            const v = text(item?.overview);
+            return !v || /توضیحی\s*ثبت\s*نشده|توضیحات?\s*ثبت\s*نشده|خلاصه(?:\s*داستان)?\s*ثبت\s*نشده|اطلاعاتی\s*ثبت\s*نشده|بدون\s*توضیح|no\s+(?:description|overview)|description\s+not\s+available/i.test(v);
+          };
+          const peopleArray = (item) => Array.isArray(item?.people) ? item.people : [];
+          const hasPeople = (item) => peopleArray(item).some((p) => text(p?.nameFa || p?.nameEn || p?.name));
+          const titleKey = (item) => [item?.type, norm(item?.nameFa), norm(item?.nameEn), item?.year || ''].join('|');
+          const sourceKey = (item) => text(item?.providerId || item?.sourceId || item?.uperaId || '');
+
+          const operatorItems = items.filter(isOperator);
+          const standardItems = items.filter((item) => !isOperator(item));
+          const standardsBySource = new Map();
+          const standardsByTitle = new Map();
+          for (const item of standardItems) {
+            const sk = sourceKey(item);
+            if (sk && !standardsBySource.has(sk)) standardsBySource.set(sk, item);
+            const tk = titleKey(item);
+            if (tk && !standardsByTitle.has(tk)) standardsByTitle.set(tk, item);
+          }
+          const siblingFor = (item) => {
+            const sk = sourceKey(item);
+            return (sk && standardsBySource.get(sk)) || standardsByTitle.get(titleKey(item)) || null;
+          };
+
+          const missingOverviewOps = operatorItems.filter(missingOverview);
+          const missingPeopleOps = operatorItems.filter((item) => !hasPeople(item));
+          const overviewRecoverable = missingOverviewOps.filter((item) => {
+            const sibling = siblingFor(item);
+            return sibling && !missingOverview(sibling);
+          });
+          const peopleRecoverable = missingPeopleOps.filter((item) => {
+            const sibling = siblingFor(item);
+            return sibling && hasPeople(sibling);
+          });
+
+          const target = items.filter((item) => {
+            const joined = `${norm(item?.nameFa)} ${norm(item?.nameEn)}`;
+            return /کن\s*پامنار/.test(joined) || /kan\s*pamenar/.test(joined) || /kan\s*p[aä]menar/.test(joined);
+          });
+
+          const compact = (item) => item ? {
+            id: item.id,
+            type: item.type,
+            catalogVariant: item.catalogVariant,
+            mobileOperatorAccess: item.mobileOperatorAccess,
+            nameFa: item.nameFa,
+            nameEn: item.nameEn,
+            year: item.year,
+            providerId: item.providerId,
+            overview: item.overview,
+            overviewMissing: missingOverview(item),
+            peopleCount: peopleArray(item).length,
+            people: peopleArray(item).slice(0, 12).map((p) => ({ nameFa: p.nameFa, nameEn: p.nameEn, role: p.role })),
+            categoryKeys: item.categoryKeys,
+            detailPath: item.detailPath,
+            stableDetailPath: item.stableDetailPath,
+            sourceUrl: item.sourceUrl,
+            downloadCount: Array.isArray(item.downloads) ? item.downloads.length : 0,
+          } : null;
+
+          console.log('OPERATOR_METADATA_SUMMARY=' + JSON.stringify({
+            catalogItems: items.length,
+            operatorItems: operatorItems.length,
+            operatorMissingOverview: missingOverviewOps.length,
+            operatorMissingPeople: missingPeopleOps.length,
+            operatorMissingBoth: operatorItems.filter((item) => missingOverview(item) && !hasPeople(item)).length,
+            missingOverviewButStandardHasIt: overviewRecoverable.length,
+            missingPeopleButStandardHasThem: peopleRecoverable.length,
+          }, null, 2));
+
+          console.log('KAN_PAMENAR_MATCHES=' + JSON.stringify(target.map((item) => ({
+            item: compact(item),
+            standardSibling: compact(siblingFor(item)),
+          })), null, 2));
+
+          console.log('RECOVERABLE_SAMPLE=' + JSON.stringify(
+            operatorItems
+              .filter((item) => {
+                const sibling = siblingFor(item);
+                return sibling && ((missingOverview(item) && !missingOverview(sibling)) || (!hasPeople(item) && hasPeople(sibling)));
+              })
+              .slice(0, 10)
+              .map((item) => ({ operator: compact(item), standard: compact(siblingFor(item)) })),
+            null,
+            2,
+          ));
