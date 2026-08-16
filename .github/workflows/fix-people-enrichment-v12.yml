@@ -47,11 +47,13 @@ jobs:
           assert mode < iranian < backfill < normal
           assert sync.index('await syncPeopleMetadata();', mode, iranian) < sync.index('await syncEpisodeArtworkMetadata();', mode, iranian)
           for required in (
-              'await syncRecentMovieDiscovery();',
-              'await syncRecentSeriesDiscovery();',
-              'await syncIncompleteMovieMedia();',
-              'await syncMovieArchive();',
-              'await syncSeriesArchive();',
+              'await syncSequentialArchiveBackfill();',
+              'syncRecentMovieDiscovery,',
+              'syncRecentSeriesDiscovery,',
+              'syncIncompleteMovieMedia,',
+              'syncMovieArchive,',
+              'syncSeriesArchive,',
+              'syncIranianSeriesArchive,',
               "const priorityTake = options.preferRecent",
               'let rotatingVisited = 0;',
               '(start + rotatingVisited) % rotatingCandidates.length',
@@ -119,4 +121,4 @@ jobs:
           done
           echo 'Could not push corrected functional fix after retries.' >&2
           exit 1
-          # hardened correction 10
+          # hardened correction 11
