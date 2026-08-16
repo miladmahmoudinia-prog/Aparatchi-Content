@@ -22,6 +22,16 @@ replaceOnce(
   'affiliate primary language fallback',
 );
 
+// Movie list/search rows do not reliably expose Upera's title-level dubbed flag.
+// Fetch the title detail whenever that field is absent so hourly media refreshes
+// cannot erase a previously-correct dubbed badge merely because the list row was
+// sparse. Series processing already fetches fetchSeriesDetail(id) unconditionally.
+replaceOnce(
+  `  if (!hasBasicMetadata(movie) || options.panelCandidate === true) {`,
+  `  if (!hasBasicMetadata(movie) || options.panelCandidate === true || !Object.prototype.hasOwnProperty.call(movie, 'dubbed')) {`,
+  'movie provider dubbed detail refresh',
+);
+
 const callMarker = `const media = parseMediaLinks(linkResult.links);`;
 const firstCall = source.indexOf(callMarker);
 if (firstCall >= 0) {
@@ -34,6 +44,7 @@ if (secondCall >= 0) {
 if (source.includes(callMarker)) throw new Error('Unexpected additional parseMediaLinks caller remains unpatched.');
 if (!source.includes('providerPrimaryMediaLanguage(movie)')) throw new Error('Movie provider language context was not wired.');
 if (!source.includes('providerPrimaryMediaLanguage(series)')) throw new Error('Series provider language context was not wired.');
+if (!source.includes("!Object.prototype.hasOwnProperty.call(movie, 'dubbed')")) throw new Error('Sparse movie list rows can still skip title-level dubbed truth.');
 
 await fs.writeFile(file, source);
 console.log('Applied provider language truth parser v9.');
