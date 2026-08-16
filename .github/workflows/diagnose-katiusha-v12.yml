@@ -1,0 +1,54 @@
+name: Diagnose Katiusha cast metadata v12
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/diagnose-katiusha-v12.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Inspect Katiusha and people queue
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const catalog = JSON.parse(fs.readFileSync('catalog.json','utf8'));
+          const state = JSON.parse(fs.readFileSync('sync-state.json','utf8'));
+          let cache = {items:{}};
+          try { cache = JSON.parse(fs.readFileSync('tmdb-cache.json','utf8')); } catch {}
+          const norm = s => String(s || '').normalize('NFKC').replace(/[\u200c\u200f\u202a-\u202e]/g,'').replace(/\s+/g,' ').trim();
+          const matches = catalog.items.filter(item => /کاتیوشا/i.test(norm(item.nameFa)) || /katiusha|katyusha/i.test(norm(item.nameEn || item.name)));
+          const summarize = item => {
+            const people = Array.isArray(item.people) ? item.people : [];
+            const key = String(item.id || item.slug || '');
+            const c = cache.items?.[key];
+            return {
+              id:item.id, type:item.type, nameFa:item.nameFa, nameEn:item.nameEn || item.name,
+              year:item.year, imdbId:item.imdbId || item.imdb?.id || item.source?.imdbId,
+              tmdb:item.tmdb || item.source?.tmdb,
+              source:item.source,
+              peopleCount:people.length,
+              people:people.map(p=>({role:p.role,name:p.name,nameFa:p.nameFa,image:Boolean(p.image),source:p.source})),
+              peopleEnrichmentAttemptedAt:item.peopleEnrichmentAttemptedAt,
+              peopleEnrichmentNextRetryAt:item.peopleEnrichmentNextRetryAt,
+              peopleEnrichmentStatus:item.peopleEnrichmentStatus,
+              cacheKey:key,
+              tmdbCache:c ? {fetchedAt:c.fetchedAt, tmdb:c.tmdb, metadataRetryVersion:c.metadataRetryVersion, signature:c.signature, peopleCount:Array.isArray(c.people)?c.people.length:null} : null,
+            };
+          };
+          console.log('KATIUSHA_MATCHES=' + JSON.stringify(matches.map(summarize), null, 2));
+          const needs = catalog.items.filter(item => {
+            if (!item || !['movie','series'].includes(item.type)) return false;
+            const people=(Array.isArray(item.people)?item.people:[]).filter(p=>p?.role==='actor'||p?.role==='director');
+            return people.length < 3 || !people.some(p=>p.role==='director');
+          });
+          const empty = needs.filter(i => !(Array.isArray(i.people)&&i.people.length));
+          console.log('PEOPLE_QUEUE=' + JSON.stringify({catalogItems:catalog.items.length, needsWork:needs.length, emptyPeople:empty.length, offset:state.peopleEnrichmentOffset, lastPeopleEnrichmentAt:state.lastPeopleEnrichmentAt}, null, 2));
+          console.log('EMPTY_SAMPLE=' + JSON.stringify(empty.slice(0,20).map(i=>({id:i.id,nameFa:i.nameFa,nameEn:i.nameEn||i.name,createdAt:i.createdAt,sourceCreatedAt:i.sourceCreatedAt,next:i.peopleEnrichmentNextRetryAt})), null, 2));
+          NODE
