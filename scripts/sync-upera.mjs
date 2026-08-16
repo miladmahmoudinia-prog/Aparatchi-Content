@@ -2768,7 +2768,7 @@ async function processMovie(candidate, source, options = {}) {
 
   let movie = candidate;
 
-  if (!hasBasicMetadata(movie) || options.panelCandidate === true) {
+  if (!hasBasicMetadata(movie) || options.panelCandidate === true || !Object.prototype.hasOwnProperty.call(movie, 'dubbed')) {
     try {
       const detail = await fetchMovieDetail(id);
       movie = detail ? { ...candidate, ...detail, id } : movie;
