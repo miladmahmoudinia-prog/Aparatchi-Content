@@ -33,7 +33,7 @@ jobs:
       - name: Apply bounded series preview patch
         run: python3 .github/patch-series-preview-v14.py
 
-      - name: Syntax and full Content regression suite
+      - name: Syntax and full Content regression suite v2
         run: |
           node --check scripts/client-catalog.mjs
           node --test scripts/tests/*.test.mjs
