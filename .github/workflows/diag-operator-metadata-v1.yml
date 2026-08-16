@@ -14,43 +14,24 @@ jobs:
   diagnose:
     runs-on: ubuntu-latest
     steps:
-      - name: Trace operator source movie id for Kan Pamenar
+      - name: Inspect operator identity hints for Kan Pamenar
         shell: node {0}
         env:
           UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
         run: |
-          const token = String(process.env.UPERA_PANEL_TOKEN || '').trim();
-          if (!token) throw new Error('UPERA_PANEL_TOKEN is missing');
-          const auth = /^Bearer\s+/i.test(token) ? token : `Bearer ${token}`;
-          const targetId = 'b8327f70-010c-11f1-a9bd-99c9fc183b8b';
-          const targetTitle = 'کن پامنار';
-          const clean = (v) => String(v ?? '').replace(/\s+/g, ' ').trim();
-          const panel = await fetch('https://panel-api.upera.tv/api/v1/owner/get/movies', {
-            method:'POST',
-            headers:{ Authorization:auth, 'Content-Type':'application/json' },
-            body:JSON.stringify({query:targetTitle,ir:-1,sale_method:3,payment_method:0,specific_id:null,nodata:1,owner:9194919,page:1}),
-            signal:AbortSignal.timeout(12000),
-          });
-          if (!panel.ok) throw new Error(`panel HTTP ${panel.status}`);
-          const payload = await panel.json();
-          const found = [];
-          function walk(value, depth=0) {
-            if (!value || depth > 10) return;
-            if (Array.isArray(value)) { for (const child of value) walk(child, depth+1); return; }
-            if (typeof value !== 'object') return;
-            const haystack = [value.id,value.movie_id,value.name,value.title,value.nameFa,value.name_fa].map(clean).join(' ');
-            if (haystack.includes(targetId) || haystack.includes(targetTitle)) found.push(value);
-            for (const child of Object.values(value)) if (child && typeof child === 'object') walk(child, depth+1);
-          }
+          const token=String(process.env.UPERA_PANEL_TOKEN||'').trim();
+          if(!token) throw new Error('UPERA_PANEL_TOKEN missing');
+          const auth=/^Bearer\s+/i.test(token)?token:`Bearer ${token}`;
+          const target='کن پامنار';
+          const response=await fetch('https://panel-api.upera.tv/api/v1/owner/get/movies',{method:'POST',headers:{Authorization:auth,'Content-Type':'application/json'},body:JSON.stringify({query:target,ir:-1,sale_method:3,payment_method:0,specific_id:null,nodata:1,owner:9194919,page:1}),signal:AbortSignal.timeout(12000)});
+          const payload=await response.json();
+          const found=[]; const clean=v=>String(v??'').trim();
+          function walk(v,d=0){if(!v||d>10)return;if(Array.isArray(v)){for(const c of v)walk(c,d+1);return;}if(typeof v!=='object')return;if([v.name,v.id].map(clean).join(' ').includes(target))found.push(v);for(const c of Object.values(v))if(c&&typeof c==='object')walk(c,d+1);}
           walk(payload);
-          const row = found.find((r) => clean(r.id) === targetId) || found.find((r) => clean(r.name).includes(targetTitle)) || found[0];
-          if (!row) throw new Error('target row missing');
-          console.log('PANEL_ID_BRIDGE=' + JSON.stringify({id:row.id,movie_id:row.movie_id,name:row.name,year:row.year,keys:Object.keys(row).sort()},null,2));
+          const row=found.find(r=>clean(r.name).includes(target));
+          if(!row) throw new Error('row missing');
+          console.log('IDENTITY_HINTS='+JSON.stringify({id:row.id,movie_id:row.movie_id,name:row.name,year:row.year,one_edit_title:row.one_edit_title,one_edit_token:row.one_edit_token,upera:row.upera,vod:row.vod,show:row.show,internal_studio:row.internal_studio},null,2));
 
-          for (const [kind,id] of [['panel_id',row.id],['movie_id',row.movie_id]]) {
-            if (!clean(id)) continue;
-            const response = await fetch(`https://seeko.film/api/v1/ghost/get/movie/${encodeURIComponent(id)}`, {signal:AbortSignal.timeout(12000)});
-            let json=null; try { json=await response.json(); } catch {}
-            const data=json?.data??json??{}; const movie=data?.movie??data;
-            console.log(`SEEKO_${kind}=`+JSON.stringify({status:response.status,id:movie?.id,name:movie?.name,nameFa:movie?.nameFa||movie?.name_fa,year:movie?.year,overview:movie?.overview||movie?.description||movie?.summary||movie?.story||null,imdb:movie?.imdb||movie?.imdb_id||null,peopleCount:Array.isArray(movie?.people)?movie.people.length:null,keys:movie&&typeof movie==='object'?Object.keys(movie).sort():[]},null,2));
-          }
+          const suggestion=await fetch(`https://v2.sg.media-imdb.com/suggestion/x/${encodeURIComponent(target)}.json`,{signal:AbortSignal.timeout(12000)});
+          const json=suggestion.ok?await suggestion.json():{};
+          console.log('IMDB_SUGGESTION='+JSON.stringify((json.d||[]).slice(0,10).map(x=>({id:x.id,title:x.l,year:x.y,type:x.q,aka:x.aka})),null,2));
