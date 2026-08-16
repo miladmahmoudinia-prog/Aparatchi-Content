@@ -534,6 +534,38 @@ const compactBootstrapMovieActionPreview = (downloads) => {
   return [...groups.values()];
 };
 
+
+const compactBootstrapSeriesEpisodePreviews = (downloads) =>
+  (Array.isArray(downloads) ? downloads : []).flatMap((section) => {
+    const episodeNumber = Number(section?.episodeNumber || 0);
+    const files = Array.isArray(section?.files) ? section.files : [];
+    if (!(episodeNumber > 0) || !files.length) return [];
+
+    // Full index already limits each episode to at most two truthful action
+    // files. Bootstrap needs only the coordinates and fields Mobile requires to
+    // normalize/open those actions. Drop ids/labels/quality/timestamps here to
+    // keep first-install transport below the historical 5 MB safety cap.
+    const compactFiles = files.slice(0, 2).flatMap((file) => {
+      const url = String(file?.url || '').trim();
+      if (!/^https?:\/\//i.test(url)) return [];
+      return [{
+        url,
+        ...(file?.mode ? { mode: file.mode } : {}),
+        ...(file?.language ? { language: file.language } : {}),
+        ...(Array.isArray(file?.supportedOperators) && file.supportedOperators.length
+          ? { supportedOperators: file.supportedOperators }
+          : {}),
+      }];
+    });
+    if (!compactFiles.length) return [];
+    return [{
+      episodeNumber,
+      ...(Number(section?.seasonNumber || 0) > 1 ? { seasonNumber: Number(section.seasonNumber) } : {}),
+      ...(section?.artwork ? { artwork: section.artwork } : {}),
+      files: compactFiles,
+    }];
+  });
+
 const compactBootstrapNavigationItem = (item) => {
   const compact = {};
   for (const field of BOOTSTRAP_NAVIGATION_FIELDS) {
@@ -544,6 +576,9 @@ const compactBootstrapNavigationItem = (item) => {
     if (downloads.length) compact.downloads = downloads;
     if (/^https?:\/\//i.test(String(item.streamUrl || '').trim())) compact.streamUrl = item.streamUrl;
     if (item.streamMode) compact.streamMode = item.streamMode;
+  } else if (item?.type === 'series') {
+    const downloads = compactBootstrapSeriesEpisodePreviews(item.downloads);
+    if (downloads.length) compact.downloads = downloads;
   }
   return compact;
 };
@@ -653,9 +688,9 @@ export function buildClientCatalogArtifacts(catalog) {
   // the rest retain enough metadata to browse and hydrate their detail shard.
   const bootstrapItems = items.map((item) => {
     if (!richHomeIds.has(String(item?.id || ''))) return compactBootstrapNavigationItem(item);
-    if (item?.type !== 'series' || !Array.isArray(item.downloads)) return item;
-    const { downloads: _episodePreviews, ...withoutEpisodePreviews } = item;
-    return withoutEpisodePreviews;
+    if (item?.type !== 'series') return item;
+    const downloads = compactBootstrapSeriesEpisodePreviews(item.downloads);
+    return downloads.length ? { ...item, downloads } : item;
   });
   const bootstrap = {
     version: index.version,

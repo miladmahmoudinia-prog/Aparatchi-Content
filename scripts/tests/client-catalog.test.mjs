@@ -165,7 +165,7 @@ test('client index accepts MKV direct downloads but rejects purchase-only links'
   assert.equal(artifacts.index.items.some((item) => item.id === 'external'), false);
 });
 
-test('series summary keeps every episode coordinate with at most two actionable preview files and bootstrap strips them', () => {
+test('series summary and bootstrap keep every episode coordinate with bounded actionable previews', () => {
   const episode = (number) => ({
     id: `e${number}`,
     title: `قسمت ${number}`,
@@ -193,7 +193,11 @@ test('series summary keeps every episode coordinate with at most two actionable 
   assert.deepEqual(summary.downloads.map((section) => section.sourceEpisodeId), ['source-1', 'source-2', 'source-3']);
   const sourceUrls = new Set(catalog.items[0].downloads.flatMap((section) => section.files.map((file) => file.url)));
   assert.ok(summary.downloads.flatMap((section) => section.files).every((file) => sourceUrls.has(file.url)));
-  assert.equal('downloads' in artifacts.bootstrap.items[0], false, 'bootstrap must stay navigation-light for series');
+  const bootstrapSummary = artifacts.bootstrap.items[0];
+  assert.deepEqual(bootstrapSummary.downloads.map((section) => section.episodeNumber), [1, 2, 3]);
+  assert.ok(bootstrapSummary.downloads.every((section) => section.files.length > 0 && section.files.length <= 2));
+  assert.ok(bootstrapSummary.downloads.flatMap((section) => section.files).every((file) => sourceUrls.has(file.url)));
+  assert.ok(bootstrapSummary.downloads.flatMap((section) => section.files).every((file) => !('quality' in file) && !('id' in file)));
   const detail = JSON.parse(artifacts.detailFiles[0].serialized);
   assert.equal(detail.downloads.flatMap((section) => section.files).length, 9, 'detail shard keeps every quality');
 });
