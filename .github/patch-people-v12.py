@@ -116,11 +116,13 @@ text = text.replace(old_people_mode, new_people_mode, 1)
 for required in (
     "} else if (effectiveSyncMode === 'IRANIAN') {",
     "} else if (effectiveSyncMode === 'BACKFILL') {",
-    "await syncRecentMovieDiscovery();",
-    "await syncRecentSeriesDiscovery();",
-    "await syncIncompleteMovieMedia();",
-    "await syncMovieArchive();",
-    "await syncSeriesArchive();",
+    "await syncSequentialArchiveBackfill();",
+    "syncRecentMovieDiscovery,",
+    "syncRecentSeriesDiscovery,",
+    "syncIncompleteMovieMedia,",
+    "syncMovieArchive,",
+    "syncSeriesArchive,",
+    "syncIranianSeriesArchive,",
 ):
     if required not in text:
         raise SystemExit(f"required sync branch missing after repair: {required}")
