@@ -933,6 +933,118 @@ if (effectiveSyncMode === 'PEOPLE') {
   if (!runTimeBudgetReached('before-episode-artwork-metadata', 60000)) {
     await syncEpisodeArtworkMetadata();
   }
+} else if (effectiveSyncMode === 'IRANIAN') {
+  // Dedicated hourly lane: one Iranian narrative series stays selected until
+  // every discoverable episode has usable media. This lane is independent of
+  // the global foreign/archive backlog.
+  await withAffiliateRequestScope(
+    'iranian-series',
+    iranianSeriesRequestQuota,
+    syncIranianSeriesArchive,
+  );
+} else if (effectiveSyncMode === 'BACKFILL') {
+  // The archive queue is intentionally exclusive: one series is completed
+  // as far as the request budget allows before the next series is selected.
+  // No new movie/series archive pages are scanned in this mode, so repeated
+  // runs shrink the existing backlog instead of continuously adding more
+  // incomplete titles.
+  stats.normalSyncSkippedForBackfill = true;
+  await syncSequentialArchiveBackfill();
+
+  // If the active archive finished before the request budget was consumed,
+  // keep already-published weekly series current without discovering titles.
+  if (!affiliateBudgetExhausted) {
+    await syncAiringSeriesUpdates();
+  }
+} else {
+  // Published, currently-airing series are checked first. A newly released
+  // episode must be visible in this hourly run before broader discovery spends
+  // the request budget. Discovery then scans movies and the next sequential
+  // series archive from page 1.
+  await withAffiliateRequestScope(
+    'airing-series',
+    airingRequestQuota,
+    syncAiringSeriesUpdates,
+  );
+
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-recent-movies', 90000)) {
+    await withAffiliateRequestScope(
+      'recent-movies',
+      recentMovieRequestQuota,
+      syncRecentMovieDiscovery,
+    );
+  }
+
+  // Finish fresh-title discovery before spending the remaining budget on
+  // old-media repair. Previously the repair lane ran first and could starve
+  // recent series, leaving newly discovered series shells without episode media.
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-recent-series', 90000)) {
+    await withAffiliateRequestScope(
+      'recent-series',
+      recentSeriesRequestQuota,
+      syncRecentSeriesDiscovery,
+    );
+  }
+
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-media-repair', 80000)) {
+    await withAffiliateRequestScope(
+      'media-repair',
+      mediaRepairRequestQuota,
+      syncIncompleteMovieMedia,
+    );
+  }
+
+  if (!runTimeBudgetReached('before-media-health-audit', 70000)) {
+    await withAffiliateRequestScope(
+      'media-health-audit',
+      Math.min(12, recentMovieRequestQuota),
+      syncMovieMediaHealthAudit,
+    );
+  }
+
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-incremental', 75000)) {
+    await withAffiliateRequestScope(
+      'incremental',
+      incrementalRequestQuota,
+      syncIncrementalTitles,
+    );
+  }
+
+  // The remaining passes continue the wider catalog crawl, but each one is
+  // fenced by a small quota. None of them can steal the reserved discovery
+  // capacity from the next hourly run.
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-archive-movies', 60000)) {
+    await withAffiliateRequestScope(
+      'archive-movies',
+      archiveMovieRequestQuota,
+      syncMovieArchive,
+    );
+  }
+
+  if (
+    !affiliateBudgetExhausted &&
+    buildSequentialBackfillQueue().length === 0 &&
+    !runTimeBudgetReached('before-archive-series', 60000)
+  ) {
+    await withAffiliateRequestScope(
+      'archive-series',
+      archiveSeriesRequestQuota,
+      syncSeriesArchive,
+    );
+  }
+
+  if (
+    !affiliateBudgetExhausted &&
+    buildSequentialBackfillQueue().length === 0 &&
+    !runTimeBudgetReached('before-iranian-series', 55000)
+  ) {
+    await withAffiliateRequestScope(
+      'iranian-series',
+      iranianSeriesRequestQuota,
+      syncIranianSeriesArchive,
+    );
+  }
+
 }
 
 // Existing series are append/update-only. No hourly sync stage is allowed to
