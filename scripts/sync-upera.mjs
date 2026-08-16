@@ -5,6 +5,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { writeClientCatalogArtifacts } from './client-catalog.mjs';
 import { applyVerifiedPersianTitleOverrides } from './persian-title-overrides.mjs';
+import { applyOperatorMetadataRepair } from './operator-metadata-repair.mjs';
 import {
   classifyCatalogItem as classifyCatalogRules,
   isManagedCategoryKey as managedCategoryKey,
@@ -504,6 +505,15 @@ if (
 let items = Array.isArray(catalog.items)
   ? catalog.items.filter(Boolean)
   : [];
+
+const operatorMetadataRepair = applyOperatorMetadataRepair(items);
+if (operatorMetadataRepair.changed > 0) {
+  console.log(
+    `ترمیم متادیتای ویژه همراه: ${operatorMetadataRepair.changed} عنوان، ` +
+    `${operatorMetadataRepair.overviewFilled} خلاصه، ${operatorMetadataRepair.peopleFilled} فهرست عوامل و ` +
+    `${operatorMetadataRepair.imdbFilled} شناسه IMDb.`,
+  );
+}
 
 items = items.filter((item) => !(
   item?.type === 'series' &&
@@ -4963,7 +4973,6 @@ async function syncPeopleMetadata(options = {}) {
   ));
   const candidates = items
     .filter((item) => peopleEnrichmentNeedsWork(item))
-    .filter((item) => catalogVariant(item) !== 'operator')
     .filter((item) => {
       const allowed = peopleRetryAllowed(item, nowMs);
       if (!allowed) stats.peopleEnrichmentSkippedFresh += 1;
