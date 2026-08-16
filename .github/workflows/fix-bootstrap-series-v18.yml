@@ -85,6 +85,10 @@ jobs:
             if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(`episode preview mismatch ${item.id}`);
             for (const section of item.downloads || []) {
               if (!Array.isArray(section.files) || section.files.length < 1 || section.files.length > 2) throw new Error(`preview file bound failed ${item.id}`);
+              for (const file of section.files) {
+                if (!file.url || !file.mode) throw new Error(`bootstrap action lost url/mode ${item.id}`);
+                if ('quality' in file || 'id' in file || 'label' in file || 'size' in file) throw new Error(`heavy file field leaked into bootstrap ${item.id}`);
+              }
             }
           }
           console.log(JSON.stringify({ items: ix.length, indexSeriesPreviews: indexSeries.length, bootstrapSeriesPreviews: bootstrapSeries.length }, null, 2));
@@ -93,7 +97,7 @@ jobs:
           NEW_INDEX_BYTES=$(stat -c%s catalog-index.json)
           echo "bootstrap bytes: $OLD_BOOTSTRAP_BYTES -> $NEW_BOOTSTRAP_BYTES"
           echo "index bytes: $OLD_INDEX_BYTES -> $NEW_INDEX_BYTES"
-          [ "$NEW_BOOTSTRAP_BYTES" -le 7000000 ] || { echo 'Bootstrap exceeded 7 MB safety bound' >&2; exit 1; }
+          [ "$NEW_BOOTSTRAP_BYTES" -le 5000000 ] || { echo 'Bootstrap exceeded historical 5 MB safety bound' >&2; exit 1; }
           [ "$NEW_BOOTSTRAP_BYTES" -lt "$NEW_INDEX_BYTES" ] || { echo 'Bootstrap must remain smaller than full index' >&2; exit 1; }
           git diff --check
 
@@ -112,6 +116,6 @@ jobs:
             [ "$ok" -eq 1 ] || { echo "Unexpected staged file: $file" >&2; exit 1; }
           done
           printf '%s\n' "${staged[@]}"
-          git commit -m "fix: preload series episode actions in bootstrap [skip ci]"
+          git commit -m "fix: preload compact series actions in bootstrap [skip ci]"
           git pull --rebase origin main
           git push origin HEAD:main
