@@ -1,0 +1,27 @@
+name: Diagnose Upera variant language map v7
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/diagnose-upera-variant-language-map-v7.mjs'
+      - '.github/workflows/diagnose-upera-variant-language-map-v7.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Audit all explicit language variants
+        run: node scripts/diagnose-upera-variant-language-map-v7.mjs
