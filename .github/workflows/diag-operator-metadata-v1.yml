@@ -14,78 +14,73 @@ jobs:
   diagnose:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Compare Kan Pamenar panel metadata payloads
+      - name: Probe trusted metadata sources for Kan Pamenar
         shell: node {0}
         env:
-          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
         run: |
-          const token = String(process.env.UPERA_PANEL_TOKEN || '').trim();
-          if (!token) throw new Error('UPERA_PANEL_TOKEN is missing');
-          const auth = /^Bearer\s+/i.test(token) ? token : `Bearer ${token}`;
-          const endpoint = 'https://panel-api.upera.tv/api/v1/owner/get/movies';
-          const targetId = 'b8327f70-010c-11f1-a9bd-99c9fc183b8b';
-          const targetTitle = 'کن پامنار';
+          const title = 'کن پامنار';
+          const year = 2021;
+          const headers = {
+            accept: 'application/json',
+            'user-agent': 'Aparatchi-Metadata/1.0 (github.com/miladmahmoudinia-prog/Aparatchi-Content)',
+          };
+          const clean = (v) => String(v ?? '').replace(/\s+/g, ' ').trim();
 
-          function text(v) { return String(v ?? '').replace(/\s+/g, ' ').trim(); }
-          function looksLikeTarget(value) {
-            if (!value || typeof value !== 'object') return false;
-            const joined = [value.id, value.t_id, value.title, value.name, value.name_fa, value.nameFa]
-              .map(text).join(' ');
-            return joined.includes(targetId) || joined.includes(targetTitle);
-          }
-          function findTargets(value, out = [], depth = 0) {
-            if (!value || depth > 8) return out;
-            if (Array.isArray(value)) {
-              for (const child of value) findTargets(child, out, depth + 1);
-              return out;
+          const wikiUrl = new URL('https://fa.wikipedia.org/w/rest.php/v1/search/page');
+          wikiUrl.searchParams.set('q', title);
+          wikiUrl.searchParams.set('limit', '8');
+          const wikiResponse = await fetch(wikiUrl, { headers, signal: AbortSignal.timeout(12000) });
+          const wiki = wikiResponse.ok ? await wikiResponse.json() : { error: wikiResponse.status };
+          console.log('FAWIKI_SEARCH=' + JSON.stringify((wiki.pages || []).map((p) => ({
+            id: p.id, key: p.key, title: p.title, excerpt: clean(p.excerpt), description: clean(p.description)
+          })), null, 2));
+
+          for (const page of (wiki.pages || []).slice(0, 8)) {
+            const wd = new URL('https://www.wikidata.org/w/api.php');
+            wd.searchParams.set('action', 'wbgetentities');
+            wd.searchParams.set('format', 'json');
+            wd.searchParams.set('sites', 'fawiki');
+            wd.searchParams.set('titles', page.title);
+            wd.searchParams.set('props', 'labels|claims|sitelinks');
+            wd.searchParams.set('languages', 'fa|en');
+            wd.searchParams.set('sitefilter', 'fawiki|enwiki');
+            const response = await fetch(wd, { headers, signal: AbortSignal.timeout(12000) });
+            if (!response.ok) continue;
+            const entities = (await response.json()).entities || {};
+            for (const entity of Object.values(entities)) {
+              if (!entity || entity.missing === '') continue;
+              const ids = (prop) => (entity.claims?.[prop] || []).map((c) => c?.mainsnak?.datavalue?.value?.id).filter(Boolean);
+              const years = (entity.claims?.P577 || []).map((c) => clean(c?.mainsnak?.datavalue?.value?.time).match(/^[+-](\d{4})-/)?.[1]).filter(Boolean);
+              console.log('WIKIDATA_CANDIDATE=' + JSON.stringify({
+                qid: entity.id,
+                pageTitle: page.title,
+                fa: entity.labels?.fa?.value,
+                en: entity.labels?.en?.value,
+                years,
+                types: ids('P31'),
+                countries: ids('P495'),
+                directors: ids('P57'),
+                cast: ids('P161'),
+              }, null, 2));
             }
-            if (typeof value !== 'object') return out;
-            if (looksLikeTarget(value)) out.push(value);
-            for (const child of Object.values(value)) {
-              if (child && typeof child === 'object') findTargets(child, out, depth + 1);
-            }
-            return out;
-          }
-          function pick(record) {
-            if (!record) return null;
-            const fields = [
-              'id','t_id','title','name','name_fa','nameFa','name_en','nameEn','year',
-              'description','description_fa','overview','summary','story','plot','content','about',
-              'actors','actor','cast','people','director','directors','crew','imdb','imdb_id','imdbId',
-              'poster','image','cover','created_at','updated_at'
-            ];
-            const result = { rawKeys: Object.keys(record).sort() };
-            for (const key of fields) {
-              if (record[key] !== undefined && record[key] !== null) result[key] = record[key];
-            }
-            return result;
-          }
-          async function fetchVariant(nodata) {
-            const response = await fetch(endpoint, {
-              method: 'POST',
-              headers: { Authorization: auth, 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                query: targetTitle,
-                ir: -1,
-                sale_method: 3,
-                payment_method: 0,
-                specific_id: null,
-                nodata,
-                owner: 9194919,
-                page: 1,
-              }),
-            });
-            if (!response.ok) throw new Error(`panel ${nodata} HTTP ${response.status}`);
-            const json = await response.json();
-            const matches = findTargets(json).map(pick);
-            console.log(`PANEL_NODATA_${nodata}=` + JSON.stringify({
-              topKeys: json && typeof json === 'object' ? Object.keys(json).sort() : [],
-              matches,
-            }, null, 2));
           }
 
-          await fetchVariant(1);
-          await fetchVariant(0);
+          const tmdbToken = String(process.env.TMDB_READ_ACCESS_TOKEN || '').trim();
+          if (tmdbToken) {
+            for (const language of ['fa-IR', 'en-US']) {
+              const url = new URL('https://api.themoviedb.org/3/search/movie');
+              url.searchParams.set('query', title);
+              url.searchParams.set('year', String(year));
+              url.searchParams.set('language', language);
+              url.searchParams.set('include_adult', 'false');
+              const response = await fetch(url, {
+                headers: { Authorization: `Bearer ${tmdbToken}`, accept: 'application/json' },
+                signal: AbortSignal.timeout(12000),
+              });
+              const payload = response.ok ? await response.json() : { results: [] };
+              console.log(`TMDB_${language}=` + JSON.stringify((payload.results || []).slice(0, 8).map((r) => ({
+                id:r.id,title:r.title,original_title:r.original_title,release_date:r.release_date,original_language:r.original_language,overview:r.overview
+              })), null, 2));
+            }
+          }
