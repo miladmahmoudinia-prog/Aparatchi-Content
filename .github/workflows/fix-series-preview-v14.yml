@@ -33,7 +33,7 @@ jobs:
       - name: Apply bounded series preview patch
         run: python3 .github/patch-series-preview-v14.py
 
-      - name: Syntax and full Content regression suite v2
+      - name: Syntax and full Content regression suite v3
         run: |
           node --check scripts/client-catalog.mjs
           node --test scripts/tests/*.test.mjs
@@ -105,7 +105,7 @@ jobs:
           NODE
 
           mapfile -t changed < <(git diff --name-only | sort)
-          expected=(catalog-bootstrap.json catalog-index.json catalog-manifest.json scripts/client-catalog.mjs scripts/tests/client-catalog.test.mjs)
+          expected=(catalog-index.json catalog-manifest.json scripts/client-catalog.mjs scripts/tests/client-catalog.test.mjs)
           if [ "${changed[*]}" != "${expected[*]}" ]; then
             echo "Unexpected modified files: ${changed[*]}" >&2
             exit 1
@@ -118,9 +118,9 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/client-catalog.mjs scripts/tests/client-catalog.test.mjs catalog-index.json catalog-bootstrap.json catalog-manifest.json
+          git add scripts/client-catalog.mjs scripts/tests/client-catalog.test.mjs catalog-index.json catalog-manifest.json
           mapfile -t staged < <(git diff --cached --name-only | sort)
-          expected=(catalog-bootstrap.json catalog-index.json catalog-manifest.json scripts/client-catalog.mjs scripts/tests/client-catalog.test.mjs)
+          expected=(catalog-index.json catalog-manifest.json scripts/client-catalog.mjs scripts/tests/client-catalog.test.mjs)
           if [ "${staged[*]}" != "${expected[*]}" ]; then
             echo "Unexpected staged files: ${staged[*]}" >&2
             exit 1
