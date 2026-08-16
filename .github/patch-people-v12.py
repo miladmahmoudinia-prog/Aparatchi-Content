@@ -103,8 +103,8 @@ sync_path.write_text(text)
 
 workflow_path = Path(".github/workflows/enrich-tmdb-cast.yml")
 workflow = workflow_path.read_text()
-old_add = "git add catalog.json sync-report-min.json sync-report.json catalog-index.json catalog-items catalog-manifest.json"
-new_add = "git add catalog.json catalog-index.json catalog-items catalog-stable catalog-manifest.json catalog-bootstrap.json tmdb-cache.json tmdb-enrichment-report.json sync-report-min.json sync-report.json"
+old_add = "git add catalog.json catalog-index.json catalog-items catalog-manifest.json tmdb-cache.json tmdb-enrichment-report.json persian-title-cache.json imdb-top-cache.json"
+new_add = "git add catalog.json catalog-index.json catalog-items catalog-stable catalog-manifest.json catalog-bootstrap.json tmdb-cache.json tmdb-enrichment-report.json persian-title-cache.json imdb-top-cache.json"
 if workflow.count(old_add) != 1:
     raise SystemExit(f"TMDB git add mismatch: {workflow.count(old_add)}")
 workflow = workflow.replace(old_add, new_add, 1)
