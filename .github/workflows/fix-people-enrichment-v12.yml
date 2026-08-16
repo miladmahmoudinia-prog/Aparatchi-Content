@@ -81,7 +81,7 @@ jobs:
           print(f'priority={len(priority)} rotating_capacity={20-len(priority)} candidates={len(candidates)}')
           PY
           mapfile -t changed < <(git diff --name-only | sort)
-          expected=(.github/workflows/enrich-tmdb-cast.yml scripts/sync-upera.mjs)
+          expected=(scripts/sync-upera.mjs)
           if [ "${changed[*]}" != "${expected[*]}" ]; then
             echo 'Unexpected functional diff scope' >&2
             git diff --name-only >&2
@@ -92,7 +92,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/sync-upera.mjs .github/workflows/enrich-tmdb-cast.yml
+          git add scripts/sync-upera.mjs
           git commit -m "fix: prioritize cast metadata repair [skip ci]"
           for attempt in 1 2 3 4 5; do
             if git pull --rebase origin main && git push origin HEAD:main; then
@@ -104,4 +104,4 @@ jobs:
           done
           echo 'Could not push functional fix after retries.' >&2
           exit 1
-          # maintenance rerun 8
+          # source-only rerun 9
