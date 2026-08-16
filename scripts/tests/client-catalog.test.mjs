@@ -2,13 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildClientCatalogArtifacts, clientSummaryForItem } from '../client-catalog.mjs';
 
-test('client item summary strips heavy media and duplicated cast identities', () => {
+test('client item summary keeps bounded episode action previews but strips duplicated cast identities', () => {
   const item = {
     id: 'series-1', type: 'series', slug: 'series-1', ir: false, year: 2025,
     nameFa: 'نمونه', name: 'Sample', poster: 'p.jpg', backdrop: 'b.jpg',
     overview: 'الف'.repeat(500), genres: ['درام'], access: 'free',
     publicationStatus: 'published', episodeCount: 20, categoryKeys: ['series', 'foreign-series'],
-    downloads: [{ id: 'e1', seasonNumber: 1, episodeNumber: 1, files: [{ id: 'f1', url: 'https://example.test/a.mp4' }] }],
+    downloads: [{ id: 'e1', seasonNumber: 1, episodeNumber: 1, files: [{ id: 'f1', mode: 'download', quality: '720p', url: 'https://example.test/a.mp4' }] }],
     people: [{
       id: 'p1', nameFa: 'بازیگر', name: 'Actor', role: 'actor', tmdbId: 42,
       image: 'https://image.test/p1.jpg', character: 'Hero', popularity: 99,
@@ -27,7 +27,9 @@ test('client item summary strips heavy media and duplicated cast identities', ()
     id: summary.id,
     detailPath: summary.detailPath,
   });
-  assert.equal('downloads' in summary, false);
+  assert.equal(summary.downloads?.length, 1);
+  assert.equal(summary.downloads?.[0]?.episodeNumber, 1);
+  assert.equal(summary.downloads?.[0]?.files?.length, 1);
   assert.equal('people' in summary, false);
   assert.ok(summary.overview.length < item.overview.length);
 });
@@ -39,7 +41,7 @@ test('detail path changes when the full item changes', () => {
   assert.notEqual(first, second);
 });
 
-test('client catalog remains much smaller by not embedding episode files and full cast payloads per item', () => {
+test('client catalog stays bounded while carrying only compact episode previews and no full cast payloads', () => {
   const heavyItem = {
     id: 's', type: 'series', slug: 's', ir: false, year: 2020, nameFa: 'سریال', name: 'Series',
     poster: 'p', backdrop: 'b', overview: 'شرح', genres: ['درام'], access: 'free', publicationStatus: 'published',
@@ -58,7 +60,8 @@ test('client catalog remains much smaller by not embedding episode files and ful
   const catalog = { version: '1', updatedAt: 'now', items: [heavyItem] };
   const artifacts = buildClientCatalogArtifacts(catalog);
   const fullBytes = Buffer.byteLength(JSON.stringify(catalog));
-  assert.ok(artifacts.clientSizeBytes < fullBytes * 0.35);
+  assert.ok(artifacts.clientSizeBytes < fullBytes * 0.65);
+  assert.ok(artifacts.index.items[0].downloads.every((section) => section.files.length > 0 && section.files.length <= 2));
   assert.equal('people' in artifacts.index.items[0], false);
   assert.deepEqual(artifacts.index.peopleWorks['tmdb:1000'], [0]);
   assert.ok(Object.values(artifacts.index.peopleWorks).every((indexes) => indexes.every(Number.isInteger)));
@@ -160,4 +163,37 @@ test('client index accepts MKV direct downloads but rejects purchase-only links'
   const artifacts = buildClientCatalogArtifacts(catalog);
   assert.ok(artifacts.index.items.some((item) => item.id === 'mkv'));
   assert.equal(artifacts.index.items.some((item) => item.id === 'external'), false);
+});
+
+test('series summary keeps every episode coordinate with at most two actionable preview files and bootstrap strips them', () => {
+  const episode = (number) => ({
+    id: `e${number}`,
+    title: `قسمت ${number}`,
+    seasonNumber: 1,
+    episodeNumber: number,
+    sourceEpisodeId: `source-${number}`,
+    files: [
+      { id: `d${number}-1080`, mode: 'download', quality: '1080p', url: `https://cdn.test/${number}/1080.mp4` },
+      { id: `d${number}-720`, mode: 'download', quality: '720p', url: `https://cdn.test/${number}/720.mp4` },
+      { id: `p${number}`, mode: 'play', quality: 'پخش', url: `https://cdn.test/${number}/master.m3u8` },
+    ],
+  });
+  const catalog = {
+    version: 'preview-test', updatedAt: '2026-01-01T00:00:00Z',
+    items: [{
+      id: 'series-preview', type: 'series', nameFa: 'نمونه سریال', name: 'Series Preview',
+      publicationStatus: 'published', archiveComplete: true,
+      downloads: [episode(1), episode(2), episode(3)],
+    }],
+  };
+  const artifacts = buildClientCatalogArtifacts(catalog);
+  const summary = artifacts.index.items[0];
+  assert.deepEqual(summary.downloads.map((section) => section.episodeNumber), [1, 2, 3]);
+  assert.ok(summary.downloads.every((section) => section.files.length > 0 && section.files.length <= 2));
+  assert.deepEqual(summary.downloads.map((section) => section.sourceEpisodeId), ['source-1', 'source-2', 'source-3']);
+  const sourceUrls = new Set(catalog.items[0].downloads.flatMap((section) => section.files.map((file) => file.url)));
+  assert.ok(summary.downloads.flatMap((section) => section.files).every((file) => sourceUrls.has(file.url)));
+  assert.equal('downloads' in artifacts.bootstrap.items[0], false, 'bootstrap must stay navigation-light for series');
+  const detail = JSON.parse(artifacts.detailFiles[0].serialized);
+  assert.equal(detail.downloads.flatMap((section) => section.files).length, 9, 'detail shard keeps every quality');
 });

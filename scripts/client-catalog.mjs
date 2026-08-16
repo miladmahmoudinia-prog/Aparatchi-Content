@@ -326,6 +326,35 @@ const compactMovieDownloadsForSummary = (downloads) => (Array.isArray(downloads)
   return [compactSection];
 });
 
+const compactSeriesEpisodeDownloadsForSummary = (downloads) => (Array.isArray(downloads) ? downloads : []).flatMap((section) => {
+  const episodeNumber = Number(section?.episodeNumber || 0);
+  if (!(episodeNumber > 0)) return [];
+  const usable = (Array.isArray(section?.files) ? section.files : []).filter(clientSeriesFileIsUsable);
+  if (!usable.length) return [];
+
+  const isDownload = (file) => ['download', 'operator-download'].includes(String(file?.mode || 'download'));
+  const isPlayable = (file) =>
+    ['play', 'operator-play'].includes(String(file?.mode || '')) ||
+    /\.(?:m3u8|mp4)(?:$|[?#])/i.test(String(file?.url || ''));
+  const download = usable.find(isDownload) || usable[0];
+  const play = usable.find(isPlayable);
+  const chosen = [download];
+  if (play && play?.url !== download?.url) chosen.push(play);
+
+  const files = chosen.slice(0, 2).map((file) => {
+    const compact = {};
+    for (const key of ['id', 'label', 'quality', 'size', 'url', 'mode', 'language', 'operatorOnly', 'panelVerified', 'trafficOo', 'supportedOperators']) {
+      if (file?.[key] !== undefined && file?.[key] !== null && file?.[key] !== '') compact[key] = file[key];
+    }
+    return compact;
+  });
+  const compactSection = { files, episodeNumber };
+  for (const key of ['id', 'title', 'subtitle', 'badge', 'artwork', 'language', 'sourceEpisodeId', 'seasonNumber', 'sourceUpdatedAt']) {
+    if (section?.[key] !== undefined && section?.[key] !== null && section?.[key] !== '') compactSection[key] = section[key];
+  }
+  return [compactSection];
+});
+
 export function clientSummaryForItem(item) {
   const summary = {};
   for (const field of SUMMARY_FIELDS) {
@@ -344,6 +373,9 @@ export function clientSummaryForItem(item) {
       summary.streamUrl = item.streamUrl;
       if (item.streamMode) summary.streamMode = item.streamMode;
     }
+  } else if (item?.type === 'series') {
+    const episodePreviews = compactSeriesEpisodeDownloadsForSummary(item.downloads);
+    if (episodePreviews.length) summary.downloads = episodePreviews;
   }
 
   // People are intentionally excluded from every item summary. The reverse
@@ -619,9 +651,12 @@ export function buildClientCatalogArtifacts(catalog) {
   // present so categories/search can never collapse to the old 8–12 item Home
   // sample. Only Home-critical rows keep their heavier media/overview payload;
   // the rest retain enough metadata to browse and hydrate their detail shard.
-  const bootstrapItems = items.map((item) =>
-    richHomeIds.has(String(item?.id || '')) ? item : compactBootstrapNavigationItem(item)
-  );
+  const bootstrapItems = items.map((item) => {
+    if (!richHomeIds.has(String(item?.id || ''))) return compactBootstrapNavigationItem(item);
+    if (item?.type !== 'series' || !Array.isArray(item.downloads)) return item;
+    const { downloads: _episodePreviews, ...withoutEpisodePreviews } = item;
+    return withoutEpisodePreviews;
+  });
   const bootstrap = {
     version: index.version,
     updatedAt: index.updatedAt,
