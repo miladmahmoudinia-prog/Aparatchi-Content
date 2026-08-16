@@ -152,8 +152,12 @@ if (!perfect?.availableLanguages?.includes('dubbed') || perfectDubbedFiles < 1) 
   throw new Error('Perfect Crown was not recovered from direct provider dubbed truth.');
 }
 
-catalog.updatedAt = new Date().toISOString();
-await fs.writeFile('catalog.json', JSON.stringify(catalog, null, 2) + '\n');
+// A repeated validation run must not touch catalog timestamps or regenerate a
+// new client revision when there is no newly recovered language truth.
+if (dubbedTitles > 0) {
+  catalog.updatedAt = new Date().toISOString();
+  await fs.writeFile('catalog.json', JSON.stringify(catalog, null, 2) + '\n');
+}
 
 console.log('PROVIDER_LANGUAGE_SWEEP=' + JSON.stringify({
   candidates: candidates.length,
@@ -163,6 +167,7 @@ console.log('PROVIDER_LANGUAGE_SWEEP=' + JSON.stringify({
   newlyDubbedTitles,
   taggedFiles,
   perfectCrownDubbedFiles: perfectDubbedFiles,
+  catalogChanged: dubbedTitles > 0,
 }));
 console.log('PROVIDER_LANGUAGE_CHANGED_SAMPLE=' + JSON.stringify(changedSamples));
 console.log('PROVIDER_LANGUAGE_FAILURE_SAMPLE=' + JSON.stringify(failureSamples));
