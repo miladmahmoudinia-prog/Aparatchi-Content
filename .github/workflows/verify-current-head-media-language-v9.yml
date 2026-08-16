@@ -1,0 +1,43 @@
+name: Verify current HEAD media and language truth v9
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-current-head-media-language-v9.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Verify persistent parser syntax
+        run: node --check scripts/sync-upera.mjs
+      - name: Verify provider language truth on current HEAD
+        run: node scripts/test-provider-language-truth-v9.mjs
+      - name: Verify complete navigation bootstrap
+        run: node scripts/tests/full-navigation-bootstrap-v1.test.mjs
+      - name: Verify fast media artifact invariants
+        run: node scripts/tests/fast-movie-media-v2.test.mjs
+      - name: Verify zero real media and dubbed loss
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/diagnose-movie-client-media-loss.mjs | tee /tmp/media.txt
+          grep -q '"sourceMediaTitlesMissingFromClient":0' /tmp/media.txt
+          grep -q '"sourceUrlsLostFromClientDetailTitles":0' /tmp/media.txt
+          grep -q '"sourceUrlsLostFromClientSummaryTitles":0' /tmp/media.txt
+          grep -q '"dubbedMoviesLost":0' /tmp/media.txt
+      - name: Verify reported device samples against generated client truth
+        run: node scripts/diagnose-mobile-media-ui-v7.mjs
