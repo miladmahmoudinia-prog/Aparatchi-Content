@@ -1,0 +1,117 @@
+name: Fix bootstrap series previews v18
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-bootstrap-series-v18.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Start from latest main
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+          echo "BASE_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "OLD_BOOTSTRAP_BYTES=$(stat -c%s catalog-bootstrap.json)" >> "$GITHUB_ENV"
+          echo "OLD_INDEX_BYTES=$(stat -c%s catalog-index.json)" >> "$GITHUB_ENV"
+
+      - name: Apply bounded bootstrap series previews
+        run: python3 .github/patch-bootstrap-series-v18.py
+
+      - name: Syntax and full Content suite
+        run: |
+          node --check scripts/client-catalog.mjs
+          node --test scripts/tests/*.test.mjs
+
+      - name: Rebuild generated client artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs/promises';
+          import { buildClientCatalogArtifacts } from './scripts/client-catalog.mjs';
+          const catalog = JSON.parse(await fs.readFile('catalog.json', 'utf8'));
+          const artifacts = buildClientCatalogArtifacts(catalog);
+          await fs.writeFile('catalog-index.json', artifacts.indexSerialized, 'utf8');
+          await fs.writeFile('catalog-bootstrap.json', artifacts.bootstrapSerialized, 'utf8');
+          const manifest = JSON.parse(await fs.readFile('catalog-manifest.json', 'utf8'));
+          manifest.clientRevision = artifacts.clientRevision;
+          manifest.clientSizeBytes = artifacts.clientSizeBytes;
+          manifest.bootstrapRevision = artifacts.bootstrapRevision;
+          manifest.bootstrapSizeBytes = artifacts.bootstrapSizeBytes;
+          await fs.writeFile('catalog-manifest.json', `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+          console.log(JSON.stringify({ clientSizeBytes: artifacts.clientSizeBytes, bootstrapSizeBytes: artifacts.bootstrapSizeBytes, items: artifacts.index.items.length }, null, 2));
+          NODE
+
+      - name: Verify bootstrap truth and size
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const index = JSON.parse(fs.readFileSync('catalog-index.json', 'utf8'));
+          const bootstrap = JSON.parse(fs.readFileSync('catalog-bootstrap.json', 'utf8'));
+          const ix = index.items || [];
+          const bs = bootstrap.items || [];
+          if (ix.length !== bs.length) throw new Error(`item count mismatch ${ix.length} != ${bs.length}`);
+          for (let i = 0; i < ix.length; i += 1) {
+            if (`${ix[i].type}:${ix[i].id}` !== `${bs[i].type}:${bs[i].id}`) throw new Error(`identity/order mismatch at ${i}`);
+          }
+          const indexSeries = ix.filter(x => x.type === 'series' && Array.isArray(x.downloads) && x.downloads.length);
+          const bootstrapSeries = bs.filter(x => x.type === 'series' && Array.isArray(x.downloads) && x.downloads.length);
+          if (!indexSeries.length) throw new Error('no series previews in index');
+          if (bootstrapSeries.length !== indexSeries.length) throw new Error(`bootstrap series previews ${bootstrapSeries.length} != index ${indexSeries.length}`);
+          const indexById = new Map(ix.map(x => [`${x.type}:${x.id}`, x]));
+          for (const item of bootstrapSeries) {
+            const source = indexById.get(`${item.type}:${item.id}`);
+            if (!source) throw new Error(`missing index series ${item.id}`);
+            const a = (item.downloads || []).map(s => Number(s.episodeNumber || 0));
+            const b = (source.downloads || []).map(s => Number(s.episodeNumber || 0));
+            if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(`episode preview mismatch ${item.id}`);
+            for (const section of item.downloads || []) {
+              if (!Array.isArray(section.files) || section.files.length < 1 || section.files.length > 2) throw new Error(`preview file bound failed ${item.id}`);
+            }
+          }
+          console.log(JSON.stringify({ items: ix.length, indexSeriesPreviews: indexSeries.length, bootstrapSeriesPreviews: bootstrapSeries.length }, null, 2));
+          NODE
+          NEW_BOOTSTRAP_BYTES=$(stat -c%s catalog-bootstrap.json)
+          NEW_INDEX_BYTES=$(stat -c%s catalog-index.json)
+          echo "bootstrap bytes: $OLD_BOOTSTRAP_BYTES -> $NEW_BOOTSTRAP_BYTES"
+          echo "index bytes: $OLD_INDEX_BYTES -> $NEW_INDEX_BYTES"
+          [ "$NEW_BOOTSTRAP_BYTES" -le 7000000 ] || { echo 'Bootstrap exceeded 7 MB safety bound' >&2; exit 1; }
+          [ "$NEW_BOOTSTRAP_BYTES" -lt "$NEW_INDEX_BYTES" ] || { echo 'Bootstrap must remain smaller than full index' >&2; exit 1; }
+          git diff --check
+
+      - name: Commit only functional Content files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/client-catalog.mjs scripts/tests/client-catalog.test.mjs catalog-bootstrap.json catalog-index.json catalog-manifest.json
+          mapfile -t staged < <(git diff --cached --name-only | sort)
+          allowed=(catalog-bootstrap.json catalog-index.json catalog-manifest.json scripts/client-catalog.mjs scripts/tests/client-catalog.test.mjs)
+          for file in "${staged[@]}"; do
+            ok=0
+            for candidate in "${allowed[@]}"; do [ "$file" = "$candidate" ] && ok=1; done
+            [ "$ok" -eq 1 ] || { echo "Unexpected staged file: $file" >&2; exit 1; }
+          done
+          printf '%s\n' "${staged[@]}"
+          git commit -m "fix: preload series episode actions in bootstrap [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
