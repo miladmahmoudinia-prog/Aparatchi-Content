@@ -17,104 +17,46 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Inspect operator metadata without modifying content
+      - name: Inspect Kan Pamenar source fields
         shell: node {0}
         run: |
           const fs = require('fs');
-
           const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
           const items = Array.isArray(catalog) ? catalog : (catalog.items || []);
-
           const text = (v) => String(v || '').replace(/\s+/g, ' ').trim();
-          const norm = (v) => text(v).toLowerCase()
-            .normalize('NFKC')
-            .replace(/[يى]/g, 'ی')
-            .replace(/ك/g, 'ک');
-          const categoryKeys = (item) => Array.isArray(item?.categoryKeys) ? item.categoryKeys : [];
-          const isOperator = (item) =>
-            /--operator$/i.test(text(item?.id)) ||
-            item?.catalogVariant === 'operator' ||
-            item?.mobileOperatorAccess === true ||
-            categoryKeys(item).includes('mobile-operator');
-          const baseId = (item) => text(item?.id).replace(/--operator$/i, '');
-          const missingOverview = (item) => {
-            const v = text(item?.overview);
-            return !v || /توضیحی\s*ثبت\s*نشده|توضیحات?\s*ثبت\s*نشده|خلاصه(?:\s*داستان)?\s*ثبت\s*نشده|اطلاعاتی\s*ثبت\s*نشده|بدون\s*توضیح|no\s+(?:description|overview)|description\s+not\s+available/i.test(v);
-          };
-          const peopleArray = (item) => Array.isArray(item?.people) ? item.people : [];
-          const hasPeople = (item) => peopleArray(item).some((p) => text(p?.nameFa || p?.nameEn || p?.name));
-          const titleKey = (item) => [item?.type, norm(item?.nameFa), norm(item?.nameEn), item?.year || ''].join('|');
-
-          const operatorItems = items.filter(isOperator);
-          const standardItems = items.filter((item) => !isOperator(item));
-          const standardsById = new Map(standardItems.map((item) => [text(item.id), item]));
-          const standardsByTitle = new Map();
-          for (const item of standardItems) {
-            const tk = titleKey(item);
-            if (tk && !standardsByTitle.has(tk)) standardsByTitle.set(tk, item);
-          }
-          const siblingFor = (item) => standardsById.get(baseId(item)) || standardsByTitle.get(titleKey(item)) || null;
-
-          const missingOverviewOps = operatorItems.filter(missingOverview);
-          const missingPeopleOps = operatorItems.filter((item) => !hasPeople(item));
-          const overviewRecoverable = missingOverviewOps.filter((item) => {
-            const sibling = siblingFor(item);
-            return sibling && !missingOverview(sibling);
-          });
-          const peopleRecoverable = missingPeopleOps.filter((item) => {
-            const sibling = siblingFor(item);
-            return sibling && hasPeople(sibling);
-          });
-
+          const norm = (v) => text(v).toLowerCase().normalize('NFKC').replace(/[يى]/g, 'ی').replace(/ك/g, 'ک');
           const target = items.filter((item) => {
             const joined = `${norm(item?.nameFa)} ${norm(item?.nameEn)}`;
             return /کن\s*پامنار/.test(joined) || /kan\s*pamenar/.test(joined) || /kan\s*p[aä]menar/.test(joined);
           });
-
-          const compact = (item) => item ? {
+          console.log('KAN_PAMENAR_SOURCE_FIELDS=' + JSON.stringify(target.map((item) => ({
             id: item.id,
-            baseId: baseId(item),
-            type: item.type,
-            isOperator: isOperator(item),
             nameFa: item.nameFa,
             nameEn: item.nameEn,
             year: item.year,
+            source: item.source,
+            sourceContentId: item.sourceContentId,
+            contentVariant: item.contentVariant,
+            operatorOnly: item.operatorOnly,
+            operatorAccess: item.operatorAccess,
+            access: item.access,
             overview: item.overview,
-            overviewMissing: missingOverview(item),
-            peopleCount: peopleArray(item).length,
-            people: peopleArray(item).slice(0, 12).map((p) => ({ nameFa: p.nameFa, nameEn: p.nameEn, role: p.role })),
-            categoryKeys: item.categoryKeys,
-            detailPath: item.detailPath,
-            stableDetailPath: item.stableDetailPath,
-            sourceUrl: item.sourceUrl,
-            downloadCount: Array.isArray(item.downloads) ? item.downloads.length : 0,
-            topLevelKeys: Object.keys(item).sort(),
-          } : null;
-
-          console.log('OPERATOR_METADATA_SUMMARY=' + JSON.stringify({
-            catalogItems: items.length,
-            operatorItems: operatorItems.length,
-            operatorMissingOverview: missingOverviewOps.length,
-            operatorMissingPeople: missingPeopleOps.length,
-            operatorMissingBoth: operatorItems.filter((item) => missingOverview(item) && !hasPeople(item)).length,
-            operatorsWithStandardSibling: operatorItems.filter((item) => siblingFor(item)).length,
-            missingOverviewButStandardHasIt: overviewRecoverable.length,
-            missingPeopleButStandardHasThem: peopleRecoverable.length,
-          }, null, 2));
-
-          console.log('KAN_PAMENAR_MATCHES=' + JSON.stringify(target.map((item) => ({
-            item: compact(item),
-            standardSibling: compact(siblingFor(item)),
+            people: item.people,
+            downloads: (item.downloads || []).map((group) => ({
+              id: group.id,
+              title: group.title,
+              files: (group.files || []).slice(0, 2).map((file) => ({ id: file.id, label: file.label, url: file.url, operatorOnly: file.operatorOnly, access: file.access }))
+            }))
           })), null, 2));
 
-          console.log('RECOVERABLE_SAMPLE=' + JSON.stringify(
-            operatorItems
-              .filter((item) => {
-                const sibling = siblingFor(item);
-                return sibling && ((missingOverview(item) && !missingOverview(sibling)) || (!hasPeople(item) && hasPeople(sibling)));
-              })
-              .slice(0, 12)
-              .map((item) => ({ operator: compact(item), standard: compact(siblingFor(item)) })),
-            null,
-            2,
-          ));
+      - name: Show panel detail code path
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== PANEL API REFERENCES ==='
+          grep -n -B 8 -A 28 "PANEL_API_BASE" scripts/sync-upera.mjs | head -n 180 || true
+          echo '=== PANEL MOVIE DETAIL ==='
+          grep -n -B 12 -A 45 "fetchPanelMovieDetail" scripts/sync-upera.mjs | head -n 220 || true
+          echo '=== PANEL FETCH HELPERS ==='
+          grep -n -B 10 -A 35 "panelFetch" scripts/sync-upera.mjs | head -n 220 || true
+          grep -n -B 10 -A 35 "fetchPanel" scripts/sync-upera.mjs | head -n 260 || true
