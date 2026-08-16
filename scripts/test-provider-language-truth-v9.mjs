@@ -40,6 +40,7 @@ for (const marker of [
   "providerPrimaryMediaLanguage(movie)",
   "providerPrimaryMediaLanguage(series)",
   "primaryLanguage === 'dubbed' && isUperaPrimaryMediaVariant(next.link)",
+  "!Object.prototype.hasOwnProperty.call(movie, 'dubbed')",
 ]) {
   if (!sync.includes(marker)) throw new Error(`Persistent provider-language parser marker missing: ${marker}`);
 }
@@ -49,5 +50,6 @@ console.log(JSON.stringify({
   belovedThief: { dubbedFiles: langCount(beloved, 'dubbed'), subtitledFiles: langCount(beloved, 'subtitled'), languages: beloved.availableLanguages },
   subtitleOnlyControl: { name: lostBody.name, dubbedFiles: langCount(lostBody, 'dubbed'), subtitledFiles: langCount(lostBody, 'subtitled') },
   falseIranianDubbedBadges: iranianDubbed.length,
+  movieSparseListRowsRefreshDetail: true,
   syncPersistence: true,
 }, null, 2));
