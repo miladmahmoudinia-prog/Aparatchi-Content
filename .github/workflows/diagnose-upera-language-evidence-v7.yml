@@ -26,5 +26,5 @@ jobs:
       - name: Probe current provider language evidence
         env:
           UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
-          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
+          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN || secrets.UPERA_PANEL_TOKEN }}
         run: node scripts/diagnose-upera-language-evidence-v7.mjs
