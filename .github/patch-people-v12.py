@@ -1,7 +1,23 @@
 from pathlib import Path
+import subprocess
 
+BAD_COMMIT = "f25ebc56923360d6116c908f441888b974763301"
+BASE_REF = f"{BAD_COMMIT}^"
 sync_path = Path("scripts/sync-upera.mjs")
-text = sync_path.read_text()
+
+last_source_commit = subprocess.check_output(
+    ["git", "log", "-1", "--format=%H", "--", str(sync_path)],
+    text=True,
+).strip()
+if last_source_commit != BAD_COMMIT:
+    raise SystemExit(
+        f"sync source moved after audited commit: {last_source_commit}; refusing to overwrite newer source"
+    )
+
+text = subprocess.check_output(
+    ["git", "show", f"{BASE_REF}:{sync_path}"],
+    text=True,
+)
 
 old_select = """  const start = options.preferRecent ? 0 : state.peopleEnrichmentOffset % candidates.length;
   const selected = Array.from(
@@ -57,7 +73,7 @@ new_select = """  // Keep newly added titles with no people metadata from waitin
     stats.peopleEnrichmentProcessed += 1;
 """
 if text.count(old_select) != 1:
-    raise SystemExit(f"people selection block mismatch: {text.count(old_select)}")
+    raise SystemExit(f"people selection block mismatch in audited base: {text.count(old_select)}")
 text = text.replace(old_select, new_select, 1)
 
 old_offset = """  state.peopleEnrichmentOffset = candidates.length
@@ -74,29 +90,39 @@ new_offset = """  if (!options.preferRecent && rotatingCandidates.length > 0 && 
   state.lastPeopleEnrichmentAt = new Date().toISOString();
 """
 if text.count(old_offset) != 1:
-    raise SystemExit(f"people offset block mismatch: {text.count(old_offset)}")
+    raise SystemExit(f"people offset block mismatch in audited base: {text.count(old_offset)}")
 text = text.replace(old_offset, new_offset, 1)
 
-mode_start = text.find("if (effectiveSyncMode === 'PEOPLE') {")
-if mode_start < 0:
-    raise SystemExit("PEOPLE mode start not found")
-mode_end = text.find("\n}\n", mode_start)
-if mode_end < 0:
-    raise SystemExit("PEOPLE mode end not found")
-mode_end += 3
-old_mode = text[mode_start:mode_end]
-if "await syncEpisodeArtworkMetadata();" not in old_mode or "await syncPeopleMetadata();" not in old_mode:
-    raise SystemExit("PEOPLE mode expected calls missing")
-if old_mode.index("await syncEpisodeArtworkMetadata();") > old_mode.index("await syncPeopleMetadata();"):
-    raise SystemExit("PEOPLE mode already people-first; refusing unexpected re-patch")
-new_mode = """if (effectiveSyncMode === 'PEOPLE') {
+old_people_mode = """if (effectiveSyncMode === 'PEOPLE') {
+  // Fill episode artwork first so this user-visible repair cannot be starved
+  // by slower external cast lookups. Remaining time continues cast enrichment.
+  await syncEpisodeArtworkMetadata();
+  if (!runTimeBudgetReached('before-people-metadata', 60000)) {
+    await syncPeopleMetadata();
+  }
+} else if (effectiveSyncMode === 'IRANIAN') {"""
+new_people_mode = """if (effectiveSyncMode === 'PEOPLE') {
   // PEOPLE mode exists primarily to repair cast/director metadata. Do that first
   // so a large episode-artwork queue cannot consume the entire run budget.
   await syncPeopleMetadata();
   if (!runTimeBudgetReached('before-episode-artwork-metadata', 60000)) {
     await syncEpisodeArtworkMetadata();
   }
-}
-"""
-text = text[:mode_start] + new_mode + text[mode_end:]
+} else if (effectiveSyncMode === 'IRANIAN') {"""
+if text.count(old_people_mode) != 1:
+    raise SystemExit(f"PEOPLE mode prefix mismatch in audited base: {text.count(old_people_mode)}")
+text = text.replace(old_people_mode, new_people_mode, 1)
+
+for required in (
+    "} else if (effectiveSyncMode === 'IRANIAN') {",
+    "} else if (effectiveSyncMode === 'BACKFILL') {",
+    "await syncRecentMovieDiscovery();",
+    "await syncRecentSeriesDiscovery();",
+    "await syncIncompleteMovieMedia();",
+    "await syncMovieArchive();",
+    "await syncSeriesArchive();",
+):
+    if required not in text:
+        raise SystemExit(f"required sync branch missing after repair: {required}")
+
 sync_path.write_text(text)
