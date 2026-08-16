@@ -12,6 +12,7 @@ export function normalizePersianOverrideKey(value) {
 }
 
 const VERIFIED_PERSIAN_TITLE_ENTRIES = [
+  ['twisted metal', 'فلز درهم‌تنیده'],
   ['last appointment', 'آخرین قرار'],
   ['dance with the jackals 4', 'رقص با شغال‌ها ۴'],
   ['the passage', 'گذرگاه'],

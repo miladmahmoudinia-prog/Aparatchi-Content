@@ -4836,12 +4836,25 @@ async function generateEpisodeFrameArtwork(item, group, options = {}) {
       // Create the frame below.
     }
 
+    let seekSeconds = 120;
+    try {
+      const probe = await execFileAsync(
+        'ffprobe',
+        ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', source],
+        { timeout: Math.min(requestTimeoutMs, 12000), maxBuffer: 1024 * 1024 },
+      );
+      const duration = Number(String(probe?.stdout || '').trim());
+      if (Number.isFinite(duration) && duration > 20) seekSeconds = Math.max(10, Math.round(duration * 0.5));
+    } catch {
+      seekSeconds = 90 + ((Number(group?.episodeNumber || 1) * 17) % 90);
+    }
+
     await execFileAsync(
       'ffmpeg',
       [
         '-hide_banner',
         '-loglevel', 'error',
-        '-ss', String(45 + ((Number(group?.episodeNumber || 1) * 37) % 210)),
+        '-ss', String(seekSeconds),
         '-i', source,
         '-frames:v', '1',
         '-vf', 'thumbnail=90,scale=640:-2',

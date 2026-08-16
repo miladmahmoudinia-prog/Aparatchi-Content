@@ -462,10 +462,56 @@ const BOOTSTRAP_NAVIGATION_FIELDS = [
   'createdAt', 'updatedAt', 'sourceCreatedAt', 'sourceUpdatedAt', 'detailPath',
 ];
 
+const compactBootstrapMovieFile = (file) => ({
+  ...(file?.id ? { id: file.id } : {}),
+  ...(file?.quality ? { quality: file.quality } : {}),
+  url: file.url,
+  mode: file.mode,
+  ...(file?.language ? { language: file.language } : {}),
+  ...(file?.operatorOnly ? { operatorOnly: true } : {}),
+  ...(file?.panelVerified ? { panelVerified: true } : {}),
+  ...(file?.trafficOo != null ? { trafficOo: file.trafficOo } : {}),
+});
+
+const compactBootstrapMovieActionPreview = (downloads) => {
+  const sections = Array.isArray(downloads) ? downloads : [];
+  const candidates = sections.flatMap((section) =>
+    (Array.isArray(section?.files) ? section.files : []).map((file) => ({ section, file })),
+  );
+  const isDownload = ({ file }) => ['download', 'operator-download'].includes(String(file?.mode || 'download'));
+  const isPlayable = ({ file }) => ['play', 'operator-play'].includes(String(file?.mode || '')) || /\.(?:m3u8|mp4)(?:$|[?#])/i.test(String(file?.url || ''));
+  const download = candidates.find(isDownload);
+  const play = candidates.find(isPlayable);
+  const chosen = [];
+  if (download) chosen.push(download);
+  if (play && (!download || !isPlayable(download)) && play.file?.url !== download?.file?.url) chosen.push(play);
+  if (!chosen.length && play) chosen.push(play);
+  if (!chosen.length) return [];
+  const groups = new Map();
+  for (const choice of chosen.slice(0, 2)) {
+    const section = choice.section || {};
+    const key = String(section.id || section.language || section.title || 'media');
+    const current = groups.get(key) || {
+      ...(section.id ? { id: section.id } : {}),
+      ...(section.language ? { language: section.language } : {}),
+      files: [],
+    };
+    current.files.push(compactBootstrapMovieFile(choice.file));
+    groups.set(key, current);
+  }
+  return [...groups.values()];
+};
+
 const compactBootstrapNavigationItem = (item) => {
   const compact = {};
   for (const field of BOOTSTRAP_NAVIGATION_FIELDS) {
     if (Object.prototype.hasOwnProperty.call(item || {}, field)) compact[field] = item[field];
+  }
+  if (item?.type === 'movie') {
+    const downloads = compactBootstrapMovieActionPreview(item.downloads);
+    if (downloads.length) compact.downloads = downloads;
+    if (/^https?:\/\//i.test(String(item.streamUrl || '').trim())) compact.streamUrl = item.streamUrl;
+    if (item.streamMode) compact.streamMode = item.streamMode;
   }
   return compact;
 };

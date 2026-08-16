@@ -156,6 +156,11 @@ globalThis.fetch = async (input) => {
       });
     }
 
+    if (url.pathname.endsWith(`/ghost/get/movie/${movieId}`)) {
+      const detailDubbed = scenario !== 'paid-movie' && scenario !== 'mixed-language-price';
+      return jsonResponse({ status: 'success', data: { movie: { id: movieId, type: 'movie', name: 'Media Movie', name_fa: 'فیلم رسانه', year: 2026, poster: `https://example.test/${movieId}-poster.jpg`, backdrop: `https://example.test/${movieId}-backdrop.jpg`, dubbed: detailDubbed ? 1 : 0 } } });
+    }
+
     if (url.pathname.endsWith('/ghost/get/series/sort')) {
       return jsonResponse({ status: 'success', data: { series: { data: [], last_page: 1 } } });
     }
@@ -630,6 +635,11 @@ globalThis.fetch = async (input) => {
         ],
       },
     });
+  }
+
+  if ((scenario === 'year-order' || scenario === 'year-order-zero-media') && url.pathname.match(/\/ghost\/get\/movie\/(old-movie|new-movie)$/)) {
+    const id = url.pathname.endsWith('/old-movie') ? 'old-movie' : 'new-movie';
+    return jsonResponse({ status: 'success', data: { movie: { id, type: 'movie', name: id === 'old-movie' ? 'Old Movie' : 'New Movie', name_fa: id === 'old-movie' ? 'فیلم قدیمی' : 'فیلم جدید', year: id === 'old-movie' ? 2015 : 2016, poster: `https://example.test/${id}.jpg`, backdrop: `https://example.test/${id}-bg.jpg`, dubbed: 0 } } });
   }
 
   if ((scenario === 'year-order' || scenario === 'year-order-zero-media') && url.pathname.endsWith('/ghost/get/getaffiliatelinks')) {

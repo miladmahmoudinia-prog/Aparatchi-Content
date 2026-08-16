@@ -33,11 +33,15 @@ test('a real dubbed foreign download survives and is labelled dubbed', () => {
   assert.equal(detail.downloads[0].files[0].mode, 'download');
 });
 
-test('same URL cannot appear as both dubbed and subtitled', () => {
+test('same URL with contradictory languages survives once as neutral media', () => {
   const item = foreign({ downloads: [{ id: 'mixed', files: [
     { id: 'dub-file', mode: 'play', url: 'https://cdn.test/same.mp4', language: 'dubbed' },
     { id: 'sub-file', mode: 'play', url: 'https://cdn.test/same.mp4', language: 'subtitled' },
   ]}] });
-  const { index } = buildClientCatalogArtifacts({ items: [item] });
-  assert.equal(index.items.length, 0);
+  const { index, detailFiles } = buildClientCatalogArtifacts({ items: [item] });
+  assert.equal(index.items.length, 1);
+  assert.deepEqual(index.items[0].availableLanguages, []);
+  const detail = JSON.parse(detailFiles[0].serialized);
+  const files = detail.downloads.flatMap((section) => section.files || []);
+  assert.equal(files.filter((file) => file.url === 'https://cdn.test/same.mp4').length, 1);
 });

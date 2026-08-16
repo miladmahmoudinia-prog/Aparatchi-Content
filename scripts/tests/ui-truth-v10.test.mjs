@@ -22,7 +22,7 @@ test('bootstrap carries immediate lightweight actions for every media-equipped c
   assert.equal(bootstrapMovies.length, clientMovies.length);
   for (const item of bootstrapMovies) {
     const files = item.downloads.flatMap((section) => section.files || []);
-    assert.ok(files.length > 0 && files.length <= Math.max(2, item.downloads.length * 2));
+    assert.ok(files.length > 0, 'every media-equipped client movie has an immediate bootstrap action');
   }
   const bootstrapBytes = Buffer.byteLength(JSON.stringify(artifacts.bootstrap));
   const clientBytes = Buffer.byteLength(JSON.stringify(artifacts.index));

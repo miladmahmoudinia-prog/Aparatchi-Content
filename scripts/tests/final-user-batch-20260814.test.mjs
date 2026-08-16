@@ -16,13 +16,17 @@ test('client languages come from actual links, never stale badges', () => {
   assert.deepEqual(index.items[0].availableLanguages, ['subtitled']);
 });
 
-test('one URL cannot create both dubbed and subtitled choices', () => {
+test('one contradictory URL becomes one neutral playable choice', () => {
   const item = base({ downloads: [{ id: 's', files: [
     { id: 'd', mode: 'play', url: 'https://cdn.test/same.mp4', language: 'dubbed' },
     { id: 'u', mode: 'play', url: 'https://cdn.test/same.mp4', language: 'subtitled' },
   ]}] });
-  const { index } = buildClientCatalogArtifacts({ items: [item] });
-  assert.equal(index.items.length, 0);
+  const { index, detailFiles } = buildClientCatalogArtifacts({ items: [item] });
+  assert.equal(index.items.length, 1);
+  assert.deepEqual(index.items[0].availableLanguages, []);
+  const detail = JSON.parse(detailFiles[0].serialized);
+  const files = detail.downloads.flatMap((section) => section.files || []);
+  assert.equal(files.filter((file) => file.url === 'https://cdn.test/same.mp4').length, 1);
 });
 
 test('foreign unlabeled original media stays visible without fake language labels', () => {
