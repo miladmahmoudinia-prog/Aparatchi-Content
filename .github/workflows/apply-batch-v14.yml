@@ -1,0 +1,82 @@
+name: Apply consolidated Aparatchi content fixes v14
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-batch-v14.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout content repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 80
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Apply pending source fixes idempotently
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Fq 'latestForwardEpisode' scripts/sync-upera.mjs; then
+            echo 'v12 content source fix already present.'
+          else
+            node scripts/apply-user-report-v12.mjs
+          fi
+
+          if grep -Fq 'Original language is the strongest identity signal for Korean/Indian shelves' scripts/classification.mjs; then
+            echo 'v13 regional source fix already present.'
+          else
+            node scripts/apply-regional-v13.mjs
+          fi
+
+      - name: Run regression tests before catalog migration
+        run: node --test scripts/tests/*.test.mjs
+
+      - name: Regenerate regional/client catalog truth
+        run: node scripts/migrate-regional-v13.mjs
+
+      - name: Run regression tests after catalog migration
+        run: node --test scripts/tests/*.test.mjs
+
+      - name: Audit regional and episode artwork state
+        run: node scripts/audit-regional-v13.mjs
+
+      - name: Commit consolidated verified content repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "aparatchi-content-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add scripts/sync-upera.mjs scripts/client-catalog.mjs scripts/tests/user-report-v12.test.mjs \
+            scripts/classification.mjs scripts/persian-title-overrides.mjs \
+            catalog.json catalog-index.json catalog-bootstrap.json catalog-manifest.json catalog-items catalog-stable
+          if git diff --cached --quiet; then
+            echo 'All consolidated content fixes are already present.'
+            exit 0
+          fi
+          git commit -m 'fix: consolidate freshness detail regional and catalog truth v14 [skip ci]'
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              exit 0
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          echo '::error::Could not push consolidated content repair after 5 attempts.'
+          exit 1
