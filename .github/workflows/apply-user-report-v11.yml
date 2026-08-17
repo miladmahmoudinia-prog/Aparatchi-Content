@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: aparatchi-content-user-report-v11
+  cancel-in-progress: true
+
 jobs:
   apply:
     runs-on: ubuntu-latest
@@ -49,18 +53,23 @@ jobs:
       - name: Run full content regression suite
         run: node --test scripts/tests/*.test.mjs
 
-      - name: Commit audited fixes
+      - name: Commit audited source fixes
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "aparatchi-content-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add scripts/classification.mjs scripts/client-catalog.mjs scripts/tests/user-report-v11.test.mjs scripts/tests/ui-truth-v10.test.mjs .github/workflows/sync-upera.yml
+
+          # The default GITHUB_TOKEN cannot push workflow-file changes. The
+          # source/test patch is published first with CI skipped; ChatGPT updates
+          # sync-upera.yml separately through the repository API afterwards.
+          git checkout -- .github/workflows/sync-upera.yml
+          git add scripts/classification.mjs scripts/client-catalog.mjs scripts/tests/user-report-v11.test.mjs scripts/tests/ui-truth-v10.test.mjs
           if git diff --cached --quiet; then
-            echo "No changes to commit."
+            echo "No source changes to commit."
             exit 0
           fi
-          git commit -m "fix: classification freshness and episode artwork v11"
+          git commit -m "fix: classification freshness and content truth v11 [skip ci]"
           for attempt in 1 2 3 4 5; do
             if git pull --rebase origin main && git push origin HEAD:main; then
               exit 0
@@ -68,7 +77,7 @@ jobs:
             git rebase --abort >/dev/null 2>&1 || true
             sleep $((attempt * 2))
           done
-          echo "::error::Could not push v11 fixes after 5 attempts."
+          echo "::error::Could not push v11 source fixes after 5 attempts."
           exit 1
 
-# trigger: aligned v11 episode artwork budget
+# trigger: publish source first, workflow budget separately
