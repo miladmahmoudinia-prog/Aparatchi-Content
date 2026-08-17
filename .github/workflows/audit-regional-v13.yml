@@ -1,0 +1,23 @@
+name: Audit regional categories v13
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/audit-regional-v13.mjs'
+      - '.github/workflows/audit-regional-v13.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: node scripts/audit-regional-v13.mjs
