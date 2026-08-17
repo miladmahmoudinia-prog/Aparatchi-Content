@@ -55,6 +55,11 @@ jobs:
           fi
 
           if [ "$STATUS" -eq 0 ]; then
+            node scripts/apply-sync-workflow-v15.mjs >> content-v15-status.log 2>&1
+            STATUS=$?
+          fi
+
+          if [ "$STATUS" -eq 0 ]; then
             node --test \
               scripts/tests/user-report-v12.test.mjs \
               scripts/tests/classification.test.mjs \
@@ -98,8 +103,9 @@ jobs:
           STATUS='${{ steps.verify.outputs.status }}'
           if [ "$STATUS" = '0' ]; then
             git add scripts/sync-upera.mjs scripts/client-catalog.mjs scripts/classification.mjs scripts/persian-title-overrides.mjs \
+              .github/workflows/sync-upera.yml \
               catalog.json catalog-index.json catalog-bootstrap.json catalog-manifest.json catalog-items catalog-stable content-v15-status.log
-            MESSAGE='fix: apply verified freshness detail regional and catalog truth v15 [skip ci]'
+            MESSAGE='fix: apply verified freshness detail regional sync and catalog truth v15 [skip ci]'
           else
             git add content-v15-status.log
             MESSAGE='chore: capture content v15 repair diagnostic [skip ci]'
