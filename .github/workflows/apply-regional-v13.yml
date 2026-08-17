@@ -1,0 +1,67 @@
+name: Apply regional catalog repair v13
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/apply-regional-v13.mjs'
+      - 'scripts/migrate-regional-v13.mjs'
+      - '.github/workflows/apply-regional-v13.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout content repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 60
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Apply classification and Persian title source fixes
+        run: node scripts/apply-regional-v13.mjs
+
+      - name: Run regression tests before migration
+        run: node --test scripts/tests/*.test.mjs
+
+      - name: Reclassify the current catalog and regenerate client artifacts
+        run: node scripts/migrate-regional-v13.mjs
+
+      - name: Run regression tests against regenerated artifacts
+        run: node --test scripts/tests/*.test.mjs
+
+      - name: Commit verified regional repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "aparatchi-content-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add scripts/classification.mjs scripts/persian-title-overrides.mjs \
+            catalog.json catalog-index.json catalog-bootstrap.json catalog-manifest.json catalog-items catalog-stable
+          if git diff --cached --quiet; then
+            echo "No regional changes to commit."
+            exit 0
+          fi
+          git commit -m "fix: strict Korean identity Persian title and remove Indian series shelf v13"
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              exit 0
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          echo "::error::Could not push regional v13 repair after 5 attempts."
+          exit 1
