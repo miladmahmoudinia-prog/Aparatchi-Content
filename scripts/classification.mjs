@@ -111,7 +111,9 @@ const wildlifeSubjectTerms = [
   'bee', 'bees', 'bumblebee', 'insect', 'insects', 'bird', 'birds', 'fish', 'reptile', 'reptiles',
   'mammal', 'mammals', 'amphibian', 'amphibians', 'coral', 'octopus', 'turtle', 'turtles',
   'squirrel', 'squirrels', 'otter', 'otters', 'rodent', 'rodents',
+  'snake', 'snakes', 'crocodile', 'crocodiles', 'alligator', 'alligators',
   'پلنگ', 'یوزپلنگ', 'شیرها', 'ببرها', 'گرگ ها', 'گرگ‌ها', 'خرس ها', 'خرس‌ها',
+  'مار', 'مارها', 'تمساح', 'تمساح‌ها', 'کروکودیل', 'کروکودیل‌ها',
   'کوسه', 'نهنگ', 'دلفین', 'فیل ها', 'فیل‌ها', 'گوریل', 'پنگوئن', 'پرندگان وحشی',
   'زنبور', 'زنبورها', 'حشرات', 'پرنده', 'پرندگان', 'ماهی', 'ماهیان', 'خزندگان', 'پستانداران',
   'دوزیستان', 'لاک پشت', 'لاک‌پشت', 'مرجان', 'اختاپوس',
@@ -185,10 +187,15 @@ export function classifyCatalogItem(input = {}) {
     existingKind === 'documentary' ||
     existingKeys.includes('documentaries')
   );
-  // Documentary identity is a content type, not the absence of dramatic genres.
-  // Episodic documentaries can legitimately carry Drama/War/etc. and must not
-  // fall into Iranian/foreign series merely because another genre is present.
-  const isDocumentary = knownNarrativeMovie
+  // Once TMDB has positively validated a narrative/animation identity, stale
+  // legacy documentary flags must not keep the title trapped in Documentaries.
+  // Genuine documentaries still stay documentary when TMDB itself says so.
+  const trustedNonDocumentary = Boolean(
+    trustedTmdb &&
+    !documentaryGenre &&
+    (narrativeGenre || isAnimation)
+  );
+  const isDocumentary = knownNarrativeMovie || trustedNonDocumentary
     ? false
     : Boolean(knownDocumentary || explicitDocumentary || documentaryGenre);
 
@@ -231,11 +238,19 @@ export function classifyCatalogItem(input = {}) {
   const originalLanguage = normalize(input.originalLanguage);
   const countryCodes = (Array.isArray(input.countryCodes) ? input.countryCodes : [])
     .map((code) => clean(code).toUpperCase()).filter(Boolean);
-  const primaryCountry = countryCodes[0] || '';
-  const iranianIdentity = originalLanguage === 'fa' || primaryCountry === 'IR' ||
-    (!originalLanguage && !primaryCountry && input.ir === true);
-  const koreanIdentity = originalLanguage === 'ko' || primaryCountry === 'KR';
-  const indianIdentity = indianLanguages.has(originalLanguage) || primaryCountry === 'IN';
+  // Explicit country metadata is authoritative. Original language is only a
+  // fallback when the provider/TMDB did not supply any country at all; otherwise
+  // a stale language or legacy ir=true flag can wrongly turn foreign films Iranian.
+  const hasCountryIdentity = countryCodes.length > 0;
+  const iranianIdentity = hasCountryIdentity
+    ? countryCodes.includes('IR')
+    : (originalLanguage === 'fa' || input.ir === true);
+  const koreanIdentity = hasCountryIdentity
+    ? countryCodes.includes('KR')
+    : originalLanguage === 'ko';
+  const indianIdentity = hasCountryIdentity
+    ? countryCodes.includes('IN')
+    : indianLanguages.has(originalLanguage);
 
   const isWildlife = Boolean(isDocumentary && isWildlifeDocumentaryText({
     title: titleText,

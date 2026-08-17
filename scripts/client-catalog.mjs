@@ -463,17 +463,13 @@ const clientCatalogFreshness = (item) => {
     ? [
         item?.meaningfulUpdatedAt,
         item?.firstSeenAt,
-        item?.sourceUpdatedAt,
         item?.sourceCreatedAt,
-        item?.updatedAt,
         item?.createdAt,
       ]
     : [
         item?.firstSeenAt,
         item?.sourceCreatedAt,
         item?.createdAt,
-        item?.sourceUpdatedAt,
-        item?.updatedAt,
       ];
   return candidates.reduce((latest, value) => Math.max(latest, parsedTimestamp(value)), 0);
 };
@@ -487,7 +483,7 @@ const BOOTSTRAP_CATEGORY_KEYS = [
 const BOOTSTRAP_NAVIGATION_FIELDS = [
   'id', 'slug', 'type', 'ir', 'year', 'nameFa', 'name', 'imdb',
   'countryCodes', 'originalLanguage', 'collectionId', 'collectionOrder',
-  'poster', 'posterFallback', 'rate', 'access', 'operatorOnly', 'availableLanguages',
+  'poster', 'posterFallback', 'backdrop', 'backdropFallback', 'rate', 'access', 'operatorOnly', 'availableLanguages',
   'episodeCount', 'seasonCount', 'latestEpisode', 'isAiring', 'publicationStatus',
   'updateLabel', 'meaningfulUpdatedAt', 'categoryKeys', 'categoryLabels',
   'contentKind', 'isAnimation', 'isAnime', 'isTalkShow', 'isDocumentary', 'isWildlife',
