@@ -1,0 +1,376 @@
+Applied v12 content fixes.
+Applied regional classification/title source fixes v13.
+TAP version 13
+# Subtest: Korean and Indian movies use dedicated shelves while Indian series stay under foreign series
+ok 1 - Korean and Indian movies use dedicated shelves while Indian series stay under foreign series
+  ---
+  duration_ms: 9.137746
+  type: 'test'
+  ...
+# Subtest: narrative films with children/family wording are not child-program content
+ok 2 - narrative films with children/family wording are not child-program content
+  ---
+  duration_ms: 2.399837
+  type: 'test'
+  ...
+# Subtest: actual child programs stay only in Kids and are excluded from Iranian cinema/program shelf
+ok 3 - actual child programs stay only in Kids and are excluded from Iranian cinema/program shelf
+  ---
+  duration_ms: 0.788988
+  type: 'test'
+  ...
+# Subtest: foreign-series reclassification removes a stale Iranian identity when trusted country/language exists
+ok 4 - foreign-series reclassification removes a stale Iranian identity when trusted country/language exists
+  ---
+  duration_ms: 0.649519
+  type: 'test'
+  ...
+# Subtest: wildlife needs real animal context and rejects unrelated documentaries
+ok 5 - wildlife needs real animal context and rejects unrelated documentaries
+  ---
+  duration_ms: 12.200706
+  type: 'test'
+  ...
+# Subtest: specialized episodic content stays out of generic series shelves
+ok 6 - specialized episodic content stays out of generic series shelves
+  ---
+  duration_ms: 3.128923
+  type: 'test'
+  ...
+# Subtest: known narrative and wildlife samples use exclusive correct shelves
+ok 7 - known narrative and wildlife samples use exclusive correct shelves
+  ---
+  duration_ms: 2.979783
+  type: 'test'
+  ...
+# Subtest: reality competitions are programs, not cinema, even when source type says movie
+ok 8 - reality competitions are programs, not cinema, even when source type says movie
+  ---
+  duration_ms: 0.611118
+  type: 'test'
+  ...
+# Subtest: narrative films do not become reality programs because their synopsis mentions a TV contest
+ok 9 - narrative films do not become reality programs because their synopsis mentions a TV contest
+  ---
+  duration_ms: 0.881391
+  type: 'test'
+  ...
+# Subtest: religious matching uses whole terms and does not match imam inside Sita Ramam
+ok 10 - religious matching uses whole terms and does not match imam inside Sita Ramam
+  ---
+  duration_ms: 0.943897
+  type: 'test'
+  ...
+# Subtest: known genuine religious films stay in religious while also remaining films
+ok 11 - known genuine religious films stay in religious while also remaining films
+  ---
+  duration_ms: 0.516982
+  type: 'test'
+  ...
+# Subtest: bootstrap is a complete navigation catalog, not a Home sample
+ok 12 - bootstrap is a complete navigation catalog, not a Home sample
+  ---
+  duration_ms: 9.942383
+  type: 'test'
+  ...
+# Subtest: every bootstrap navigation row can hydrate its real detail
+ok 13 - every bootstrap navigation row can hydrate its real detail
+  ---
+  duration_ms: 2.626658
+  type: 'test'
+  ...
+# Subtest: bootstrap remains materially smaller than full client index
+ok 14 - bootstrap remains materially smaller than full client index
+  ---
+  duration_ms: 0.149969
+  type: 'test'
+  ...
+# Subtest: bootstrap contains the complete navigation catalog plus rich Home/IMDb data without peopleWorks bulk
+ok 15 - bootstrap contains the complete navigation catalog plus rich Home/IMDb data without peopleWorks bulk
+  ---
+  duration_ms: 35.02371
+  type: 'test'
+  ...
+# Subtest: real generated bootstrap stays bounded and exactly preserves navigation/category counts
+ok 16 - real generated bootstrap stays bounded and exactly preserves navigation/category counts
+  ---
+  duration_ms: 270.756498
+  type: 'test'
+  ...
+# Subtest: historical episode backfill cannot pin an old series ahead of a newer discovery
+ok 17 - historical episode backfill cannot pin an old series ahead of a newer discovery
+  ---
+  duration_ms: 6.245924
+  type: 'test'
+  ...
+# Subtest: a real forward episode update can move an older series to the front
+ok 18 - a real forward episode update can move an older series to the front
+  ---
+  duration_ms: 2.642157
+  type: 'test'
+  ...
+# Subtest: client summary carries bounded people preview and discovery timestamp
+ok 19 - client summary carries bounded people preview and discovery timestamp
+  ---
+  duration_ms: 3.695948
+  type: 'test'
+  ...
+# Subtest: sync marks only forward-tail episode additions as meaningful
+ok 20 - sync marks only forward-tail episode additions as meaningful
+  ---
+  duration_ms: 2.268632
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1780.772434
+{
+  "reclassifiedItems": 15,
+  "koreanMovies": 87,
+  "badKorean": 0,
+  "indianSeries": 0,
+  "springGarden": {
+    "nameFa": "باغ بهاری",
+    "categoryKeys": [
+      "movies",
+      "korean-movies"
+    ]
+  },
+  "indianSeriesExample": {
+    "nameFa": "جانور: هیولای درون",
+    "categoryKeys": [
+      "series",
+      "foreign-series"
+    ]
+  },
+  "wildlifeChecks": [
+    {
+      "name": "The Ultimate Guide: Snakes",
+      "categoryKeys": [
+        "wildlife"
+      ]
+    },
+    {
+      "name": "Safari: The Alligator & American Crocodile",
+      "categoryKeys": [
+        "wildlife"
+      ]
+    }
+  ],
+  "minionsChecks": [
+    {
+      "name": "Minions 2: The Rise of Gru",
+      "categoryKeys": [
+        "movies",
+        "foreign-movies"
+      ]
+    }
+  ]
+}
+TAP version 13
+# Subtest: Korean and Indian movies use dedicated shelves while Indian series stay under foreign series
+ok 1 - Korean and Indian movies use dedicated shelves while Indian series stay under foreign series
+  ---
+  duration_ms: 9.108407
+  type: 'test'
+  ...
+# Subtest: narrative films with children/family wording are not child-program content
+ok 2 - narrative films with children/family wording are not child-program content
+  ---
+  duration_ms: 2.516502
+  type: 'test'
+  ...
+# Subtest: actual child programs stay only in Kids and are excluded from Iranian cinema/program shelf
+ok 3 - actual child programs stay only in Kids and are excluded from Iranian cinema/program shelf
+  ---
+  duration_ms: 0.795781
+  type: 'test'
+  ...
+# Subtest: foreign-series reclassification removes a stale Iranian identity when trusted country/language exists
+ok 4 - foreign-series reclassification removes a stale Iranian identity when trusted country/language exists
+  ---
+  duration_ms: 0.710843
+  type: 'test'
+  ...
+# Subtest: wildlife needs real animal context and rejects unrelated documentaries
+ok 5 - wildlife needs real animal context and rejects unrelated documentaries
+  ---
+  duration_ms: 8.588961
+  type: 'test'
+  ...
+# Subtest: specialized episodic content stays out of generic series shelves
+ok 6 - specialized episodic content stays out of generic series shelves
+  ---
+  duration_ms: 5.389197
+  type: 'test'
+  ...
+# Subtest: known narrative and wildlife samples use exclusive correct shelves
+ok 7 - known narrative and wildlife samples use exclusive correct shelves
+  ---
+  duration_ms: 2.079138
+  type: 'test'
+  ...
+# Subtest: reality competitions are programs, not cinema, even when source type says movie
+ok 8 - reality competitions are programs, not cinema, even when source type says movie
+  ---
+  duration_ms: 0.674175
+  type: 'test'
+  ...
+# Subtest: narrative films do not become reality programs because their synopsis mentions a TV contest
+ok 9 - narrative films do not become reality programs because their synopsis mentions a TV contest
+  ---
+  duration_ms: 0.947382
+  type: 'test'
+  ...
+# Subtest: religious matching uses whole terms and does not match imam inside Sita Ramam
+ok 10 - religious matching uses whole terms and does not match imam inside Sita Ramam
+  ---
+  duration_ms: 0.961969
+  type: 'test'
+  ...
+# Subtest: known genuine religious films stay in religious while also remaining films
+ok 11 - known genuine religious films stay in religious while also remaining films
+  ---
+  duration_ms: 0.620505
+  type: 'test'
+  ...
+# Subtest: bootstrap is a complete navigation catalog, not a Home sample
+ok 12 - bootstrap is a complete navigation catalog, not a Home sample
+  ---
+  duration_ms: 7.700297
+  type: 'test'
+  ...
+# Subtest: every bootstrap navigation row can hydrate its real detail
+ok 13 - every bootstrap navigation row can hydrate its real detail
+  ---
+  duration_ms: 2.587354
+  type: 'test'
+  ...
+# Subtest: bootstrap remains materially smaller than full client index
+ok 14 - bootstrap remains materially smaller than full client index
+  ---
+  duration_ms: 0.180807
+  type: 'test'
+  ...
+# Subtest: bootstrap contains the complete navigation catalog plus rich Home/IMDb data without peopleWorks bulk
+ok 15 - bootstrap contains the complete navigation catalog plus rich Home/IMDb data without peopleWorks bulk
+  ---
+  duration_ms: 19.631406
+  type: 'test'
+  ...
+# Subtest: real generated bootstrap stays bounded and exactly preserves navigation/category counts
+ok 16 - real generated bootstrap stays bounded and exactly preserves navigation/category counts
+  ---
+  duration_ms: 495.124185
+  type: 'test'
+  ...
+# Subtest: historical episode backfill cannot pin an old series ahead of a newer discovery
+ok 17 - historical episode backfill cannot pin an old series ahead of a newer discovery
+  ---
+  duration_ms: 4.813185
+  type: 'test'
+  ...
+# Subtest: a real forward episode update can move an older series to the front
+ok 18 - a real forward episode update can move an older series to the front
+  ---
+  duration_ms: 1.808414
+  type: 'test'
+  ...
+# Subtest: client summary carries bounded people preview and discovery timestamp
+ok 19 - client summary carries bounded people preview and discovery timestamp
+  ---
+  duration_ms: 1.330466
+  type: 'test'
+  ...
+# Subtest: sync marks only forward-tail episode additions as meaningful
+ok 20 - sync marks only forward-tail episode additions as meaningful
+  ---
+  duration_ms: 1.673604
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1782.83754
+{
+  "counts": {
+    "koreanMovies": 75,
+    "koreanNonKo": 0,
+    "indianSeries": 0,
+    "arabicLookingKorean": 1,
+    "episodeGroups": 3824,
+    "generatedEpisodeFrames": 0,
+    "uniqueGeneratedEpisodeFrames": 0,
+    "seriesWithGeneratedFrames": 0
+  },
+  "koreanNonKo": [],
+  "arabicLookingKorean": [
+    {
+      "index": {
+        "id": "3b4e5940-6767-11ef-9748-95ff4d3affae",
+        "type": "movie",
+        "nameFa": "بهار در سئول",
+        "name": "12.12: The Day",
+        "year": 2023,
+        "originalLanguage": "ko",
+        "countryCodes": [
+          "KR"
+        ],
+        "countryLabels": [
+          "کره جنوبی"
+        ],
+        "countryNames": [
+          "South Korea"
+        ],
+        "categoryKeys": [
+          "movies",
+          "korean-movies",
+          "dubbed"
+        ],
+        "categoryLabels": [
+          "فیلم‌ها",
+          "فیلم کره‌ای",
+          "دوبله فارسی"
+        ]
+      },
+      "source": {
+        "id": "3b4e5940-6767-11ef-9748-95ff4d3affae",
+        "type": "movie",
+        "nameFa": "بهار در سئول",
+        "name": "12.12: The Day",
+        "year": 2023,
+        "originalLanguage": "ko",
+        "countryCodes": [
+          "KR"
+        ],
+        "countryLabels": [
+          "کره جنوبی"
+        ],
+        "countryNames": [
+          "South Korea"
+        ],
+        "categoryKeys": [
+          "movies",
+          "korean-movies"
+        ],
+        "categoryLabels": [
+          "فیلم‌ها",
+          "فیلم کره‌ای"
+        ]
+      }
+    }
+  ],
+  "indianSeries": []
+}
+FINAL_STATUS=0

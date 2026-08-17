@@ -21,6 +21,9 @@ const VERIFIED_PERSIAN_TITLE_ENTRIES = [
   ["the devil's climb", 'صعود شیطان'],
   ['the lionheart', 'شیردل'],
   ['our father', 'پدر ما'],
+  // Upera currently exposes this Korean title in Arabic (حديقة الربيع).
+  // Keep the display language consistently Persian.
+  ['spring garden', 'باغ بهاری'],
   ['aunt nasrin and heavenly children', 'خاله نسرین و کودکان آسمانی'],
   ["aunt nasrin's songs for kids 4", 'ترانه‌های کودکانه خاله نسرین ۴'],
   ["aunt nasrin's songs for kids 5", 'ترانه‌های کودکانه خاله نسرین ۵'],

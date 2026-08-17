@@ -238,19 +238,22 @@ export function classifyCatalogItem(input = {}) {
   const originalLanguage = normalize(input.originalLanguage);
   const countryCodes = (Array.isArray(input.countryCodes) ? input.countryCodes : [])
     .map((code) => clean(code).toUpperCase()).filter(Boolean);
-  // Explicit country metadata is authoritative. Original language is only a
-  // fallback when the provider/TMDB did not supply any country at all; otherwise
-  // a stale language or legacy ir=true flag can wrongly turn foreign films Iranian.
+  // Country arrays include co-production partners. A title must not enter a
+  // nationality shelf merely because KR/IN appears somewhere in that array
+  // (for example Jexi, Past Lives or The Medium). Original language is the
+  // strongest identity signal for Korean/Indian shelves; primary country is
+  // only a fallback when language metadata is missing.
   const hasCountryIdentity = countryCodes.length > 0;
   const iranianIdentity = hasCountryIdentity
     ? countryCodes.includes('IR')
     : (originalLanguage === 'fa' || input.ir === true);
-  const koreanIdentity = hasCountryIdentity
-    ? countryCodes.includes('KR')
-    : originalLanguage === 'ko';
-  const indianIdentity = hasCountryIdentity
-    ? countryCodes.includes('IN')
-    : indianLanguages.has(originalLanguage);
+  const primaryCountry = countryCodes[0] || '';
+  const koreanIdentity = originalLanguage
+    ? originalLanguage === 'ko'
+    : primaryCountry === 'KR';
+  const indianIdentity = originalLanguage
+    ? indianLanguages.has(originalLanguage)
+    : primaryCountry === 'IN';
 
   const isWildlife = Boolean(isDocumentary && isWildlifeDocumentaryText({
     title: titleText,
@@ -270,9 +273,11 @@ export function classifyCatalogItem(input = {}) {
     } else if (koreanIdentity) {
       categoryKeys.push(type === 'movie' ? 'korean-movies' : 'korean-series');
       categoryLabels.push(type === 'movie' ? 'فیلم کره‌ای' : 'سریال کره‌ای');
-    } else if (indianIdentity) {
-      categoryKeys.push(type === 'movie' ? 'indian-movies' : 'indian-series');
-      categoryLabels.push(type === 'movie' ? 'فیلم هندی' : 'سریال هندی');
+    } else if (indianIdentity && type === 'movie') {
+      // Keep only the dedicated Indian movie shelf. Indian series remain fully
+      // browsable under foreign-series, as requested by the product UI.
+      categoryKeys.push('indian-movies');
+      categoryLabels.push('فیلم هندی');
     } else {
       categoryKeys.push(type === 'movie' ? 'foreign-movies' : 'foreign-series');
       categoryLabels.push(type === 'movie' ? 'فیلم خارجی' : 'سریال خارجی');

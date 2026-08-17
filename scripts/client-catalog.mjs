@@ -13,7 +13,7 @@ const SUMMARY_FIELDS = [
   'archivePendingEpisodeCount', 'sourceEpisodeCount', 'archiveAuditStatus',
   'archiveEpisodeDiscoveryComplete', 'updateLabel', 'meaningfulUpdatedAt',
   'categoryKeys', 'categoryLabels', 'contentKind', 'isAnimation', 'isAnime', 'isTalkShow',
-  'isDocumentary', 'isWildlife', 'mediaAuditStatus', 'createdAt', 'updatedAt', 'sourceCreatedAt', 'sourceUpdatedAt',
+  'isDocumentary', 'isWildlife', 'mediaAuditStatus', 'firstSeenAt', 'createdAt', 'updatedAt', 'sourceCreatedAt', 'sourceUpdatedAt',
   'tmdbValidationVersion',
 ];
 
@@ -50,6 +50,10 @@ const compactPersonReferences = (people) => {
       ...(nameFa ? { nameFa } : {}),
       ...(name ? { name } : {}),
       role: person.role,
+      ...(person.roleLabel ? { roleLabel: person.roleLabel } : {}),
+      ...(person.character ? { character: person.character } : {}),
+      ...(person.image ? { image: person.image } : {}),
+      ...(Number.isFinite(Number(person.order)) ? { order: Number(person.order) } : {}),
       ...(tmdbId > 0 ? { tmdbId } : {}),
     });
   }
@@ -362,6 +366,11 @@ export function clientSummaryForItem(item) {
   }
   if (summary.overview) summary.overview = truncateOverview(summary.overview);
   summary.availableLanguages = deriveClientLanguages(item);
+  // Carry a small first-screen cast/director preview so opening a detail page
+  // does not visibly add the whole People section one or two seconds later.
+  // The immutable detail shard still hydrates the complete people list.
+  const summaryPeople = compactPersonReferences(item.people).slice(0, 8);
+  if (summaryPeople.length) summary.people = summaryPeople;
 
   // Movie detail actions should be usable from the lightweight index itself.
   // Carry only the small, actionable media rows for movies; series episode
@@ -378,9 +387,9 @@ export function clientSummaryForItem(item) {
     if (episodePreviews.length) summary.downloads = episodePreviews;
   }
 
-  // People are intentionally excluded from every item summary. The reverse
-  // peopleWorks index below preserves actor/director search and profile works
-  // without duplicating the same identities inside thousands of catalog rows.
+  // The reverse peopleWorks index below preserves actor/director search and
+  // profile works. Summaries keep only the bounded preview above; full metadata
+  // remains in the content-addressed detail shard.
 
   const identityHash = digest(`${item?.type || 'item'}:${item?.id || ''}`, 12);
   const detailSerialized = `${stableJson(item)}\n`;
@@ -455,13 +464,32 @@ const parsedTimestamp = (value) => {
   return Number.isFinite(timestamp) ? timestamp : 0;
 };
 
+const latestSeriesSourceEpisodeTimestamp = (item) =>
+  (Array.isArray(item?.downloads) ? item.downloads : []).reduce((latest, section) => {
+    if (!(Number(section?.episodeNumber || 0) > 0)) return latest;
+    return Math.max(latest, parsedTimestamp(section?.sourceUpdatedAt));
+  }, 0);
+
 const clientCatalogFreshness = (item) => {
-  // Do not use lastSyncedAt: it changes every hourly pass and would make the
-  // entire archive look new. firstSeenAt represents a newly discovered title;
-  // meaningfulUpdatedAt represents a genuinely new episode/content update.
+  // Do not use lastSyncedAt/updatedAt: metadata enrichment and hourly repair
+  // must never make an old title look newly published. firstSeenAt is the
+  // discovery time. A series meaningfulUpdatedAt is trusted only when its
+  // update label names a new episode and the upstream episode timestamp is not
+  // older than the title's first appearance in Aparatchi. This also repairs
+  // ordering for old archives that were historically backfilled as "updates".
+  const firstSeen = parsedTimestamp(item?.firstSeenAt);
+  const meaningful = parsedTimestamp(item?.meaningfulUpdatedAt);
+  const latestEpisodeSource = latestSeriesSourceEpisodeTimestamp(item);
+  const hasEpisodeUpdateLabel = /^قسمت\s+.+\s+اضافه\s+شد$/u.test(String(item?.updateLabel || '').trim());
+  const meaningfulIsCredible = Boolean(
+    item?.type === 'series' &&
+    meaningful > 0 &&
+    hasEpisodeUpdateLabel &&
+    (firstSeen <= 0 || latestEpisodeSource <= 0 || latestEpisodeSource >= firstSeen - 6 * 60 * 60 * 1000)
+  );
   const candidates = item?.type === 'series'
     ? [
-        item?.meaningfulUpdatedAt,
+        meaningfulIsCredible ? item?.meaningfulUpdatedAt : '',
         item?.firstSeenAt,
         item?.sourceCreatedAt,
         item?.createdAt,
@@ -487,7 +515,7 @@ const BOOTSTRAP_NAVIGATION_FIELDS = [
   'episodeCount', 'seasonCount', 'latestEpisode', 'isAiring', 'publicationStatus',
   'updateLabel', 'meaningfulUpdatedAt', 'categoryKeys', 'categoryLabels',
   'contentKind', 'isAnimation', 'isAnime', 'isTalkShow', 'isDocumentary', 'isWildlife',
-  'createdAt', 'updatedAt', 'sourceCreatedAt', 'sourceUpdatedAt', 'detailPath',
+  'firstSeenAt', 'createdAt', 'updatedAt', 'sourceCreatedAt', 'sourceUpdatedAt', 'detailPath',
 ];
 
 const compactBootstrapMovieFile = (file) => ({
@@ -594,16 +622,11 @@ const bootstrapItemsForHome = (items) => {
   // Preserve the newest front of the client index for Hero/latest rails.
   source.slice(0, 36).forEach(add);
 
-  // Preserve freshly updated titles even if they are not near the catalog head.
+  // Preserve genuinely new/updated titles even if they are not near the
+  // catalog head. Reuse the same truth function; metadata timestamps must not
+  // make an old title a Home-critical row.
   [...source]
-    .sort((a, b) => {
-      const timestamp = (item) => Math.max(
-        Date.parse(String(item?.meaningfulUpdatedAt || '')) || 0,
-        Date.parse(String(item?.sourceUpdatedAt || '')) || 0,
-        Date.parse(String(item?.updatedAt || '')) || 0,
-      );
-      return timestamp(b) - timestamp(a);
-    })
+    .sort((a, b) => clientCatalogFreshness(b) - clientCatalogFreshness(a))
     .slice(0, 24)
     .forEach(add);
 

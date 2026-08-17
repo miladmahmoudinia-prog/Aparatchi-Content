@@ -3159,6 +3159,10 @@ async function processSeries(
   let processedEpisodes = 0;
   let addedEpisodes = 0;
   let latestAddedEpisode = null;
+  // Backfilling a historical gap is not a user-visible "update". Only an
+  // episode beyond the archive tail that existed before this run may move a
+  // published series to the front of updated/new shelves.
+  let latestForwardEpisode = null;
   let stoppedByBudget = false;
   let operatorLinksInThisTitle = 0;
   const rejectedEpisodes = [];
@@ -3247,6 +3251,9 @@ async function processSeries(
         addedEpisodes += 1;
         stats.episodeGroupsAdded += 1;
         latestAddedEpisode = episode;
+        if (isEpisodeAfterPublishedTail(episode, previousGroups)) {
+          latestForwardEpisode = episode;
+        }
       }
     } catch (error) {
       if (isRunTimeBudgetError(error)) {
@@ -3304,7 +3311,7 @@ async function processSeries(
   }
 
   const isAiring = inferSeriesAiring(series, existing);
-  const isMeaningfulEpisodeUpdate = Boolean(addedEpisodes > 0 && latestAddedEpisode && existing);
+  const isMeaningfulEpisodeUpdate = Boolean(addedEpisodes > 0 && latestForwardEpisode && existing);
   const isPublishedAiringEpisodeUpdate = Boolean(
     isMeaningfulEpisodeUpdate &&
     existing?.publicationStatus === 'published' &&
@@ -3314,11 +3321,13 @@ async function processSeries(
 
   let updateLabel = existing?.updateLabel || '';
 
-  if (isMeaningfulEpisodeUpdate && latestAddedEpisode) {
-    const episodeNumber = episodeNumberValue(latestAddedEpisode);
+  if (isMeaningfulEpisodeUpdate && latestForwardEpisode) {
+    const episodeNumber = episodeNumberValue(latestForwardEpisode);
     updateLabel = `قسمت ${toPersianDigits(episodeNumber)} اضافه شد`;
-  } else if ((source === 'incremental' || source.endsWith('-priority')) && existing) {
-    updateLabel = 'بروزرسانی شد';
+  } else if (updateLabel === 'بروزرسانی شد') {
+    // A metadata/media refresh without a genuinely newer episode is not an
+    // update badge and must not pin this title at the front.
+    updateLabel = '';
   }
 
   // Every source episode without a matching usable group stays in the archive
