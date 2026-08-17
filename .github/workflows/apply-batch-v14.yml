@@ -46,11 +46,12 @@ jobs:
           fi
 
           if [ "$STATUS" -eq 0 ]; then
-            if ! grep -Fq 'Original language is the strongest identity signal for Korean/Indian shelves' scripts/classification.mjs; then
+            if grep -Fq "const koreanIdentity = originalLanguage" scripts/classification.mjs && \
+               grep -Fq "indianIdentity && type === 'movie'" scripts/classification.mjs; then
+              echo 'v13 regional source fix already present.' >> content-v15-status.log
+            else
               node scripts/apply-regional-v13.mjs >> content-v15-status.log 2>&1
               STATUS=$?
-            else
-              echo 'v13 regional source fix already present.' >> content-v15-status.log
             fi
           fi
 
