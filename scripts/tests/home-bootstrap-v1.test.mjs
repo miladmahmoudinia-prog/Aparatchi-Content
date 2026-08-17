@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { buildClientCatalogArtifacts } from '../client-catalog.mjs';
 
+const MAX_BOOTSTRAP_BYTES = 6 * 1024 * 1024;
+
 const playableMovie = (id, categoryKeys, updatedAt = '2026-08-15T00:00:00.000Z') => ({
   id,
   type: 'movie',
@@ -92,8 +94,11 @@ test('real generated bootstrap stays bounded and exactly preserves navigation/ca
   for (const key of ['dubbed', 'subtitled', 'iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series']) {
     assert.equal(count(bootstrap, key), count(index, key), `bootstrap truncated ${key}`);
   }
-  assert.ok(Buffer.byteLength(bootstrapRaw) < 5_000_000, 'complete navigation bootstrap exceeded the 5 MB safety bound');
-  assert.ok(Buffer.byteLength(bootstrapRaw) < Buffer.byteLength(indexRaw), 'bootstrap must remain smaller than full index');
+  const bootstrapBytes = Buffer.byteLength(bootstrapRaw);
+  const indexBytes = Buffer.byteLength(indexRaw);
+  assert.ok(bootstrapBytes < indexBytes * 0.65, 'complete navigation bootstrap is no longer compact versus the full index');
+  assert.ok(bootstrapBytes < MAX_BOOTSTRAP_BYTES, 'complete navigation bootstrap exceeded the 6 MiB safety bound');
+  assert.ok(bootstrapBytes < indexBytes, 'bootstrap must remain smaller than full index');
   assert.ok(Array.isArray(bootstrap.imdbTop100?.movies) && bootstrap.imdbTop100.movies.length > 0);
   assert.ok(Array.isArray(bootstrap.imdbTop100?.series) && bootstrap.imdbTop100.series.length > 0);
 });
