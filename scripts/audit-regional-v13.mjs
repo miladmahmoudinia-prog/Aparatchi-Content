@@ -22,20 +22,22 @@ const pick = (item) => ({
 });
 
 const korean = (index.items || []).filter((item) => item.type === 'movie' && item.categoryKeys?.includes('korean-movies'));
-const koreanInvalid = korean.filter((item) => !(item.countryCodes || []).includes('KR') && String(item.originalLanguage || '').toLowerCase() !== 'ko');
+const koreanNonKo = korean.filter((item) => String(item.originalLanguage || '').toLowerCase() !== 'ko');
 const indianSeries = (index.items || []).filter((item) => item.categoryKeys?.includes('indian-series'));
+const conan = (index.items || []).filter((item) => /conan\s+the\s+barbarian/i.test(`${item.name || ''} ${item.nameFa || ''}`));
+const arabicLookingKorean = korean.filter((item) => /[أإؤئءةى]/u.test(String(item.nameFa || '')) || String(item.originalLanguage || '').toLowerCase() === 'ar');
 const sourceById = new Map((catalog.items || []).map((item) => [String(item.id), item]));
 
 console.log(JSON.stringify({
   counts: {
     koreanMovies: korean.length,
-    koreanInvalid: koreanInvalid.length,
+    koreanNonKo: koreanNonKo.length,
     indianSeries: indianSeries.length,
+    conan: conan.length,
+    arabicLookingKorean: arabicLookingKorean.length,
   },
-  koreanHead: korean.slice(0, 40).map((item) => ({
-    index: pick(item),
-    source: pick(sourceById.get(String(item.id)) || {}),
-  })),
-  koreanInvalid: koreanInvalid.slice(0, 100).map(pick),
-  indianSeries: indianSeries.slice(0, 100).map(pick),
+  koreanNonKo: koreanNonKo.map((item) => ({ index: pick(item), source: pick(sourceById.get(String(item.id)) || {}) })),
+  conan: conan.map((item) => ({ index: pick(item), source: pick(sourceById.get(String(item.id)) || {}) })),
+  arabicLookingKorean: arabicLookingKorean.map((item) => ({ index: pick(item), source: pick(sourceById.get(String(item.id)) || {}) })),
+  indianSeries: indianSeries.map(pick),
 }, null, 2));
