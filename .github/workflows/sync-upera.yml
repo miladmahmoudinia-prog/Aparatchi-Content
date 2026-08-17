@@ -3,7 +3,7 @@ name: Sync Upera Catalog
 on:
   schedule:
     # GitHub cron uses UTC; :34 UTC is :04 in Iran (UTC+03:30).
-    - cron: '34 * * * *'
+    - cron: '34 */2 * * *'
 
   push:
     branches: [main]
@@ -202,10 +202,31 @@ jobs:
       - name: Ensure ffmpeg for episode thumbnails
         shell: bash
         run: |
-          if ! command -v ffmpeg >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install -y ffmpeg
+          set +e
+          if command -v ffmpeg >/dev/null 2>&1; then
+            ffmpeg -version | head -n 1
+            exit 0
           fi
+
+          export DEBIAN_FRONTEND=noninteractive
+          echo 'ffmpeg is missing; trying one bounded install instead of blocking the whole catalog sync.'
+          timeout 180s sudo apt-get update \
+            -o Acquire::Retries=2 \
+            -o Acquire::http::Timeout=20 \
+            -o Acquire::https::Timeout=20
+          UPDATE_STATUS=$?
+          if [ "$UPDATE_STATUS" -ne 0 ]; then
+            echo "::warning::ffmpeg apt update timed out/failed; episode frame capture will be skipped in this run."
+            exit 0
+          fi
+
+          timeout 180s sudo apt-get install -y --no-install-recommends ffmpeg
+          INSTALL_STATUS=$?
+          if [ "$INSTALL_STATUS" -ne 0 ] || ! command -v ffmpeg >/dev/null 2>&1; then
+            echo "::warning::ffmpeg install timed out/failed; continuing sync without frame capture."
+            exit 0
+          fi
+          ffmpeg -version | head -n 1
 
       - name: Complete missing cast and crew metadata
         id: people_sync
@@ -289,7 +310,7 @@ jobs:
           UPERA_UNAVAILABLE_EPISODE_RETRY_HOURS: '1'
           UPERA_BLOCKED_RETRY_HOURS: '6'
           # A permanently blocked archive is retried by later repair/backfill
-          # cycles instead of consuming every hourly run forever.
+          # cycles instead of consuming every two-hour run forever.
           UPERA_RETRY_BLOCKED: 'false'
           UPERA_REQUEST_DELAY_MS: '650'
           APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
@@ -340,7 +361,7 @@ jobs:
           if [ '${{ steps.archive_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} archive"; fi
           if [ '${{ steps.commit_archive.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} commit-archive"; fi
           if [ -n "$FAILED_STAGES" ]; then
-            echo "::warning title=Partial sync::Saved all available progress; retry these stages on the next hourly run:$FAILED_STAGES"
+            echo "::warning title=Partial sync::Saved all available progress; retry these stages on the next two-hour run:$FAILED_STAGES"
           else
             echo "All sync stages completed successfully."
           fi
