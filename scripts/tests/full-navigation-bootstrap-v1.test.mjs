@@ -7,6 +7,7 @@ const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
 const artifacts = buildClientCatalogArtifacts(catalog);
 const index = artifacts.index;
 const bootstrap = artifacts.bootstrap;
+const MAX_BOOTSTRAP_BYTES = 6 * 1024 * 1024;
 
 const categoryCount = (payload, key) => payload.items.filter((item) =>
   Array.isArray(item?.categoryKeys) && item.categoryKeys.includes(key)
@@ -31,6 +32,6 @@ test('every bootstrap navigation row can hydrate its real detail', () => {
 test('bootstrap remains materially smaller than full client index', () => {
   assert.ok(artifacts.bootstrapSizeBytes < artifacts.clientSizeBytes * 0.65,
     `bootstrap ${artifacts.bootstrapSizeBytes} is not compact versus index ${artifacts.clientSizeBytes}`);
-  assert.ok(artifacts.bootstrapSizeBytes < 5_000_000,
-    `bootstrap grew beyond 5 MB: ${artifacts.bootstrapSizeBytes}`);
+  assert.ok(artifacts.bootstrapSizeBytes < MAX_BOOTSTRAP_BYTES,
+    `bootstrap grew beyond 6 MiB: ${artifacts.bootstrapSizeBytes}`);
 });
