@@ -12,6 +12,20 @@ const classify = (overrides = {}) => classifyCatalogItem({
   ...overrides,
 });
 
+test('Korean and Indian movies use dedicated shelves while Indian series stay under foreign series', () => {
+  const koreanMovie = classify({ originalLanguage: 'ko', countryCodes: ['KR'] });
+  assert.ok(koreanMovie.categoryKeys.includes('korean-movies'));
+  assert.ok(!koreanMovie.categoryKeys.includes('foreign-movies'));
+
+  const indianMovie = classify({ originalLanguage: 'hi', countryCodes: ['IN'] });
+  assert.ok(indianMovie.categoryKeys.includes('indian-movies'));
+  assert.ok(!indianMovie.categoryKeys.includes('foreign-movies'));
+
+  const indianSeries = classify({ type: 'series', originalLanguage: 'hi', countryCodes: ['IN'] });
+  assert.ok(indianSeries.categoryKeys.includes('foreign-series'));
+  assert.ok(!indianSeries.categoryKeys.includes('indian-series'));
+});
+
 test('narrative films with children/family wording are not child-program content', () => {
   const result = classify({
     name: "The Children's Train",
@@ -38,16 +52,6 @@ test('actual child programs stay only in Kids and are excluded from Iranian cine
   assert.ok(result.categoryKeys.includes('kids'));
   assert.ok(!result.categoryKeys.includes('programs'));
   assert.ok(!result.categoryKeys.includes('iranian-movies'));
-});
-
-test('Korean and Indian titles use exclusive regional shelves instead of generic foreign', () => {
-  const koreanMovie = classify({ originalLanguage: 'ko', countryCodes: ['KR'] });
-  assert.ok(koreanMovie.categoryKeys.includes('korean-movies'));
-  assert.ok(!koreanMovie.categoryKeys.includes('foreign-movies'));
-
-  const indianSeries = classify({ type: 'series', originalLanguage: 'hi', countryCodes: ['IN'] });
-  assert.ok(indianSeries.categoryKeys.includes('indian-series'));
-  assert.ok(!indianSeries.categoryKeys.includes('foreign-series'));
 });
 
 test('foreign-series reclassification removes a stale Iranian identity when trusted country/language exists', () => {
