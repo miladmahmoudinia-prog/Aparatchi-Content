@@ -1,4 +1,4 @@
-# Latest consolidated pass includes the corrected Indian-series regression expectation.
+# Latest consolidated pass supersedes older queued repair jobs and includes the corrected Indian-series regression expectation.
 name: Apply consolidated Aparatchi content fixes v14
 
 on:
@@ -13,7 +13,7 @@ permissions:
 
 concurrency:
   group: aparatchi-content-write-lock
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   apply:
