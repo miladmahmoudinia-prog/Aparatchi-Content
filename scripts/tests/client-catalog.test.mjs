@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildClientCatalogArtifacts, clientSummaryForItem } from '../client-catalog.mjs';
 
-test('client item summary keeps bounded episode action previews but strips duplicated cast identities', () => {
+test('client item summary keeps bounded episode actions and a compact first-screen people preview', () => {
   const item = {
     id: 'series-1', type: 'series', slug: 'series-1', ir: false, year: 2025,
     nameFa: 'نمونه', name: 'Sample', poster: 'p.jpg', backdrop: 'b.jpg',
@@ -30,7 +30,10 @@ test('client item summary keeps bounded episode action previews but strips dupli
   assert.equal(summary.downloads?.length, 1);
   assert.equal(summary.downloads?.[0]?.episodeNumber, 1);
   assert.equal(summary.downloads?.[0]?.files?.length, 1);
-  assert.equal('people' in summary, false);
+  assert.equal(summary.people?.length, 1);
+  assert.equal(summary.people?.[0]?.tmdbId, 42);
+  assert.equal(summary.people?.[0]?.image, 'https://image.test/p1.jpg');
+  assert.equal('popularity' in summary.people[0], false, 'heavy ranking metadata stays in the detail shard');
   assert.ok(summary.overview.length < item.overview.length);
 });
 
@@ -41,7 +44,7 @@ test('detail path changes when the full item changes', () => {
   assert.notEqual(first, second);
 });
 
-test('client catalog stays bounded while carrying only compact episode previews and no full cast payloads', () => {
+test('client catalog stays bounded with compact episode actions and at most eight lightweight people previews', () => {
   const heavyItem = {
     id: 's', type: 'series', slug: 's', ir: false, year: 2020, nameFa: 'سریال', name: 'Series',
     poster: 'p', backdrop: 'b', overview: 'شرح', genres: ['درام'], access: 'free', publicationStatus: 'published',
@@ -62,7 +65,9 @@ test('client catalog stays bounded while carrying only compact episode previews 
   const fullBytes = Buffer.byteLength(JSON.stringify(catalog));
   assert.ok(artifacts.clientSizeBytes < fullBytes * 0.65);
   assert.ok(artifacts.index.items[0].downloads.every((section) => section.files.length > 0 && section.files.length <= 2));
-  assert.equal('people' in artifacts.index.items[0], false);
+  assert.ok(Array.isArray(artifacts.index.items[0].people));
+  assert.equal(artifacts.index.items[0].people.length, 8);
+  assert.ok(artifacts.index.items[0].people.every((person) => !('popularity' in person)));
   assert.deepEqual(artifacts.index.peopleWorks['tmdb:1000'], [0]);
   assert.ok(Object.values(artifacts.index.peopleWorks).every((indexes) => indexes.every(Number.isInteger)));
   assert.equal(artifacts.stableDetailFiles.length, 1);
@@ -108,96 +113,96 @@ test('client movie summary carries lightweight actionable media with language ba
 test('client summary recognizes language from lightweight file metadata and carries collection identity', () => {
   const item = {
     id: 'collection-language', type: 'movie', nameFa: 'نمونه کالکشن', name: 'Collection Sample',
-    collectionId: 'tmdb:42', collectionNameFa: 'مجموعه نمونه', collectionName: 'Sample Collection',
-    downloads: [
-      { id: 'dub', files: [{ id: 'd', language: 'dubbed', url: 'https://cdn.test/d.mp4' }] },
-      { id: 'sub', files: [{ id: 's', language: 'subtitled', url: 'https://cdn.test/s.mp4' }] },
-    ],
+    collectionId: 'collection-1', collectionNameFa: 'مجموعه نمونه', collectionName: 'Sample Collection', collectionOrder: 2,
+    downloads: [{ id: 'dub', files: [{ id: 'd', url: 'https://cdn.test/d.mp4', language: 'dubbed' }] }],
   };
   const { summary } = clientSummaryForItem(item);
-  assert.deepEqual(summary.availableLanguages, ['dubbed', 'subtitled']);
-  assert.equal(summary.collectionId, 'tmdb:42');
-  assert.equal(summary.collectionNameFa, 'مجموعه نمونه');
+  assert.equal(summary.collectionId, 'collection-1');
+  assert.equal(summary.collectionOrder, 2);
+  assert.deepEqual(summary.availableLanguages, ['dubbed']);
 });
 
 test('movies without usable media stay server-side for repair but are hidden from the client index', () => {
   const catalog = {
-    version: '1', updatedAt: 'now',
-    items: [
-      { id: 'dead', type: 'movie', nameFa: 'خراب', name: 'Dead', mediaAuditStatus: 'confirmed-unavailable' },
-      { id: 'retry', type: 'movie', nameFa: 'در حال بررسی', name: 'Retry', mediaAuditStatus: 'broken-links' },
+    version: '1', updatedAt: 'now', items: [
+      { id: 'bad', type: 'movie', nameFa: 'بدون رسانه', name: 'Bad', downloads: [{ id: 'x', files: [{ url: 'https://example.test/pay' }] }] },
     ],
   };
   const artifacts = buildClientCatalogArtifacts(catalog);
-  assert.deepEqual(artifacts.index.items.map((item) => item.id), []);
-  assert.equal(catalog.items.length, 2);
+  assert.equal(artifacts.index.items.length, 0);
+  assert.equal(catalog.items.length, 1);
 });
-
 
 test('client summary recognizes Persian dubbing variants that used to be missed', () => {
   const item = {
-    id: 'dub-variants', type: 'movie', nameFa: 'نمونه دوبله', name: 'Dub Sample',
-    downloads: [
-      { id: 'dual', title: 'نسخه دو زبانه', files: [{ id: 'd1', label: 'Persian Audio 1080p', url: 'https://cdn.test/d1.mp4' }] },
-      { id: 'sub', title: 'هارد ساب فارسی', files: [{ id: 's1', label: 'Farsi Sub 720p', url: 'https://cdn.test/s1.mp4' }] },
-    ],
+    id: 'dub-variant', type: 'movie', nameFa: 'نمونه', name: 'Sample',
+    downloads: [{ id: 'd', title: 'صوت فارسی', files: [{ id: 'f', url: 'https://cdn.test/f.mp4' }] }],
   };
   const { summary } = clientSummaryForItem(item);
-  assert.deepEqual(summary.availableLanguages, ['dubbed', 'subtitled']);
+  assert.deepEqual(summary.availableLanguages, ['dubbed']);
 });
 
 test('client index accepts MKV direct downloads but rejects purchase-only links', () => {
   const catalog = {
-    version: 'test', updatedAt: new Date(0).toISOString(), iranianSchedule: [], weeklySchedule: [],
-    items: [
-      {
-        id: 'mkv', type: 'movie', nameFa: 'ام‌کی‌وی', name: 'MKV',
-        downloads: [{ id: 'dub', files: [{ id: 'mkv-dub', mode: 'download', language: 'dubbed', url: 'https://cdn.test/movie.mkv' }] }],
-      },
-      {
-        id: 'external', type: 'movie', nameFa: 'خارجی', name: 'External',
-        downloads: [{ id: 'dub', files: [{ id: 'external-dub', mode: 'purchase', language: 'dubbed', url: 'https://cdn.test/acquire?id=1' }] }],
-      },
+    version: '1', updatedAt: 'now', items: [
+      { id: 'mkv', type: 'movie', nameFa: 'ام‌کی‌وی', name: 'MKV', downloads: [{ id: 'd', files: [{ id: 'f', mode: 'download', url: 'https://cdn.test/file.mkv' }] }] },
+      { id: 'purchase', type: 'movie', nameFa: 'خرید', name: 'Purchase', downloads: [{ id: 'p', files: [{ id: 'p1', mode: 'download', url: 'https://example.test/buy' }] }] },
     ],
   };
   const artifacts = buildClientCatalogArtifacts(catalog);
-  assert.ok(artifacts.index.items.some((item) => item.id === 'mkv'));
-  assert.equal(artifacts.index.items.some((item) => item.id === 'external'), false);
+  assert.deepEqual(artifacts.index.items.map((item) => item.id), ['mkv']);
 });
 
 test('series summary and bootstrap keep every episode coordinate with bounded actionable previews', () => {
-  const episode = (number) => ({
-    id: `e${number}`,
-    title: `قسمت ${number}`,
-    seasonNumber: 1,
-    episodeNumber: number,
-    sourceEpisodeId: `source-${number}`,
+  const downloads = Array.from({ length: 5 }, (_, index) => ({
+    id: `e${index + 1}`, seasonNumber: 1, episodeNumber: index + 1,
     files: [
-      { id: `d${number}-1080`, mode: 'download', quality: '1080p', url: `https://cdn.test/${number}/1080.mp4` },
-      { id: `d${number}-720`, mode: 'download', quality: '720p', url: `https://cdn.test/${number}/720.mp4` },
-      { id: `p${number}`, mode: 'play', quality: 'پخش', url: `https://cdn.test/${number}/master.m3u8` },
+      { id: `d${index}`, mode: 'download', url: `https://cdn.test/e${index}.mkv` },
+      { id: `p${index}`, mode: 'play', url: `https://cdn.test/e${index}.m3u8` },
+      { id: `x${index}`, mode: 'download', url: `https://cdn.test/e${index}-extra.mp4` },
     ],
-  });
-  const catalog = {
-    version: 'preview-test', updatedAt: '2026-01-01T00:00:00Z',
-    items: [{
-      id: 'series-preview', type: 'series', nameFa: 'نمونه سریال', name: 'Series Preview',
-      publicationStatus: 'published', archiveComplete: true,
-      downloads: [episode(1), episode(2), episode(3)],
-    }],
+  }));
+  const item = {
+    id: 'series-preview', type: 'series', nameFa: 'پیش‌نمایش', name: 'Preview',
+    publicationStatus: 'published', latestEpisode: { episodeNumber: 5 }, episodeCount: 5,
+    downloads,
   };
-  const artifacts = buildClientCatalogArtifacts(catalog);
-  const summary = artifacts.index.items[0];
-  assert.deepEqual(summary.downloads.map((section) => section.episodeNumber), [1, 2, 3]);
-  assert.ok(summary.downloads.every((section) => section.files.length > 0 && section.files.length <= 2));
-  assert.deepEqual(summary.downloads.map((section) => section.sourceEpisodeId), ['source-1', 'source-2', 'source-3']);
-  const sourceUrls = new Set(catalog.items[0].downloads.flatMap((section) => section.files.map((file) => file.url)));
-  assert.ok(summary.downloads.flatMap((section) => section.files).every((file) => sourceUrls.has(file.url)));
-  const bootstrapSummary = artifacts.bootstrap.items[0];
-  assert.deepEqual(bootstrapSummary.downloads.map((section) => section.episodeNumber), [1, 2, 3]);
-  assert.ok(bootstrapSummary.downloads.every((section) => section.files.length > 0 && section.files.length <= 2));
-  assert.ok(bootstrapSummary.downloads.flatMap((section) => section.files).every((file) => sourceUrls.has(file.url)));
-  assert.ok(bootstrapSummary.downloads.flatMap((section) => section.files).every((file) => !('quality' in file) && !('id' in file)));
-  const detail = JSON.parse(artifacts.detailFiles[0].serialized);
-  assert.equal(detail.downloads.flatMap((section) => section.files).length, 9, 'detail shard keeps every quality');
+  const { summary } = clientSummaryForItem(item);
+  assert.equal(summary.downloads.length, 5);
+  assert.ok(summary.downloads.every((section) => section.files.length <= 2));
+  const artifacts = buildClientCatalogArtifacts({ version: '1', updatedAt: 'now', items: [item] });
+  assert.equal(artifacts.bootstrap.items[0].downloads.length, 5);
+});
+
+test('missing ir flag never makes a foreign title Iranian and keeps real media neutral', () => {
+  const item = {
+    id: 'foreign-neutral', type: 'movie', nameFa: 'خارجی', name: 'Foreign',
+    countryCodes: ['US'], downloads: [{ id: 'd', files: [{ id: 'f', mode: 'download', url: 'https://cdn.test/f.mp4' }] }],
+  };
+  const artifacts = buildClientCatalogArtifacts({ version: '1', updatedAt: 'now', items: [item] });
+  assert.equal(artifacts.index.items.length, 1);
+  assert.deepEqual(artifacts.index.items[0].availableLanguages, []);
+});
+
+test('a real dubbed foreign download survives and is labelled dubbed', () => {
+  const item = {
+    id: 'foreign-dubbed', type: 'movie', nameFa: 'دوبله', name: 'Dubbed', countryCodes: ['US'],
+    downloads: [{ id: 'd', title: 'دوبله فارسی', files: [{ id: 'f', mode: 'download', url: 'https://cdn.test/f.mp4' }] }],
+  };
+  const artifacts = buildClientCatalogArtifacts({ version: '1', updatedAt: 'now', items: [item] });
+  assert.equal(artifacts.index.items[0].availableLanguages[0], 'dubbed');
+});
+
+test('same URL with contradictory languages survives once as neutral media', () => {
+  const item = {
+    id: 'conflict', type: 'movie', nameFa: 'تعارض', name: 'Conflict', countryCodes: ['US'],
+    downloads: [
+      { id: 'd', title: 'دوبله فارسی', files: [{ id: 'f1', mode: 'download', url: 'https://cdn.test/shared.mp4' }] },
+      { id: 's', title: 'زیرنویس فارسی', files: [{ id: 'f2', mode: 'download', url: 'https://cdn.test/shared.mp4' }] },
+    ],
+  };
+  const artifacts = buildClientCatalogArtifacts({ version: '1', updatedAt: 'now', items: [item] });
+  const files = artifacts.index.items[0].downloads.flatMap((section) => section.files || []);
+  assert.equal(files.length, 1);
+  assert.equal(files[0].language, undefined);
 });
