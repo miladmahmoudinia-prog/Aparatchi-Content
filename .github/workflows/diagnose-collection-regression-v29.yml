@@ -26,6 +26,9 @@ jobs:
       - name: Apply conservative title and collection repair
         run: node scripts/fix-collection-regression-v29.mjs
 
+      - name: Restore established title policy and harden collection shape guard
+        run: node scripts/fix-collection-regression-v29c.mjs
+
       - name: Align legacy title-truth collection overrides
         run: node scripts/fix-collection-regression-v29b.mjs
 
@@ -91,6 +94,7 @@ jobs:
           rm -f scripts/diagnose-collection-regression-v29.mjs
           rm -f scripts/fix-collection-regression-v29.mjs
           rm -f scripts/fix-collection-regression-v29b.mjs
+          rm -f scripts/fix-collection-regression-v29c.mjs
           rm -f .github/workflows/diagnose-collection-regression-v29.yml
           git config user.name "miladmahmoudinia-prog"
           git config user.email "milad.mahmoudinia@gmail.com"
