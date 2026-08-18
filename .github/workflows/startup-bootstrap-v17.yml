@@ -23,6 +23,17 @@ jobs:
         with:
           fetch-depth: 20
 
+      - name: Expose repair run id
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          printf 'run_id=%s\nhead_sha=%s\n' "${{ github.run_id }}" "${{ github.sha }}" > startup-bootstrap-v17-run.txt
+          git add startup-bootstrap-v17-run.txt
+          git commit -m "chore: expose startup bootstrap v17 run id [skip ci]"
+          git push origin HEAD:main
+
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
@@ -61,7 +72,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm -f scripts/apply-startup-bootstrap-v17.mjs .github/workflows/startup-bootstrap-v17.yml
+          git rm -f scripts/apply-startup-bootstrap-v17.mjs .github/workflows/startup-bootstrap-v17.yml startup-bootstrap-v17-run.txt
           git add scripts/client-catalog.mjs catalog-bootstrap.json catalog-manifest.json
           git commit -m "fix: make cold-start Home bootstrap fast and current"
           git pull --rebase origin main
