@@ -25,6 +25,8 @@ jobs:
           fetch-depth: 30
 
       - name: Checkout current public Mobile main
+        id: checkout_mobile
+        continue-on-error: true
         uses: actions/checkout@v6
         with:
           repository: miladmahmoudinia-prog/Aparatchi-Mobile
@@ -32,30 +34,55 @@ jobs:
           path: mobile
           fetch-depth: 40
 
-      - uses: actions/setup-node@v6
+      - name: Setup Node 22
+        id: setup_node
+        if: steps.checkout_mobile.outcome == 'success'
+        continue-on-error: true
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: npm
           cache-dependency-path: mobile/package-lock.json
 
       - name: Install Mobile dependencies
-        working-directory: mobile
-        run: npm ci --include=dev
-
-      - name: Type-check checked-in Mobile source
-        working-directory: mobile
-        run: npm run typecheck
-
-      - name: Run Mobile regression tests
-        working-directory: mobile
-        run: node --test scripts/tests/*.test.mjs
-
-      - name: Materialize the exact Metro App patch in the validation copy
+        id: install
+        if: steps.setup_node.outcome == 'success'
+        continue-on-error: true
         working-directory: mobile
         shell: bash
         run: |
-          set -euo pipefail
-          node <<'NODE'
+          set -o pipefail
+          npm ci --include=dev 2>&1 | tee /tmp/mobile-install.log
+
+      - name: Type-check checked-in Mobile source
+        id: raw_typecheck
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        working-directory: mobile
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run typecheck 2>&1 | tee /tmp/mobile-raw-typecheck.log
+
+      - name: Run Mobile regression tests
+        id: regressions
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        working-directory: mobile
+        shell: bash
+        run: |
+          set -o pipefail
+          node --test scripts/tests/*.test.mjs 2>&1 | tee /tmp/mobile-regressions.log
+
+      - name: Materialize exact Metro App patch
+        id: materialize
+        if: steps.checkout_mobile.outcome == 'success'
+        continue-on-error: true
+        working-directory: mobile
+        shell: bash
+        run: |
+          set -o pipefail
+          node <<'NODE' 2>&1 | tee /tmp/mobile-materialize.log
           const fs = require('node:fs');
           const { applyMobileSourcePatches } = require('./scripts/mobile-source-patches.cjs');
           const file = 'App.tsx';
@@ -66,41 +93,68 @@ jobs:
           console.log(`materialized Mobile App patch delta=${after.length - before.length}`);
           NODE
 
-      - name: Type-check the actual Metro-patched application source
+      - name: Type-check actual Metro-patched application source
+        id: patched_typecheck
+        if: steps.install.outcome == 'success' && steps.materialize.outcome == 'success'
+        continue-on-error: true
         working-directory: mobile
-        run: npm run typecheck
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run typecheck 2>&1 | tee /tmp/mobile-patched-typecheck.log
 
       - name: Audit requested final behavior
+        id: audit
+        if: steps.materialize.outcome == 'success'
+        continue-on-error: true
         working-directory: mobile
         shell: bash
         run: |
-          set -euo pipefail
-          grep -F "const posterNameFa = String(item.nameFa || item.name || '').trim();" App.tsx
-          grep -F "let collectionBrowserScrollOffset = 0;" App.tsx
-          grep -F "contentOffset={{ x: 0, y: collectionBrowserScrollOffset }}" App.tsx
-          grep -F "onScroll={rememberCollectionBrowserOffset}" App.tsx
-          grep -F "const relatedBadges = itemPosterBadges(relatedItem);" App.tsx
-          grep -F "badge.kind === 'operator' && styles.posterOperatorAccess" App.tsx
-          grep -F "? (item.latestEpisode || newestEpisodeGroup(item))" App.tsx
-          grep -A14 -F "style={styles.homeScroll}" App.tsx | grep -F "removeClippedSubviews"
-          ! grep -A14 -F "style={styles.homeScroll}" App.tsx | grep -F "removeClippedSubviews={false}"
-          grep -F "removeClippedSubviews={false}" App.tsx
-          grep -F "installStartupContentGate" index.ts
-          ! grep -F "installCollectionFlatListGuard" index.ts
-          test -f src/startupContentGate.ts
-          test ! -f src/collectionFlatListGuard.tsx
-          test -f metro.config.js
-          grep -F "scripts/metro-app-patch-transformer.cjs" metro.config.js
-          test -f scripts/mobile-source-patches.cjs
-          test -f scripts/metro-app-patch-transformer.cjs
+          set -o pipefail
+          {
+            set -euo pipefail
+            grep -F "const posterNameFa = String(item.nameFa || item.name || '').trim();" App.tsx
+            grep -F "let collectionBrowserScrollOffset = 0;" App.tsx
+            grep -F "contentOffset={{ x: 0, y: collectionBrowserScrollOffset }}" App.tsx
+            grep -F "onScroll={rememberCollectionBrowserOffset}" App.tsx
+            grep -F "const relatedBadges = itemPosterBadges(relatedItem);" App.tsx
+            grep -F "badge.kind === 'operator' && styles.posterOperatorAccess" App.tsx
+            grep -F "? (item.latestEpisode || newestEpisodeGroup(item))" App.tsx
+            grep -A14 -F "style={styles.homeScroll}" App.tsx | grep -F "removeClippedSubviews"
+            ! grep -A14 -F "style={styles.homeScroll}" App.tsx | grep -F "removeClippedSubviews={false}"
+            grep -F "removeClippedSubviews={false}" App.tsx
+            grep -F "installStartupContentGate" index.ts
+            ! grep -F "installCollectionFlatListGuard" index.ts
+            test -f src/startupContentGate.ts
+            test ! -f src/collectionFlatListGuard.tsx
+            test -f metro.config.js
+            grep -F "scripts/metro-app-patch-transformer.cjs" metro.config.js
+            test -f scripts/mobile-source-patches.cjs
+            test -f scripts/metro-app-patch-transformer.cjs
+          } 2>&1 | tee /tmp/mobile-audit.log
 
-      - name: Record exact validated Mobile HEAD
+      - name: Commit proof or exact diagnostic
+        if: always()
         shell: bash
+        env:
+          CHECKOUT_OUTCOME: ${{ steps.checkout_mobile.outcome }}
+          SETUP_OUTCOME: ${{ steps.setup_node.outcome }}
+          INSTALL_OUTCOME: ${{ steps.install.outcome }}
+          RAW_TYPECHECK_OUTCOME: ${{ steps.raw_typecheck.outcome }}
+          REGRESSIONS_OUTCOME: ${{ steps.regressions.outcome }}
+          MATERIALIZE_OUTCOME: ${{ steps.materialize.outcome }}
+          PATCHED_TYPECHECK_OUTCOME: ${{ steps.patched_typecheck.outcome }}
+          AUDIT_OUTCOME: ${{ steps.audit.outcome }}
         run: |
           set -euo pipefail
-          MOBILE_HEAD=$(git -C mobile rev-parse HEAD)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          MOBILE_HEAD=""
+          if [[ -d mobile/.git || -f mobile/.git ]]; then MOBILE_HEAD=$(git -C mobile rev-parse HEAD 2>/dev/null || true); fi
           VALIDATED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          cat > final-mobile-v22-validation.json <<EOF
+
+          if [[ "$CHECKOUT_OUTCOME" == success && "$SETUP_OUTCOME" == success && "$INSTALL_OUTCOME" == success && "$RAW_TYPECHECK_OUTCOME" == success && "$REGRESSIONS_OUTCOME" == success && "$MATERIALIZE_OUTCOME" == success && "$PATCHED_TYPECHECK_OUTCOME" == success && "$AUDIT_OUTCOME" == success ]]; then
+            cat > final-mobile-v22-validation.json <<EOF
           {
             "mobileHead": "$MOBILE_HEAD",
             "rawTypecheck": "success",
@@ -110,17 +164,39 @@ jobs:
             "validatedAt": "$VALIDATED_AT"
           }
           EOF
-          cat final-mobile-v22-validation.json
+            git rm -f --ignore-unmatch FINAL-MOBILE-V22-DIAGNOSTIC.md .github/workflows/validate-final-public-mobile-v22.yml
+            git add final-mobile-v22-validation.json
+            git diff --check
+            git commit -m "test: validate final public Mobile v22 [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+            exit 0
+          fi
 
-      - name: Commit proof and remove one-shot validator
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm -f .github/workflows/validate-final-public-mobile-v22.yml
-          git add final-mobile-v22-validation.json
-          git diff --check
-          git commit -m "test: validate final public Mobile v22 [skip ci]"
+          {
+            echo '# Final public Mobile v22 validation diagnostic'
+            echo
+            echo "- mobileHead: $MOBILE_HEAD"
+            echo "- checkout: $CHECKOUT_OUTCOME"
+            echo "- setupNode: $SETUP_OUTCOME"
+            echo "- install: $INSTALL_OUTCOME"
+            echo "- rawTypecheck: $RAW_TYPECHECK_OUTCOME"
+            echo "- regressions: $REGRESSIONS_OUTCOME"
+            echo "- materialize: $MATERIALIZE_OUTCOME"
+            echo "- patchedTypecheck: $PATCHED_TYPECHECK_OUTCOME"
+            echo "- audit: $AUDIT_OUTCOME"
+            for log in /tmp/mobile-install.log /tmp/mobile-raw-typecheck.log /tmp/mobile-regressions.log /tmp/mobile-materialize.log /tmp/mobile-patched-typecheck.log /tmp/mobile-audit.log; do
+              if [[ -f "$log" ]]; then
+                echo
+                echo "## $(basename "$log")"
+                echo '```text'
+                tail -n 140 "$log"
+                echo '```'
+              fi
+            done
+          } > FINAL-MOBILE-V22-DIAGNOSTIC.md
+          git add FINAL-MOBILE-V22-DIAGNOSTIC.md
+          git commit -m "test: record final Mobile v22 validation diagnostic [skip ci]"
           git pull --rebase origin main
           git push origin HEAD:main
+          exit 1
