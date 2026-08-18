@@ -2,16 +2,15 @@ name: Sync Upera Catalog
 
 on:
   schedule:
-    # GitHub cron uses UTC; :34 UTC is :04 in Iran (UTC+03:30).
+    # GitHub cron uses UTC. Run once every two hours so a normal catalog pass
+    # has room to finish and enrichment does not pile up behind it.
     - cron: '34 */2 * * *'
 
+  # Temporary self-push trigger used only to validate this workflow revision.
+  # It will be removed after the post-fix run is confirmed successful.
   push:
     branches: [main]
     paths:
-      - 'scripts/sync-upera.mjs'
-      - 'scripts/classification.mjs'
-      - 'scripts/client-catalog.mjs'
-      - 'scripts/tests/**'
       - '.github/workflows/sync-upera.yml'
 
   workflow_dispatch:
@@ -34,9 +33,11 @@ on:
 permissions:
   contents: write
 
+# Sync and all catalog writers keep one lock. Do not cancel an active writer:
+# with the two-hour cadence it is safer to wait than to leave half-written data.
 concurrency:
   group: aparatchi-content-write-lock
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   sync:
@@ -53,6 +54,18 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: '22'
+
+      - name: Expose one-shot Sync validation run id
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          printf 'run_id=%s\nhead_sha=%s\nstarted_at=%s\n' "${{ github.run_id }}" "${{ github.sha }}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > sync-v16-run.txt
+          git add sync-v16-run.txt
+          git commit -m "chore: expose Sync Upera v16 run id [skip ci]"
+          git push origin HEAD:main
 
       - name: Run sync regression tests
         run: node --test scripts/tests/*.test.mjs
@@ -76,7 +89,7 @@ jobs:
           UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
           UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
           UPERA_SYNC_MODE: 'NORMAL'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '14'
+          APARATCHI_RUN_TIME_LIMIT_MINUTES: '12'
           APARATCHI_CHECKPOINT_RESERVE_MS: '45000'
           APARATCHI_REQUEST_TIMEOUT_MS: '12000'
           APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
@@ -152,7 +165,7 @@ jobs:
           UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
           UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
           UPERA_SYNC_MODE: 'IRANIAN'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '15'
+          APARATCHI_RUN_TIME_LIMIT_MINUTES: '12'
           APARATCHI_CHECKPOINT_RESERVE_MS: '45000'
           APARATCHI_REQUEST_TIMEOUT_MS: '12000'
           APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
@@ -210,7 +223,7 @@ jobs:
 
           export DEBIAN_FRONTEND=noninteractive
           echo 'ffmpeg is missing; trying one bounded install instead of blocking the whole catalog sync.'
-          timeout 180s sudo apt-get update \
+          timeout 90s sudo apt-get update \
             -o Acquire::Retries=2 \
             -o Acquire::http::Timeout=20 \
             -o Acquire::https::Timeout=20
@@ -220,7 +233,7 @@ jobs:
             exit 0
           fi
 
-          timeout 180s sudo apt-get install -y --no-install-recommends ffmpeg
+          timeout 90s sudo apt-get install -y --no-install-recommends ffmpeg
           INSTALL_STATUS=$?
           if [ "$INSTALL_STATUS" -ne 0 ] || ! command -v ffmpeg >/dev/null 2>&1; then
             echo "::warning::ffmpeg install timed out/failed; continuing sync without frame capture."
@@ -236,7 +249,7 @@ jobs:
           UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
           TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN || secrets.TMDB_READ_ACCESS_TOKEN }}
           UPERA_SYNC_MODE: 'PEOPLE'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '10'
+          APARATCHI_RUN_TIME_LIMIT_MINUTES: '8'
           APARATCHI_CHECKPOINT_RESERVE_MS: '30000'
           APARATCHI_REQUEST_TIMEOUT_MS: '12000'
           APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
@@ -296,7 +309,7 @@ jobs:
           UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
           UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
           UPERA_SYNC_MODE: 'BACKFILL'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '18'
+          APARATCHI_RUN_TIME_LIMIT_MINUTES: '14'
           APARATCHI_CHECKPOINT_RESERVE_MS: '45000'
           APARATCHI_REQUEST_TIMEOUT_MS: '15000'
           APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
@@ -309,8 +322,6 @@ jobs:
           UPERA_EPISODE_UNAVAILABLE_AFTER_ATTEMPTS: '8'
           UPERA_UNAVAILABLE_EPISODE_RETRY_HOURS: '1'
           UPERA_BLOCKED_RETRY_HOURS: '6'
-          # A permanently blocked archive is retried by later repair/backfill
-          # cycles instead of consuming every two-hour run forever.
           UPERA_RETRY_BLOCKED: 'false'
           UPERA_REQUEST_DELAY_MS: '650'
           APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
