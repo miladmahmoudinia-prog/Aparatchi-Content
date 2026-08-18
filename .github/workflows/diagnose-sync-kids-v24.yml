@@ -18,18 +18,40 @@ jobs:
           node-version: 22
       - name: Run current sync regression suite
         run: node --test scripts/tests/*.test.mjs
-      - name: Audit kids category
+      - name: Audit kids category and missing child-program candidates
         if: always()
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          for (const file of ['catalog-index.json','catalog-bootstrap.json']) {
+          const readItems = (file) => {
             const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-            const items = Array.isArray(data) ? data : (Array.isArray(data.items) ? data.items : []);
+            return Array.isArray(data) ? data : (Array.isArray(data.items) ? data.items : []);
+          };
+          const indexItems = readItems('catalog-index.json');
+          const bootstrapItems = readItems('catalog-bootstrap.json');
+          const sourceItems = readItems('catalog.json');
+          const indexIds = new Set(indexItems.map((item) => String(item.id || item.slug || '')));
+          const normalize = (value) => String(value || '').replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').toLowerCase();
+          const childProgramSignal = (item) => {
+            const title = normalize(`${item.nameFa || ''} ${item.name || ''}`);
+            const genres = normalize((item.genres || []).join(' '));
+            const kind = normalize(item.contentKind || '');
+            const text = `${title} ${genres} ${kind}`;
+            return kind === 'children-program' ||
+              /برنامه\s*کودک|برنامه\s*کودکان|ترانه(?:‌|\s)*های?\s*کودک|ترانه\s*کودکانه|سرود\s*کودک|قصه\s*کودک|لالایی|خاله\s*نسرین|عمو\s*پورنگ|کلاه\s*قرمزی|فیتیله|خاله\s*سوسکه|songs?\s+for\s+kids|children'?s\s+songs?|nursery\s+rhymes?|kids\s+show|children'?s\s+program|preschool\s+show/i.test(text);
+          };
+          const mediaCount = (item) => (item.downloads || []).flatMap((group) => group?.files || []).filter((file) => file?.url || file?.link).length + (item.streamUrl ? 1 : 0);
+          for (const [file, items] of [['catalog-index.json', indexItems], ['catalog-bootstrap.json', bootstrapItems]]) {
             const kids = items.filter((item) => Array.isArray(item.categoryKeys) && item.categoryKeys.includes('kids'));
             console.log(file, 'items=', items.length, 'kids=', kids.length);
             for (const item of kids.slice(0, 80)) {
               console.log('KID', item.type, item.nameFa || item.name || item.id, JSON.stringify(item.categoryKeys || []), JSON.stringify(item.genres || []));
             }
+          }
+          const candidates = sourceItems.filter(childProgramSignal);
+          console.log('catalog.json source items=', sourceItems.length, 'childProgramCandidates=', candidates.length);
+          for (const item of candidates.slice(0, 200)) {
+            const id = String(item.id || item.slug || '');
+            console.log('CHILD-CANDIDATE', indexIds.has(id) ? 'VISIBLE' : 'HIDDEN', 'media=', mediaCount(item), item.type, item.nameFa || item.name || id, 'kind=', item.contentKind || '', 'keys=', JSON.stringify(item.categoryKeys || []), 'genres=', JSON.stringify(item.genres || []));
           }
           NODE
