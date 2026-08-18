@@ -10,7 +10,6 @@ import {
 
 const KNOWN_TITLE_OVERRIDES = new Map([
   ['the jack in the box', 'جعبه اسباب‌بازی'],
-  ['the jack in the box rises', 'جعبه اسباب‌بازی ۳: خیزش'],
   ['enola holmes 2', 'انولا هولمز ۲'],
   ['enola holmes 3', 'انولا هولمز ۳'],
   ['one mile chapter one', 'یک مایل: بخش اول'],
@@ -81,26 +80,15 @@ function englishCollectionBase(value) {
     .trim();
 }
 
+// Be intentionally conservative here. A legitimate first franchise movie can
+// have exactly the same Persian title as the collection base (Batman/بتمن,
+// Scream/جیغ, Superman/سوپرمن, ...). The unmistakable corruption we need to
+// reject is a member itself being labelled «مجموعه ...».
 function titleMatchesCollectionLeak(item) {
   const titleFa = clean(item?.nameFa);
   if (!titleFa || !hasPersian(titleFa) || !item?.collectionId) return false;
   const titleEn = clean(item?.name);
-  if (/^مجموعه\s+/u.test(titleFa) && !/\bcollection\b/i.test(titleEn)) return true;
-
-  const collectionFa = stripCollectionPrefix(item?.collectionNameFa);
-  if (!collectionFa) return false;
-  const titleKey = key(stripCollectionPrefix(titleFa));
-  const collectionKey = key(collectionFa);
-  if (!titleKey || !collectionKey) return false;
-
-  const itemEnglish = key(titleEn);
-  const collectionEnglish = key(item?.collectionName);
-  const englishIsSameObject = Boolean(itemEnglish && collectionEnglish && itemEnglish === collectionEnglish);
-  if (!englishIsSameObject && titleKey === collectionKey) return true;
-
-  const order = Number(item?.collectionOrder || 0);
-  if (!englishIsSameObject && order > 0 && titleKey === key(`${collectionFa} ${toPersianDigits(order)}`)) return true;
-  return false;
+  return /^مجموعه\s+/u.test(titleFa) && !/\bcollection\b/i.test(titleEn);
 }
 
 function collectionNameLooksLikeMemberLeak(value, members) {
@@ -110,21 +98,28 @@ function collectionNameLooksLikeMemberLeak(value, members) {
   const normalized = key(stripped);
   if (!normalized) return true;
 
-  for (const item of members) {
-    const memberFa = clean(item?.nameFa);
-    if (!memberFa || !hasPersian(memberFa)) continue;
-    if (key(stripCollectionPrefix(memberFa)) === normalized) return true;
-  }
+  const hasSeparator = /[:：؛]/u.test(stripped) || /\s[-–—]\s/u.test(stripped);
+  const hasPartSuffix = /(?:^|\s)(?:قسمت|بخش|فصل)\s+(?:[۰-۹0-9]+|اول|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم|دهم)\s*$/u.test(stripped);
+  const hasNumericSuffix = /\s[۰-۹0-9]+(?:[٫.][۰-۹0-9]+)?\s*$/u.test(stripped);
 
-  if (/(?:[:：؛]|\s[-–—]\s)/u.test(stripped)) {
+  // A simple base title is valid even when it is also the title of the first
+  // installment. Only subtitle/part-shaped collection labels are suspicious.
+  if (!hasSeparator && !hasPartSuffix && !hasNumericSuffix) return false;
+
+  const equalsMemberTitle = members.some((item) => {
+    const memberFa = clean(item?.nameFa);
+    return hasPersian(memberFa) && key(stripCollectionPrefix(memberFa)) === normalized;
+  });
+  if (equalsMemberTitle) return true;
+
+  if (hasSeparator) {
     const prefix = stripped.split(/\s*(?:[:：؛]|\s[-–—]\s)\s*/u)[0]?.trim();
     if (prefix && members.some((item) => key(persianCollectionBaseFromTitle(item?.nameFa)) === key(prefix))) {
       return true;
     }
   }
 
-  if (/(?:^|\s)(?:قسمت|بخش|فصل)\s+(?:[۰-۹0-9]+|اول|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم|دهم)\s*$/u.test(stripped)) return true;
-  return false;
+  return hasPartSuffix || hasNumericSuffix;
 }
 
 function bestLocalCollectionTitle(members) {
