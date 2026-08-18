@@ -85,8 +85,11 @@ const childrenProgramTerms = [
 ];
 
 const generalProgramTerms = [
-  'ویژه برنامه', 'ویژه‌برنامه', 'برنامه نوروزی', 'برنامه نوروز',
-  'nowruz special', 'new year special',
+  // Keep this identity narrow: generic "special" is also used by real movies
+  // and animation films (for example a Christmas special). Only established
+  // Nowruz-program wording is strong enough to override movie identity.
+  'ویژه برنامه نوروز', 'ویژه‌برنامه نوروز', 'برنامه نوروزی', 'برنامه نوروز',
+  'nowruz special',
 ];
 const talkShowTerms = ['تاک شو', 'تاک‌شو', 'talk show'];
 const realityTerms = [
