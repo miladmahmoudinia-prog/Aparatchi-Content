@@ -1,6 +1,8 @@
 import fs from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 
+// Recreate the manifest from the exact committed artifact bytes while keeping
+// every compatibility pointer consumed by Mobile startup/detail hydration.
 const read = async (path) => fs.readFile(path);
 const hash = (buffer) => createHash('sha256').update(buffer).digest('hex');
 
