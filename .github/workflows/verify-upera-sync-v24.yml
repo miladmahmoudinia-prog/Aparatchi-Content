@@ -1,15 +1,16 @@
 name: Verify Upera Sync v24
 
 on:
-  issues:
-    types: [opened]
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-upera-sync-v24.yml'
 
 permissions:
   contents: read
 
 jobs:
   verify:
-    if: github.event.issue.title == 'RUN VERIFY UPERA SYNC V24'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
