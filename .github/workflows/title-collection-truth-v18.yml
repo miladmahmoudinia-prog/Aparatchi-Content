@@ -1,10 +1,9 @@
 name: One-shot title and collection truth v18
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/title-collection-truth-v18.yml'
+  workflow_dispatch:
+  issues:
+    types: [opened]
 
 permissions:
   contents: write
@@ -15,12 +14,16 @@ concurrency:
 
 jobs:
   repair:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.issue.title == 'RUN TITLE COLLECTION TRUTH V18'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v6
         with:
+          ref: main
           fetch-depth: 30
 
       - name: Setup Node
