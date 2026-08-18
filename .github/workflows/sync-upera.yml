@@ -33,8 +33,6 @@ on:
 permissions:
   contents: write
 
-# Sync and all catalog writers keep one lock. Do not cancel an active writer:
-# with the two-hour cadence it is safer to wait than to leave half-written data.
 concurrency:
   group: aparatchi-content-write-lock
   cancel-in-progress: false
@@ -249,7 +247,7 @@ jobs:
           UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
           TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN || secrets.TMDB_READ_ACCESS_TOKEN }}
           UPERA_SYNC_MODE: 'PEOPLE'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '8'
+          APARATCHI_RUN_TIME_LIMIT_MINUTES: '10'
           APARATCHI_CHECKPOINT_RESERVE_MS: '30000'
           APARATCHI_REQUEST_TIMEOUT_MS: '12000'
           APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
