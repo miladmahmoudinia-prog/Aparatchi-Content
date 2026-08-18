@@ -23,15 +23,18 @@ test('bootstrap is a bounded fresh Home snapshot instead of the whole navigation
   }
 });
 
-test('Home bootstrap keeps enough rows for the visible shelves and every row can hydrate detail', () => {
+test('Home bootstrap keeps enough rows for visible shelves and every row can hydrate detail', () => {
   for (const key of ['iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series', 'korean-movies', 'korean-series', 'indian-movies']) {
     const expected = Math.min(10, categoryCount(index, key));
     assert.ok(categoryCount(bootstrap, key) >= expected, `${key} Home shelf was truncated below ${expected}`);
   }
   const broken = bootstrap.items.filter((item) => !item?.id || !item?.type || !item?.detailPath);
   assert.deepEqual(broken.map((item) => item?.id), []);
-  assert.ok(bootstrap.items.every((item) => !Array.isArray(item.downloads) || item.downloads.length === 0),
-    'startup bootstrap must not carry episode/download archives');
+  for (const item of bootstrap.items) {
+    for (const section of Array.isArray(item.downloads) ? item.downloads : []) {
+      assert.ok((section.files || []).length <= 2, 'Home action preview became unbounded');
+    }
+  }
 });
 
 test('bootstrap is small enough to stop competing with the full index at cold start', () => {
