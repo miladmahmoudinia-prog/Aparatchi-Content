@@ -64,6 +64,21 @@ const VERIFIED_PERSIAN_TITLE_ENTRIES = [
   ["Sniper: G.R.I.T. - Global Response & Intelligence Team", "تک‌تیرانداز: G.R.I.T. – تیم واکنش و اطلاعات جهانی"],
   ["Sniper: The Last Stand", "تک‌تیرانداز: آخرین سنگر"],
   ["Sniper No Nation", "تک‌تیرانداز: بی‌وطن"],
+  ['Justice League: Crisis on Infinite Earths Part One', 'لیگ عدالت: بحران در زمین‌های بی‌نهایت – قسمت اول'],
+  ['Justice League: Crisis on Infinite Earths Part Two', 'لیگ عدالت: بحران در زمین‌های بی‌نهایت – قسمت دوم'],
+  ['Justice League: Crisis on Infinite Earths Part Three', 'لیگ عدالت: بحران در زمین‌های بی‌نهایت – قسمت سوم'],
+  ['Miraculous World: New York, United HeroeZ', 'دنیای دختر کفشدوزکی: ماجراجویی در نیویورک'],
+  ['Miraculous World: Shanghai – The Legend of Ladydragon', 'دنیای دختر کفشدوزکی: ماجراجویی در شانگهای'],
+  ['Aurora Teagarden Mysteries: How to Con a Con', 'رازهای آرورا تیگاردن: چگونه یک شیاد را فریب دهیم'],
+  ['Aurora Teagarden Mysteries: A Lesson in Murder', 'رازهای آرورا تیگاردن: درسی در قتل'],
+  ['Two Buddies and a Badger', 'زبر و زرنگ'],
+  ['Two Buddies and a Badger 2 - The Great Big Beast', 'زبر و زرنگ ۲: هیولای عظیم'],
+  ['A Madea Homecoming', 'بازگشت مادیا به خانه'],
+  ["Madea's Destination Wedding", 'مادیا راهی عروسی می‌شود'],
+  ['PAW Patrol: The Movie', 'سگ‌های نگهبان'],
+  ['PAW Patrol: The Mighty Movie', 'سگ‌های نگهبان: فیلم بزرگ'],
+  ['Troll', 'غول'],
+  ['Troll 2', 'غول ۲'],
 ];
 
 const VERIFIED_PERSIAN_COLLECTION_ENTRIES = [
@@ -98,6 +113,13 @@ const VERIFIED_PERSIAN_COLLECTION_ENTRIES = [
   ["The SpongeBob Collection", "کالکشن باب اسفنجی"],
   ["Jack in the Box Collection", "کالکشن جعبه اسباب‌بازی"],
   ["Sniper Collection", "کالکشن تک‌تیرانداز"],
+  ['Justice League (Tomorrowverse) Collection', 'کالکشن لیگ عدالت (تومارورس)'],
+  ['Miraculous World', 'کالکشن دنیای دختر کفشدوزکی'],
+  ['Aurora Teagarden Mystery Collection', 'کالکشن رازهای آرورا تیگاردن'],
+  ['Knutsen & Ludvigsen Collection', 'کالکشن زبر و زرنگ'],
+  ['Madea Collection', 'کالکشن مادیا'],
+  ['PAW Patrol (Theatrical) Collection', 'کالکشن سگ‌های نگهبان'],
+  ['Troll (2022) Collection', 'کالکشن غول'],
 ];
 
 export const VERIFIED_PERSIAN_TITLE_OVERRIDES = new Map(
@@ -407,14 +429,43 @@ function normalizeCollectionLabel(value) {
 }
 function currentPersianCollectionIsSafe(value, members, collectionName) {
   const current = cleanDisplayText(value);
-  if (!current || !hasPersianScript(current) || collectionNameLooksLikeInstallment(current)) return false;
+  if (!current || !hasPersianScript(current)) return false;
   const stripped = current.replace(/^(?:مجموعه|کالکشن)\s+/u, '').trim();
   const normalizedPersianBase = normalizePersianOverrideKey(stripped);
   if (!normalizedPersianBase) return false;
-  const matching = members.filter((item) => normalizePersianOverrideKey(persianCollectionBaseFromTitle(item?.nameFa)) === normalizedPersianBase);
-  if (!matching.length) return true;
+
+  const hasSeparator = /[:：؛]/u.test(stripped) || /\s[-–—]\s/u.test(stripped);
+  const hasPartSuffix = /(?:^|\s)(?:قسمت|بخش|فصل)\s+(?:[۰-۹0-9]+|اول|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم|دهم)\s*$/u.test(stripped);
+  const hasNumericSuffix = /\s[۰-۹0-9]+(?:[٫.][۰-۹0-9]+)?\s*$/u.test(stripped);
+
+  // A collection label must be a franchise/base label, never an installment
+  // subtitle such as «...: بخش اول». Reject that shape before any first-film
+  // equivalence check can accidentally bless it.
+  if (hasSeparator || hasPartSuffix || hasNumericSuffix) return false;
+
+  const exactMemberTitles = members.filter((item) => {
+    const memberFa = cleanDisplayText(item?.nameFa).replace(/^(?:مجموعه|کالکشن)\s+/u, '').trim();
+    return hasPersianScript(memberFa) && normalizePersianOverrideKey(memberFa) === normalizedPersianBase;
+  });
+  const matchingBases = members.filter((item) =>
+    normalizePersianOverrideKey(persianCollectionBaseFromTitle(item?.nameFa)) === normalizedPersianBase
+  );
+
+  // A simple shared Persian franchise base is trustworthy and should survive
+  // future syncs. It may legitimately equal the first film title (بتمن، غول، ...).
+  if (matchingBases.length >= 2) return true;
+
   const collectionBase = normalizePersianOverrideKey(originalCollectionBase(collectionName));
-  return matching.some((item) => normalizePersianOverrideKey(originalTitleBase(item?.name)) === collectionBase);
+  const legitimateFirstTitle = exactMemberTitles.some((item) =>
+    normalizePersianOverrideKey(originalTitleBase(item?.name)) === collectionBase
+  );
+  if (legitimateFirstTitle) return true;
+
+  // A distinct simple Persian label is safer than guessing from a member. If
+  // it is exactly one unrelated installment title, force the source-collection
+  // fallback instead.
+  if (exactMemberTitles.length) return false;
+  return true;
 }
 function safeFallbackCollectionLabel(collectionName) {
   const base = originalCollectionBase(collectionName);
