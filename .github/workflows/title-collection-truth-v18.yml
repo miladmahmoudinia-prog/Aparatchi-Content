@@ -42,6 +42,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Patch shared collection-title source policy
+        run: node scripts/patch-collection-source-policy-v18.mjs
+
       - name: Run targeted regression tests before conservative repair
         run: node --test scripts/tests/title-collection-truth-v18.test.mjs scripts/tests/persian-title-source-policy-v3.test.mjs
 
@@ -55,19 +58,14 @@ jobs:
       - name: Run targeted regression tests after conservative repair
         run: node --test scripts/tests/title-collection-truth-v18.test.mjs scripts/tests/persian-title-source-policy-v3.test.mjs
 
-      - name: Commit repaired catalog and remove one-shot workflow
+      - name: Commit repaired catalog and source policy; remove one-shot files
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm -f .github/workflows/title-collection-truth-v18.yml title-collection-truth-v18-status.log
-          git add catalog.json catalog-index.json catalog-bootstrap.json catalog-items catalog-stable catalog-manifest.json
-          if git diff --cached --quiet; then
-            echo 'No catalog changes after title truth repair.'
-            git commit --allow-empty -m "chore: complete conservative title truth v18 audit"
-          else
-            git commit -m "fix: separate movie titles from collection titles"
-          fi
+          git rm -f .github/workflows/title-collection-truth-v18.yml title-collection-truth-v18-status.log scripts/patch-collection-source-policy-v18.mjs
+          git add scripts/persian-title-overrides.mjs catalog.json catalog-index.json catalog-bootstrap.json catalog-items catalog-stable catalog-manifest.json
+          git commit -m "fix: separate movie titles from collection titles"
           git pull --rebase origin main
           git push origin HEAD:main
