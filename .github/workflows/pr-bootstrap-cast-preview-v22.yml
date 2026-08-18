@@ -1,0 +1,91 @@
+name: PR bootstrap cast preview v22
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pr-bootstrap-cast-preview-v22-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  patch-rebuild-test:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 30
+          persist-credentials: true
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Carry bounded cast preview into compact bootstrap items
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs/promises';
+          const path = 'scripts/client-catalog.mjs';
+          let source = await fs.readFile(path, 'utf8');
+          const before = `  for (const field of BOOTSTRAP_NAVIGATION_FIELDS) {\n    if (Object.prototype.hasOwnProperty.call(item || {}, field)) compact[field] = item[field];\n  }\n  if (item?.type === 'movie') {`;
+          const after = `  for (const field of BOOTSTRAP_NAVIGATION_FIELDS) {\n    if (Object.prototype.hasOwnProperty.call(item || {}, field)) compact[field] = item[field];\n  }\n  // Keep only enough people metadata for the first visible cast row. The full\n  // detail shard still replaces this preview after hydration, while first-open\n  // detail pages no longer wait on a remote detail fetch before showing cast.\n  if (Array.isArray(item?.people) && item.people.length) {\n    compact.people = item.people.slice(0, 4);\n  }\n  if (item?.type === 'movie') {`;
+          if (!source.includes(after)) {
+            const count = source.split(before).length - 1;
+            if (count !== 1) throw new Error(`bootstrap people anchor count=${count}`);
+            source = source.replace(before, after);
+            await fs.writeFile(path, source, 'utf8');
+          }
+          NODE
+
+      - name: Rebuild client/bootstrap artifacts
+        run: node scripts/rebuild-client-catalog.mjs
+
+      - name: Validate bounded people preview and artifact integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs/promises';
+          const index = JSON.parse(await fs.readFile('catalog-index.json', 'utf8'));
+          const bootstrap = JSON.parse(await fs.readFile('catalog-bootstrap.json', 'utf8'));
+          const bootById = new Map((bootstrap.items || []).map((item) => [`${item.type}:${item.id}`, item]));
+          const withPeople = (index.items || []).filter((item) => Array.isArray(item.people) && item.people.length);
+          let missingPreview = 0;
+          for (const item of withPeople) {
+            const boot = bootById.get(`${item.type}:${item.id}`);
+            const expected = Math.min(4, item.people.length);
+            if (!boot || !Array.isArray(boot.people) || boot.people.length < expected) missingPreview += 1;
+          }
+          const indexBytes = (await fs.stat('catalog-index.json')).size;
+          const bootstrapBytes = (await fs.stat('catalog-bootstrap.json')).size;
+          console.log(JSON.stringify({ items: index.items?.length || 0, withPeople: withPeople.length, missingPreview, indexBytes, bootstrapBytes }, null, 2));
+          if (!index.items?.length || index.items.length !== bootstrap.items?.length) throw new Error('bootstrap navigation catalog is incomplete');
+          if (missingPreview !== 0) throw new Error(`missing cast previews: ${missingPreview}`);
+          if (bootstrapBytes >= indexBytes) throw new Error('bootstrap unexpectedly grew to index size');
+          if (!(await fs.stat('catalog.json')).size) throw new Error('catalog.json is empty');
+          NODE
+          test -d catalog-items
+          test -d catalog-stable
+          test -s catalog-manifest.json
+          git diff --check
+
+      - name: Commit verified Content repair to PR branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f .github/workflows/pr-bootstrap-cast-preview-v22.yml
+          git add scripts/client-catalog.mjs catalog-index.json catalog-bootstrap.json catalog-manifest.json catalog-items catalog-stable
+          git diff --check
+          git commit -m "perf: show cast preview on first detail open [skip ci]"
+          git push origin HEAD:${{ github.head_ref }}
