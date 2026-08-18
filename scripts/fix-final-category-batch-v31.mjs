@@ -134,11 +134,4 @@ async function enrichPeopleFromTmdb(item) {`, 'operator overview enrichment');
   return src;
 });
 
-edit('.github/workflows/sync-upera.yml', (input) => replaceOnce(input,
-`          APARATCHI_PEOPLE_RETRY_HOURS: '12'
-          APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN: '48'`,
-`          APARATCHI_PEOPLE_RETRY_HOURS: '12'
-          APARATCHI_OPERATOR_OVERVIEWS_PER_RUN: '12'
-          APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN: '48'`, 'sync overview env'));
-
 console.log('final category batch v31 source guards applied');
