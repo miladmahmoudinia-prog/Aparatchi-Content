@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { writeClientCatalogArtifacts } from './client-catalog.mjs';
 import {
   applyVerifiedPersianTitleOverrides,
+  VERIFIED_PERSIAN_COLLECTION_OVERRIDES,
   normalizePersianOverrideKey,
   persianCollectionBaseFromTitle,
 } from './persian-title-overrides.mjs';
@@ -37,6 +38,13 @@ const KNOWN_COLLECTION_OVERRIDES = new Map([
   ['scream collection', 'کالکشن جیغ'],
   ['pushpa collection', 'کالکشن پوشپا'],
   ['deportees', 'کالکشن اخراجی‌ها'],
+  ['justice league tomorrowverse collection', 'کالکشن لیگ عدالت (تومارورس)'],
+  ['miraculous world', 'کالکشن دنیای دختر کفشدوزکی'],
+  ['aurora teagarden mystery collection', 'کالکشن رازهای آرورا تیگاردن'],
+  ['knutsen ludvigsen collection', 'کالکشن زبر و زرنگ'],
+  ['madea collection', 'کالکشن مادیا'],
+  ['paw patrol theatrical collection', 'کالکشن سگ‌های نگهبان'],
+  ['troll 2022 collection', 'کالکشن غول'],
 ]);
 
 const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
@@ -102,25 +110,26 @@ function collectionNameLooksLikeMemberLeak(value, members) {
   const hasSeparator = /[:：؛]/u.test(stripped) || /\s[-–—]\s/u.test(stripped);
   const hasPartSuffix = /(?:^|\s)(?:قسمت|بخش|فصل)\s+(?:[۰-۹0-9]+|اول|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم|دهم)\s*$/u.test(stripped);
   const hasNumericSuffix = /\s[۰-۹0-9]+(?:[٫.][۰-۹0-9]+)?\s*$/u.test(stripped);
+  if (hasSeparator || hasPartSuffix || hasNumericSuffix) return true;
 
-  // A simple base title is valid even when it is also the title of the first
-  // installment. Only subtitle/part-shaped collection labels are suspicious.
-  if (!hasSeparator && !hasPartSuffix && !hasNumericSuffix) return false;
-
-  const equalsMemberTitle = members.some((item) => {
+  const exactMemberTitles = members.filter((item) => {
     const memberFa = clean(item?.nameFa);
     return hasPersian(memberFa) && key(stripCollectionPrefix(memberFa)) === normalized;
   });
-  if (equalsMemberTitle) return true;
+  const matchingBases = members.filter((item) =>
+    hasPersian(item?.nameFa) && key(persianCollectionBaseFromTitle(item?.nameFa)) === normalized
+  );
+  if (matchingBases.length >= 2) return false;
 
-  if (hasSeparator) {
-    const prefix = stripped.split(/\s*(?:[:：؛]|\s[-–—]\s)\s*/u)[0]?.trim();
-    if (prefix && members.some((item) => key(persianCollectionBaseFromTitle(item?.nameFa)) === key(prefix))) {
-      return true;
-    }
+  if (exactMemberTitles.length) {
+    const collectionBase = key(englishCollectionBase(members[0]?.collectionName));
+    const legitimateFirstTitle = exactMemberTitles.some((item) =>
+      key(englishCollectionBase(item?.name)) === collectionBase
+    );
+    if (legitimateFirstTitle) return false;
+    return true;
   }
-
-  return hasPartSuffix || hasNumericSuffix;
+  return false;
 }
 
 function bestLocalCollectionTitle(members) {
@@ -188,7 +197,7 @@ async function fetchTmdbPersianTitle(item, token, apiBase) {
   const details = await tmdbJson(apiBase, token, `/${mediaType}/${id}?language=fa-IR`);
   const localized = clean(details?.title || details?.name);
   if (!hasPersian(localized)) return '';
-  if (/^مجموعه\s+/u.test(localized) && !/\bcollection\b/i.test(clean(item?.name))) return '';
+  if (/^(?:مجموعه|کالکشن)\s+/u.test(localized) && !/\bcollection\b/i.test(clean(item?.name))) return '';
   return localized;
 }
 
@@ -240,7 +249,7 @@ export async function repairCatalogTitleCollectionTruth(catalog, options = {}) {
   for (const [collectionId, members] of groups) {
     const first = members[0];
     const collectionEn = clean(first?.collectionName);
-    const override = KNOWN_COLLECTION_OVERRIDES.get(key(collectionEn));
+    const override = VERIFIED_PERSIAN_COLLECTION_OVERRIDES.get(key(collectionEn)) || KNOWN_COLLECTION_OVERRIDES.get(key(collectionEn));
     const current = clean(first?.collectionNameFa);
     const suspicious = !current || !hasPersian(current) || collectionNameLooksLikeMemberLeak(current, members);
     if (suspicious) suspiciousCollections += 1;
@@ -273,7 +282,7 @@ export async function repairCatalogTitleCollectionTruth(catalog, options = {}) {
 
   for (const item of items) {
     if (!item || !['movie', 'series'].includes(item.type)) continue;
-    const missingPersian = !hasPersian(item.nameFa) || hasLatin(item.nameFa);
+    const missingPersian = !hasPersian(item.nameFa);
     const leakedCollection = titleMatchesCollectionLeak(item);
     if (!missingPersian && !leakedCollection) continue;
     suspiciousTitles += 1;
