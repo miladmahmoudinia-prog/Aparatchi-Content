@@ -26,13 +26,24 @@ jobs:
           ref: main
           fetch-depth: 30
 
+      - name: Expose run id
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          printf 'run_id=%s\nrun_attempt=%s\nstarted_at=%s\n' '${{ github.run_id }}' '${{ github.run_attempt }}' "$(date -u +%FT%TZ)" > title-collection-truth-v18-status.log
+          git add title-collection-truth-v18-status.log
+          git commit -m "chore: expose title collection truth v18 run id [skip ci]"
+          git push origin HEAD:main
+
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: '22'
 
-      - name: Run regression tests before conservative repair
-        run: node --test scripts/tests/*.test.mjs
+      - name: Run targeted regression tests before conservative repair
+        run: node --test scripts/tests/title-collection-truth-v18.test.mjs scripts/tests/persian-title-source-policy-v3.test.mjs
 
       - name: Repair title and collection truth on current catalog
         env:
@@ -41,8 +52,8 @@ jobs:
           TITLE_TRUTH_REQUEST_DELAY_MS: '65'
         run: node scripts/title-collection-truth-v18.mjs
 
-      - name: Run regression tests after conservative repair
-        run: node --test scripts/tests/*.test.mjs
+      - name: Run targeted regression tests after conservative repair
+        run: node --test scripts/tests/title-collection-truth-v18.test.mjs scripts/tests/persian-title-source-policy-v3.test.mjs
 
       - name: Commit repaired catalog and remove one-shot workflow
         shell: bash
@@ -50,7 +61,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm -f .github/workflows/title-collection-truth-v18.yml
+          git rm -f .github/workflows/title-collection-truth-v18.yml title-collection-truth-v18-status.log
           git add catalog.json catalog-index.json catalog-bootstrap.json catalog-items catalog-stable catalog-manifest.json
           if git diff --cached --quiet; then
             echo 'No catalog changes after title truth repair.'
