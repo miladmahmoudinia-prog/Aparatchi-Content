@@ -35,14 +35,16 @@ jobs:
           marker_name = 'Expose one-shot Sync validation run id'
           if marker_name not in text:
               anchor = "      - name: Run sync regression tests\n        run: node --test scripts/tests/*.test.mjs\n"
-              marker = """      - name: Expose one-shot Sync validation run id
+              run_expr = '$' + '{{ github.run_id }}'
+              sha_expr = '$' + '{{ github.sha }}'
+              marker = f"""      - name: Expose one-shot Sync validation run id
         if: github.event_name == 'push'
         shell: bash
         run: |
           set -euo pipefail
           git config user.name \"github-actions[bot]\"
           git config user.email \"41898282+github-actions[bot]@users.noreply.github.com\"
-          printf 'run_id=%s\\nhead_sha=%s\\nstarted_at=%s\\n' \"${{ github.run_id }}\" \"${{ github.sha }}\" \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" > sync-v16-run.txt
+          printf 'run_id=%s\\nhead_sha=%s\\nstarted_at=%s\\n' \"{run_expr}\" \"{sha_expr}\" \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" > sync-v16-run.txt
           git add sync-v16-run.txt
           git commit -m \"chore: expose Sync Upera v16 run id [skip ci]\"
           git push origin HEAD:main
