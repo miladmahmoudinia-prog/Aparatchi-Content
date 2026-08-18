@@ -114,7 +114,7 @@ function originalTitleBase(value) {
 
 function normalizeCollectionLabel(value) {
   const stripped = cleanDisplayText(value).replace(/^(?:مجموعه|کالکشن)\s+/u, '').trim();
-  return stripped ? `کالکشن ${stripped}` : '';
+  return stripped ? 'کالکشن ' + stripped : '';
 }
 
 function currentPersianCollectionIsSafe(value, members, collectionName) {
@@ -129,10 +129,6 @@ function currentPersianCollectionIsSafe(value, members, collectionName) {
   );
   if (!matchingMemberBases.length) return true;
 
-  // A Persian collection base may legitimately equal the franchise's first
-  // film (Batman, Scream, Superman...). Trust it only when the ORIGINAL
-  // collection base also equals that member's original-title base. This is
-  // what prevents Hansan <- Admiral Yi Trilogy and similar member leaks.
   const collectionBase = normalizePersianOverrideKey(originalCollectionBase(collectionName));
   return matchingMemberBases.some((item) =>
     normalizePersianOverrideKey(originalTitleBase(item?.name)) === collectionBase
@@ -141,7 +137,7 @@ function currentPersianCollectionIsSafe(value, members, collectionName) {
 
 function safeFallbackCollectionLabel(collectionName) {
   const base = originalCollectionBase(collectionName);
-  return base ? `کالکشن ${base}` : '';
+  return base ? 'کالکشن ' + base : '';
 }
 
 function deriveMissingPersianCollectionNames(items) {
@@ -196,9 +192,6 @@ function copyCollectionIdentity(target, anchor, order) {
   return true;
 }
 
-// The Eternal Daughter is related to The Souvenir characters, but it is not
-// The Souvenir Part III. Keep it out of the formal collection. If The Souvenir
-// Part I exists locally, restore it next to Part II.
 const souvenir = findTitle('The Souvenir');
 const souvenir2 = findTitle('The Souvenir: Part II');
 const eternal = findTitle('The Eternal Daughter');
@@ -216,8 +209,6 @@ if (eternal && (
   delete eternal.collectionOrder;
 }
 
-// Jack in the Box is a trilogy. If Awakening is already present in Aparatchi,
-// make sure it is not omitted from the collection. Never invent the title.
 const jack1 = findTitle('The Jack in the Box');
 const jack2 = findTitle('The Jack in the Box: Awakening');
 const jack3 = findTitle('The Jack in the Box Rises');
