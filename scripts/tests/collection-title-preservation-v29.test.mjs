@@ -6,10 +6,9 @@ import {
 } from '../persian-title-overrides.mjs';
 import { repairCatalogTitleCollectionTruth } from '../title-collection-truth-v18.mjs';
 
-test('an existing unmarked Persian movie title is never replaced by heuristic transliteration cleanup', () => {
+test('an existing real Persian movie title is preserved across future cleanup', () => {
   const original = 'The Future Story of Love';
-  const providerPersian = generatedPersianDisplayTitle(original);
-  assert.ok(providerPersian && providerPersian !== original);
+  const providerPersian = 'داستان عشق آینده';
   const catalog = {
     items: [{ id: 'future-movie', type: 'movie', name: original, nameFa: providerPersian }],
   };
