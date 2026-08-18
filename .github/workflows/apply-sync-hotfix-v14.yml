@@ -1,5 +1,4 @@
-name: Apply sync hotfix v14
-# one-shot helper; remove after the sync workflow is patched
+name: Prepare observable Sync Upera validation v16
 
 on:
   push:
@@ -11,77 +10,51 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: aparatchi-sync-v16-prep
+  cancel-in-progress: true
+
 jobs:
-  apply:
+  prepare:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout Content main
+        uses: actions/checkout@v6
         with:
-          fetch-depth: 30
+          fetch-depth: 20
 
-      - name: Patch sync schedule and ffmpeg guard
+      - name: Insert one-shot run-id marker into Sync Upera
         shell: bash
         run: |
+          set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-          p = Path('.github/workflows/sync-upera.yml')
-          s = p.read_text()
-          old_cron = "    - cron: '34 * * * *'"
-          new_cron = "    - cron: '34 */2 * * *'"
-          if old_cron in s:
-              s = s.replace(old_cron, new_cron, 1)
-          elif new_cron not in s:
-              raise SystemExit('sync cron shape not found')
+          path = Path('.github/workflows/sync-upera.yml')
+          text = path.read_text()
+          marker_name = 'Expose one-shot Sync validation run id'
+          if marker_name not in text:
+              anchor = "      - name: Run sync regression tests\n        run: node --test scripts/tests/*.test.mjs\n"
+              marker = """      - name: Expose one-shot Sync validation run id
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name \"github-actions[bot]\"
+          git config user.email \"41898282+github-actions[bot]@users.noreply.github.com\"
+          printf 'run_id=%s\\nhead_sha=%s\\nstarted_at=%s\\n' \"${{ github.run_id }}\" \"${{ github.sha }}\" \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" > sync-v16-run.txt
+          git add sync-v16-run.txt
+          git commit -m \"chore: expose Sync Upera v16 run id [skip ci]\"
+          git push origin HEAD:main
 
-          old = '''      - name: Ensure ffmpeg for episode thumbnails
-        shell: bash
-        run: |
-          if ! command -v ffmpeg >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install -y ffmpeg
-          fi
-'''
-          new = '''      - name: Ensure ffmpeg for episode thumbnails
-        shell: bash
-        timeout-minutes: 4
-        continue-on-error: true
-        run: |
-          set +e
-          if command -v ffmpeg >/dev/null 2>&1; then
-            ffmpeg -version | head -n 1
-            exit 0
-          fi
-          echo "::warning title=ffmpeg missing::Trying a bounded install; sync will continue even if the package mirror is slow."
-          timeout 90s sudo env DEBIAN_FRONTEND=noninteractive apt-get update
-          UPDATE_STATUS=$?
-          if [ "$UPDATE_STATUS" -ne 0 ]; then
-            echo "::warning title=ffmpeg install skipped::apt-get update did not finish in time. Episode frames will retry next run."
-            exit 0
-          fi
-          timeout 120s sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ffmpeg
-          INSTALL_STATUS=$?
-          if [ "$INSTALL_STATUS" -ne 0 ]; then
-            echo "::warning title=ffmpeg install skipped::ffmpeg install did not finish in time. Episode frames will retry next run."
-            exit 0
-          fi
-          ffmpeg -version | head -n 1 || true
-'''
-          if old in s:
-              s = s.replace(old, new, 1)
-          elif 'timeout-minutes: 4\n        continue-on-error: true' not in s:
-              raise SystemExit('ffmpeg step shape not found')
-          p.write_text(s)
+"""
+              if anchor not in text:
+                  raise SystemExit('sync regression anchor not found')
+              text = text.replace(anchor, marker + anchor, 1)
+              path.write_text(text)
           PY
 
-      - name: Verify patch
-        shell: bash
-        run: |
-          grep -F "cron: '34 */2 * * *'" .github/workflows/sync-upera.yml
-          grep -A28 -F 'name: Ensure ffmpeg for episode thumbnails' .github/workflows/sync-upera.yml | grep -F 'timeout-minutes: 4'
-          grep -A28 -F 'name: Ensure ffmpeg for episode thumbnails' .github/workflows/sync-upera.yml | grep -F 'continue-on-error: true'
-
-      - name: Commit sync hotfix
+      - name: Commit Sync validation hook
         shell: bash
         run: |
           set -euo pipefail
@@ -89,15 +62,9 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add .github/workflows/sync-upera.yml
           if git diff --cached --quiet; then
-            echo 'Sync workflow already patched.'
+            echo 'Validation hook already present.'
             exit 0
           fi
-          git commit -m 'fix: bound ffmpeg setup and run Upera sync every two hours'
-          for attempt in 1 2 3 4 5; do
-            if git pull --rebase origin main && git push origin HEAD:main; then
-              exit 0
-            fi
-            git rebase --abort >/dev/null 2>&1 || true
-            sleep $((attempt * 2))
-          done
-          exit 1
+          git commit -m 'ci: expose one-shot Sync Upera validation run id'
+          git pull --rebase origin main
+          git push origin HEAD:main
