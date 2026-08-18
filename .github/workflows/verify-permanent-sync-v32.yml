@@ -2,7 +2,7 @@ name: Verify permanent Sync and TMDB v32
 
 on:
   issues:
-    types: [opened]
+    types: [opened, reopened]
 
 permissions:
   actions: write
@@ -47,7 +47,7 @@ jobs:
             exit 1
           fi
 
-      - name: Locate and watch downstream permanent TMDB enrichment
+      - name: Locate downstream TMDB or dispatch permanent TMDB directly
         id: tmdb
         if: steps.sync.outputs.sync_conclusion == 'success'
         env:
@@ -59,16 +59,37 @@ jobs:
           sync_id="${{ steps.sync.outputs.sync_id }}"
           sync_created="$(gh run view "$sync_id" --json createdAt --jq '.createdAt')"
           tmdb_id=""
-          for attempt in $(seq 1 60); do
+          tmdb_event="workflow_run"
+
+          # A normal scheduled/user-triggered Sync should create this workflow_run.
+          # A Sync dispatched from this verifier with GITHUB_TOKEN may not, because
+          # GitHub suppresses recursive workflow-triggered events. Give the real
+          # downstream trigger a short chance first, then verify the same permanent
+          # TMDB workflow directly via workflow_dispatch (which GitHub always allows).
+          for attempt in $(seq 1 12); do
             tmdb_id="$(gh run list --workflow enrich-tmdb-cast.yml --limit 30 --json databaseId,createdAt,event --jq "[.[] | select(.event == \"workflow_run\" and .createdAt >= \"$sync_created\")][0].databaseId // empty")"
             [ -n "$tmdb_id" ] && break
             sleep 10
           done
+
           if [ -z "$tmdb_id" ]; then
-            echo "Could not locate downstream Enrich cast images from TMDB run." >&2
+            tmdb_event="workflow_dispatch"
+            started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            gh workflow run enrich-tmdb-cast.yml --ref main
+            for attempt in $(seq 1 30); do
+              tmdb_id="$(gh run list --workflow enrich-tmdb-cast.yml --event workflow_dispatch --limit 20 --json databaseId,createdAt --jq "[.[] | select(.createdAt >= \"$started_at\")][0].databaseId // empty")"
+              [ -n "$tmdb_id" ] && break
+              sleep 4
+            done
+          fi
+
+          if [ -z "$tmdb_id" ]; then
+            echo "Could not locate or dispatch Enrich cast images from TMDB run." >&2
             exit 1
           fi
+
           echo "tmdb_id=$tmdb_id" >> "$GITHUB_OUTPUT"
+          echo "tmdb_event=$tmdb_event" >> "$GITHUB_OUTPUT"
           set +e
           gh run watch "$tmdb_id" --exit-status
           watch_status=$?
@@ -76,7 +97,7 @@ jobs:
           tmdb_conclusion="$(gh run view "$tmdb_id" --json conclusion --jq '.conclusion')"
           echo "tmdb_conclusion=$tmdb_conclusion" >> "$GITHUB_OUTPUT"
           if [ "$watch_status" -ne 0 ] || [ "$tmdb_conclusion" != "success" ]; then
-            echo "Permanent TMDB enrichment failed: run $tmdb_id ($tmdb_conclusion)" >&2
+            echo "Permanent TMDB enrichment failed: run $tmdb_id ($tmdb_conclusion, event=$tmdb_event)" >&2
             exit 1
           fi
 
@@ -90,8 +111,9 @@ jobs:
           SYNC_CONCLUSION: ${{ steps.sync.outputs.sync_conclusion }}
           TMDB_ID: ${{ steps.tmdb.outputs.tmdb_id }}
           TMDB_CONCLUSION: ${{ steps.tmdb.outputs.tmdb_conclusion }}
+          TMDB_EVENT: ${{ steps.tmdb.outputs.tmdb_event }}
         shell: bash
         run: |
           set -euo pipefail
-          body="sync_run=${SYNC_ID:-unknown}\nsync=${SYNC_CONCLUSION:-not-completed}\ntmdb_run=${TMDB_ID:-unknown}\ntmdb=${TMDB_CONCLUSION:-not-completed}"
+          body="sync_run=${SYNC_ID:-unknown}\nsync=${SYNC_CONCLUSION:-not-completed}\ntmdb_run=${TMDB_ID:-unknown}\ntmdb=${TMDB_CONCLUSION:-not-completed}\ntmdb_event=${TMDB_EVENT:-unknown}"
           gh issue comment "$ISSUE_NUMBER" --body "$body"
