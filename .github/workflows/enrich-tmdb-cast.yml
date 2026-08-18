@@ -60,6 +60,13 @@ jobs:
           PERSIAN_TITLE_NEGATIVE_CACHE_HOURS: '1'
         run: node scripts/enrich-persian-titles.mjs
 
+      - name: Enforce movie-title and collection-title separation
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          TITLE_TRUTH_MAX_API_REPAIRS: '600'
+          TITLE_TRUTH_REQUEST_DELAY_MS: '70'
+        run: node scripts/title-collection-truth-v18.mjs
+
       - name: Refresh IMDb Top 100 rankings
         env:
           IMDB_TOP_REFRESH_HOURS: '20'
