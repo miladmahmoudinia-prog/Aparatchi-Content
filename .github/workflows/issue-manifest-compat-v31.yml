@@ -1,0 +1,58 @@
+name: RUN MANIFEST COMPAT V31
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    if: github.event.issue.title == 'RUN MANIFEST COMPAT V31'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repair branch
+        uses: actions/checkout@v6
+        with:
+          ref: fix-final-category-batch-v31
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Restore compatible manifest
+        run: node scripts/repair-manifest-v31.mjs
+
+      - name: Verify exact artifact hashes and pointers
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import { createHash } from 'node:crypto';
+          const hash = (v) => createHash('sha256').update(v).digest('hex');
+          const catalog = fs.readFileSync('catalog.json');
+          const index = fs.readFileSync('catalog-index.json');
+          const bootstrap = fs.readFileSync('catalog-bootstrap.json');
+          const manifest = JSON.parse(fs.readFileSync('catalog-manifest.json', 'utf8'));
+          if (manifest.revision !== hash(catalog)) throw new Error('catalog revision mismatch');
+          if (manifest.clientRevision !== hash(index)) throw new Error('client revision mismatch');
+          if (manifest.bootstrapRevision !== hash(bootstrap)) throw new Error('bootstrap revision mismatch');
+          if (manifest.clientIndex !== 'catalog-index.json') throw new Error('clientIndex missing');
+          if (manifest.bootstrapIndex !== 'catalog-bootstrap.json') throw new Error('bootstrapIndex missing');
+          if (manifest.detailBase !== 'catalog-items/') throw new Error('detailBase missing');
+          if (manifest.stableDetailBase !== 'catalog-stable/') throw new Error('stableDetailBase missing');
+          console.log(JSON.stringify({ manifestOk: true, bootstrapSizeBytes: manifest.bootstrapSizeBytes }, null, 2));
+          NODE
+
+      - name: Commit compatible manifest to repair branch
+        run: |
+          set -euo pipefail
+          rm -f scripts/repair-manifest-v31.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add catalog-manifest.json scripts/repair-manifest-v31.mjs
+          git commit -m "fix: preserve catalog manifest compatibility"
+          git push origin HEAD:fix-final-category-batch-v31
