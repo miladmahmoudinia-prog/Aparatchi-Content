@@ -1,0 +1,69 @@
+name: Refine Program Classification v31
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Checkout repair branch
+        uses: actions/checkout@v6
+        with:
+          ref: fix-final-category-batch-v31
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Refine program identity
+        run: node scripts/refine-program-classification-v31.mjs
+
+      - name: Classification tests
+        run: node --test scripts/tests/classification.test.mjs scripts/tests/final-category-batch-v31.test.mjs
+
+      - name: Rebuild category artifacts
+        run: node scripts/rebuild-category-truth-v31.mjs
+
+      - name: Audit Nowruz and animation-special separation
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
+          const items = Array.isArray(catalog.items) ? catalog.items : [];
+          const norm = (v) => String(v || '').normalize('NFKC').toLowerCase().replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[^a-z0-9\u0600-\u06ff]+/g,' ').trim();
+          const find = (needle) => items.find((item) => norm(`${item.nameFa || ''} ${item.name || ''}`).includes(norm(needle)));
+          const nowruz = find('ویژه برنامه نوروز ۱۴۰۱');
+          if (nowruz && !(nowruz.categoryKeys || []).includes('programs')) throw new Error('Nowruz special must stay Programs');
+          const miraculous = find('A Christmas Special');
+          if (miraculous) {
+            const keys = new Set(miraculous.categoryKeys || []);
+            if (keys.has('programs')) throw new Error('Miraculous Christmas animation must not become Programs');
+            if (!keys.has('animation-movies')) throw new Error('Miraculous Christmas animation lost animation-movies');
+          }
+          const manifest = JSON.parse(fs.readFileSync('catalog-manifest.json', 'utf8'));
+          for (const key of ['clientRevision','bootstrapRevision','bootstrapIndex','detailBase','stableDetailBase']) {
+            if (!manifest[key]) throw new Error(`manifest missing ${key}`);
+          }
+          console.log(JSON.stringify({ nowruz: nowruz?.categoryKeys, miraculous: miraculous?.categoryKeys }, null, 2));
+          NODE
+
+      - name: Full regression suite
+        run: node --test scripts/tests/*.test.mjs
+
+      - name: Commit validated refinement
+        run: |
+          set -euo pipefail
+          rm -f scripts/refine-program-classification-v31.mjs scripts/rebuild-category-truth-v31.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/classification.mjs catalog.json catalog-index.json catalog-bootstrap.json catalog-items catalog-stable catalog-manifest.json scripts/refine-program-classification-v31.mjs scripts/rebuild-category-truth-v31.mjs
+          git commit -m "fix: keep animation specials out of Programs"
+          git push origin HEAD:fix-final-category-batch-v31

@@ -76,8 +76,21 @@ const childrenProgramTerms = [
   'songs for kids', "children's songs", 'childrens songs', 'nursery rhyme', 'nursery rhymes',
   'kids show', "children's program", 'childrens program', 'preschool show',
   'هشتگ خاله سوسکه', 'خاله سوسکه', 'عمو پورنگ', 'کلاه قرمزی', 'فیتیله',
+  // Verified operator-only child programs that frequently arrive without a synopsis.
+  // Exact title identity keeps ordinary narrative films out of Kids.
+  'فیل کوچولوی کم طاقت', 'فیل کوچولوی کم‌طاقت', 'نجات فیلی از گودال',
+  'راه جنگل', 'دروغ کوچک', 'فینبار و کرم شبتاب', 'فینیارو و کرم شبتاب',
+  'سالی و آواز درخت', 'لبخند کروکودیل', 'موزیکال دوستی و مهربونی',
+  'موزیکال دوستی و مهربانی',
 ];
 
+const generalProgramTerms = [
+  // Keep this identity narrow: generic "special" is also used by real movies
+  // and animation films (for example a Christmas special). Only established
+  // Nowruz-program wording is strong enough to override movie identity.
+  'ویژه برنامه نوروز', 'ویژه‌برنامه نوروز', 'برنامه نوروزی', 'برنامه نوروز',
+  'nowruz special',
+];
 const talkShowTerms = ['تاک شو', 'تاک‌شو', 'talk show'];
 const realityTerms = [
   'رئالیتی شو', 'رئالیتی‌شو', 'مسابقه تلویزیونی', 'مسابقه واقع نما', 'مسابقه واقع‌نما',
@@ -103,6 +116,7 @@ const wildlifeStrongTerms = [
   'حیات جانوری', 'گونه های جانوری', 'گونه‌های جانوری', 'زیستگاه حیوانات', 'زیستگاه جانوران',
   'wildlife', 'wild animals', 'animal kingdom', 'natural history', 'nature documentary',
   'marine life', 'ocean life', 'underwater wildlife', 'planet earth', 'our planet',
+  'deep sea 3d', 'دریای عمیق',
 ];
 const wildlifeSubjectTerms = [
   'leopard', 'leopards', 'cheetah', 'cheetahs', 'lion', 'lions', 'tiger', 'tigers',
@@ -181,7 +195,11 @@ export function classifyCatalogItem(input = {}) {
   const narrativeGenre = includesAny(genreText, narrativeTerms);
   const documentaryGenre = includesAny(genreText, documentaryTerms);
   const knownNarrativeMovie = includesAny(titleText, ['مزار شریف', 'mazar sharif']);
-  const knownDocumentary = includesAny(titleText, ['از بی', 'از به', 'az be']);
+  const knownDocumentary = includesAny(titleText, [
+    'از بی', 'از به', 'az be',
+    'من ناصر حجازی هستم', 'i am nasser hejazi',
+    'deep sea 3d', 'دریای عمیق',
+  ]);
   const explicitDocumentary = Boolean(
     input.isDocumentary === true ||
     existingKind === 'documentary' ||
@@ -216,7 +234,8 @@ export function classifyCatalogItem(input = {}) {
     (trustedSpecializedKind && existingKind === 'reality-competition') ||
     (trustedSpecializedKind && existingKeys.includes('reality'))
   );
-  const isProgram = isChildrenProgram || isTalkShow || isRealityCompetition ||
+  const isGeneralProgram = includesAny(programIdentityText, generalProgramTerms);
+  const isProgram = isChildrenProgram || isTalkShow || isRealityCompetition || isGeneralProgram ||
     (trustedSpecializedKind && existingKind === 'program');
 
   const isQuran = includesAny(titleText, quranTerms);
@@ -336,6 +355,7 @@ export function classifyCatalogItem(input = {}) {
   else if (isChildrenProgram) contentKind = 'children-program';
   else if (isRealityCompetition) contentKind = 'reality-competition';
   else if (isTalkShow) contentKind = 'talk-show';
+  else if (isProgram) contentKind = 'program';
   else if (isAnime) contentKind = type === 'movie' ? 'anime-movie' : 'anime-series';
   else if (isAnimation) contentKind = type === 'movie' ? 'animation-movie' : 'animation-series';
   else if (isDocumentary) contentKind = 'documentary';
