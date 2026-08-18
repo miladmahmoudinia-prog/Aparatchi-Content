@@ -3,7 +3,7 @@ import test from 'node:test';
 import { applyVerifiedPersianTitleOverrides } from '../persian-title-overrides.mjs';
 
 const COLLECTION_EN = '28 Days/Weeks/Years Later Collection';
-const COLLECTION_FA = 'مجموعه ۲۸ روز بعد';
+const COLLECTION_FA = 'کالکشن ۲۸ روز بعد';
 const EXPECTED = new Map([
   ['28 Days Later', '۲۸ روز بعد'],
   ['28 Weeks Later', '۲۸ هفته بعد'],
