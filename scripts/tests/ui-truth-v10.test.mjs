@@ -14,20 +14,22 @@ test('verified Twisted Metal Persian display title is the proper translation', (
   assert.equal(catalog.items[0].nameFaSource, 'verified-override');
 });
 
-test('bootstrap carries immediate lightweight actions for every media-equipped client movie', async () => {
+test('Home bootstrap carries immediate lightweight actions for its media-equipped movie rows', async () => {
   const catalog = JSON.parse(await fs.readFile('catalog.json', 'utf8'));
   const artifacts = buildClientCatalogArtifacts(catalog);
-  const clientMovies = artifacts.index.items.filter(usableMovieMedia);
+  const clientMovieIds = new Set(artifacts.index.items.filter(usableMovieMedia).map((item) => item.id));
   const bootstrapMovies = artifacts.bootstrap.items.filter(usableMovieMedia);
-  assert.equal(bootstrapMovies.length, clientMovies.length);
+  assert.ok(bootstrapMovies.length > 0, 'Home bootstrap lost all immediate movie actions');
   for (const item of bootstrapMovies) {
+    assert.ok(clientMovieIds.has(item.id), 'bootstrap action row must come from the current client index');
     const files = item.downloads.flatMap((section) => section.files || []);
-    assert.ok(files.length > 0, 'every media-equipped client movie has an immediate bootstrap action');
+    assert.ok(files.length > 0, 'every media-equipped Home movie has an immediate bootstrap action');
+    assert.ok(item.downloads.every((section) => (section.files || []).length <= 2), 'Home media preview became unbounded');
   }
   const bootstrapBytes = Buffer.byteLength(JSON.stringify(artifacts.bootstrap));
   const clientBytes = Buffer.byteLength(JSON.stringify(artifacts.index));
-  assert.ok(bootstrapBytes < clientBytes, 'bootstrap remains smaller than the full client index');
-  console.log(JSON.stringify({ clientMovies: clientMovies.length, bootstrapMovies: bootstrapMovies.length, bootstrapBytes, clientBytes }));
+  assert.ok(bootstrapBytes < clientBytes * 0.12, 'Home bootstrap must stay much smaller than the full client index');
+  console.log(JSON.stringify({ bootstrapMovies: bootstrapMovies.length, bootstrapBytes, clientBytes }));
 });
 
 test('client ordering is real add/update freshness, not production year', () => {
