@@ -595,6 +595,12 @@ const compactBootstrapNavigationItem = (item) => {
   for (const field of BOOTSTRAP_NAVIGATION_FIELDS) {
     if (Object.prototype.hasOwnProperty.call(item || {}, field)) compact[field] = item[field];
   }
+  // Keep only enough people metadata for the first visible cast row. The full
+  // detail shard still replaces this preview after hydration, while first-open
+  // detail pages no longer wait on a remote detail fetch before showing cast.
+  if (Array.isArray(item?.people) && item.people.length) {
+    compact.people = item.people.slice(0, 4);
+  }
   if (item?.type === 'movie') {
     const downloads = compactBootstrapMovieActionPreview(item.downloads);
     if (downloads.length) compact.downloads = downloads;
