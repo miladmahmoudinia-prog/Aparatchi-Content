@@ -1,0 +1,97 @@
+name: Verify permanent Sync and TMDB v32
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: write
+  issues: write
+  contents: read
+
+jobs:
+  verify:
+    if: github.event.issue.title == 'RUN PERMANENT SYNC TMDB V32'
+    runs-on: ubuntu-latest
+    timeout-minutes: 125
+    steps:
+      - name: Dispatch and watch permanent Sync Upera Catalog
+        id: sync
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          gh workflow run sync-upera.yml --ref main
+          sync_id=""
+          for attempt in $(seq 1 30); do
+            sync_id="$(gh run list --workflow sync-upera.yml --event workflow_dispatch --limit 20 --json databaseId,createdAt --jq "[.[] | select(.createdAt >= \"$started_at\")][0].databaseId // empty")"
+            [ -n "$sync_id" ] && break
+            sleep 4
+          done
+          if [ -z "$sync_id" ]; then
+            echo "Could not locate dispatched Sync run." >&2
+            exit 1
+          fi
+          echo "sync_id=$sync_id" >> "$GITHUB_OUTPUT"
+          set +e
+          gh run watch "$sync_id" --exit-status
+          watch_status=$?
+          set -e
+          sync_conclusion="$(gh run view "$sync_id" --json conclusion --jq '.conclusion')"
+          echo "sync_conclusion=$sync_conclusion" >> "$GITHUB_OUTPUT"
+          if [ "$watch_status" -ne 0 ] || [ "$sync_conclusion" != "success" ]; then
+            echo "Permanent Sync failed: run $sync_id ($sync_conclusion)" >&2
+            exit 1
+          fi
+
+      - name: Locate and watch downstream permanent TMDB enrichment
+        id: tmdb
+        if: steps.sync.outputs.sync_conclusion == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sync_id="${{ steps.sync.outputs.sync_id }}"
+          sync_created="$(gh run view "$sync_id" --json createdAt --jq '.createdAt')"
+          tmdb_id=""
+          for attempt in $(seq 1 60); do
+            tmdb_id="$(gh run list --workflow enrich-tmdb-cast.yml --limit 30 --json databaseId,createdAt,event --jq "[.[] | select(.event == \"workflow_run\" and .createdAt >= \"$sync_created\")][0].databaseId // empty")"
+            [ -n "$tmdb_id" ] && break
+            sleep 10
+          done
+          if [ -z "$tmdb_id" ]; then
+            echo "Could not locate downstream Enrich cast images from TMDB run." >&2
+            exit 1
+          fi
+          echo "tmdb_id=$tmdb_id" >> "$GITHUB_OUTPUT"
+          set +e
+          gh run watch "$tmdb_id" --exit-status
+          watch_status=$?
+          set -e
+          tmdb_conclusion="$(gh run view "$tmdb_id" --json conclusion --jq '.conclusion')"
+          echo "tmdb_conclusion=$tmdb_conclusion" >> "$GITHUB_OUTPUT"
+          if [ "$watch_status" -ne 0 ] || [ "$tmdb_conclusion" != "success" ]; then
+            echo "Permanent TMDB enrichment failed: run $tmdb_id ($tmdb_conclusion)" >&2
+            exit 1
+          fi
+
+      - name: Report verified permanent workflow results
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          SYNC_ID: ${{ steps.sync.outputs.sync_id }}
+          SYNC_CONCLUSION: ${{ steps.sync.outputs.sync_conclusion }}
+          TMDB_ID: ${{ steps.tmdb.outputs.tmdb_id }}
+          TMDB_CONCLUSION: ${{ steps.tmdb.outputs.tmdb_conclusion }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="sync_run=${SYNC_ID:-unknown}\nsync=${SYNC_CONCLUSION:-not-completed}\ntmdb_run=${TMDB_ID:-unknown}\ntmdb=${TMDB_CONCLUSION:-not-completed}"
+          gh issue comment "$ISSUE_NUMBER" --body "$body"
