@@ -1,0 +1,124 @@
+name: Diagnose Sync and TMDB v32
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    if: github.event.pull_request.head.ref == 'diagnose-sync-tmdb-v32'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout diagnostic branch
+        uses: actions/checkout@v6
+        with:
+          ref: diagnose-sync-tmdb-v32
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - id: tests
+        name: Full regression suite
+        continue-on-error: true
+        run: node --test scripts/tests/*.test.mjs
+
+      - id: sync
+        name: Bounded Upera sync smoke
+        continue-on-error: true
+        env:
+          UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
+          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
+          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
+          UPERA_SYNC_MODE: 'NORMAL'
+          APARATCHI_RUN_TIME_LIMIT_MINUTES: '3'
+          APARATCHI_CHECKPOINT_RESERVE_MS: '15000'
+          APARATCHI_REQUEST_TIMEOUT_MS: '12000'
+          APARATCHI_REQUEST_MAX_ATTEMPTS: '1'
+          UPERA_MAX_REQUESTS_PER_RUN: '30'
+          UPERA_REQUEST_DELAY_MS: '150'
+          UPERA_RECENT_MOVIE_PAGES_PER_RUN: '2'
+          UPERA_RECENT_SERIES_PAGES_PER_RUN: '2'
+          UPERA_RECENT_MOVIE_TITLES_PER_RUN: '12'
+          UPERA_RECENT_SERIES_TITLES_PER_RUN: '2'
+          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
+        run: node scripts/sync-upera.mjs
+
+      - name: Reset sync mutations
+        if: always()
+        run: git reset --hard HEAD
+
+      - id: tmdb
+        name: Bounded TMDB cast enrichment smoke
+        continue-on-error: true
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          TMDB_MAX_TITLES_PER_RUN: '20'
+          TMDB_REQUEST_DELAY_MS: '50'
+          TMDB_REFRESH_DAYS: '30'
+        run: node scripts/enrich-tmdb.mjs
+
+      - name: Reset TMDB mutations
+        if: always()
+        run: git reset --hard HEAD
+
+      - id: persian
+        name: Bounded Persian-title enrichment smoke
+        continue-on-error: true
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          PERSIAN_TITLE_MAX_TITLES_PER_RUN: '20'
+          PERSIAN_TITLE_REQUEST_DELAY_MS: '50'
+          PERSIAN_TITLE_NEGATIVE_CACHE_HOURS: '1'
+        run: node scripts/enrich-persian-titles.mjs
+
+      - name: Reset Persian mutations
+        if: always()
+        run: git reset --hard HEAD
+
+      - id: truth
+        name: Collection-title truth smoke
+        continue-on-error: true
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          TITLE_TRUTH_MAX_API_REPAIRS: '20'
+          TITLE_TRUTH_REQUEST_DELAY_MS: '50'
+        run: node scripts/title-collection-truth-v18.mjs
+
+      - name: Reset title-truth mutations
+        if: always()
+        run: git reset --hard HEAD
+
+      - id: imdb
+        name: IMDb refresh smoke
+        continue-on-error: true
+        env:
+          IMDB_TOP_REFRESH_HOURS: '0'
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+        run: node scripts/update-imdb-top.mjs
+
+      - name: Persist diagnostic outcomes only
+        if: always()
+        shell: bash
+        env:
+          TESTS: ${{ steps.tests.outcome }}
+          SYNC: ${{ steps.sync.outcome }}
+          TMDB: ${{ steps.tmdb.outcome }}
+          PERSIAN: ${{ steps.persian.outcome }}
+          TRUTH: ${{ steps.truth.outcome }}
+          IMDB: ${{ steps.imdb.outcome }}
+        run: |
+          set -euo pipefail
+          git reset --hard HEAD
+          printf 'tests=%s\nsync=%s\ntmdb=%s\npersian=%s\ntruth=%s\nimdb=%s\n' "$TESTS" "$SYNC" "$TMDB" "$PERSIAN" "$TRUTH" "$IMDB" > diagnostic-v32.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add diagnostic-v32.txt
+          git commit -m "chore: record sync and TMDB diagnostic outcomes" || true
+          git push origin HEAD:diagnose-sync-tmdb-v32
