@@ -39,7 +39,7 @@ const playableSeries = (id, categoryKeys, firstSeenAt = '2026-08-15T00:00:00.000
 
 const count = (payload, key) => payload.items.filter((item) => (item.categoryKeys || []).includes(key)).length;
 
-test('bootstrap contains fresh Home rails and IMDb without carrying full media archives', () => {
+test('bootstrap contains fresh Home rails, IMDb and only bounded immediate action previews', () => {
   const items = [];
   for (let i = 0; i < 20; i += 1) items.push(playableMovie(`foreign-${i}`, ['movies', 'foreign-movies']));
   for (let i = 0; i < 20; i += 1) items.push(playableMovie(`iranian-${i}`, ['movies', 'iranian-movies']));
@@ -47,6 +47,17 @@ test('bootstrap contains fresh Home rails and IMDb without carrying full media a
   items.push({
     ...playableMovie('operator-1', ['movies', 'iranian-movies', 'mobile-operator'], '2026-08-17T00:00:00.000Z'),
     operatorOnly: true,
+    downloads: [{
+      id: 'operator-media',
+      files: [{
+        id: 'operator-file',
+        mode: 'operator-play',
+        operatorOnly: true,
+        panelVerified: true,
+        trafficOo: 1,
+        url: 'https://cdn.test/operator-1.mp4',
+      }],
+    }],
   });
   items.push(playableMovie('animation-1', ['movies', 'foreign-movies', 'animation-movies'], '2026-08-17T01:00:00.000Z'));
 
@@ -68,7 +79,9 @@ test('bootstrap contains fresh Home rails and IMDb without carrying full media a
   assert.equal('peopleWorks' in artifacts.bootstrap, false);
   assert.equal(artifacts.bootstrap.imdbTop100.movies.length, 1);
   assert.equal(artifacts.bootstrap.imdbTop100.series.length, 1);
-  assert.ok(artifacts.bootstrap.items.every((item) => !item.downloads?.length));
+  for (const item of artifacts.bootstrap.items) {
+    for (const section of item.downloads || []) assert.ok((section.files || []).length <= 2);
+  }
   assert.ok(artifacts.bootstrapSizeBytes < artifacts.clientSizeBytes);
   assert.match(artifacts.bootstrapRevision, /^[a-f0-9]{64}$/);
 });
