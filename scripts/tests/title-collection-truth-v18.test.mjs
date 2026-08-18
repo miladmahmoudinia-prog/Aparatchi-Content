@@ -22,16 +22,16 @@ test('movie title is never replaced by its collection label', async () => {
   assert.equal(result.remainingCollectionLeaks.length, 0);
 });
 
-test('known bad Jack in the Box display title is repaired', async () => {
+test('known bad Jack in the Box display title is repaired without changing an already usable sequel title', async () => {
   const catalog = {
     items: [
       { id: 'jack-1', type: 'movie', name: 'The Jack in the Box', nameFa: 'شیطونک ورجه‌ای' },
-      { id: 'jack-3', type: 'movie', name: 'The Jack in the Box Rises', nameFa: 'جعبه جهنمی' },
+      { id: 'jack-rises', type: 'movie', name: 'The Jack in the Box Rises', nameFa: 'جعبه جهنمی' },
     ],
   };
   await repairCatalogTitleCollectionTruth(catalog, { maxApiRepairs: 0 });
   assert.equal(catalog.items[0].nameFa, 'جعبه اسباب‌بازی');
-  assert.equal(catalog.items[1].nameFa, 'جعبه اسباب‌بازی ۳: خیزش');
+  assert.equal(catalog.items[1].nameFa, 'جعبه جهنمی');
 });
 
 test('collection label is reduced to franchise base instead of a member title', async () => {
@@ -67,4 +67,24 @@ test('known collection examples never inherit one installment subtitle', async (
   };
   await repairCatalogTitleCollectionTruth(catalog, { maxApiRepairs: 0 });
   assert.deepEqual(catalog.items.map((item) => item.collectionNameFa), ['مجموعه باب اسفنجی', 'مجموعه باب اسفنجی']);
+});
+
+test('legitimate franchise first title can equal the collection base', async () => {
+  const catalog = {
+    items: [
+      {
+        id: 'batman', type: 'movie', name: 'Batman', nameFa: 'بتمن',
+        collectionId: 268, collectionName: 'Batman Collection', collectionNameFa: 'مجموعه بتمن', collectionOrder: 1,
+      },
+      {
+        id: 'batman-returns', type: 'movie', name: 'Batman Returns', nameFa: 'بازگشت بتمن',
+        collectionId: 268, collectionName: 'Batman Collection', collectionNameFa: 'مجموعه بتمن', collectionOrder: 2,
+      },
+    ],
+  };
+  const result = await repairCatalogTitleCollectionTruth(catalog, { maxApiRepairs: 0 });
+  assert.equal(catalog.items[0].nameFa, 'بتمن');
+  assert.equal(catalog.items[0].collectionNameFa, 'مجموعه بتمن');
+  assert.equal(catalog.items[1].nameFa, 'بازگشت بتمن');
+  assert.equal(result.remainingCollectionLeaks.length, 0);
 });
