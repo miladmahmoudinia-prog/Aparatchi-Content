@@ -24,6 +24,10 @@ const VERIFIED_PERSIAN_TITLE_ENTRIES = [
   // Upera currently exposes this Korean title in Arabic (حديقة الربيع).
   // Keep the display language consistently Persian.
   ['spring garden', 'باغ بهاری'],
+  ['28 Days Later', '۲۸ روز بعد'],
+  ['28 Weeks Later', '۲۸ هفته بعد'],
+  ['28 Years Later', '۲۸ سال بعد'],
+  ['28 Years Later: The Bone Temple', '۲۸ سال بعد: معبد استخوان'],
   ['aunt nasrin and heavenly children', 'خاله نسرین و کودکان آسمانی'],
   ["aunt nasrin's songs for kids 4", 'ترانه‌های کودکانه خاله نسرین ۴'],
   ["aunt nasrin's songs for kids 5", 'ترانه‌های کودکانه خاله نسرین ۵'],
@@ -32,6 +36,7 @@ const VERIFIED_PERSIAN_TITLE_ENTRIES = [
 
 const VERIFIED_PERSIAN_COLLECTION_ENTRIES = [
   ['dance with the jackals collection', 'مجموعه رقص با شغال‌ها'],
+  ['28 Days/Weeks/Years Later Collection', 'مجموعه ۲۸ روز بعد'],
 ];
 
 export const VERIFIED_PERSIAN_TITLE_OVERRIDES = new Map(
