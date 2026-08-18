@@ -42,6 +42,7 @@ const talkShowTerms = ['تاک شو', 'تاک‌شو', 'talk show'];`, 'general 
 `  const knownDocumentary = includesAny(titleText, [
     'از بی', 'از به', 'az be',
     'من ناصر حجازی هستم', 'i am nasser hejazi',
+    'deep sea 3d', 'دریای عمیق',
   ]);`, 'known documentary');
 
   src = replaceOnce(src,
