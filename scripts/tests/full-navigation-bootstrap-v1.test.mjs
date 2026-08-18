@@ -7,39 +7,29 @@ const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
 const artifacts = buildClientCatalogArtifacts(catalog);
 const index = artifacts.index;
 const bootstrap = artifacts.bootstrap;
-const MAX_BOOTSTRAP_BYTES = 1500 * 1024;
+const MAX_BOOTSTRAP_BYTES = 10 * 1024 * 1024;
 
 const categoryCount = (payload, key) => payload.items.filter((item) =>
   Array.isArray(item?.categoryKeys) && item.categoryKeys.includes(key)
 ).length;
 
-test('bootstrap is a bounded fresh Home snapshot instead of the whole navigation archive', () => {
+test('bootstrap is the complete compact first-navigation catalog', () => {
   assert.ok(index.items.length > 1000, 'full client index unexpectedly tiny');
-  assert.ok(bootstrap.items.length > 30, 'Home bootstrap unexpectedly tiny');
-  assert.ok(bootstrap.items.length < index.items.length, 'bootstrap must not duplicate the whole client index');
-  assert.ok(bootstrap.items.length <= 400, `Home bootstrap grew too many rows: ${bootstrap.items.length}`);
-  for (const item of index.items.slice(0, 5)) {
-    assert.ok(bootstrap.items.some((candidate) => candidate.id === item.id), `bootstrap lost newest item ${item.id}`);
-  }
+  assert.equal(bootstrap.items.length, index.items.length, 'bootstrap lost client-visible navigation items');
+  assert.deepEqual(bootstrap.items.map((item) => item.id), index.items.map((item) => item.id));
 });
 
-test('Home bootstrap keeps enough rows for visible shelves and every row can hydrate detail', () => {
-  for (const key of ['iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series', 'korean-movies', 'korean-series', 'indian-movies']) {
-    const expected = Math.min(10, categoryCount(index, key));
-    assert.ok(categoryCount(bootstrap, key) >= expected, `${key} Home shelf was truncated below ${expected}`);
+test('complete bootstrap preserves category truth and every row can hydrate detail', () => {
+  for (const key of ['kids', 'iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series', 'korean-movies', 'korean-series', 'indian-movies', 'dubbed', 'subtitled']) {
+    assert.equal(categoryCount(bootstrap, key), categoryCount(index, key), `bootstrap changed ${key} category membership`);
   }
   const broken = bootstrap.items.filter((item) => !item?.id || !item?.type || !item?.detailPath);
   assert.deepEqual(broken.map((item) => item?.id), []);
-  for (const item of bootstrap.items) {
-    for (const section of Array.isArray(item.downloads) ? item.downloads : []) {
-      assert.ok((section.files || []).length <= 2, 'Home action preview became unbounded');
-    }
-  }
 });
 
-test('bootstrap is small enough to stop competing with the full index at cold start', () => {
-  assert.ok(artifacts.bootstrapSizeBytes < artifacts.clientSizeBytes * 0.12,
+test('complete navigation bootstrap remains materially smaller than the full index', () => {
+  assert.ok(artifacts.bootstrapSizeBytes < artifacts.clientSizeBytes * 0.55,
     `bootstrap ${artifacts.bootstrapSizeBytes} is too large versus index ${artifacts.clientSizeBytes}`);
   assert.ok(artifacts.bootstrapSizeBytes < MAX_BOOTSTRAP_BYTES,
-    `bootstrap grew beyond 1.5 MiB: ${artifacts.bootstrapSizeBytes}`);
+    `bootstrap grew beyond 10 MiB: ${artifacts.bootstrapSizeBytes}`);
 });

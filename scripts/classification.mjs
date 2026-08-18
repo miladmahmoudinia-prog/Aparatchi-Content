@@ -204,11 +204,8 @@ export function classifyCatalogItem(input = {}) {
   const programIdentityText = `${titleText} ${genreText}`;
   const trustedSpecializedKind = trustedTmdb && !narrativeGenre;
   const isChildrenProgram = Boolean(
-    !isAnimation &&
-    (
-      includesAny(programIdentityText, childrenProgramTerms) ||
-      (trustedSpecializedKind && existingKind === 'children-program')
-    )
+    includesAny(programIdentityText, childrenProgramTerms) ||
+    (trustedSpecializedKind && existingKind === 'children-program')
   );
   const isTalkShow = Boolean(
     includesAny(programIdentityText, talkShowTerms) ||
@@ -284,7 +281,7 @@ export function classifyCatalogItem(input = {}) {
     }
   }
 
-  if (isAnimation) {
+  if (isAnimation && !isChildrenProgram) {
     if (isAnime) {
       categoryKeys.push(type === 'movie' ? 'anime-movies' : 'anime-series');
       categoryLabels.push(type === 'movie' ? 'انیمه سینمایی' : 'انیمه سریالی');

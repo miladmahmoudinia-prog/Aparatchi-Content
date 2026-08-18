@@ -178,3 +178,20 @@ test('known genuine religious films stay in religious while also remaining films
   assert.ok(result.categoryKeys.includes('iranian-movies'));
   assert.equal(result.contentKind, 'religious-movie');
 });
+
+
+test('animated child-song titles stay in Kids instead of generic Animation', () => {
+  const result = classify({
+    name: "Aunt Nasrin's Children's Songs 5",
+    nameFa: 'ترانه‌های کودکانه خاله نسرین ۵',
+    genres: ['سایر'],
+    originalLanguage: 'fa',
+    countryCodes: ['IR'],
+    isAnimation: true,
+  });
+  assert.equal(result.isChildrenProgram, true);
+  assert.equal(result.contentKind, 'children-program');
+  assert.ok(result.categoryKeys.includes('kids'));
+  assert.ok(!result.categoryKeys.includes('animation-movies'));
+  assert.ok(!result.categoryKeys.includes('iranian-movies'));
+});

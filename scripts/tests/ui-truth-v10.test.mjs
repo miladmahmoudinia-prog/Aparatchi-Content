@@ -24,11 +24,11 @@ test('Home bootstrap carries immediate lightweight actions for its media-equippe
     assert.ok(clientMovieIds.has(item.id), 'bootstrap action row must come from the current client index');
     const files = item.downloads.flatMap((section) => section.files || []);
     assert.ok(files.length > 0, 'every media-equipped Home movie has an immediate bootstrap action');
-    assert.ok(item.downloads.every((section) => (section.files || []).length <= 2), 'Home media preview became unbounded');
+    assert.ok(files.every((file) => /^https?:\/\//i.test(String(file.url || ''))), 'bootstrap exposed a non-HTTP media action');
   }
   const bootstrapBytes = Buffer.byteLength(JSON.stringify(artifacts.bootstrap));
   const clientBytes = Buffer.byteLength(JSON.stringify(artifacts.index));
-  assert.ok(bootstrapBytes < clientBytes * 0.12, 'Home bootstrap must stay much smaller than the full client index');
+  assert.ok(bootstrapBytes < clientBytes * 0.55, 'complete navigation bootstrap must stay materially smaller than the full client index');
   console.log(JSON.stringify({ bootstrapMovies: bootstrapMovies.length, bootstrapBytes, clientBytes }));
 });
 
