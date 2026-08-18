@@ -1,0 +1,126 @@
+name: Validate final public Mobile v22
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: aparatchi-content-mobile-validation-v22
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: github.event.issue.title == 'RUN VALIDATE FINAL MOBILE V22'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Content for validation marker
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 30
+
+      - name: Checkout current public Mobile main
+        uses: actions/checkout@v6
+        with:
+          repository: miladmahmoudinia-prog/Aparatchi-Mobile
+          ref: main
+          path: mobile
+          fetch-depth: 40
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install Mobile dependencies
+        working-directory: mobile
+        run: npm ci --include=dev
+
+      - name: Type-check checked-in Mobile source
+        working-directory: mobile
+        run: npm run typecheck
+
+      - name: Run Mobile regression tests
+        working-directory: mobile
+        run: node --test scripts/tests/*.test.mjs
+
+      - name: Materialize the exact Metro App patch in the validation copy
+        working-directory: mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('node:fs');
+          const { applyMobileSourcePatches } = require('./scripts/mobile-source-patches.cjs');
+          const file = 'App.tsx';
+          const before = fs.readFileSync(file, 'utf8');
+          const after = applyMobileSourcePatches(before, file);
+          if (!after || after === before) throw new Error('Metro App patch produced no validated change.');
+          fs.writeFileSync(file, after, 'utf8');
+          console.log(`materialized Mobile App patch delta=${after.length - before.length}`);
+          NODE
+
+      - name: Type-check the actual Metro-patched application source
+        working-directory: mobile
+        run: npm run typecheck
+
+      - name: Audit requested final behavior
+        working-directory: mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F "const posterNameFa = String(item.nameFa || item.name || '').trim();" App.tsx
+          grep -F "let collectionBrowserScrollOffset = 0;" App.tsx
+          grep -F "contentOffset={{ x: 0, y: collectionBrowserScrollOffset }}" App.tsx
+          grep -F "onScroll={rememberCollectionBrowserOffset}" App.tsx
+          grep -F "const relatedBadges = itemPosterBadges(relatedItem);" App.tsx
+          grep -F "badge.kind === 'operator' && styles.posterOperatorAccess" App.tsx
+          grep -F "? (item.latestEpisode || newestEpisodeGroup(item))" App.tsx
+          grep -A14 -F "style={styles.homeScroll}" App.tsx | grep -F "removeClippedSubviews"
+          ! grep -A14 -F "style={styles.homeScroll}" App.tsx | grep -F "removeClippedSubviews={false}"
+          grep -F "removeClippedSubviews={false}" App.tsx
+          grep -F "installStartupContentGate" index.ts
+          ! grep -F "installCollectionFlatListGuard" index.ts
+          test -f src/startupContentGate.ts
+          test ! -f src/collectionFlatListGuard.tsx
+          test -f metro.config.js
+          grep -F "scripts/metro-app-patch-transformer.cjs" metro.config.js
+          test -f scripts/mobile-source-patches.cjs
+          test -f scripts/metro-app-patch-transformer.cjs
+
+      - name: Record exact validated Mobile HEAD
+        shell: bash
+        run: |
+          set -euo pipefail
+          MOBILE_HEAD=$(git -C mobile rev-parse HEAD)
+          VALIDATED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          cat > final-mobile-v22-validation.json <<EOF
+          {
+            "mobileHead": "$MOBILE_HEAD",
+            "rawTypecheck": "success",
+            "patchedTypecheck": "success",
+            "regressions": "success",
+            "requestedBehaviorAudit": "success",
+            "validatedAt": "$VALIDATED_AT"
+          }
+          EOF
+          cat final-mobile-v22-validation.json
+
+      - name: Commit proof and remove one-shot validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f .github/workflows/validate-final-public-mobile-v22.yml
+          git add final-mobile-v22-validation.json
+          git diff --check
+          git commit -m "test: validate final public Mobile v22 [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
