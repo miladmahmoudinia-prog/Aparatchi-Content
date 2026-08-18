@@ -1,0 +1,81 @@
+name: Validate public Mobile v18
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    if: github.event.issue.title == 'VALIDATE PUBLIC MOBILE V18'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout Content marker repo
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          path: content
+          fetch-depth: 20
+
+      - name: Checkout public Mobile main
+        uses: actions/checkout@v6
+        with:
+          repository: miladmahmoudinia-prog/Aparatchi-Mobile
+          ref: main
+          path: mobile
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install Mobile dependencies
+        working-directory: mobile
+        run: npm ci --include=dev
+
+      - name: Type-check Mobile
+        id: typecheck
+        continue-on-error: true
+        working-directory: mobile
+        run: npm run typecheck
+
+      - name: Static collection guard audit
+        id: audit
+        continue-on-error: true
+        working-directory: mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F "installCollectionFlatListGuard();" index.ts
+          grep -F "collectionFolderScrollOffset" src/collectionFlatListGuard.tsx
+          grep -F "contentOffset: { x: 0, y: collectionFolderScrollOffset }" src/collectionFlatListGuard.tsx
+          grep -F "collectionNameFa: undefined" src/collectionFlatListGuard.tsx
+          grep -F "group.titleFa = titleEn" src/collectionFlatListGuard.tsx
+
+      - name: Record result in Content repo
+        if: always()
+        working-directory: content
+        shell: bash
+        run: |
+          set -euo pipefail
+          TYPECHECK='${{ steps.typecheck.outcome }}'
+          AUDIT='${{ steps.audit.outcome }}'
+          cat > public-mobile-v18-validation.json <<EOF
+          {
+            "mobileHead": "$(git -C ../mobile rev-parse HEAD)",
+            "typecheck": "$TYPECHECK",
+            "collectionGuardAudit": "$AUDIT",
+            "validatedAt": "$(date -u +%FT%TZ)"
+          }
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public-mobile-v18-validation.json
+          git commit -m "chore: record public Mobile v18 validation [skip ci]" || true
+          git pull --rebase origin main
+          git push origin HEAD:main
+          [ "$TYPECHECK" = success ] && [ "$AUDIT" = success ]
