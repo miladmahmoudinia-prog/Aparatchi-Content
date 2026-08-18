@@ -18,7 +18,7 @@ test('movie title is never replaced by its collection label', async () => {
   const result = await repairCatalogTitleCollectionTruth(catalog, { maxApiRepairs: 0 });
   assert.equal(catalog.items[0].nameFa, 'انولا هولمز ۲');
   assert.equal(catalog.items[1].nameFa, 'انولا هولمز ۳');
-  assert.equal(catalog.items[0].collectionNameFa, 'مجموعه انولا هولمز');
+  assert.equal(catalog.items[0].collectionNameFa, 'کالکشن انولا هولمز');
   assert.equal(result.remainingCollectionLeaks.length, 0);
 });
 
@@ -34,7 +34,7 @@ test('known bad Jack in the Box display title is repaired without changing an al
   assert.equal(catalog.items[1].nameFa, 'جعبه جهنمی');
 });
 
-test('collection label is reduced to franchise base instead of a member title', async () => {
+test('unknown collection falls back to its own source name instead of a member title', async () => {
   const catalog = {
     items: [
       {
@@ -48,7 +48,7 @@ test('collection label is reduced to franchise base instead of a member title', 
     ],
   };
   await repairCatalogTitleCollectionTruth(catalog, { maxApiRepairs: 0 });
-  assert.deepEqual(catalog.items.map((item) => item.collectionNameFa), ['مجموعه نمونه', 'مجموعه نمونه']);
+  assert.deepEqual(catalog.items.map((item) => item.collectionNameFa), ['کالکشن Sample', 'کالکشن Sample']);
   assert.deepEqual(catalog.items.map((item) => item.nameFa), ['نمونه: بخش اول', 'نمونه: بخش دوم']);
 });
 
@@ -66,7 +66,7 @@ test('known collection examples never inherit one installment subtitle', async (
     ],
   };
   await repairCatalogTitleCollectionTruth(catalog, { maxApiRepairs: 0 });
-  assert.deepEqual(catalog.items.map((item) => item.collectionNameFa), ['مجموعه باب اسفنجی', 'مجموعه باب اسفنجی']);
+  assert.deepEqual(catalog.items.map((item) => item.collectionNameFa), ['کالکشن باب اسفنجی', 'کالکشن باب اسفنجی']);
 });
 
 test('legitimate franchise first title can equal the collection base', async () => {
@@ -84,7 +84,7 @@ test('legitimate franchise first title can equal the collection base', async () 
   };
   const result = await repairCatalogTitleCollectionTruth(catalog, { maxApiRepairs: 0 });
   assert.equal(catalog.items[0].nameFa, 'بتمن');
-  assert.equal(catalog.items[0].collectionNameFa, 'مجموعه بتمن');
+  assert.equal(catalog.items[0].collectionNameFa, 'کالکشن بتمن');
   assert.equal(catalog.items[1].nameFa, 'بازگشت بتمن');
   assert.equal(result.remainingCollectionLeaks.length, 0);
 });

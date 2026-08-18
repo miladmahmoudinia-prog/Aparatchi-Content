@@ -17,26 +17,26 @@ const KNOWN_TITLE_OVERRIDES = new Map([
 ]);
 
 const KNOWN_COLLECTION_OVERRIDES = new Map([
-  ['admiral yi trilogy', 'مجموعه سه‌گانه دریاسالار یی'],
-  ['m3gan collection', 'مجموعه مگان'],
-  ['one mile collection', 'مجموعه یک مایل'],
-  ['the souvenir collection', 'مجموعه یادگاری'],
-  ['enola holmes collection', 'مجموعه انولا هولمز'],
-  ['spongebob collection', 'مجموعه باب اسفنجی'],
-  ['super monsters collection', 'مجموعه ابرهیولاها'],
-  ['the jack in the box collection', 'مجموعه جعبه اسباب‌بازی'],
-  ['jack in the box collection', 'مجموعه جعبه اسباب‌بازی'],
-  ['downton abbey films collection', 'مجموعه دانتون ابی'],
-  ['knives out collection', 'مجموعه چاقوکشی'],
-  ['superman collection', 'مجموعه سوپرمن'],
-  ['miraculous world', 'مجموعه دنیای دختر کفشدوزکی'],
-  ['the lion king reboot collection', 'مجموعه شیر شاه'],
-  ['rurouni kenshin collection', 'مجموعه شمشیرزن دوره‌گرد'],
-  ['jurassic park collection', 'مجموعه پارک ژوراسیک'],
-  ['batman collection', 'مجموعه بتمن'],
-  ['scream collection', 'مجموعه جیغ'],
-  ['pushpa collection', 'مجموعه پوشپا'],
-  ['deportees', 'مجموعه اخراجی‌ها'],
+  ['admiral yi trilogy', 'کالکشن دریاسالار یی سون شین'],
+  ['m3gan collection', 'کالکشن مگان'],
+  ['one mile collection', 'کالکشن یک مایل'],
+  ['the souvenir collection', 'کالکشن یادگاری'],
+  ['enola holmes collection', 'کالکشن انولا هولمز'],
+  ['spongebob collection', 'کالکشن باب اسفنجی'],
+  ['super monsters collection', 'کالکشن ابرهیولاها'],
+  ['the jack in the box collection', 'کالکشن جعبه اسباب‌بازی'],
+  ['jack in the box collection', 'کالکشن جعبه اسباب‌بازی'],
+  ['downton abbey films collection', 'کالکشن دانتون ابی'],
+  ['knives out collection', 'کالکشن چاقوکشی'],
+  ['superman collection', 'کالکشن سوپرمن'],
+  ['miraculous world', 'کالکشن دنیای میراکلس'],
+  ['the lion king reboot collection', 'کالکشن شیر شاه'],
+  ['rurouni kenshin collection', 'کالکشن شمشیرزن دوره‌گرد'],
+  ['jurassic park collection', 'کالکشن پارک ژوراسیک'],
+  ['batman collection', 'کالکشن بتمن'],
+  ['scream collection', 'کالکشن جیغ'],
+  ['pushpa collection', 'کالکشن پوشپا'],
+  ['deportees', 'کالکشن اخراجی‌ها'],
 ]);
 
 const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
@@ -58,12 +58,12 @@ function key(value) {
 }
 
 function stripCollectionPrefix(value) {
-  return clean(value).replace(/^مجموعه\s+/u, '').trim();
+  return clean(value).replace(/^(?:مجموعه|کالکشن)\s+/u, '').trim();
 }
 
 function ensureCollectionPrefix(value) {
   const text = stripCollectionPrefix(value);
-  return text ? `مجموعه ${text}` : '';
+  return text ? `کالکشن ${text}` : '';
 }
 
 function toPersianDigits(value) {
@@ -76,6 +76,7 @@ function englishCollectionBase(value) {
     .replace(/\b(?:films?|movies?)\b/gi, ' ')
     .replace(/\bcollection\b/gi, ' ')
     .replace(/\btrilogy\b/gi, ' ')
+    .replace(/\bkoleksiyonu\b/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -88,7 +89,7 @@ function titleMatchesCollectionLeak(item) {
   const titleFa = clean(item?.nameFa);
   if (!titleFa || !hasPersian(titleFa) || !item?.collectionId) return false;
   const titleEn = clean(item?.name);
-  return /^مجموعه\s+/u.test(titleFa) && !/\bcollection\b/i.test(titleEn);
+  return /^(?:مجموعه|کالکشن)\s+/u.test(titleFa) && !/\bcollection\b/i.test(titleEn);
 }
 
 function collectionNameLooksLikeMemberLeak(value, members) {
@@ -245,6 +246,7 @@ export async function repairCatalogTitleCollectionTruth(catalog, options = {}) {
     if (suspicious) suspiciousCollections += 1;
 
     let repairedCollection = override || '';
+    if (!repairedCollection && current && !suspicious) repairedCollection = ensureCollectionPrefix(current);
     if (!repairedCollection && suspicious && token && apiUsed < maxApiRepairs) {
       try {
         apiUsed += 1;
@@ -255,8 +257,8 @@ export async function repairCatalogTitleCollectionTruth(catalog, options = {}) {
       }
     }
     if (!repairedCollection && suspicious) {
-      const localBase = bestLocalCollectionTitle(members);
-      if (localBase) repairedCollection = ensureCollectionPrefix(localBase);
+      const sourceBase = englishCollectionBase(collectionEn) || collectionEn;
+      if (sourceBase) repairedCollection = ensureCollectionPrefix(sourceBase);
     }
 
     if (repairedCollection) {
