@@ -43,7 +43,7 @@ jobs:
         working-directory: mobile
         run: npm run typecheck
 
-      - name: Static collection guard audit
+      - name: Static startup and collection audit
         id: audit
         continue-on-error: true
         working-directory: mobile
@@ -51,10 +51,15 @@ jobs:
         run: |
           set -euo pipefail
           grep -F "installCollectionFlatListGuard();" index.ts
+          grep -F "installStartupContentGate();" index.ts
           grep -F "collectionFolderScrollOffset" src/collectionFlatListGuard.tsx
           grep -F "contentOffset: { x: 0, y: collectionFolderScrollOffset }" src/collectionFlatListGuard.tsx
           grep -F "collectionNameFa: undefined" src/collectionFlatListGuard.tsx
           grep -F "group.titleFa = titleEn" src/collectionFlatListGuard.tsx
+          grep -F "bootstrapSettledPromise" src/startupContentGate.ts
+          grep -F "new Promise<void>((resolve) => setTimeout(resolve, 1800))" src/startupContentGate.ts
+          grep -F "replaceExport(service, 'loadContent', loadContent)" src/startupContentGate.ts
+          grep -F "replaceExport(service, 'loadBootstrapContent', loadBootstrapContent)" src/startupContentGate.ts
 
       - name: Record result in Content repo
         if: always()
@@ -68,7 +73,7 @@ jobs:
           {
             "mobileHead": "$(git -C ../mobile rev-parse HEAD)",
             "typecheck": "$TYPECHECK",
-            "collectionGuardAudit": "$AUDIT",
+            "startupAndCollectionAudit": "$AUDIT",
             "validatedAt": "$(date -u +%FT%TZ)"
           }
           EOF
