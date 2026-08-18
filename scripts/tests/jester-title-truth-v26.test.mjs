@@ -3,7 +3,7 @@ import test from 'node:test';
 import { applyVerifiedPersianTitleOverrides } from '../persian-title-overrides.mjs';
 
 const COLLECTION_EN = 'The Jester Collection';
-const COLLECTION_FA = 'مجموعه دلقک';
+const COLLECTION_FA = 'کالکشن دلقک';
 const EXPECTED = new Map([
   ['The Jester', 'دلقک'],
   ['The Jester 2', 'دلقک ۲'],
