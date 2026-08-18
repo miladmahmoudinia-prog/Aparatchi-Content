@@ -56,6 +56,11 @@ const peopleEnrichmentRetryHours = Math.min(
   positiveInt(process.env.APARATCHI_PEOPLE_RETRY_HOURS, 12),
 );
 
+const operatorOverviewTitlesPerRun = Math.min(
+  30,
+  nonNegativeInt(process.env.APARATCHI_OPERATOR_OVERVIEWS_PER_RUN, 12),
+);
+
 const episodeArtworkSeriesPerRun = Math.min(
   120,
   positiveInt(process.env.APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN, 24),
@@ -930,6 +935,9 @@ if (effectiveSyncMode === 'PEOPLE') {
   // PEOPLE mode exists primarily to repair cast/director metadata. Do that first
   // so a large episode-artwork queue cannot consume the entire run budget.
   await syncPeopleMetadata();
+  if (!runTimeBudgetReached('before-operator-overviews', 45000)) {
+    await enrichMissingOperatorOverviews();
+  }
   if (!runTimeBudgetReached('before-episode-artwork-metadata', 60000)) {
     await syncEpisodeArtworkMetadata();
   }
@@ -4574,6 +4582,38 @@ async function resolveTmdbTitle(item) {
   });
   const selected = selectTmdbSearchResult(item, search?.results);
   return selected?.id ? { id: Number(selected.id), mediaType } : null;
+}
+
+async function enrichMissingOperatorOverviews() {
+  if (!tmdbBearerToken || operatorOverviewTitlesPerRun <= 0) return;
+  const now = Date.now();
+  const retryMs = 7 * 24 * 60 * 60 * 1000;
+  const candidates = (Array.isArray(catalog.items) ? catalog.items : [])
+    .filter((item) => item && (item.operatorOnly === true || item.access === 'operator'))
+    .filter((item) => !/[\u0600-\u06ff]/.test(cleanText(item.overview)))
+    .filter((item) => {
+      const checked = Date.parse(cleanText(item.operatorOverviewCheckedAt));
+      return !Number.isFinite(checked) || now - checked >= retryMs;
+    })
+    .sort((a, b) => peopleCandidateTimestamp(b) - peopleCandidateTimestamp(a))
+    .slice(0, operatorOverviewTitlesPerRun);
+
+  for (const item of candidates) {
+    if (runTimeBudgetReached('operator-overview-enrichment', 35000)) break;
+    item.operatorOverviewCheckedAt = new Date().toISOString();
+    try {
+      const title = await resolveTmdbTitle(item);
+      if (!title) continue;
+      const details = await fetchTmdbJson(`${title.mediaType}/${title.id}`, { language: 'fa-IR' });
+      const overview = cleanText(details?.overview);
+      if (overview && /[\u0600-\u06ff]/.test(overview)) {
+        item.overview = overview;
+        item.operatorOverviewSource = 'tmdb-fa';
+      }
+    } catch (error) {
+      rememberError(`operator-overview-${String(item.id || 'unknown')}`, error);
+    }
+  }
 }
 
 async function enrichPeopleFromTmdb(item) {
