@@ -30,6 +30,26 @@ jobs:
           git show 160e2b971f664bf3011bf1fd9056be2c82e887ab:scripts/title-collection-truth-v18.mjs > scripts/title-collection-truth-v18.mjs
           git show 160e2b971f664bf3011bf1fd9056be2c82e887ab:scripts/tests/collection-title-preservation-v29.test.mjs > scripts/tests/collection-title-preservation-v29.test.mjs
 
+      - name: Use one verified collection source of truth
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const path = 'scripts/title-collection-truth-v18.mjs';
+          let source = fs.readFileSync(path, 'utf8');
+          source = source.replace(
+            '  applyVerifiedPersianTitleOverrides,\n  normalizePersianOverrideKey,',
+            '  applyVerifiedPersianTitleOverrides,\n  VERIFIED_PERSIAN_COLLECTION_OVERRIDES,\n  normalizePersianOverrideKey,',
+          );
+          source = source.replace(
+            '    const override = KNOWN_COLLECTION_OVERRIDES.get(key(collectionEn));',
+            '    const override = VERIFIED_PERSIAN_COLLECTION_OVERRIDES.get(key(collectionEn)) || KNOWN_COLLECTION_OVERRIDES.get(key(collectionEn));',
+          );
+          if (!source.includes('VERIFIED_PERSIAN_COLLECTION_OVERRIDES.get(key(collectionEn))')) {
+            throw new Error('verified collection override bridge was not installed');
+          }
+          fs.writeFileSync(path, source);
+          NODE
+
       - name: Apply title truth to latest catalog and rebuild client artifacts
         env:
           TITLE_TRUTH_MAX_API_REPAIRS: 0
