@@ -1,0 +1,87 @@
+name: Final Category Batch v31
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout category repair branch
+        uses: actions/checkout@v6
+        with:
+          ref: fix-final-category-batch-v31
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Apply permanent classification and enrichment guards
+        run: node scripts/fix-final-category-batch-v31.mjs
+
+      - name: Run classification regression first
+        run: node --test scripts/tests/classification.test.mjs scripts/tests/final-category-batch-v31.test.mjs
+
+      - name: Reclassify current catalog and rebuild client artifacts
+        run: node scripts/apply-final-category-truth-v31.mjs
+
+      - name: Audit reported current catalog cases
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
+          const items = Array.isArray(catalog.items) ? catalog.items : [];
+          const norm = (v) => String(v || '').normalize('NFKC').toLowerCase().replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[^a-z0-9\u0600-\u06ff]+/g,' ').trim();
+          const title = (item) => norm(`${item.nameFa || ''} ${item.name || ''}`);
+          const assertCategory = (needle, required, forbidden = []) => {
+            const matches = items.filter((item) => title(item).includes(norm(needle)));
+            if (!matches.length) return;
+            for (const item of matches) {
+              const keys = new Set(item.categoryKeys || []);
+              if (!keys.has(required)) throw new Error(`${needle}: missing ${required} on ${item.nameFa || item.name}`);
+              for (const key of forbidden) if (keys.has(key)) throw new Error(`${needle}: forbidden ${key} on ${item.nameFa || item.name}`);
+            }
+          };
+          for (const child of ['فیل کوچولوی کم طاقت','نجات فیلی از گودال','راه جنگل','دروغ کوچک','سالی و آواز درخت','لبخند کروکودیل','موزیکال دوستی و مهربونی']) {
+            assertCategory(child, 'kids', ['iranian-movies','foreign-movies','programs']);
+          }
+          assertCategory('من ناصر حجازی هستم', 'documentaries', ['iranian-movies']);
+          assertCategory('Deep Sea 3D', 'wildlife', ['documentaries']);
+          assertCategory('دریای عمیق', 'wildlife', ['documentaries']);
+          assertCategory('ویژه برنامه نوروز ۱۴۰۱', 'programs', ['iranian-movies','movies']);
+          const parviz = items.filter((item) => title(item).includes(norm('پرویزخان')));
+          for (const item of parviz) if ((item.categoryKeys || []).includes('documentaries')) throw new Error('پرویزخان must remain narrative, not documentary');
+          console.log(JSON.stringify({ auditedItems: items.length }, null, 2));
+          NODE
+
+      - name: Full Content regression suite
+        run: node --test scripts/tests/*.test.mjs
+
+      - name: Static sync audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F "APARATCHI_OPERATOR_OVERVIEWS_PER_RUN: '12'" .github/workflows/sync-upera.yml
+          grep -F "async function enrichMissingOperatorOverviews()" scripts/sync-upera.mjs
+          grep -F "language: 'fa-IR'" scripts/sync-upera.mjs
+          grep -F "'deep sea 3d', 'دریای عمیق'" scripts/classification.mjs
+          grep -F "'من ناصر حجازی هستم', 'i am nasser hejazi'" scripts/classification.mjs
+          grep -F "const generalProgramTerms" scripts/classification.mjs
+
+      - name: Commit validated Content repair and remove one-shot files
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f scripts/fix-final-category-batch-v31.mjs scripts/apply-final-category-truth-v31.mjs .github/workflows/final-category-batch-v31.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/classification.mjs scripts/sync-upera.mjs .github/workflows/sync-upera.yml scripts/tests/final-category-batch-v31.test.mjs catalog.json catalog-index.json catalog-bootstrap.json catalog-items catalog-stable catalog-manifest.json scripts/fix-final-category-batch-v31.mjs scripts/apply-final-category-truth-v31.mjs .github/workflows/final-category-batch-v31.yml
+          git commit -m "fix: harden kids documentary wildlife and program categories"
+          git push origin HEAD:fix-final-category-batch-v31
