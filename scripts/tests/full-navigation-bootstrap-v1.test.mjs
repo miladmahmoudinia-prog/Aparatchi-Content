@@ -7,31 +7,36 @@ const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
 const artifacts = buildClientCatalogArtifacts(catalog);
 const index = artifacts.index;
 const bootstrap = artifacts.bootstrap;
-const MAX_BOOTSTRAP_BYTES = 6 * 1024 * 1024;
+const MAX_BOOTSTRAP_BYTES = 1500 * 1024;
 
 const categoryCount = (payload, key) => payload.items.filter((item) =>
   Array.isArray(item?.categoryKeys) && item.categoryKeys.includes(key)
 ).length;
 
-test('bootstrap is a complete navigation catalog, not a Home sample', () => {
-  assert.equal(bootstrap.items.length, index.items.length, 'bootstrap must carry every visible title');
-  assert.ok(bootstrap.items.length > 1000, 'bootstrap unexpectedly tiny');
-  assert.equal(categoryCount(bootstrap, 'dubbed'), categoryCount(index, 'dubbed'), 'dubbed category was truncated');
-  assert.equal(categoryCount(bootstrap, 'subtitled'), categoryCount(index, 'subtitled'), 'subtitled category was truncated');
-  assert.equal(categoryCount(bootstrap, 'iranian-movies'), categoryCount(index, 'iranian-movies'), 'Iranian movies were truncated');
-  assert.equal(categoryCount(bootstrap, 'foreign-movies'), categoryCount(index, 'foreign-movies'), 'foreign movies were truncated');
-  assert.equal(categoryCount(bootstrap, 'iranian-series'), categoryCount(index, 'iranian-series'), 'Iranian series were truncated');
-  assert.equal(categoryCount(bootstrap, 'foreign-series'), categoryCount(index, 'foreign-series'), 'foreign series were truncated');
+test('bootstrap is a bounded fresh Home snapshot instead of the whole navigation archive', () => {
+  assert.ok(index.items.length > 1000, 'full client index unexpectedly tiny');
+  assert.ok(bootstrap.items.length > 30, 'Home bootstrap unexpectedly tiny');
+  assert.ok(bootstrap.items.length < index.items.length, 'bootstrap must not duplicate the whole client index');
+  assert.ok(bootstrap.items.length <= 400, `Home bootstrap grew too many rows: ${bootstrap.items.length}`);
+  for (const item of index.items.slice(0, 5)) {
+    assert.ok(bootstrap.items.some((candidate) => candidate.id === item.id), `bootstrap lost newest item ${item.id}`);
+  }
 });
 
-test('every bootstrap navigation row can hydrate its real detail', () => {
+test('Home bootstrap keeps enough rows for the visible shelves and every row can hydrate detail', () => {
+  for (const key of ['iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series', 'korean-movies', 'korean-series', 'indian-movies']) {
+    const expected = Math.min(10, categoryCount(index, key));
+    assert.ok(categoryCount(bootstrap, key) >= expected, `${key} Home shelf was truncated below ${expected}`);
+  }
   const broken = bootstrap.items.filter((item) => !item?.id || !item?.type || !item?.detailPath);
   assert.deepEqual(broken.map((item) => item?.id), []);
+  assert.ok(bootstrap.items.every((item) => !Array.isArray(item.downloads) || item.downloads.length === 0),
+    'startup bootstrap must not carry episode/download archives');
 });
 
-test('bootstrap remains materially smaller than full client index', () => {
-  assert.ok(artifacts.bootstrapSizeBytes < artifacts.clientSizeBytes * 0.65,
-    `bootstrap ${artifacts.bootstrapSizeBytes} is not compact versus index ${artifacts.clientSizeBytes}`);
+test('bootstrap is small enough to stop competing with the full index at cold start', () => {
+  assert.ok(artifacts.bootstrapSizeBytes < artifacts.clientSizeBytes * 0.12,
+    `bootstrap ${artifacts.bootstrapSizeBytes} is too large versus index ${artifacts.clientSizeBytes}`);
   assert.ok(artifacts.bootstrapSizeBytes < MAX_BOOTSTRAP_BYTES,
-    `bootstrap grew beyond 6 MiB: ${artifacts.bootstrapSizeBytes}`);
+    `bootstrap grew beyond 1.5 MiB: ${artifacts.bootstrapSizeBytes}`);
 });
