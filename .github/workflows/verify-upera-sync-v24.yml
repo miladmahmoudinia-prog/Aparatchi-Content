@@ -1,0 +1,62 @@
+name: Verify Upera Sync v24
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: github.event.issue.title == 'RUN VERIFY UPERA SYNC V24'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Exact scheduled preflight
+        run: node --test scripts/tests/*.test.mjs
+      - name: Bounded real Upera NORMAL sync probe
+        env:
+          UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
+          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
+          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
+          UPERA_SYNC_MODE: NORMAL
+          MOVIE_PAGES_PER_RUN: '1'
+          SERIES_PAGES_PER_RUN: '1'
+          NEW_TITLES_HOURS: '24'
+          APARATCHI_RUN_TIME_LIMIT_MINUTES: '2'
+          APARATCHI_CHECKPOINT_RESERVE_MS: '15000'
+          APARATCHI_REQUEST_TIMEOUT_MS: '8000'
+          APARATCHI_REQUEST_MAX_ATTEMPTS: '1'
+          UPERA_MAX_REQUESTS_PER_RUN: '12'
+          UPERA_REQUEST_DELAY_MS: '520'
+          UPERA_RECENT_MOVIE_PAGES_PER_RUN: '1'
+          UPERA_RECENT_SERIES_PAGES_PER_RUN: '1'
+          UPERA_RECENT_MOVIE_TITLES_PER_RUN: '2'
+          UPERA_RECENT_SERIES_TITLES_PER_RUN: '1'
+          UPERA_RECENT_MOVIE_REQUEST_QUOTA: '4'
+          UPERA_RECENT_SERIES_REQUEST_QUOTA: '4'
+          UPERA_INCREMENTAL_LIMIT: '2'
+          UPERA_INCREMENTAL_REQUEST_QUOTA: '2'
+          UPERA_MEDIA_REPAIR_REQUEST_QUOTA: '2'
+          UPERA_AIRING_SERIES_TITLES_PER_RUN: '2'
+          UPERA_AIRING_REQUEST_QUOTA: '2'
+          UPERA_OPERATOR_DISCOVERY_ENABLED: 'false'
+          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
+        run: node scripts/sync-upera.mjs
+      - name: Confirm probe produced a valid report without emptying catalog
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
+          const report = JSON.parse(fs.readFileSync('sync-report.json', 'utf8'));
+          if (!Array.isArray(catalog.items) || catalog.items.length < 3000) throw new Error(`catalog unexpectedly shrank to ${catalog.items?.length}`);
+          console.log('catalog items after probe:', catalog.items.length);
+          console.log('sync report mode:', report.mode || report.syncMode || 'normal');
+          NODE
