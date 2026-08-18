@@ -1,57 +1,76 @@
-name: Diagnose Sync Kids v24
+name: Apply Sync Kids v24
 
 on:
   pull_request:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  diagnose:
+  repair:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repair branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
         with:
           node-version: 22
-      - name: Run current sync regression suite
+
+      - name: Apply strict Kids and sync-preflight repair
+        run: node scripts/apply-sync-kids-v24.mjs
+
+      - name: Run complete Content regression suite
         run: node --test scripts/tests/*.test.mjs
-      - name: Audit kids category and missing child-program candidates
-        if: always()
+
+      - name: Audit real Kids shelf and two-hour schedule
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          const readItems = (file) => {
-            const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-            return Array.isArray(data) ? data : (Array.isArray(data.items) ? data.items : []);
-          };
-          const indexItems = readItems('catalog-index.json');
-          const bootstrapItems = readItems('catalog-bootstrap.json');
-          const sourceItems = readItems('catalog.json');
-          const indexIds = new Set(indexItems.map((item) => String(item.id || item.slug || '')));
-          const normalize = (value) => String(value || '').replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').toLowerCase();
-          const childProgramSignal = (item) => {
-            const title = normalize(`${item.nameFa || ''} ${item.name || ''}`);
-            const genres = normalize((item.genres || []).join(' '));
-            const kind = normalize(item.contentKind || '');
-            const text = `${title} ${genres} ${kind}`;
-            return kind === 'children-program' ||
-              /برنامه\s*کودک|برنامه\s*کودکان|ترانه(?:‌|\s)*های?\s*کودک|ترانه\s*کودکانه|سرود\s*کودک|قصه\s*کودک|لالایی|خاله\s*نسرین|عمو\s*پورنگ|کلاه\s*قرمزی|فیتیله|خاله\s*سوسکه|songs?\s+for\s+kids|children'?s\s+songs?|nursery\s+rhymes?|kids\s+show|children'?s\s+program|preschool\s+show/i.test(text);
-          };
-          const mediaCount = (item) => (item.downloads || []).flatMap((group) => group?.files || []).filter((file) => file?.url || file?.link).length + (item.streamUrl ? 1 : 0);
-          for (const [file, items] of [['catalog-index.json', indexItems], ['catalog-bootstrap.json', bootstrapItems]]) {
-            const kids = items.filter((item) => Array.isArray(item.categoryKeys) && item.categoryKeys.includes('kids'));
-            console.log(file, 'items=', items.length, 'kids=', kids.length);
-            for (const item of kids.slice(0, 80)) {
-              console.log('KID', item.type, item.nameFa || item.name || item.id, JSON.stringify(item.categoryKeys || []), JSON.stringify(item.genres || []));
+          const index = JSON.parse(fs.readFileSync('catalog-index.json', 'utf8'));
+          const bootstrap = JSON.parse(fs.readFileSync('catalog-bootstrap.json', 'utf8'));
+          const expected = [
+            'هشتگ خاله سوسکه',
+            'خاله نسرین و کودکان آسمانی',
+            'ترانه‌های کودکانه خاله نسرین ۴',
+            'ترانه‌های کودکانه خاله نسرین ۵',
+            'ترانه‌های کودکانه خاله نسرین ۷',
+            'ترانه های کودکانه خاله نسرین',
+          ];
+          const kids = index.items.filter((item) => (item.categoryKeys || []).includes('kids'));
+          const bootstrapKids = bootstrap.items.filter((item) => (item.categoryKeys || []).includes('kids'));
+          const names = new Set(kids.map((item) => item.nameFa || item.name));
+          for (const title of expected) {
+            if (!names.has(title)) throw new Error(`Kids shelf still misses: ${title}`);
+          }
+          if (kids.length !== bootstrapKids.length) throw new Error(`Bootstrap Kids mismatch: ${bootstrapKids.length} vs ${kids.length}`);
+          for (const item of kids) {
+            if ((item.categoryKeys || []).includes('animation-movies') || (item.categoryKeys || []).includes('animation-series')) {
+              throw new Error(`Child program duplicated into Animation: ${item.nameFa || item.name}`);
             }
           }
-          const candidates = sourceItems.filter(childProgramSignal);
-          console.log('catalog.json source items=', sourceItems.length, 'childProgramCandidates=', candidates.length);
-          for (const item of candidates.slice(0, 200)) {
-            const id = String(item.id || item.slug || '');
-            console.log('CHILD-CANDIDATE', indexIds.has(id) ? 'VISIBLE' : 'HIDDEN', 'media=', mediaCount(item), item.type, item.nameFa || item.name || id, 'kind=', item.contentKind || '', 'keys=', JSON.stringify(item.categoryKeys || []), 'genres=', JSON.stringify(item.genres || []));
-          }
+          console.log('Kids count:', kids.length);
+          console.log(kids.map((item) => item.nameFa || item.name).join('\n'));
           NODE
+          grep -F "cron: '34 */2 * * *'" .github/workflows/sync-upera.yml
+
+      - name: Remove one-shot repair scaffolding
+        run: |
+          rm -f .github/workflows/diagnose-sync-kids-v24.yml
+          rm -f scripts/apply-sync-kids-v24.mjs
+          rm -f sync-kids-v24-note.txt dummy.tmp
+
+      - name: Commit validated repair to PR branch
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: restore child programs and unblock catalog sync"
+          git push origin HEAD:${{ github.head_ref }}
