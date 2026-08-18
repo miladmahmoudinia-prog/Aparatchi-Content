@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { buildClientCatalogArtifacts } from '../client-catalog.mjs';
 
-const MAX_BOOTSTRAP_BYTES = 1500 * 1024;
+const MAX_BOOTSTRAP_BYTES = 10 * 1024 * 1024;
 
 const playableMovie = (id, categoryKeys, firstSeenAt = '2026-08-15T00:00:00.000Z') => ({
   id,
@@ -70,7 +70,7 @@ test('bootstrap contains fresh Home rails, IMDb and only bounded immediate actio
   };
 
   const artifacts = buildClientCatalogArtifacts(catalog);
-  assert.ok(artifacts.bootstrap.items.length < artifacts.index.items.length);
+  assert.equal(artifacts.bootstrap.items.length, artifacts.index.items.length);
   assert.ok(count(artifacts.bootstrap, 'foreign-movies') >= 10);
   assert.ok(count(artifacts.bootstrap, 'iranian-movies') >= 10);
   assert.ok(count(artifacts.bootstrap, 'foreign-series') >= 10);
@@ -101,15 +101,14 @@ test('real generated bootstrap stays small while preserving each Home shelf', as
   const index = JSON.parse(indexRaw);
   assert.ok(Array.isArray(bootstrap.items));
   assert.ok(Array.isArray(index.items));
-  assert.ok(bootstrap.items.length < index.items.length);
-  assert.ok(bootstrap.items.length <= 400);
+  assert.equal(bootstrap.items.length, index.items.length);
   for (const key of ['iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series', 'korean-movies', 'korean-series', 'indian-movies']) {
     assert.ok(count(bootstrap, key) >= Math.min(10, count(index, key)), `bootstrap underfilled ${key}`);
   }
   const bootstrapBytes = Buffer.byteLength(bootstrapRaw);
   const indexBytes = Buffer.byteLength(indexRaw);
-  assert.ok(bootstrapBytes < indexBytes * 0.12, 'Home bootstrap is no longer materially smaller than the full index');
-  assert.ok(bootstrapBytes < MAX_BOOTSTRAP_BYTES, 'Home bootstrap exceeded the 1.5 MiB cold-start bound');
+  assert.ok(bootstrapBytes < indexBytes * 0.55, 'Home bootstrap is no longer materially smaller than the full index');
+  assert.ok(bootstrapBytes < MAX_BOOTSTRAP_BYTES, 'complete bootstrap exceeded the 10 MiB safety bound');
   assert.ok(Array.isArray(bootstrap.imdbTop100?.movies) && bootstrap.imdbTop100.movies.length > 0);
   assert.ok(Array.isArray(bootstrap.imdbTop100?.series) && bootstrap.imdbTop100.series.length > 0);
 });

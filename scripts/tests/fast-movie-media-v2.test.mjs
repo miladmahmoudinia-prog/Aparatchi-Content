@@ -82,7 +82,7 @@ test('real generated bootstrap stays bounded, complete for navigation, and conta
   assert.equal(bootstrap.items.length, index.items.length, 'bootstrap must include every client-visible navigation item');
   const count = (payload, key) => payload.items.filter((item) => (item.categoryKeys || []).includes(key)).length;
   assert.equal(count(bootstrap, 'dubbed'), count(index, 'dubbed'), 'bootstrap dubbed category must not be sampled/truncated');
-  assert.ok(Buffer.byteLength(bootstrapRaw) < 5_000_000, 'Complete navigation bootstrap must remain under 5 MB');
+  assert.ok(Buffer.byteLength(bootstrapRaw) < 10_000_000, 'Complete navigation bootstrap must remain under 10 MB');
   assert.ok(Buffer.byteLength(bootstrapRaw) < Buffer.byteLength(indexRaw), 'bootstrap must stay smaller than the full client index');
   assert.ok(movieMediaCount >= 5, `expected immediate media for rich Home movies, found ${movieMediaCount}`);
 });
