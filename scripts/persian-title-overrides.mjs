@@ -316,13 +316,30 @@ export function persianCollectionBaseFromTitle(value) {
 function collectionNameLooksLikeInstallment(value, members) {
   const current = cleanDisplayText(value);
   if (!current || !hasPersianScript(current)) return false;
-  const normalizedCurrent = normalizePersianOverrideKey(current.replace(/^مجموعه\s+/u, ''));
+  const stripped = current.replace(/^مجموعه\s+/u, '').trim();
+  const normalizedCurrent = normalizePersianOverrideKey(stripped);
+  if (!normalizedCurrent) return false;
+
+  const hasSeparator = /[:：؛]/u.test(stripped) || /\s[-–—]\s/u.test(stripped);
+  const hasPartSuffix = /(?:^|\s)(?:قسمت|بخش|فصل)\s+(?:[۰-۹0-9]+|اول|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم|دهم)\s*$/u.test(stripped);
+  const hasNumericSuffix = /\s[۰-۹0-9]+(?:[٫.][۰-۹0-9]+)?\s*$/u.test(stripped);
+
+  // A franchise base may legitimately equal its first movie title (Batman,
+  // Scream, Superman, ...). Only installment-shaped folder labels are bad.
+  if (!hasSeparator && !hasPartSuffix && !hasNumericSuffix) return false;
+
   const equalsMember = members.some((item) =>
     normalizePersianOverrideKey(item?.nameFa) === normalizedCurrent
   );
-  const numbered = /(?:^|\s)(?:قسمت|بخش|فصل)\s+(?:[۰-۹0-9]+|اول|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم|دهم)\s*$/u.test(current) ||
-    /\s[۰-۹0-9]+\s*$/u.test(current);
-  return equalsMember || numbered;
+  if (equalsMember) return true;
+
+  if (hasSeparator) {
+    const prefix = stripped.split(/\s*(?:[:：؛]|\s[-–—]\s)\s*/u)[0]?.trim();
+    if (prefix && members.some((item) =>
+      normalizePersianOverrideKey(persianCollectionBaseFromTitle(item?.nameFa)) === normalizePersianOverrideKey(prefix)
+    )) return true;
+  }
+  return hasPartSuffix || hasNumericSuffix;
 }
 
 function deriveMissingPersianCollectionNames(items) {
@@ -351,9 +368,10 @@ function deriveMissingPersianCollectionNames(items) {
     if (!source) continue;
     const base = persianCollectionBaseFromTitle(source.nameFa);
     if (!base) continue;
+    const collectionLabel = /^مجموعه\s+/u.test(base) ? base : `مجموعه ${base}`;
     for (const item of members) {
-      if (item.collectionNameFa !== base) {
-        item.collectionNameFa = base;
+      if (item.collectionNameFa !== collectionLabel) {
+        item.collectionNameFa = collectionLabel;
         changes += 1;
       }
     }
