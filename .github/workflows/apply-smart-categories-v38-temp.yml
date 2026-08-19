@@ -19,6 +19,8 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 22
+      - name: Normalize patch generator
+        run: node scripts/fix-smart-categories-patch-v38.mjs
       - name: Apply patch
         run: node scripts/apply-smart-categories-v38.mjs
       - name: Regression suite
