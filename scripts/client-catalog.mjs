@@ -505,7 +505,7 @@ const clientCatalogFreshness = (item) => {
 const BOOTSTRAP_CATEGORY_KEYS = [
   'mobile-operator', 'iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series',
   'korean-movies', 'korean-series', 'indian-movies', 'indian-series', 'anime-movies', 'anime-series',
-  'animation-movies', 'animation-series', 'kids', 'programs', 'dubbed', 'subtitled', 'documentaries', 'wildlife', 'collections',
+  'animation-movies', 'animation-series', 'kids', 'programs', 'dubbed', 'subtitled', 'documentaries', 'short-films', 'wildlife', 'collections',
 ];
 
 const BOOTSTRAP_NAVIGATION_FIELDS = [

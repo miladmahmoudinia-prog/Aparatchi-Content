@@ -61,6 +61,11 @@ const operatorOverviewTitlesPerRun = Math.min(
   nonNegativeInt(process.env.APARATCHI_OPERATOR_OVERVIEWS_PER_RUN, 12),
 );
 
+const operatorClassificationTitlesPerRun = Math.min(
+  40,
+  nonNegativeInt(process.env.APARATCHI_OPERATOR_CLASSIFICATION_PER_RUN, 16),
+);
+
 const episodeArtworkSeriesPerRun = Math.min(
   120,
   positiveInt(process.env.APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN, 24),
@@ -1126,6 +1131,9 @@ const activeIds = new Set(
 // discovered episode has a usable link. Already-published airing series stay
 // visible while a newly released tail episode is being fetched, but historical
 // gaps still hide them.
+if (!runTimeBudgetReached('before-operator-classification', 35000)) {
+  await enrichOperatorClassificationMetadata();
+}
 items = items.map(reclassifyCatalogItem).map((item) => withSeriesPublicationState(item));
 stats.seriesAwaitingArchiveAudit = items.filter(
   (item) => item?.type === 'series' && !hasSeriesArchiveMetadata(item),
@@ -4616,6 +4624,69 @@ async function enrichMissingOperatorOverviews() {
   }
 }
 
+function operatorClassificationNeedsVerification(item) {
+  if (!item || catalogVariant(item) !== 'operator') return false;
+  const rules = classifyCatalogRules({ ...item, operatorClassificationPending: false });
+  if (rules.contentKind && !['movie', 'series'].includes(rules.contentKind)) return false;
+  if (item.operatorClassificationSource === 'tmdb' && Number(item.tmdbValidationVersion || 0) >= 7) return false;
+  const informativeGenres = (Array.isArray(item.genres) ? item.genres : [])
+    .map((value) => cleanText(value).toLowerCase())
+    .filter((value) => value && !['سایر', 'other', 'unknown', 'نامشخص'].includes(value));
+  const hasRegionTruth = Boolean(
+    (Array.isArray(item.countryCodes) && item.countryCodes.length) ||
+    cleanText(item.originalLanguage)
+  );
+  return !(informativeGenres.length > 0 && hasRegionTruth);
+}
+
+async function enrichOperatorClassificationMetadata() {
+  if (!tmdbBearerToken || operatorClassificationTitlesPerRun <= 0) return;
+  const now = Date.now();
+  const retryMs = 24 * 60 * 60 * 1000;
+  const candidates = items
+    .filter((item) => operatorClassificationNeedsVerification(item))
+    .filter((item) => {
+      const checked = Date.parse(cleanText(item.operatorClassificationCheckedAt));
+      return !Number.isFinite(checked) || now - checked >= retryMs;
+    })
+    .sort((a, b) => peopleCandidateTimestamp(b) - peopleCandidateTimestamp(a))
+    .slice(0, operatorClassificationTitlesPerRun);
+
+  for (const item of candidates) {
+    if (runTimeBudgetReached('operator-classification', 35000)) break;
+    item.operatorClassificationCheckedAt = new Date().toISOString();
+    item.operatorClassificationStatus = 'pending';
+    try {
+      const title = await resolveTmdbTitle(item);
+      if (!title) continue;
+      const [detailsEn, detailsFa] = await Promise.all([
+        fetchTmdbJson(`${title.mediaType}/${title.id}`, { language: 'en-US' }),
+        fetchTmdbJson(`${title.mediaType}/${title.id}`, { language: 'fa-IR' }),
+      ]);
+      const genreObjects = Array.isArray(detailsEn?.genres) ? detailsEn.genres : [];
+      const genres = genreObjects.map((genre) => cleanText(genre?.name)).filter(Boolean);
+      if (genres.length) item.genres = genres;
+      const countryCodes = title.mediaType === 'tv'
+        ? (Array.isArray(detailsEn?.origin_country) ? detailsEn.origin_country : [])
+        : (Array.isArray(detailsEn?.production_countries) ? detailsEn.production_countries.map((entry) => entry?.iso_3166_1) : []);
+      if (countryCodes.filter(Boolean).length) item.countryCodes = uniqueStrings(countryCodes);
+      const originalLanguage = cleanText(detailsEn?.original_language);
+      if (originalLanguage) item.originalLanguage = originalLanguage;
+      const overviewFa = cleanText(detailsFa?.overview);
+      if (overviewFa && /[\u0600-\u06ff]/.test(overviewFa)) item.overview = overviewFa;
+      const genreIds = new Set(genreObjects.map((genre) => Number(genre?.id || 0)));
+      if (genreIds.has(99) || genres.some((genre) => /documentary/i.test(genre))) item.isDocumentary = true;
+      if (genreIds.has(16) || genres.some((genre) => /animation/i.test(genre))) item.isAnimation = true;
+      item.tmdbId = Number(title.id);
+      item.tmdbValidationVersion = Math.max(8, Number(item.tmdbValidationVersion || 0));
+      item.operatorClassificationSource = 'tmdb';
+      item.operatorClassificationStatus = operatorClassificationNeedsVerification(item) ? 'pending' : 'verified';
+    } catch (error) {
+      rememberError(`operator-classification-${String(item.id || 'unknown')}`, error);
+    }
+  }
+}
+
 async function enrichPeopleFromTmdb(item) {
   const title = await resolveTmdbTitle(item);
   if (!title) return null;
@@ -5989,7 +6060,8 @@ function effectiveIranianIdentity(item) {
 
 function reclassifyCatalogItem(item) {
   if (!item || !['movie', 'series'].includes(item.type)) return item;
-  const classification = classifyCatalogRules(item);
+  const operatorClassificationPending = operatorClassificationNeedsVerification(item);
+  const classification = classifyCatalogRules({ ...item, operatorClassificationPending });
   const preservedKeys = (Array.isArray(item.categoryKeys) ? item.categoryKeys : [])
     .filter((key) => !isManagedCategoryKey(key));
   const preservedLabels = (Array.isArray(item.categoryLabels) ? item.categoryLabels : [])
@@ -6016,7 +6088,9 @@ function reclassifyCatalogItem(item) {
     isAnimation: classification.isAnimation,
     isAnime: classification.isAnime,
     isDocumentary: classification.isDocumentary,
+    isShortFilm: classification.isShortFilm,
     isWildlife: classification.isWildlife,
+    ...(catalogVariant(item) === 'operator' ? { operatorClassificationStatus: operatorClassificationPending ? 'pending' : (item.operatorClassificationStatus || 'resolved') } : {}),
     isTalkShow: classification.isTalkShow,
     // Rebuild badges from currently validated media; never preserve stale dubbing/subtitle claims.
     availableLanguages: directLanguages,

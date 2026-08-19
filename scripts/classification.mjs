@@ -47,7 +47,7 @@ const MANAGED_KEYS = new Set([
   'animation-movies', 'animation-series', 'anime-movies', 'anime-series',
   'korean-movies', 'korean-series', 'indian-movies', 'indian-series', 'japanese-movies',
   'kids', 'religious', 'quran', 'programs', 'talk-shows', 'reality',
-  'documentaries', 'wildlife', 'collections',
+  'documentaries', 'short-films', 'wildlife', 'collections',
 ]);
 
 const MANAGED_LABELS = new Set([
@@ -55,7 +55,7 @@ const MANAGED_LABELS = new Set([
   'انیمیشن سینمایی', 'انیمیشن سریالی', 'انیمه سینمایی', 'انیمه سریالی',
   'فیلم کره‌ای', 'سریال کره‌ای', 'فیلم هندی', 'سریال هندی', 'فیلم ژاپنی',
   'کودکان', 'مذهبی و مناسبتی', 'قرآن و ادعیه', 'برنامه‌ها و مسابقه‌ها',
-  'تاک‌شو', 'مسابقه و رئالیتی‌شو', 'مستند', 'حیات وحش', 'کالکشن',
+  'تاک‌شو', 'مسابقه و رئالیتی‌شو', 'مستند', 'فیلم کوتاه', 'حیات وحش', 'کالکشن',
 ]);
 
 export const isManagedCategoryKey = (value) => MANAGED_KEYS.has(clean(value));
@@ -69,6 +69,27 @@ const narrativeTerms = [
 ];
 
 const documentaryTerms = ['مستند', 'documentary'];
+const documentaryOverviewTerms = [
+  'این مستند', 'مستندی درباره', 'مستندی از', 'فیلم مستند', 'روایت مستند', 'مستند درباره',
+  'documentary film', 'this documentary',
+];
+const shortFilmTerms = [
+  'فیلم کوتاه', 'فیلم‌کوتاه', 'کوتاه داستانی', 'اثر کوتاه', 'آثار کوتاه',
+  'short film', 'short-film', 'short movie',
+];
+const promotionalTitleTerms = [
+  'تیزر جشنواره', 'تیزر رویداد', 'تیزر رسمی', 'تریلر رسمی', 'آنونس',
+  'festival teaser', 'official teaser', 'official trailer',
+];
+const verifiedArghavanShortTitles = new Set([
+  'دنیای شیرین', 'لمس جهان', 'محبت بی واژه', 'ملودی چوب', 'معلم معلول',
+  'داستان زندگی دو خواهر ناشنوا', 'همنشین آبی', 'داستانی از تلاش و امید', 'دستان گچی',
+  'دغدغه', 'یک روز معمولی', 'دورون بی وزنی', 'دورون بی‌وزنی', 'من هم هستم',
+  'رنگ زندگی', 'روبیک بی برجسته', 'رقص برگ های بی قرار', 'رقص برگ‌های بی‌قرار',
+  'کمیک', 'دنیای تفاوت ها', 'دنیای تفاوت‌ها', 'دنیای شادی', 'دیجیتال',
+  'من و موشموشک عمه', 'مسیر دلدادگی', 'مسیر دزدها',
+  'من میبینام بدنی ساکت دلی پر از عشق', 'من می‌بینم بدنی ساکت دلی پر از عشق',
+].map(normalize));
 
 const childrenProgramTerms = [
   'برنامه کودک', 'برنامه کودکان', 'برنامه کودکانه', 'ترانه کودک', 'ترانه های کودک',
@@ -184,6 +205,7 @@ export function classifyCatalogItem(input = {}) {
   const existingKeys = Array.isArray(input.categoryKeys) ? input.categoryKeys.map(clean) : [];
   const validationVersion = Number(input.tmdbValidationVersion || input.validationVersion || 0);
   const trustedTmdb = validationVersion >= 7;
+  const operatorClassificationPending = input.operatorClassificationPending === true;
   // The Westies was imported with a stale `ir` flag in an older source row.
   // A known foreign identity must beat that legacy flag everywhere.
   if (forcedForeignTitle) input = { ...input, ir: false, isIranian: false, is_iranian: false };
@@ -206,10 +228,17 @@ export function classifyCatalogItem(input = {}) {
     [2024, ['غدیر از کانت تا وایسکه']],
     [2024, ['نجیب زادگی', 'نجیب‌زادگی']],
     [2025, ['سلطان ناصر']],
+    [2025, ['اشغال جزایر']],
+    [2004, ['اتو استاپ']],
+    [2007, ['آزادی در مه']],
+    [2006, ['امپراتور و ما']],
+    [1967, ['فروغ فرخزاد ۱۳۱۳ ۱۳۴۵', 'فروغ فرخزاد: ۱۳۱۳-۱۳۴۵']],
+    [2006, ['پا به پای آزادی']],
   ].some(([year, names]) =>
     Number(input.year || 0) === Number(year) &&
     names.some((name) => exactTitleNames.includes(normalize(name)))
   );
+  const documentaryOverviewSignal = includesAny(overview, documentaryOverviewTerms);
   const knownDocumentary = verifiedDocumentaryTitleYear || includesAny(titleText, [
     'از بی', 'از به', 'az be',
     'من ناصر حجازی هستم', 'i am nasser hejazi',
@@ -230,7 +259,7 @@ export function classifyCatalogItem(input = {}) {
   );
   const isDocumentary = knownNarrativeMovie || trustedNonDocumentary
     ? false
-    : Boolean(knownDocumentary || explicitDocumentary || documentaryGenre);
+    : Boolean(knownDocumentary || explicitDocumentary || documentaryGenre || documentaryOverviewSignal);
 
   // Program/reality identity must come from the title/genre, not from plot text.
   // A narrative film can be *about* a TV contest without being a game show.
@@ -249,9 +278,23 @@ export function classifyCatalogItem(input = {}) {
     (trustedSpecializedKind && existingKind === 'reality-competition') ||
     (trustedSpecializedKind && existingKeys.includes('reality'))
   );
-  const isGeneralProgram = includesAny(programIdentityText, generalProgramTerms);
+  const isGeneralProgram = includesAny(programIdentityText, generalProgramTerms) || includesAny(titleText, promotionalTitleTerms);
   const isProgram = isChildrenProgram || isTalkShow || isRealityCompetition || isGeneralProgram ||
     (trustedSpecializedKind && existingKind === 'program');
+  const verifiedArghavanShort = Boolean(
+    type === 'movie' &&
+    Number(input.year || 0) === 2025 &&
+    exactTitleNames.some((name) => verifiedArghavanShortTitles.has(name))
+  );
+  const shortFilmSignal = includesAny(
+    `${titleText} ${genreText} ${overview}`,
+    shortFilmTerms,
+  );
+  const isShortFilm = Boolean(
+    type === 'movie' &&
+    !isAnimation && !isDocumentary && !isProgram &&
+    (verifiedArghavanShort || shortFilmSignal || existingKind === 'short-film' || existingKeys.includes('short-films'))
+  );
 
   const isQuran = includesAny(titleText, quranTerms);
   const explicitReligiousTitle = includesAny(titleText, knownReligiousTitleTerms);
@@ -292,11 +335,11 @@ export function classifyCatalogItem(input = {}) {
     overview,
   }));
 
-  const specialized = isAnimation || isDocumentary || isProgram || isReligiousProgram;
+  const specialized = isAnimation || isDocumentary || isShortFilm || isProgram || isReligiousProgram;
   const categoryKeys = specialized ? [] : [type === 'movie' ? 'movies' : 'series'];
   const categoryLabels = specialized ? [] : [type === 'movie' ? 'فیلم‌ها' : 'مجموعه‌ها'];
 
-  const regionalEligible = !isAnimation && !isDocumentary && !isProgram && !isReligiousProgram;
+  const regionalEligible = !isAnimation && !isDocumentary && !isShortFilm && !isProgram && !isReligiousProgram && !operatorClassificationPending;
   if (regionalEligible) {
     if (iranianIdentity) {
       categoryKeys.push(type === 'movie' ? 'iranian-movies' : 'iranian-series');
@@ -350,6 +393,10 @@ export function classifyCatalogItem(input = {}) {
       categoryLabels.push('مسابقه و رئالیتی‌شو');
     }
   }
+  if (isShortFilm) {
+    categoryKeys.push('short-films');
+    categoryLabels.push('فیلم کوتاه');
+  }
   if (isDocumentary) {
     if (isWildlife) {
       categoryKeys.push('wildlife');
@@ -373,6 +420,7 @@ export function classifyCatalogItem(input = {}) {
   else if (isProgram) contentKind = 'program';
   else if (isAnime) contentKind = type === 'movie' ? 'anime-movie' : 'anime-series';
   else if (isAnimation) contentKind = type === 'movie' ? 'animation-movie' : 'animation-series';
+  else if (isShortFilm) contentKind = 'short-film';
   else if (isDocumentary) contentKind = 'documentary';
 
   return {
@@ -382,6 +430,7 @@ export function classifyCatalogItem(input = {}) {
     isAnimation,
     isAnime,
     isDocumentary,
+    isShortFilm,
     isWildlife,
     isChildrenProgram,
     isTalkShow,
