@@ -207,8 +207,13 @@ export function applyOperatorMetadataRepair(items) {
     if (imdb) candidates.push(['imdb-donor', donorByImdb.get(`${item.type}|${imdb}`)]);
     const year = Number(item.year || 0);
     for (const name of titleNames(item)) {
-      if (year) candidates.push(['exact-title-year-donor', donorByTitleYear.get(`${item.type}|${year}|${name}`)]);
-      candidates.push(['unique-title-donor', donorByUniqueTitle.get(`${item.type}|${name}`)]);
+      if (year) {
+        candidates.push(['exact-title-year-donor', donorByTitleYear.get(`${item.type}|${year}|${name}`)]);
+      } else {
+        // A title-only donor is safe only when the operator shell has no year.
+        // Never let a same-name production from another year overwrite metadata.
+        candidates.push(['unique-title-donor', donorByUniqueTitle.get(`${item.type}|${name}`)]);
+      }
     }
     const donorEntry = candidates
       .filter(([, donor]) => donor)
