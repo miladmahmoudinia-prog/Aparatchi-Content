@@ -1,0 +1,71 @@
+name: One-shot operator detail metadata v34
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'operator-detail-v34-trigger.txt'
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: operator-detail-v34-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 20
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Apply metadata and bootstrap repair
+        run: node scripts/apply-operator-detail-v34.mjs
+
+      - name: Run full content regressions
+        run: node --test scripts/tests/*.test.mjs
+
+      - name: Verify reported device samples in generated catalog
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const catalog = JSON.parse(fs.readFileSync('catalog-index.json', 'utf8'));
+          const normalize = (v) => String(v || '').replace(/[\u200c\u200d]/g, ' ').replace(/\s+/g, ' ').trim();
+          const wanted = ['شاهد','عبای سوخته','زنگ میناب','شه بانو','فرزانه جلیسی','فاطمیه در کلیسا','غدیر از کانت تا وایسکه','نجیب زادگی','سلطان ناصر'];
+          const report = [];
+          for (const name of wanted) {
+            const item = catalog.items.find((entry) => normalize(entry.nameFa) === normalize(name));
+            if (!item) { report.push({ name, found: false }); continue; }
+            const keys = item.categoryKeys || [];
+            if (!keys.includes('documentaries') || keys.includes('iranian-movies')) {
+              throw new Error(`${name}: incorrect categories ${JSON.stringify(keys)}`);
+            }
+            report.push({ name, found: true, categoryKeys: keys, overview: Boolean(item.overview), people: item.people?.length || 0 });
+          }
+          console.log(JSON.stringify(report, null, 2));
+          NODE
+
+      - name: Commit verified content repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f --ignore-unmatch .github/workflows/operator-detail-v34.yml scripts/apply-operator-detail-v34.mjs operator-detail-v34-trigger.txt
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "fix: classify operator documentaries and preload detail metadata"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
