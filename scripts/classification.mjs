@@ -195,7 +195,22 @@ export function classifyCatalogItem(input = {}) {
   const narrativeGenre = includesAny(genreText, narrativeTerms);
   const documentaryGenre = includesAny(genreText, documentaryTerms);
   const knownNarrativeMovie = includesAny(titleText, ['مزار شریف', 'mazar sharif']);
-  const knownDocumentary = includesAny(titleText, [
+  const exactTitleNames = [normalize(input.nameFa), normalize(input.name)].filter(Boolean);
+  const verifiedDocumentaryTitleYear = [
+    [2023, ['شاهد']],
+    [2025, ['عبای سوخته']],
+    [2026, ['زنگ میناب']],
+    [2024, ['شه بانو']],
+    [2025, ['فرزانه جلیسی']],
+    [2021, ['فاطمیه در کلیسا']],
+    [2024, ['غدیر از کانت تا وایسکه']],
+    [2024, ['نجیب زادگی', 'نجیب‌زادگی']],
+    [2025, ['سلطان ناصر']],
+  ].some(([year, names]) =>
+    Number(input.year || 0) === Number(year) &&
+    names.some((name) => exactTitleNames.includes(normalize(name)))
+  );
+  const knownDocumentary = verifiedDocumentaryTitleYear || includesAny(titleText, [
     'از بی', 'از به', 'az be',
     'من ناصر حجازی هستم', 'i am nasser hejazi',
     'deep sea 3d', 'دریای عمیق',

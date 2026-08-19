@@ -510,8 +510,8 @@ const BOOTSTRAP_CATEGORY_KEYS = [
 
 const BOOTSTRAP_NAVIGATION_FIELDS = [
   'id', 'slug', 'type', 'ir', 'year', 'nameFa', 'name', 'imdb',
-  'countryCodes', 'originalLanguage', 'collectionId', 'collectionOrder',
-  'poster', 'posterFallback', 'backdrop', 'backdropFallback', 'rate', 'access', 'operatorOnly', 'availableLanguages',
+  'countryCodes', 'countryLabels', 'countryNames', 'originalLanguage', 'collectionId', 'collectionOrder',
+  'poster', 'posterFallback', 'backdrop', 'backdropFallback', 'overview', 'genres', 'rate', 'access', 'operatorOnly', 'availableLanguages',
   'episodeCount', 'seasonCount', 'latestEpisode', 'isAiring', 'publicationStatus',
   'updateLabel', 'meaningfulUpdatedAt', 'categoryKeys', 'categoryLabels',
   'contentKind', 'isAnimation', 'isAnime', 'isTalkShow', 'isDocumentary', 'isWildlife',
@@ -595,10 +595,10 @@ const compactBootstrapNavigationItem = (item) => {
   for (const field of BOOTSTRAP_NAVIGATION_FIELDS) {
     if (Object.prototype.hasOwnProperty.call(item || {}, field)) compact[field] = item[field];
   }
-  // Keep only enough people metadata for the first visible cast row. The full
-  // detail shard remains authoritative and replaces this preview after hydration.
+  // Carry the same bounded cast/director preview as the client index. Detail
+  // may enrich it later, but opening the screen must not create the section late.
   if (Array.isArray(item?.people) && item.people.length) {
-    compact.people = item.people.slice(0, 4);
+    compact.people = item.people.slice(0, 8);
   }
   if (item?.type === 'movie') {
     const downloads = compactBootstrapMovieActionPreview(item.downloads);
