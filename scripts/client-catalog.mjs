@@ -700,25 +700,16 @@ export function buildClientCatalogArtifacts(catalog) {
   // human-readable because only one is fetched when a title opens.
   const indexSerialized = `${JSON.stringify(index)}\n`;
 
-  // Fresh installs should paint a truthful Home immediately instead of exposing
-  // the tiny bundled emergency catalog while the full client index is downloading.
-  // The bootstrap is intentionally Home-only; detailPath still points at the
-  // immutable detail shards and the full index replaces it in the background.
-  const richHomeItems = bootstrapItemsForHome(items);
-  const richHomeIds = new Set(richHomeItems.map((item) => String(item?.id || '')).filter(Boolean));
-  // Bootstrap is also the first navigation catalog. Every visible title must be
-  // present so categories/search can never collapse to the old 8–12 item Home
-  // sample. Only Home-critical rows keep their heavier media/overview payload;
-  // the rest retain enough metadata to browse and hydrate their detail shard.
-  const bootstrapItems = items.map((item) => {
-    if (!richHomeIds.has(String(item?.id || ''))) return compactBootstrapNavigationItem(item);
-    if (item?.type !== 'series') return item;
-    const downloads = compactBootstrapSeriesEpisodePreviews(item.downloads);
-    return downloads.length ? { ...item, downloads } : item;
-  });
+  // Cold start only needs the current Home truth. The full navigation index
+  // continues in catalog-index.json and replaces/enriches this snapshot in the
+  // background. Keeping the entire archive here made startup multi-megabyte
+  // and allowed an old Home to remain visible while the real index downloaded.
+  const clientRevision = createHash('sha256').update(indexSerialized).digest('hex');
+  const bootstrapItems = bootstrapItemsForHome(items).map(compactBootstrapNavigationItem);
   const bootstrap = {
     version: index.version,
     updatedAt: index.updatedAt,
+    clientRevision,
     items: bootstrapItems,
     iranianSchedule: index.iranianSchedule,
     weeklySchedule: index.weeklySchedule,
@@ -734,7 +725,7 @@ export function buildClientCatalogArtifacts(catalog) {
     bootstrapSerialized,
     detailFiles,
     stableDetailFiles,
-    clientRevision: createHash('sha256').update(indexSerialized).digest('hex'),
+    clientRevision,
     clientSizeBytes: Buffer.byteLength(indexSerialized),
     bootstrapRevision: createHash('sha256').update(bootstrapSerialized).digest('hex'),
     bootstrapSizeBytes: Buffer.byteLength(bootstrapSerialized),
