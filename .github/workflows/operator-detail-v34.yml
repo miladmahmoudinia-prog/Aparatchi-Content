@@ -30,6 +30,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Normalize year-safe operator donor matching
+        run: node scripts/fix-v34-donor-safety.mjs
+
       - name: Apply metadata and bootstrap repair
         run: node scripts/apply-operator-detail-v34.mjs
 
@@ -63,7 +66,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm -f --ignore-unmatch .github/workflows/operator-detail-v34.yml scripts/apply-operator-detail-v34.mjs operator-detail-v34-trigger.txt
+          git rm -f --ignore-unmatch .github/workflows/operator-detail-v34.yml scripts/apply-operator-detail-v34.mjs scripts/fix-v34-donor-safety.mjs operator-detail-v34-trigger.txt
           git add -A
           if ! git diff --cached --quiet; then
             git commit -m "fix: classify operator documentaries and preload detail metadata"
