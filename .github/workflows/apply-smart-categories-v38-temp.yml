@@ -29,6 +29,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git restore scripts/apply-smart-categories-v38.mjs
           git add scripts/classification.mjs scripts/client-catalog.mjs scripts/sync-upera.mjs scripts/tests/smart-categories-v38.test.mjs
           if git diff --cached --quiet; then
             echo "No source changes."
