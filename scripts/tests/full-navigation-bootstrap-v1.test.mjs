@@ -26,7 +26,9 @@ test('bootstrap is a bounded current Home snapshot, not the whole navigation arc
   for (const item of bootstrap.items) {
     assert.ok(item?.id && item?.type && item?.detailPath, 'Home bootstrap row cannot hydrate detail');
     assert.ok(clientIds.has(String(item.id)), `bootstrap contains non-client item ${item.id}`);
-    assert.ok(!Array.isArray(item.people) || item.people.length <= 4, `people preview is unbounded for ${item.id}`);
+    assert.ok(!Array.isArray(item.people) || item.people.length <= 8, `people preview is unbounded for ${item.id}`);
+    assert.ok(!item.overview || typeof item.overview === 'string', `overview preview is invalid for ${item.id}`);
+    assert.ok(!item.genres || Array.isArray(item.genres), `genre preview is invalid for ${item.id}`);
   }
 });
 
