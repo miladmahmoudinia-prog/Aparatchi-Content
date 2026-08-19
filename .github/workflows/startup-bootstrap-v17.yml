@@ -1,5 +1,5 @@
-name: One-shot startup bootstrap repair v17
-# retry: bounded Home previews v2
+name: One-shot startup bootstrap repair v18
+# definitive: bounded Home snapshot + revision binding + permanent manifest writer
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           printf 'run_id=%s\nhead_sha=%s\n' "${{ github.run_id }}" "${{ github.sha }}" > startup-bootstrap-v17-run.txt
           git add startup-bootstrap-v17-run.txt
-          git commit -m "chore: expose startup bootstrap v17 run id [skip ci]"
+          git commit -m "chore: expose startup bootstrap v18 run id [skip ci]"
           git push origin HEAD:main
 
       - name: Setup Node
@@ -40,7 +40,7 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Apply fast Home bootstrap source patch
+      - name: Apply bounded current Home bootstrap repair
         run: node scripts/apply-startup-bootstrap-v17.mjs
 
       - name: Regenerate client bootstrap and manifest
@@ -59,9 +59,17 @@ jobs:
           manifest.bootstrapSizeBytes = artifacts.bootstrapSizeBytes;
           manifest.bootstrapIndex = 'catalog-bootstrap.json';
           await fs.writeFile('catalog-manifest.json', JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+
+          const diskBootstrap = JSON.parse(await fs.readFile('catalog-bootstrap.json', 'utf8'));
           console.log(`bootstrap=${artifacts.bootstrapSizeBytes} index=${artifacts.clientSizeBytes} items=${artifacts.bootstrap.items.length}/${artifacts.index.items.length}`);
           if (artifacts.bootstrapSizeBytes >= 1500 * 1024) throw new Error(`startup bootstrap too large: ${artifacts.bootstrapSizeBytes}`);
           if (artifacts.bootstrap.items.length > 400) throw new Error(`startup bootstrap has too many items: ${artifacts.bootstrap.items.length}`);
+          if (!diskBootstrap.clientRevision || diskBootstrap.clientRevision !== artifacts.clientRevision) {
+            throw new Error('bootstrap clientRevision is not bound to the generated index');
+          }
+          if (manifest.bootstrapRevision !== artifacts.bootstrapRevision || manifest.bootstrapSizeBytes !== artifacts.bootstrapSizeBytes) {
+            throw new Error('manifest bootstrap identity does not match generated artifact');
+          }
           NODE
 
       - name: Run content regression tests
@@ -74,7 +82,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm -f scripts/apply-startup-bootstrap-v17.mjs .github/workflows/startup-bootstrap-v17.yml startup-bootstrap-v17-run.txt
-          git add scripts/client-catalog.mjs catalog-bootstrap.json catalog-manifest.json
-          git commit -m "fix: make cold-start Home bootstrap fast and current"
+          git add scripts/client-catalog.mjs scripts/update-imdb-top.mjs scripts/tests/full-navigation-bootstrap-v1.test.mjs catalog-bootstrap.json catalog-manifest.json
+          git commit -m "fix: make cold-start Home bootstrap fast and revision-bound"
           git pull --rebase origin main
           git push origin HEAD:main
