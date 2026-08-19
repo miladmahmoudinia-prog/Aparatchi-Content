@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { buildClientCatalogArtifacts } from '../client-catalog.mjs';
 
-const MAX_BOOTSTRAP_BYTES = 10 * 1024 * 1024;
+const MAX_BOOTSTRAP_BYTES = 1500 * 1024;
 
 const playableMovie = (id, categoryKeys, firstSeenAt = '2026-08-15T00:00:00.000Z') => ({
   id,
@@ -70,7 +70,9 @@ test('bootstrap contains fresh Home rails, IMDb and only bounded immediate actio
   };
 
   const artifacts = buildClientCatalogArtifacts(catalog);
-  assert.equal(artifacts.bootstrap.items.length, artifacts.index.items.length);
+  assert.ok(artifacts.bootstrap.items.length >= 36, 'bootstrap lost the newest Home front');
+  assert.ok(artifacts.bootstrap.items.length < artifacts.index.items.length, 'bootstrap regressed to the full navigation archive');
+  assert.equal(artifacts.bootstrap.clientRevision, artifacts.clientRevision);
   assert.ok(count(artifacts.bootstrap, 'foreign-movies') >= 10);
   assert.ok(count(artifacts.bootstrap, 'iranian-movies') >= 10);
   assert.ok(count(artifacts.bootstrap, 'foreign-series') >= 10);
@@ -80,9 +82,15 @@ test('bootstrap contains fresh Home rails, IMDb and only bounded immediate actio
   assert.equal(artifacts.bootstrap.imdbTop100.movies.length, 1);
   assert.equal(artifacts.bootstrap.imdbTop100.series.length, 1);
   for (const item of artifacts.bootstrap.items) {
+    assert.ok(!Array.isArray(item.people) || item.people.length <= 4);
+    if (item.type === 'movie') {
+      const files = (item.downloads || []).flatMap((section) => section.files || []);
+      assert.ok(files.length <= 2, `movie bootstrap action preview became unbounded for ${item.id}`);
+    }
     for (const section of item.downloads || []) assert.ok((section.files || []).length <= 2);
   }
   assert.ok(artifacts.bootstrapSizeBytes < artifacts.clientSizeBytes);
+  assert.ok(artifacts.bootstrapSizeBytes < MAX_BOOTSTRAP_BYTES);
   assert.match(artifacts.bootstrapRevision, /^[a-f0-9]{64}$/);
 });
 
@@ -101,14 +109,17 @@ test('real generated bootstrap stays small while preserving each Home shelf', as
   const index = JSON.parse(indexRaw);
   assert.ok(Array.isArray(bootstrap.items));
   assert.ok(Array.isArray(index.items));
-  assert.equal(bootstrap.items.length, index.items.length);
+  assert.ok(bootstrap.items.length >= 50, 'real Home bootstrap unexpectedly tiny');
+  assert.ok(bootstrap.items.length < 400, 'real Home bootstrap grew beyond its bounded title budget');
+  assert.ok(bootstrap.items.length < index.items.length, 'real bootstrap regressed to the complete index');
+  assert.equal(bootstrap.clientRevision, buildClientCatalogArtifacts(JSON.parse(await fs.readFile('catalog.json', 'utf8'))).clientRevision);
   for (const key of ['iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series', 'korean-movies', 'korean-series', 'indian-movies']) {
     assert.ok(count(bootstrap, key) >= Math.min(10, count(index, key)), `bootstrap underfilled ${key}`);
   }
   const bootstrapBytes = Buffer.byteLength(bootstrapRaw);
   const indexBytes = Buffer.byteLength(indexRaw);
-  assert.ok(bootstrapBytes < indexBytes * 0.55, 'Home bootstrap is no longer materially smaller than the full index');
-  assert.ok(bootstrapBytes < MAX_BOOTSTRAP_BYTES, 'complete bootstrap exceeded the 10 MiB safety bound');
+  assert.ok(bootstrapBytes < indexBytes * 0.10, 'Home bootstrap is no longer small enough for cold start');
+  assert.ok(bootstrapBytes < MAX_BOOTSTRAP_BYTES, 'Home bootstrap exceeded the 1.5 MiB safety bound');
   assert.ok(Array.isArray(bootstrap.imdbTop100?.movies) && bootstrap.imdbTop100.movies.length > 0);
   assert.ok(Array.isArray(bootstrap.imdbTop100?.series) && bootstrap.imdbTop100.series.length > 0);
 });
