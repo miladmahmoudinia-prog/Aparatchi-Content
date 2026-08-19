@@ -1,0 +1,50 @@
+name: Audit device regression v37 temp
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    if: github.event.issue.title == 'RUN DEVICE REGRESSION AUDIT V37'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Audit generated first-paint fields
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          node <<'NODE' > /tmp/audit.txt
+          const fs=require('fs');
+          const read=(p)=>JSON.parse(fs.readFileSync(p,'utf8'));
+          const arr=(v)=>Array.isArray(v)?v:(Array.isArray(v?.items)?v.items:[]);
+          const boot=arr(read('catalog-bootstrap.json'));
+          const index=arr(read('catalog-index.json'));
+          const norm=(s)=>String(s||'').toLowerCase().normalize('NFKC').replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[^a-z0-9\u0600-\u06ff]+/g,' ').trim();
+          const people=(x)=>Array.isArray(x?.people)?x.people:[];
+          const hasOverview=(x)=>Boolean(String(x?.overview||'').trim());
+          const targetNames=['Kathal','Army of the Dead','Gandeevadhari Arjuna','کاتال','ارتش مردگان','ندای کمک'];
+          const find=(items,name)=>items.find(x=>[x?.name,x?.nameFa,x?.name_fa].some(v=>norm(v)===norm(name)))||null;
+          const summarize=(x)=>x?({id:x.id,type:x.type,name:x.name,nameFa:x.nameFa||x.name_fa,detailPath:x.detailPath,overview:hasOverview(x),overviewLen:String(x.overview||'').trim().length,people:people(x).length,backdrop:x.backdrop||'',poster:x.poster||'',backdropFallback:x.backdropFallback||'',clientRevision:x.clientRevision||''}):null;
+          const samples={};
+          for(const name of targetNames){
+            const b=find(boot,name); const i=find(index,name);
+            if(b||i) samples[name]={bootstrap:summarize(b),index:summarize(i)};
+          }
+          const count=(items)=>({items:items.length,withOverview:items.filter(hasOverview).length,withPeople:items.filter(x=>people(x).length>0).length,withBackdrop:items.filter(x=>Boolean(x?.backdrop)).length,detailItems:items.filter(x=>x?.detailPath).length,detailWithPeople:items.filter(x=>x?.detailPath&&people(x).length>0).length,detailWithOverview:items.filter(x=>x?.detailPath&&hasOverview(x)).length});
+          console.log(JSON.stringify({head:process.env.GITHUB_SHA,bootstrap:count(boot),index:count(index),samples},null,2));
+          NODE
+          gh issue comment "$ISSUE_NUMBER" --body "\`\`\`json
+$(cat /tmp/audit.txt)
+\`\`\`"
