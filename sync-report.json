@@ -1,27 +1,63 @@
 {
-  "startedAt": "2026-08-19T16:12:14.257Z",
-  "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-08-19T16:22:13.255Z",
+  "startedAt": "2026-08-19T16:13:17.974Z",
+  "runTimeLimitMinutes": 14,
+  "runDeadlineAt": "2026-08-19T16:27:17.009Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 552445,
-  "imageMirroringSkipped": false,
+  "remainingRunMsAtFinish": 807336,
+  "imageMirroringSkipped": true,
   "originalCount": 5755,
   "finalCount": 5755,
-  "requestedSyncMode": "PEOPLE",
-  "effectiveSyncMode": "PEOPLE",
-  "backfillQueueTotal": 150,
-  "backfillBacklogRemaining": 150,
+  "requestedSyncMode": "BACKFILL",
+  "effectiveSyncMode": "BACKFILL",
+  "backfillQueueTotal": 154,
+  "backfillBacklogRemaining": 153,
   "backfillBlockedTotal": 11,
-  "backfillActiveSeries": null,
+  "backfillActiveSeries": {
+    "id": "41f10cf0-c0ac-11ed-89f6-67eb03123d9b",
+    "title": "اسم رمز: بچه‌های همسایه",
+    "year": 2002,
+    "country": "",
+    "missingBefore": [
+      {
+        "seasonNumber": 1,
+        "episodeNumber": 14
+      },
+      {
+        "seasonNumber": 1,
+        "episodeNumber": 16
+      },
+      {
+        "seasonNumber": 2,
+        "episodeNumber": 2
+      },
+      {
+        "seasonNumber": 2,
+        "episodeNumber": 20
+      },
+      {
+        "seasonNumber": 2,
+        "episodeNumber": 22
+      }
+    ],
+    "pendingBefore": 0,
+    "noProgressRuns": 3
+  },
   "backfillSeriesCompletedThisRun": [],
-  "backfillSeriesBlockedThisRun": [],
+  "backfillSeriesBlockedThisRun": [
+    {
+      "id": "41f10cf0-c0ac-11ed-89f6-67eb03123d9b",
+      "title": "اسم رمز: بچه‌های همسایه",
+      "reason": "added-or-updated",
+      "attempts": 4
+    }
+  ],
   "backfillEpisodesAdded": 0,
-  "backfillSeriesVisited": 0,
-  "backfillCheckpoints": 0,
+  "backfillSeriesVisited": 1,
+  "backfillCheckpoints": 1,
   "episodesMarkedUnavailable": 0,
-  "backfillNoProgressRuns": 0,
-  "normalSyncSkippedForBackfill": false,
+  "backfillNoProgressRuns": 4,
+  "normalSyncSkippedForBackfill": true,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
   "backfillNextSeries": null,
   "episodePaginationPagesFetched": 0,
@@ -40,43 +76,270 @@
   "recentSeriesNewCandidates": 0,
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
-  "affiliateRequestScopes": {},
-  "skippedByScopedBudget": 0,
+  "affiliateRequestScopes": {
+    "operator-movies": {
+      "limit": 8,
+      "used": 8,
+      "exhausted": false
+    },
+    "operator-series": {
+      "limit": 9,
+      "used": 9,
+      "exhausted": true
+    }
+  },
+  "skippedByScopedBudget": 1,
   "moviePagesProcessed": 0,
   "movieTitlesProcessed": 0,
   "seriesPagesProcessed": 0,
   "seriesTitlesProcessed": 0,
-  "airingSeriesCandidates": 0,
-  "airingSeriesChecked": 0,
+  "airingSeriesCandidates": 109,
+  "airingSeriesChecked": 6,
   "airingSeriesUpdated": 0,
-  "incompleteSeriesCandidates": 0,
+  "incompleteSeriesCandidates": 140,
   "incompleteSeriesRepaired": 0,
-  "incompleteSeriesStillMissing": 0,
+  "incompleteSeriesStillMissing": 1,
   "seriesHiddenUntilComplete": 0,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 0,
-  "episodesProcessed": 0,
+  "episodesProcessed": 10,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
   "iranianSeriesRejectedNoLinks": 0,
   "operatorSeriesPagesProcessed": 0,
-  "operatorSeriesCandidates": 0,
+  "operatorSeriesCandidates": 4,
   "operatorSeriesAddedOrUpdated": 0,
   "operatorSeriesRejectedNoOperatorLink": 0,
   "operatorMoviePagesProcessed": 0,
-  "operatorMovieCandidates": 0,
+  "operatorMovieCandidates": 8,
   "operatorMoviesAddedOrUpdated": 0,
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [],
-  "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "operatorDiagnostics": [
+    {
+      "type": "movie",
+      "id": "999a76e0-34cc-11f1-8e6b-8556c48b6e92",
+      "title": "منبع اطلاعاتی",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "ae6f30d0-0f22-11f1-a461-b3a15952ecce",
+      "title": "جنایت ۱۰۱",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "b4ff3510-30dd-11f1-84d2-49a5fbda0bad",
+      "title": "هاپرها",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "593b4c70-079a-11f1-9e24-b3d6085a3945",
+      "title": "ارسال کمک",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "0e524f90-2724-11f1-8ab4-072bdab1f188",
+      "title": "پیکی بلایندر مرد جاودان",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "2f955e50-1573-11f1-8614-a149bacd37ea",
+      "title": "آرکو",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "215f5cd0-216a-11f1-8376-7fbb49296537",
+      "title": "جیغ 7",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "5ceadf50-029d-11f1-913c-eb08abb32a46",
+      "title": "پناهگاه",
+      "result": "rejected",
+      "reason": "no-panel-player-link",
+      "retryLater": false
+    },
+    {
+      "type": "series",
+      "id": "5bfcbee0-3b18-11ec-a646-57724cc2e023",
+      "title": "فاطما",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "retryLater": false
+    },
+    {
+      "type": "series",
+      "id": "b73b6fc0-6512-11ed-9c34-87fb0d3492a3",
+      "title": "دنیای کارما",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "retryLater": false
+    },
+    {
+      "type": "series",
+      "id": "c816d6e0-1956-11ed-87bb-0f36c41d0455",
+      "title": "بازم نیت دیر می‌رسه",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "retryLater": false
+    },
+    {
+      "type": "series",
+      "id": "4e3fdf00-71a3-11ee-b95c-f319fd2fe14d",
+      "title": "دونا!",
+      "result": "rejected",
+      "reason": "request-budget",
+      "retryLater": true
+    }
+  ],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "41f10cf0-c0ac-11ed-89f6-67eb03123d9b",
+      "title": "اسم رمز: بچه‌های همسایه",
+      "source": "fast-backfill",
+      "discoveredEpisodeCount": 92,
+      "catalogEpisodeCount": 92,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "41f10cf0-c0ac-11ed-89f6-67eb03123d9b",
+      "title": "اسم رمز: بچه‌های همسایه",
+      "source": "fast-backfill-summary",
+      "missingBefore": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 16
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 22
+        }
+      ],
+      "pendingBefore": 0,
+      "missingAfter": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 14
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 16
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 20
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 22
+        }
+      ],
+      "pendingAfter": 0,
+      "publicationStatus": "published",
+      "result": "no-progress",
+      "addedEpisodes": 0,
+      "unavailableMarked": 0
+    },
+    {
+      "seriesId": "dbc33f50-25ed-11f1-a1a2-db65c4336225",
+      "title": "مدیسون",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 6,
+      "catalogEpisodeCount": 6,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "e90f2ab0-63fa-11f1-8c27-019f8c3b36c5",
+      "title": "کارآگاه هوله",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 9,
+      "catalogEpisodeCount": 9,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "28d52520-1d72-11f0-9fa1-332372dce575",
+      "title": "دوستان و همسایگانتان",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 19,
+      "catalogEpisodeCount": 19,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "51165810-42e3-11f1-8665-7dfe12b3f97c",
+      "title": "چیزهای عجیب: داستان‌هایی از ۸۵",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 10,
+      "catalogEpisodeCount": 10,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "eeed2da0-573d-11f1-8006-f9704c3a9a37",
+      "title": "دشمن خونی",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 8,
+      "catalogEpisodeCount": 8,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "fe39a480-1963-11f1-b10b-c5787626b6f9",
+      "title": "سی آی ای",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 13,
+      "catalogEpisodeCount": 12,
+      "missing": [],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "581efd70-5698-11ef-8956-f95068daf4da",
@@ -1115,38 +1378,38 @@
       "isAiring": true
     }
   ],
-  "episodesDiscovered": 0,
+  "episodesDiscovered": 437,
   "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 325,
-  "episodeArtworkSeriesChecked": 48,
+  "episodeArtworkCandidates": 0,
+  "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
-  "affiliateRequests": 0,
+  "seriesAddedOrUpdated": 7,
+  "affiliateRequests": 17,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
-  "imagesMirrored": 36,
+  "imagesMirrored": 0,
   "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
-  "episodeFrameErrors": 96,
+  "episodeFrameErrors": 0,
   "seriesKeptVisibleDuringBackfill": 0,
-  "seriesRestoredByMonotonicGuard": 0,
-  "peopleEnrichmentCandidates": 1447,
-  "peopleEnrichmentProcessed": 20,
-  "peopleEnrichmentSucceeded": 8,
-  "peopleEnrichmentFailed": 12,
-  "peopleEnrichmentSkippedFresh": 55,
+  "seriesRestoredByMonotonicGuard": 1,
+  "peopleEnrichmentCandidates": 0,
+  "peopleEnrichmentProcessed": 0,
+  "peopleEnrichmentSucceeded": 0,
+  "peopleEnrichmentFailed": 0,
+  "peopleEnrichmentSkippedFresh": 0,
   "peopleEnrichmentFromSource": 0,
-  "peopleEnrichmentFromTmdb": 8,
+  "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
-  "peopleAdded": 90,
-  "tmdbRequests": 42,
-  "imdbRequests": 14,
+  "peopleAdded": 0,
+  "tmdbRequests": 0,
+  "imdbRequests": 0,
   "mediaRepairCandidates": 0,
   "mediaRepairChecked": 0,
   "mediaRepairRecovered": 0,
@@ -1159,409 +1422,11 @@
   "mediaHealthUnknown": 0,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [
-    {
-      "scope": "people-6ca7bb40-fc37-11e8-ab11-739e35310495",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-6c9cc800-e80b-11e8-9697-95706588f55e",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-6c61c370-1985-11ee-af11-c134029b1c95",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-82fefc80-0105-11f1-8c75-83b6f7454ed5",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-8336ce20-0105-11f1-aacd-4bc20d70ae69",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-87219010-0105-11f1-ba99-df2a44697f88",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-875cbfa0-0105-11f1-b340-112c61788fdb",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-878c0270-0105-11f1-af05-ed6f1e9502d7",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-886a5e30-0105-11f1-a36d-83c076059f5d",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-889377a0-0105-11f1-95ad-45528e239838",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-98a51f20-0105-11f1-a458-f9caa36b0362",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "people-98d878d0-0105-11f1-b9da-9f02b4c99391",
-      "message": "فهرست عوامل معتبری پیدا نشد."
-    },
-    {
-      "scope": "operator-overview-0e371950-0104-11f1-9450-df097bd0cf37--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/1314284?language=fa-IR"
-    },
-    {
-      "scope": "operator-overview-1b3603d0-0104-11f1-85fa-d7cde169373f--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/511455?language=fa-IR"
-    },
-    {
-      "scope": "episode-frame-ee2e5830-5108-11f1-98bd-316451f29bea-1",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-ee2e5830-5108-11f1-98bd-316451f29bea-2",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-ee2e5830-5108-11f1-98bd-316451f29bea-3",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-ee2e5830-5108-11f1-98bd-316451f29bea-4",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-ee2e5830-5108-11f1-98bd-316451f29bea-5",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-ee2e5830-5108-11f1-98bd-316451f29bea-6",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-ee2e5830-5108-11f1-98bd-316451f29bea-7",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-ee2e5830-5108-11f1-98bd-316451f29bea-8",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-ee2e5830-5108-11f1-98bd-316451f29bea-9",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-ee2e5830-5108-11f1-98bd-316451f29bea-10",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-ee2e5830-5108-11f1-98bd-316451f29bea-11",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-ee2e5830-5108-11f1-98bd-316451f29bea-12",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-ee2e5830-5108-11f1-98bd-316451f29bea-13",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-ee2e5830-5108-11f1-98bd-316451f29bea-14",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c63e6810-386d-11ef-863c-091635ebc05e-1",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c63e6810-386d-11ef-863c-091635ebc05e-2",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c63e6810-386d-11ef-863c-091635ebc05e-3",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c63e6810-386d-11ef-863c-091635ebc05e-4",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c63e6810-386d-11ef-863c-091635ebc05e-5",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c63e6810-386d-11ef-863c-091635ebc05e-6",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c63e6810-386d-11ef-863c-091635ebc05e-7",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c63e6810-386d-11ef-863c-091635ebc05e-8",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-53d81a30-b05b-11f0-a0f0-7303548a05ce-1",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-53d81a30-b05b-11f0-a0f0-7303548a05ce-2",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-53d81a30-b05b-11f0-a0f0-7303548a05ce-3",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-53d81a30-b05b-11f0-a0f0-7303548a05ce-4",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-53d81a30-b05b-11f0-a0f0-7303548a05ce-5",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-53d81a30-b05b-11f0-a0f0-7303548a05ce-6",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-53d81a30-b05b-11f0-a0f0-7303548a05ce-7",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-53d81a30-b05b-11f0-a0f0-7303548a05ce-8",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-53d81a30-b05b-11f0-a0f0-7303548a05ce-9",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-53d81a30-b05b-11f0-a0f0-7303548a05ce-10",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-53d81a30-b05b-11f0-a0f0-7303548a05ce-11",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-1",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-2",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-3",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-4",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-5",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-6",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-7",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-8",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-9",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-1",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-2",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-3",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-4",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-5",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-6",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-7",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-8",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-9",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-28d52520-1d72-11f0-9fa1-332372dce575-10",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-e90f2ab0-63fa-11f1-8c27-019f8c3b36c5-1",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-e90f2ab0-63fa-11f1-8c27-019f8c3b36c5-2",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-e90f2ab0-63fa-11f1-8c27-019f8c3b36c5-3",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-e90f2ab0-63fa-11f1-8c27-019f8c3b36c5-4",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-e90f2ab0-63fa-11f1-8c27-019f8c3b36c5-5",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-e90f2ab0-63fa-11f1-8c27-019f8c3b36c5-6",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-e90f2ab0-63fa-11f1-8c27-019f8c3b36c5-7",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-e90f2ab0-63fa-11f1-8c27-019f8c3b36c5-8",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-e90f2ab0-63fa-11f1-8c27-019f8c3b36c5-9",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-1",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-2",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-3",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-4",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-5",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-6",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-7",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-8",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-9",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-10",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-11",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-12",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-13",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-14",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-15",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-16b78e90-ea0b-11f0-8bab-27196343f1c8-16",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c289ea80-573e-11f1-a968-1b623cae7bb0-1",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c289ea80-573e-11f1-a968-1b623cae7bb0-2",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c289ea80-573e-11f1-a968-1b623cae7bb0-3",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c289ea80-573e-11f1-a968-1b623cae7bb0-4",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c289ea80-573e-11f1-a968-1b623cae7bb0-5",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c289ea80-573e-11f1-a968-1b623cae7bb0-6",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c289ea80-573e-11f1-a968-1b623cae7bb0-7",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c289ea80-573e-11f1-a968-1b623cae7bb0-8",
-      "message": "spawn ffmpeg ENOENT"
-    },
-    {
-      "scope": "episode-frame-c289ea80-573e-11f1-a968-1b623cae7bb0-9",
-      "message": "spawn ffmpeg ENOENT"
-    }
-  ],
-  "errorsTruncated": 11,
-  "apiRequests": 124,
-  "finishedAt": "2026-08-19T16:13:00.810Z"
+  "errors": [],
+  "errorsTruncated": 0,
+  "apiRequests": 30,
+  "lastCheckpointAt": "2026-08-19T16:13:41.934Z",
+  "lastCheckpointReason": "backfill-paused-41f10cf0-c0ac-11ed-89f6-67eb03123d9b",
+  "remainingRunMsAtCheckpoint": 813411,
+  "finishedAt": "2026-08-19T16:13:49.673Z"
 }
