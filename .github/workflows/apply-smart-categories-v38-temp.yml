@@ -1,0 +1,49 @@
+name: Apply smart categories v38 temp
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  apply:
+    if: github.event.issue.title == 'RUN SMART CATEGORIES V38'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 20
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Apply patch
+        run: node scripts/apply-smart-categories-v38.mjs
+      - name: Regression suite
+        run: node --test scripts/tests/*.test.mjs
+      - name: Persist verified source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/classification.mjs scripts/client-catalog.mjs scripts/sync-upera.mjs scripts/tests/smart-categories-v38.test.mjs
+          if git diff --cached --quiet; then
+            echo "No source changes."
+          else
+            git commit -m "fix: smart operator categories and short films v38"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - name: Report success
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh issue comment ${{ github.event.issue.number }} --body "smart-categories-v38=success\nhead=$(git rev-parse HEAD)"
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh issue comment ${{ github.event.issue.number }} --body "smart-categories-v38=failure\nrun=${{ github.run_id }}\nhead=$(git rev-parse HEAD)"
