@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import test from 'node:test';
+
+const workflow = fs.readFileSync('.github/workflows/sync-upera.yml', 'utf8');
+
+test('dedicated Iranian lane skips terminal non-Iranian rows within the same workflow run', () => {
+  assert.match(workflow, /- name: Complete one Iranian series sequentially/);
+  assert.match(workflow, /UPERA_SYNC_MODE: 'IRANIAN'/);
+  assert.match(workflow, /UPERA_OPERATOR_DISCOVERY_ENABLED: 'false'/);
+  assert.match(workflow, /for pass in \$\(seq 1 24\)/);
+  assert.match(workflow, /sync-report-iranian\.json/);
+  assert.match(workflow, /decision=\"\$\(node -e/);
+  assert.match(workflow, /if \[ \"\$decision\" != \"skip\" \]; then/);
+});
