@@ -1,0 +1,62 @@
+name: One-shot operator v34 source on current head
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'operator-v34-source-trigger.txt'
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: operator-v34-source-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout current-base PR head
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 20
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Overlay verified v34 source only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin fix/operator-detail-metadata-v34
+          git checkout FETCH_HEAD -- \
+            scripts/operator-metadata-repair.mjs \
+            scripts/classification.mjs \
+            scripts/client-catalog.mjs \
+            scripts/tests/full-navigation-bootstrap-v1.test.mjs \
+            scripts/tests/operator-detail-metadata-v34.test.mjs
+
+      - name: Run full content regressions
+        run: node --test scripts/tests/*.test.mjs
+
+      - name: Commit source repair against current main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f --ignore-unmatch .github/workflows/operator-v34-source.yml operator-v34-source-trigger.txt
+          git add \
+            scripts/operator-metadata-repair.mjs \
+            scripts/classification.mjs \
+            scripts/client-catalog.mjs \
+            scripts/tests/full-navigation-bootstrap-v1.test.mjs \
+            scripts/tests/operator-detail-metadata-v34.test.mjs
+          git commit -m "fix: persist operator category and first-paint metadata rules"
+          git push origin HEAD:${{ github.head_ref }}
