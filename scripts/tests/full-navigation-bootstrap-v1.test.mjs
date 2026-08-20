@@ -40,6 +40,16 @@ test('Home bootstrap keeps a first-screen sample for every populated Home shelf'
   }
 });
 
+test('bootstrap carries the complete practical Iranian-series lane in newest-first order', () => {
+  const indexSeries = index.items.filter((item) => item.categoryKeys?.includes('iranian-series'));
+  const bootstrapSeries = bootstrap.items.filter((item) => item.categoryKeys?.includes('iranian-series'));
+  assert.equal(bootstrapSeries.length, Math.min(64, indexSeries.length));
+  assert.deepEqual(
+    bootstrapSeries.map((item) => item.id),
+    indexSeries.slice(0, 64).map((item) => item.id),
+  );
+});
+
 test('Home movie action previews are immediate but strictly bounded', () => {
   for (const item of bootstrap.items.filter((candidate) => candidate?.type === 'movie')) {
     const files = (Array.isArray(item.downloads) ? item.downloads : [])

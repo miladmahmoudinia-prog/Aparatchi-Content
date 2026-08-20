@@ -3374,6 +3374,11 @@ async function processSeries(
     archiveComplete || keepPublishedWhileAiring || keepPreviouslyVisible
       ? 'published'
       : 'building-archive';
+  const publishedAt = publicationStatus === 'published'
+    ? (existing?.publishedAt || (existing?.publicationStatus !== 'published'
+        ? new Date().toISOString()
+        : existing?.firstSeenAt))
+    : existing?.publishedAt;
 
   if (publicationStatus === 'building-archive') {
     stats.seriesHiddenUntilComplete += 1;
@@ -3405,6 +3410,7 @@ async function processSeries(
       isAiring,
       archiveComplete,
       publicationStatus,
+      publishedAt,
       sourceEpisodeCount: episodesByCoordinate.length,
       pendingEpisodes: remainingSourceEpisodes,
       unavailableEpisodes: [...unavailableEpisodeMap.values()],
@@ -5312,6 +5318,7 @@ function mergeDuplicateCatalogPair(current, incoming) {
     updatedAt: maxDate(current.updatedAt, incoming.updatedAt),
     sourceUpdatedAt: maxDate(current.sourceUpdatedAt, incoming.sourceUpdatedAt),
     meaningfulUpdatedAt: maxDate(current.meaningfulUpdatedAt, incoming.meaningfulUpdatedAt),
+    publishedAt: [current.publishedAt, incoming.publishedAt].filter(Boolean).sort()[0],
     firstSeenAt: [current.firstSeenAt, incoming.firstSeenAt].filter(Boolean).sort()[0],
     lastSyncedAt: maxDate(current.lastSyncedAt, incoming.lastSyncedAt),
     ...(type === 'series' ? {
@@ -5908,6 +5915,11 @@ function normalizeSeries(
         : [],
     archiveComplete: Boolean(archiveMeta.archiveComplete),
     publicationStatus: archiveMeta.publicationStatus || 'building-archive',
+    ...(archiveMeta.publishedAt
+      ? { publishedAt: archiveMeta.publishedAt }
+      : existing?.publishedAt
+        ? { publishedAt: existing.publishedAt }
+        : {}),
     visibilityLocked: Boolean(
       !ir && (
         existing?.visibilityLocked ||

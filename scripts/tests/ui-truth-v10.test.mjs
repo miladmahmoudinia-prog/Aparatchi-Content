@@ -49,9 +49,9 @@ test('episode frame generation seeks to the actual episode midpoint', async () =
   assert.doesNotMatch(source, /String\(45 \+ \(\(Number\(group\?\.episodeNumber/);
 });
 
-test('two-hour sync gives episode artwork a real bounded repair budget', async () => {
+test('hourly sync gives episode artwork a real bounded repair budget', async () => {
   const workflow = await fs.readFile('.github/workflows/sync-upera.yml', 'utf8');
-  assert.match(workflow, /cron: '34 \*\/2 \* \* \*'/);
+  assert.match(workflow, /cron: '34 \* \* \* \*'/);
   assert.match(workflow, /APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN: '48'/);
   assert.match(workflow, /APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN: '96'/);
   assert.match(workflow, /UPERA_SYNC_MODE: 'PEOPLE'[\s\S]*?APARATCHI_RUN_TIME_LIMIT_MINUTES: '10'/);
