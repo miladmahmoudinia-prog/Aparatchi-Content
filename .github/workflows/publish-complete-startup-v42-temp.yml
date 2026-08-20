@@ -1,0 +1,45 @@
+name: Publish Complete Startup Catalog v42
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  publish:
+    if: github.event.issue.title == 'RUN COMPLETE STARTUP CATALOG V42'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 20
+
+      - name: Rebuild complete startup catalog
+        run: node scripts/rebuild-client-index.mjs
+
+      - name: Verify complete uncapped startup catalog
+        run: node --test scripts/tests/full-navigation-bootstrap-v1.test.mjs scripts/tests/home-bootstrap-v1.test.mjs scripts/tests/fast-movie-media-v2.test.mjs
+
+      - name: Publish generated catalog and remove dispatcher
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/publish-complete-startup-v42-temp.yml
+          git add catalog-bootstrap.json catalog-manifest.json
+          git commit -m "perf: publish complete startup catalog"
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              gh issue comment "${{ github.event.issue.number }}" --body "complete-startup-catalog-v42=published"
+              exit 0
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          exit 1

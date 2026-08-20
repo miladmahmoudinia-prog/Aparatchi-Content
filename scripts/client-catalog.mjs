@@ -503,12 +503,6 @@ const clientCatalogFreshness = (item) => {
   return candidates.reduce((latest, value) => Math.max(latest, parsedTimestamp(value)), 0);
 };
 
-const BOOTSTRAP_CATEGORY_KEYS = [
-  'mobile-operator', 'iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series',
-  'korean-movies', 'korean-series', 'indian-movies', 'indian-series', 'anime-movies', 'anime-series',
-  'animation-movies', 'animation-series', 'kids', 'programs', 'dubbed', 'subtitled', 'documentaries', 'short-films', 'wildlife', 'collections',
-];
-
 const BOOTSTRAP_NAVIGATION_FIELDS = [
   'id', 'slug', 'type', 'ir', 'year', 'nameFa', 'name', 'imdb',
   'countryCodes', 'countryLabels', 'countryNames', 'originalLanguage', 'collectionId', 'collectionOrder',
@@ -591,69 +585,36 @@ const compactBootstrapSeriesEpisodePreviews = (downloads) =>
     }];
   });
 
-const compactBootstrapNavigationItem = (item) => {
+const compactBootstrapNavigationItem = (item, keepImmediateDetail = false) => {
   const compact = {};
   for (const field of BOOTSTRAP_NAVIGATION_FIELDS) {
     if (Object.prototype.hasOwnProperty.call(item || {}, field)) compact[field] = item[field];
   }
-  // Carry the same bounded cast/director preview as the client index. Detail
-  // may enrich it later, but opening the screen must not create the section late.
-  if (Array.isArray(item?.people) && item.people.length) {
+  // Keep richer first-screen rows, but do not repeat cast and media payloads for
+  // thousands of archive entries. Every entry retains detailPath and hydrates
+  // its exact detail shard when opened.
+  if (keepImmediateDetail && Array.isArray(item?.people) && item.people.length) {
     compact.people = item.people.slice(0, 8);
   }
-  if (item?.type === 'movie') {
+  if (keepImmediateDetail && item?.type === 'movie') {
     const downloads = compactBootstrapMovieActionPreview(item.downloads);
     if (downloads.length) compact.downloads = downloads;
     if (/^https?:\/\//i.test(String(item.streamUrl || '').trim())) compact.streamUrl = item.streamUrl;
     if (item.streamMode) compact.streamMode = item.streamMode;
-  } else if (item?.type === 'series') {
+  } else if (keepImmediateDetail && item?.type === 'series') {
     const downloads = compactBootstrapSeriesEpisodePreviews(item.downloads);
     if (downloads.length) compact.downloads = downloads;
   }
   return compact;
 };
 
-const bootstrapItemsForHome = (items) => {
+const completeBootstrapNavigation = (items) => {
   const source = Array.isArray(items) ? items : [];
-  const picked = [];
-  const seen = new Set();
-  const add = (item) => {
-    const id = String(item?.id || '');
-    if (!id || seen.has(id)) return false;
-    seen.add(id);
-    picked.push(item);
-    return true;
-  };
-
-  // Preserve the newest front of the client index for Hero/latest rails.
-  source.slice(0, 36).forEach(add);
-
-  // Preserve genuinely new/updated titles even if they are not near the
-  // catalog head. Reuse the same truth function; metadata timestamps must not
-  // make an old title a Home-critical row.
-  [...source]
-    .sort((a, b) => clientCatalogFreshness(b) - clientCatalogFreshness(a))
-    .slice(0, 24)
-    .forEach(add);
-
-  // Home must never wait for the multi-megabyte full index just to populate
-  // a common rail. Keep up to twelve real summaries for every Home category.
-  for (const key of BOOTSTRAP_CATEGORY_KEYS) {
-    // Iranian series are completed sequentially by the dedicated sync lane.
-    // Keep the whole practical lane in the small bootstrap so category growth
-    // and newly completed titles become visible even when the large client
-    // index is still downloading on a slow mobile connection.
-    const targetCount = key === 'iranian-series' ? 64 : 12;
-    let count = 0;
-    for (const item of source) {
-      if (!(Array.isArray(item?.categoryKeys) && item.categoryKeys.includes(key))) continue;
-      if (add(item)) count += 1;
-      else if (seen.has(String(item?.id || ''))) count += 1;
-      if (count >= targetCount) break;
-    }
-  }
-
-  return picked;
+  // This is the startup navigation source, not a Home sample. Returning only
+  // a few rows per category made the installed app look incomplete for another
+  // 10–15 seconds while catalog-index.json downloaded. Keep every client-visible
+  // title here; compactBootstrapNavigationItem removes detail-only weight below.
+  return source;
 };
 
 export function buildClientCatalogArtifacts(catalog) {
@@ -706,12 +667,13 @@ export function buildClientCatalogArtifacts(catalog) {
   // human-readable because only one is fetched when a title opens.
   const indexSerialized = `${JSON.stringify(index)}\n`;
 
-  // Cold start only needs the current Home truth. The full navigation index
-  // continues in catalog-index.json and replaces/enriches this snapshot in the
-  // background. Keeping the entire archive here made startup multi-megabyte
-  // and allowed an old Home to remain visible while the real index downloaded.
+  // Cold start needs the complete navigation truth. The full index remains an
+  // optional detail-enrichment source; category completeness must not depend on
+  // downloading/parsing it after the app is already visible.
   const clientRevision = createHash('sha256').update(indexSerialized).digest('hex');
-  const bootstrapItems = bootstrapItemsForHome(items).map(compactBootstrapNavigationItem);
+  const bootstrapItems = completeBootstrapNavigation(items).map((item, index) =>
+    compactBootstrapNavigationItem(item, index < 36)
+  );
   const bootstrap = {
     version: index.version,
     updatedAt: index.updatedAt,
@@ -732,7 +694,9 @@ export function buildClientCatalogArtifacts(catalog) {
     detailFiles,
     stableDetailFiles,
     clientRevision,
+    clientItemCount: index.items.length,
     clientSizeBytes: Buffer.byteLength(indexSerialized),
+    bootstrapItemCount: bootstrap.items.length,
     bootstrapRevision: createHash('sha256').update(bootstrapSerialized).digest('hex'),
     bootstrapSizeBytes: Buffer.byteLength(bootstrapSerialized),
   };

@@ -7,9 +7,11 @@ const artifacts = await writeClientCatalogArtifacts('.', catalog);
 const manifestPath = 'catalog-manifest.json';
 const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
 manifest.clientRevision = artifacts.clientRevision;
+manifest.clientItemCount = artifacts.clientItemCount;
 manifest.clientSizeBytes = artifacts.clientSizeBytes;
 manifest.clientIndex = 'catalog-index.json';
 manifest.bootstrapRevision = artifacts.bootstrapRevision;
+manifest.bootstrapItemCount = artifacts.bootstrapItemCount;
 manifest.bootstrapSizeBytes = artifacts.bootstrapSizeBytes;
 manifest.bootstrapIndex = 'catalog-bootstrap.json';
 manifest.detailBase = 'catalog-items/';
@@ -17,6 +19,7 @@ await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8
 
 console.log(JSON.stringify({
   itemCount: artifacts.index.items.length,
+  bootstrapItemCount: artifacts.bootstrap.items.length,
   clientSizeBytes: artifacts.clientSizeBytes,
   clientRevision: artifacts.clientRevision,
   bootstrapSizeBytes: artifacts.bootstrapSizeBytes,
