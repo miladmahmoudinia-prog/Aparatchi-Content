@@ -1,13 +1,13 @@
 {
-  "startedAt": "2026-08-20T03:40:59.619Z",
+  "startedAt": "2026-08-20T06:06:38.035Z",
   "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-08-20T03:52:58.664Z",
+  "runDeadlineAt": "2026-08-20T06:18:36.788Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 705808,
+  "remainingRunMsAtFinish": 650762,
   "imageMirroringSkipped": true,
-  "originalCount": 5970,
-  "finalCount": 5970,
+  "originalCount": 6017,
+  "finalCount": 6017,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
   "backfillQueueTotal": 153,
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 180,
-      "used": 0,
+      "used": 24,
       "exhausted": false
     }
   },
@@ -58,12 +58,12 @@
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 0,
+  "seriesHiddenUntilComplete": 1,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 1,
-  "episodesProcessed": 0,
+  "episodesProcessed": 24,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 1,
   "iranianSeriesAddedOrUpdated": 1,
@@ -79,28 +79,40 @@
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 0,
+  "duplicateCatalogItemsMerged": 15,
   "iranianSeriesDiagnostics": [
     {
-      "id": "1ed80b20-340e-11ed-94e4-396df7bf5a21",
-      "title": "ممنوعه",
-      "result": "completed",
+      "id": "1cb2a690-d57f-11ef-a1f9-91af443a73a4",
+      "title": "مزرعه شادی",
+      "result": "advanced",
       "reason": "added-or-updated",
-      "addedEpisodes": 0,
-      "remainingEpisodeCount": 0,
+      "addedEpisodes": 23,
+      "remainingEpisodeCount": 1,
       "retryLater": false
     }
   ],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "1ed80b20-340e-11ed-94e4-396df7bf5a21",
-      "title": "ممنوعه",
+      "seriesId": "1cb2a690-d57f-11ef-a1f9-91af443a73a4",
+      "title": "مزرعه شادی",
       "source": "iranian-priority",
-      "discoveredEpisodeCount": 26,
-      "catalogEpisodeCount": 26,
-      "missing": [],
-      "rejectedEpisodes": []
+      "discoveredEpisodeCount": 54,
+      "catalogEpisodeCount": 53,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 55
+        }
+      ],
+      "rejectedEpisodes": [
+        {
+          "id": "9dd3f1b0-f41d-11ef-a864-176e2e55cba0",
+          "seasonNumber": 1,
+          "episodeNumber": 55,
+          "reason": "no-usable-links"
+        }
+      ]
     }
   ],
   "catalogEpisodeGapDiagnostics": [
@@ -1072,9 +1084,13 @@
         {
           "seasonNumber": 1,
           "episodeNumber": 32
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 55
         }
       ],
-      "pendingEpisodeCount": 24,
+      "pendingEpisodeCount": 1,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
@@ -1187,18 +1203,18 @@
       "isAiring": true
     }
   ],
-  "episodesDiscovered": 44,
-  "episodeGroupsAdded": 0,
+  "episodesDiscovered": 72,
+  "episodeGroupsAdded": 23,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 0,
+  "episodesRejectedNoLinks": 1,
   "moviesAddedOrUpdated": 0,
   "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 0,
+  "affiliateRequests": 24,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 0,
+  "affiliateNotFound": 1,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1207,7 +1223,7 @@
   "episodeFramesGenerated": 0,
   "episodeFrameErrors": 0,
   "seriesKeptVisibleDuringBackfill": 0,
-  "seriesRestoredByMonotonicGuard": 0,
+  "seriesRestoredByMonotonicGuard": 1,
   "peopleEnrichmentCandidates": 0,
   "peopleEnrichmentProcessed": 0,
   "peopleEnrichmentSucceeded": 0,
@@ -1231,11 +1247,16 @@
   "mediaHealthUnknown": 0,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [],
+  "errors": [
+    {
+      "scope": "panel-show-links-episode-9dd3f1b0-f41d-11ef-a864-176e2e55cba0",
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/show_links/episode/9dd3f1b0-f41d-11ef-a864-176e2e55cba0"
+    }
+  ],
   "errorsTruncated": 0,
-  "apiRequests": 6,
-  "lastCheckpointAt": "2026-08-20T03:41:05.875Z",
-  "lastCheckpointReason": "iranian-complete-1ed80b20-340e-11ed-94e4-396df7bf5a21",
-  "remainingRunMsAtCheckpoint": 711014,
-  "finishedAt": "2026-08-20T03:41:12.856Z"
+  "apiRequests": 54,
+  "lastCheckpointAt": "2026-08-20T06:07:37.567Z",
+  "lastCheckpointReason": "iranian-skip-1cb2a690-d57f-11ef-a1f9-91af443a73a4",
+  "remainingRunMsAtCheckpoint": 656876,
+  "finishedAt": "2026-08-20T06:07:46.026Z"
 }
