@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-08-20T10:19:06.367Z",
+  "startedAt": "2026-08-20T11:57:24.686Z",
   "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-08-20T10:31:05.087Z",
+  "runDeadlineAt": "2026-08-20T12:09:23.365Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 703780,
+  "remainingRunMsAtFinish": 703394,
   "imageMirroringSkipped": true,
-  "originalCount": 6100,
-  "finalCount": 6100,
+  "originalCount": 6137,
+  "finalCount": 6137,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
   "backfillQueueTotal": 155,
-  "backfillBacklogRemaining": 154,
+  "backfillBacklogRemaining": 155,
   "backfillBlockedTotal": 12,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
@@ -58,7 +58,7 @@
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 1,
+  "seriesHiddenUntilComplete": 0,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
@@ -79,76 +79,27 @@
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 0,
+  "duplicateCatalogItemsMerged": 16,
   "iranianSeriesDiagnostics": [
     {
-      "id": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "title": "سایه باز",
-      "result": "advanced",
+      "id": "ff31b0e0-d66b-11f0-b3dd-d75c38a77a73",
+      "title": "رقص روی شیشه",
+      "result": "completed",
       "reason": "added-or-updated",
       "addedEpisodes": 0,
-      "remainingEpisodeCount": 12,
+      "remainingEpisodeCount": 0,
       "retryLater": false
     }
   ],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "title": "سایه باز",
+      "seriesId": "ff31b0e0-d66b-11f0-b3dd-d75c38a77a73",
+      "title": "رقص روی شیشه",
       "source": "iranian-priority",
-      "discoveredEpisodeCount": 20,
-      "catalogEpisodeCount": 8,
-      "missing": [
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 1
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 2
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 3
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 4
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 5
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 6
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 7
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 8
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 9
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 10
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 11
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 12
-        }
-      ],
+      "discoveredEpisodeCount": 12,
+      "catalogEpisodeCount": 12,
+      "missing": [],
       "rejectedEpisodes": []
     }
   ],
@@ -1092,6 +1043,15 @@
       "pendingEpisodeCount": 68,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "b8791220-5de7-11ed-9869-e144f2d9d8e1",
+      "title": "یوکو",
+      "missing": [],
+      "pendingEpisodeCount": 14,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
       "isAiring": false
     },
     {
@@ -1258,7 +1218,7 @@
       "isAiring": true
     }
   ],
-  "episodesDiscovered": 38,
+  "episodesDiscovered": 30,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
@@ -1278,7 +1238,7 @@
   "episodeFramesGenerated": 0,
   "episodeFrameErrors": 0,
   "seriesKeptVisibleDuringBackfill": 0,
-  "seriesRestoredByMonotonicGuard": 0,
+  "seriesRestoredByMonotonicGuard": 1,
   "peopleEnrichmentCandidates": 0,
   "peopleEnrichmentProcessed": 0,
   "peopleEnrichmentSucceeded": 0,
@@ -1305,8 +1265,8 @@
   "errors": [],
   "errorsTruncated": 0,
   "apiRequests": 6,
-  "lastCheckpointAt": "2026-08-20T10:19:12.463Z",
-  "lastCheckpointReason": "iranian-deferred-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-  "remainingRunMsAtCheckpoint": 710214,
-  "finishedAt": "2026-08-20T10:19:21.307Z"
+  "lastCheckpointAt": "2026-08-20T11:57:31.126Z",
+  "lastCheckpointReason": "iranian-complete-ff31b0e0-d66b-11f0-b3dd-d75c38a77a73",
+  "remainingRunMsAtCheckpoint": 709859,
+  "finishedAt": "2026-08-20T11:57:39.971Z"
 }
