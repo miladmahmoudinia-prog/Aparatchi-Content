@@ -12,7 +12,7 @@ jobs:
   apply:
     if: github.event.pull_request.head.ref == 'fix/operator-prepublish-v39'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v6
         with:
@@ -40,6 +40,9 @@ jobs:
               raise SystemExit('client-catalog operator anchor not found')
           PY
 
+      - name: Rebuild client artifacts with publication gate
+        run: node scripts/rebuild-client-catalog.mjs
+
       - name: Syntax and regression tests
         run: |
           node --check scripts/client-catalog.mjs
@@ -54,7 +57,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/client-catalog.mjs scripts/tests/operator-prepublish-shortfilms-v39.test.mjs
+          git add scripts/client-catalog.mjs scripts/tests/operator-prepublish-shortfilms-v39.test.mjs catalog-index.json catalog-bootstrap.json catalog-items catalog-stable
           if git diff --cached --quiet; then
             echo 'No source changes to commit.'
           else
