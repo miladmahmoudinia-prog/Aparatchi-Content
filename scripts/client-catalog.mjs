@@ -13,7 +13,7 @@ const SUMMARY_FIELDS = [
   'archivePendingEpisodeCount', 'sourceEpisodeCount', 'archiveAuditStatus',
   'archiveEpisodeDiscoveryComplete', 'updateLabel', 'meaningfulUpdatedAt',
   'categoryKeys', 'categoryLabels', 'contentKind', 'isAnimation', 'isAnime', 'isTalkShow',
-  'isDocumentary', 'isWildlife', 'mediaAuditStatus', 'firstSeenAt', 'createdAt', 'updatedAt', 'sourceCreatedAt', 'sourceUpdatedAt',
+  'isDocumentary', 'isWildlife', 'mediaAuditStatus', 'publishedAt', 'firstSeenAt', 'createdAt', 'updatedAt', 'sourceCreatedAt', 'sourceUpdatedAt',
   'tmdbValidationVersion',
 ];
 
@@ -490,6 +490,7 @@ const clientCatalogFreshness = (item) => {
   const candidates = item?.type === 'series'
     ? [
         meaningfulIsCredible ? item?.meaningfulUpdatedAt : '',
+        item?.publishedAt,
         item?.firstSeenAt,
         item?.sourceCreatedAt,
         item?.createdAt,
@@ -515,7 +516,7 @@ const BOOTSTRAP_NAVIGATION_FIELDS = [
   'episodeCount', 'seasonCount', 'latestEpisode', 'isAiring', 'publicationStatus',
   'updateLabel', 'meaningfulUpdatedAt', 'categoryKeys', 'categoryLabels',
   'contentKind', 'isAnimation', 'isAnime', 'isTalkShow', 'isDocumentary', 'isWildlife',
-  'firstSeenAt', 'createdAt', 'updatedAt', 'sourceCreatedAt', 'sourceUpdatedAt', 'detailPath',
+  'publishedAt', 'firstSeenAt', 'createdAt', 'updatedAt', 'sourceCreatedAt', 'sourceUpdatedAt', 'detailPath',
 ];
 
 const compactBootstrapMovieFile = (file) => ({
@@ -638,12 +639,17 @@ const bootstrapItemsForHome = (items) => {
   // Home must never wait for the multi-megabyte full index just to populate
   // a common rail. Keep up to twelve real summaries for every Home category.
   for (const key of BOOTSTRAP_CATEGORY_KEYS) {
+    // Iranian series are completed sequentially by the dedicated sync lane.
+    // Keep the whole practical lane in the small bootstrap so category growth
+    // and newly completed titles become visible even when the large client
+    // index is still downloading on a slow mobile connection.
+    const targetCount = key === 'iranian-series' ? 64 : 12;
     let count = 0;
     for (const item of source) {
       if (!(Array.isArray(item?.categoryKeys) && item.categoryKeys.includes(key))) continue;
       if (add(item)) count += 1;
       else if (seen.has(String(item?.id || ''))) count += 1;
-      if (count >= 12) break;
+      if (count >= targetCount) break;
     }
   }
 

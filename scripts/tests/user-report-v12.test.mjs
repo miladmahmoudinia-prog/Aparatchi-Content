@@ -86,6 +86,24 @@ test('a real forward episode update can move an older series to the front', () =
   assert.equal(artifacts.index.items[0].id, 'real-update');
 });
 
+test('a series appears first when its completed archive is published for the first time', () => {
+  const alreadyVisible = baseSeries({
+    id: 'already-visible',
+    firstSeenAt: '2026-08-12T00:00:00Z',
+    episodeSourceUpdatedAt: '2026-08-12T00:00:00Z',
+  });
+  const newlyPublished = baseSeries({
+    id: 'newly-published',
+    firstSeenAt: '2026-08-01T00:00:00Z',
+    episodeSourceUpdatedAt: '2026-06-01T00:00:00Z',
+  });
+  newlyPublished.publishedAt = '2026-08-18T12:00:00Z';
+
+  const artifacts = buildClientCatalogArtifacts(catalogOf([alreadyVisible, newlyPublished]));
+  assert.equal(artifacts.index.items[0].id, 'newly-published');
+  assert.equal(artifacts.index.items[0].publishedAt, newlyPublished.publishedAt);
+});
+
 test('client summary carries bounded people preview and discovery timestamp', () => {
   const people = Array.from({ length: 12 }, (_, index) => ({
     id: `p-${index}`,
@@ -114,5 +132,6 @@ test('sync marks only forward-tail episode additions as meaningful', () => {
   assert.ok(source.includes('let latestForwardEpisode = null;'));
   assert.ok(source.includes('if (isEpisodeAfterPublishedTail(episode, previousGroups))'));
   assert.ok(source.includes('const isMeaningfulEpisodeUpdate = Boolean(addedEpisodes > 0 && latestForwardEpisode && existing);'));
+  assert.ok(source.includes("existing?.publicationStatus !== 'published'"));
   assert.ok(!source.includes("updateLabel = 'بروزرسانی شد';"));
 });
