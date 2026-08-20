@@ -1,0 +1,43 @@
+name: Report Iranian series v39 sync
+
+on:
+  workflow_run:
+    workflows: ['Sync Upera Catalog']
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: write
+  issues: write
+
+jobs:
+  report:
+    if: github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 20
+
+      - name: Report result
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ github.event.workflow_run.conclusion }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: gh issue comment 42 --body "iranian-series-v39-sync=$RESULT\\nrun=$RUN_ID"
+
+      - name: Remove monitor
+        if: always()
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/report-iranian-series-v39-temp.yml
+          git commit -m "chore: remove Iranian series v39 monitor"
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          exit 1
