@@ -139,6 +139,11 @@ const sanitizeClientMediaItem = (item) => {
   if (!item || !['movie', 'series'].includes(item.type)) return item;
   const iranian = item.ir === true || (Array.isArray(item.countryCodes) && item.countryCodes.includes('IR'));
   const operatorVariant = item.operatorOnly === true;
+  // Do not publish an operator-only transport shell until its real identity has
+  // been resolved. The source record stays in catalog.json and the bounded TMDB
+  // verifier retries it; once verified it can appear in mobile-operator plus its
+  // real category (documentary, short film, Iranian/foreign film or series).
+  if (operatorVariant && (item.operatorClassificationStatus === 'pending' || item.operatorClassificationPending === true)) return null;
   const prepared = (Array.isArray(item.downloads) ? item.downloads : []).map((section) => ({
     ...section,
     files: (Array.isArray(section?.files) ? section.files : []).flatMap((file) => {
