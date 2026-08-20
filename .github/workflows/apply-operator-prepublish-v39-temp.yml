@@ -40,8 +40,15 @@ jobs:
               raise SystemExit('client-catalog operator anchor not found')
           PY
 
-      - name: Rebuild client artifacts with publication gate
+      - name: Rebuild client index and bootstrap
         run: node scripts/rebuild-client-catalog.mjs
+
+      - name: Restore unreferenced detail shards from main
+        shell: bash
+        run: |
+          git fetch origin main --depth=1
+          git checkout origin/main -- catalog-items catalog-stable
+          rm -f operator-prepublish-v39-trigger.txt
 
       - name: Syntax and regression tests
         run: |
@@ -49,7 +56,7 @@ jobs:
           node --check scripts/classification.mjs
           node --test scripts/tests/*.test.mjs
 
-      - name: Commit verified fix to branch
+      - name: Commit verified minimal fix to branch
         env:
           TARGET_BRANCH: fix/operator-prepublish-v39
         shell: bash
@@ -58,9 +65,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add scripts/client-catalog.mjs scripts/tests/operator-prepublish-shortfilms-v39.test.mjs catalog-index.json catalog-bootstrap.json catalog-items catalog-stable
+          git add -A operator-prepublish-v39-trigger.txt || true
           if git diff --cached --quiet; then
             echo 'No source changes to commit.'
           else
-            git commit -m 'fix: withhold unclassified operator content v39'
+            git commit -m 'fix: finalize operator prepublish gate v39'
             git push origin HEAD:"$TARGET_BRANCH"
           fi
