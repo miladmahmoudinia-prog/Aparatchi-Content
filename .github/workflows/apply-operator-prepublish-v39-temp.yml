@@ -1,16 +1,16 @@
 name: Apply operator prepublish v39 temp
 
 on:
-  issues:
-    types: [opened, reopened]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
-  issues: write
+  pull-requests: read
 
 jobs:
   apply:
-    if: github.event.issue.title == 'RUN OPERATOR PREPUBLISH V39'
+    if: github.event.pull_request.head.ref == 'fix/operator-prepublish-v39'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -61,12 +61,3 @@ jobs:
             git commit -m 'fix: withhold unclassified operator content v39'
             git push origin HEAD:"$TARGET_BRANCH"
           fi
-
-      - name: Report
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-        run: |
-          gh issue comment "$ISSUE_NUMBER" --body "operator-prepublish-v39=${{ job.status }}"
