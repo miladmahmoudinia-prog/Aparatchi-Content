@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-08-20T16:10:40.957Z",
+  "startedAt": "2026-08-20T18:08:13.358Z",
   "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-08-20T16:22:39.870Z",
+  "runDeadlineAt": "2026-08-20T18:20:12.048Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 649281,
+  "remainingRunMsAtFinish": 702958,
   "imageMirroringSkipped": true,
-  "originalCount": 6218,
-  "finalCount": 6218,
+  "originalCount": 6259,
+  "finalCount": 6259,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
-  "backfillQueueTotal": 154,
-  "backfillBacklogRemaining": 154,
+  "backfillQueueTotal": 155,
+  "backfillBacklogRemaining": 155,
   "backfillBlockedTotal": 12,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
@@ -58,7 +58,7 @@
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 1,
+  "seriesHiddenUntilComplete": 0,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
@@ -79,76 +79,27 @@
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 13,
+  "duplicateCatalogItemsMerged": 16,
   "iranianSeriesDiagnostics": [
     {
-      "id": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "title": "سایه باز",
-      "result": "advanced",
+      "id": "f72e7850-344c-11f1-9db2-59adfc143adb",
+      "title": "اهل ایران",
+      "result": "completed",
       "reason": "added-or-updated",
       "addedEpisodes": 0,
-      "remainingEpisodeCount": 12,
+      "remainingEpisodeCount": 0,
       "retryLater": false
     }
   ],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "title": "سایه باز",
+      "seriesId": "f72e7850-344c-11f1-9db2-59adfc143adb",
+      "title": "اهل ایران",
       "source": "iranian-priority",
-      "discoveredEpisodeCount": 20,
-      "catalogEpisodeCount": 8,
-      "missing": [
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 1
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 2
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 3
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 4
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 5
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 6
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 7
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 8
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 9
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 10
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 11
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 12
-        }
-      ],
+      "discoveredEpisodeCount": 14,
+      "catalogEpisodeCount": 14,
+      "missing": [],
       "rejectedEpisodes": []
     }
   ],
@@ -1100,6 +1051,15 @@
       "isAiring": false
     },
     {
+      "seriesId": "f5b2d630-38c3-11ed-8a52-6b10e6ffc35b",
+      "title": "قهرمانان تازه کار",
+      "missing": [],
+      "pendingEpisodeCount": 68,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
       "seriesId": "7b2b2160-3ecc-11f0-a3b9-a190bcb182e0",
       "title": "تک: قهرمانان دبیرستان",
       "missing": [],
@@ -1263,7 +1223,7 @@
       "isAiring": true
     }
   ],
-  "episodesDiscovered": 38,
+  "episodesDiscovered": 32,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
@@ -1307,16 +1267,11 @@
   "mediaHealthUnknown": 0,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [
-    {
-      "scope": "iranian-series-filter-3-{\"free\":1,\"persian\":1,\"traffic\":1,\"noFreeFallback\":true}",
-      "message": "This operation was aborted"
-    }
-  ],
+  "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 9,
-  "lastCheckpointAt": "2026-08-20T16:11:43.268Z",
-  "lastCheckpointReason": "iranian-deferred-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-  "remainingRunMsAtCheckpoint": 654631,
-  "finishedAt": "2026-08-20T16:11:50.589Z"
+  "apiRequests": 6,
+  "lastCheckpointAt": "2026-08-20T18:08:20.066Z",
+  "lastCheckpointReason": "iranian-complete-f72e7850-344c-11f1-9db2-59adfc143adb",
+  "remainingRunMsAtCheckpoint": 709564,
+  "finishedAt": "2026-08-20T18:08:29.090Z"
 }
