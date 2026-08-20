@@ -62,7 +62,7 @@ test('a future collection still rejects a one-installment title as the collectio
     ],
   };
   applyVerifiedPersianTitleOverrides(catalog);
-  assert.deepEqual(catalog.items.map((item) => item.collectionNameFa), ['کالکشن Future Saga', 'کالکشن Future Saga']);
+  assert.deepEqual(catalog.items.map((item) => item.collectionNameFa), ['کالکشن حماسه آینده', 'کالکشن حماسه آینده']);
 });
 
 test('title truth never overwrites an existing Persian movie title just because it contains Latin fragments', async () => {

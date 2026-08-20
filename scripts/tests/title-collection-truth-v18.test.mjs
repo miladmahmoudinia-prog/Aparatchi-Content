@@ -34,7 +34,7 @@ test('known bad Jack in the Box display title is repaired without changing an al
   assert.equal(catalog.items[1].nameFa, 'جعبه جهنمی');
 });
 
-test('unknown collection falls back to its own source name instead of a member title', async () => {
+test('unknown collection derives a shared Persian franchise name instead of English fallback', async () => {
   const catalog = {
     items: [
       {
@@ -48,7 +48,7 @@ test('unknown collection falls back to its own source name instead of a member t
     ],
   };
   await repairCatalogTitleCollectionTruth(catalog, { maxApiRepairs: 0 });
-  assert.deepEqual(catalog.items.map((item) => item.collectionNameFa), ['کالکشن Sample', 'کالکشن Sample']);
+  assert.deepEqual(catalog.items.map((item) => item.collectionNameFa), ['کالکشن نمونه', 'کالکشن نمونه']);
   assert.deepEqual(catalog.items.map((item) => item.nameFa), ['نمونه: بخش اول', 'نمونه: بخش دوم']);
 });
 

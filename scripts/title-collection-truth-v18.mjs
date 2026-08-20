@@ -5,7 +5,9 @@ import { writeClientCatalogArtifacts } from './client-catalog.mjs';
 import {
   applyVerifiedPersianTitleOverrides,
   VERIFIED_PERSIAN_COLLECTION_OVERRIDES,
+  isLikelySyntheticPersianDisplayTitle,
   normalizePersianOverrideKey,
+  persianCollectionLabelForMembers,
   persianCollectionBaseFromTitle,
 } from './persian-title-overrides.mjs';
 
@@ -132,24 +134,6 @@ function collectionNameLooksLikeMemberLeak(value, members) {
   return false;
 }
 
-function bestLocalCollectionTitle(members) {
-  const counts = new Map();
-  for (const item of members) {
-    const titleFa = clean(item?.nameFa);
-    if (!hasPersian(titleFa) || titleMatchesCollectionLeak(item)) continue;
-    const base = stripCollectionPrefix(persianCollectionBaseFromTitle(titleFa));
-    if (!base || base.length < 2) continue;
-    const normalized = key(base);
-    if (!normalized) continue;
-    const current = counts.get(normalized) || { value: base, count: 0 };
-    current.count += 1;
-    if (base.length < current.value.length) current.value = base;
-    counts.set(normalized, current);
-  }
-  const ranked = [...counts.values()].sort((a, b) => b.count - a.count || a.value.length - b.value.length);
-  return ranked[0]?.value || '';
-}
-
 function deriveNumericMemberTitle(item, collectionFa) {
   const baseFa = stripCollectionPrefix(collectionFa);
   if (!baseFa || !hasPersian(baseFa)) return '';
@@ -208,7 +192,13 @@ async function fetchTmdbPersianCollection(collectionId, members, token, apiBase)
   const payload = await tmdbJson(apiBase, token, `/collection/${id}?language=fa-IR`);
   const localized = clean(payload?.name);
   if (!hasPersian(localized)) return '';
+  if (hasLatin(localized)) return '';
   if (collectionNameLooksLikeMemberLeak(localized, members)) return '';
+  if (isLikelySyntheticPersianDisplayTitle({
+    type: 'movie',
+    name: englishCollectionBase(members[0]?.collectionName),
+    nameFa: stripCollectionPrefix(localized),
+  })) return '';
   return ensureCollectionPrefix(localized);
 }
 
@@ -254,7 +244,7 @@ export async function repairCatalogTitleCollectionTruth(catalog, options = {}) {
     const suspicious = !current || !hasPersian(current) || collectionNameLooksLikeMemberLeak(current, members);
     if (suspicious) suspiciousCollections += 1;
 
-    let repairedCollection = override || '';
+    let repairedCollection = override || persianCollectionLabelForMembers(members, collectionEn);
     if (!repairedCollection && current && !suspicious) repairedCollection = ensureCollectionPrefix(current);
     if (!repairedCollection && suspicious && token && apiUsed < maxApiRepairs) {
       try {
@@ -265,10 +255,7 @@ export async function repairCatalogTitleCollectionTruth(catalog, options = {}) {
         errors.push(`collection ${collectionId}: ${clean(error instanceof Error ? error.message : error)}`);
       }
     }
-    if (!repairedCollection && suspicious) {
-      const sourceBase = englishCollectionBase(collectionEn) || collectionEn;
-      if (sourceBase) repairedCollection = ensureCollectionPrefix(sourceBase);
-    }
+    if (!repairedCollection) repairedCollection = persianCollectionLabelForMembers(members, collectionEn);
 
     if (repairedCollection) {
       for (const item of members) {

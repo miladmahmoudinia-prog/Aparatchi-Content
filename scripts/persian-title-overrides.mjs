@@ -79,6 +79,11 @@ const VERIFIED_PERSIAN_TITLE_ENTRIES = [
   ['PAW Patrol: The Mighty Movie', 'سگ‌های نگهبان: فیلم بزرگ'],
   ['Troll', 'غول'],
   ['Troll 2', 'غول ۲'],
+  ['Trolls', 'ترول‌ها'],
+  ['Trolls Band Together', 'ترول‌ها ۳: متحد با هم'],
+  ['The Strangers: Chapter 1', 'غریبه‌ها: فصل اول'],
+  ['The Strangers: Chapter 2', 'غریبه‌ها: فصل دوم'],
+  ['Breakout Brothers 3', 'برادران فراری ۳'],
 ];
 
 const VERIFIED_PERSIAN_COLLECTION_ENTRIES = [
@@ -120,6 +125,18 @@ const VERIFIED_PERSIAN_COLLECTION_ENTRIES = [
   ['Madea Collection', 'کالکشن مادیا'],
   ['PAW Patrol (Theatrical) Collection', 'کالکشن سگ‌های نگهبان'],
   ['Troll (2022) Collection', 'کالکشن غول'],
+  ['V/H/S Collection', 'کالکشن وی/اچ/اس'],
+  ['The Trolls Collection', 'کالکشن ترول‌ها'],
+  ['Taare Zameen Par Collection', 'کالکشن ستاره‌ها روی زمین'],
+  ['The Big Trip Collection', 'کالکشن سفر بزرگ'],
+  ['The Strangers (Remake) Collection', 'کالکشن غریبه‌ها'],
+  ['Greenland Collection', 'کالکشن گرینلند'],
+  ['Christmas Thieves Collection', 'کالکشن دزدان کریسمس'],
+  ['Bāhubali Collection', 'کالکشن باهوبالی'],
+  ['Army of the Dead Collection', 'کالکشن ارتش مردگان'],
+  ['The Grudge Collection', 'کالکشن کینه'],
+  ['How to Train Your Dragon Collection', 'کالکشن مربی اژدها'],
+  ['Breakout Brothers The Collection', 'کالکشن برادران فراری'],
 ];
 
 export const VERIFIED_PERSIAN_TITLE_OVERRIDES = new Map(
@@ -415,17 +432,136 @@ function originalCollectionBase(value) {
     .replace(/\s+(?:collection|collections|trilogy|film\s+series|movie\s+series|koleksiyonu)\s*$/iu, '').trim();
   return text || cleanDisplayText(value);
 }
-function originalTitleBase(value) {
-  let text = cleanDisplayText(value);
-  if (!text) return '';
-  const separator = text.search(/\s*(?:[:：؛]|\s[-–—]\s)/u);
-  if (separator > 0) text = text.slice(0, separator).trim();
-  return text.replace(/\s+(?:part|chapter|episode)\s+(?:[0-9]+|[ivx]+)\s*$/iu, '')
-    .replace(/\s+(?:[0-9]+|[ivx]+)\s*$/iu, '').trim();
-}
 function normalizeCollectionLabel(value) {
-  const stripped = cleanDisplayText(value).replace(/^(?:مجموعه|کالکشن)\s+/u, '').trim();
+  const stripped = cleanDisplayText(value)
+    .replace(/^(?:مجموعه|کالکشن)\s+/u, '')
+    .replace(/\s*\((?:مجموعه|کالکشن)\)\s*$/u, '')
+    .trim();
   return stripped ? 'کالکشن ' + stripped : '';
+}
+
+function collectionTitleTokens(value) {
+  return cleanDisplayText(value)
+    .normalize('NFKC')
+    .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+    .replace(/[يىئ]/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/[ۀة]/g, 'ه')
+    .replace(/[\u200C\u200D]+/g, ' ')
+    .replace(/[^\u0600-\u06FF0-9]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function longestSharedTokenRun(left, right) {
+  const a = collectionTitleTokens(left);
+  const b = collectionTitleTokens(right);
+  let best = [];
+  for (let startA = 0; startA < a.length; startA += 1) {
+    for (let startB = 0; startB < b.length; startB += 1) {
+      const run = [];
+      while (
+        startA + run.length < a.length &&
+        startB + run.length < b.length &&
+        a[startA + run.length] === b[startB + run.length]
+      ) run.push(a[startA + run.length]);
+      if (run.join('').length > best.join('').length) best = run;
+    }
+  }
+  return best;
+}
+
+function trustedPersianMemberBases(members) {
+  return [...members]
+    .sort(collectionMemberOrder)
+    .filter((item) => {
+      const title = cleanDisplayText(item?.nameFa);
+      return hasPersianScript(title) && !LATIN_SCRIPT_RE.test(title) && !isLikelySyntheticPersianDisplayTitle(item);
+    })
+    .map((item) => persianCollectionBaseFromTitle(item?.nameFa))
+    .filter(Boolean);
+}
+
+function sharedPersianCollectionBase(members) {
+  const bases = trustedPersianMemberBases(members);
+  const counts = new Map();
+  for (const base of bases) {
+    const normalized = normalizePersianOverrideKey(base);
+    if (!normalized) continue;
+    const current = counts.get(normalized) || { value: base, count: 0 };
+    current.count += 1;
+    if (base.length < current.value.length) current.value = base;
+    counts.set(normalized, current);
+  }
+  const exact = [...counts.values()].sort((a, b) => b.count - a.count || b.value.length - a.value.length)[0];
+  if (exact?.count >= 2) return exact.value;
+
+  let shared = [];
+  for (let left = 0; left < bases.length; left += 1) {
+    for (let right = left + 1; right < bases.length; right += 1) {
+      const run = longestSharedTokenRun(bases[left], bases[right]);
+      if (run.join('').length > shared.join('').length) shared = run;
+    }
+  }
+  const text = shared.join(' ').trim();
+  // One short generic word such as «ارتش» or «برادران» is not a franchise
+  // identity. A longer proper name (باهوبالی، گرینلند، ...) is safe.
+  if (shared.length >= 2 || text.length >= 7) return text;
+  return '';
+}
+
+function matchedFirstPersianCollectionBase(members, collectionName) {
+  const sourceBase = normalizePersianOverrideKey(originalCollectionBase(collectionName));
+  if (!sourceBase) return '';
+  const matched = [...members]
+    .sort(collectionMemberOrder)
+    .find((item) => {
+      const title = cleanDisplayText(item?.nameFa);
+      if (!hasPersianScript(title) || LATIN_SCRIPT_RE.test(title) || isLikelySyntheticPersianDisplayTitle(item)) return false;
+      return normalizePersianOverrideKey(cleanDisplayText(item?.name)) === sourceBase;
+    });
+  return matched ? persianCollectionBaseFromTitle(matched.nameFa) : '';
+}
+
+function currentCollectionLabelIsUsable(value, members, collectionName) {
+  const current = cleanDisplayText(value);
+  const stripped = current.replace(/^(?:مجموعه|کالکشن)\s+/u, '').trim();
+  const looksSynthetic = isLikelySyntheticPersianDisplayTitle({
+    type: 'movie',
+    name: originalCollectionBase(collectionName),
+    nameFa: stripped,
+  });
+  return Boolean(
+    current &&
+    hasPersianScript(current) &&
+    !LATIN_SCRIPT_RE.test(current) &&
+    !looksSynthetic &&
+    currentPersianCollectionIsSafe(current, members, collectionName)
+  );
+}
+
+export function persianCollectionLabelForMembers(members, collectionName = '') {
+  const list = Array.isArray(members) ? members.filter(Boolean) : [];
+  const sourceName = cleanDisplayText(collectionName) || list.map((item) => cleanDisplayText(item?.collectionName)).find(Boolean) || '';
+  const verified = VERIFIED_PERSIAN_COLLECTION_OVERRIDES.get(normalizePersianOverrideKey(sourceName));
+  if (verified) return normalizeCollectionLabel(verified);
+
+  const current = list.map((item) => cleanDisplayText(item?.collectionNameFa))
+    .find((value) => currentCollectionLabelIsUsable(value, list, sourceName));
+  if (current) return normalizeCollectionLabel(current);
+
+  // When the source has no usable Persian collection label, prefer a franchise
+  // base agreed on by multiple trusted Persian movie names.
+  const shared = sharedPersianCollectionBase(list);
+  if (shared) return normalizeCollectionLabel(shared);
+
+  // Final offline fallback is allowed only when a member's original title is
+  // exactly the source collection base (Batman -> بتمن). Using an arbitrary
+  // available sequel/subtitle here produces false labels such as naming the
+  // whole Cinderella collection after one late installment.
+  const fallback = matchedFirstPersianCollectionBase(list, sourceName);
+  return fallback ? normalizeCollectionLabel(fallback) : '';
 }
 function currentPersianCollectionIsSafe(value, members, collectionName) {
   const current = cleanDisplayText(value);
@@ -457,7 +593,7 @@ function currentPersianCollectionIsSafe(value, members, collectionName) {
 
   const collectionBase = normalizePersianOverrideKey(originalCollectionBase(collectionName));
   const legitimateFirstTitle = exactMemberTitles.some((item) =>
-    normalizePersianOverrideKey(originalTitleBase(item?.name)) === collectionBase
+    normalizePersianOverrideKey(cleanDisplayText(item?.name)) === collectionBase
   );
   if (legitimateFirstTitle) return true;
 
@@ -466,10 +602,6 @@ function currentPersianCollectionIsSafe(value, members, collectionName) {
   // fallback instead.
   if (exactMemberTitles.length) return false;
   return true;
-}
-function safeFallbackCollectionLabel(collectionName) {
-  const base = originalCollectionBase(collectionName);
-  return base ? 'کالکشن ' + base : '';
 }
 function deriveMissingPersianCollectionNames(items) {
   const groups = new Map();
@@ -482,16 +614,15 @@ function deriveMissingPersianCollectionNames(items) {
   let changes = 0;
   for (const members of groups.values()) {
     const collectionName = members.map((item) => cleanDisplayText(item?.collectionName)).find(Boolean) || '';
-    const verified = VERIFIED_PERSIAN_COLLECTION_OVERRIDES.get(normalizePersianOverrideKey(collectionName));
-    let label = cleanDisplayText(verified);
-    if (!label) {
-      const current = members.map((item) => cleanDisplayText(item?.collectionNameFa))
-        .find((value) => currentPersianCollectionIsSafe(value, members, collectionName)) || '';
-      label = current ? normalizeCollectionLabel(current) : safeFallbackCollectionLabel(collectionName);
+    const label = persianCollectionLabelForMembers(members, collectionName);
+    for (const item of members) {
+      if (label) {
+        if (item.collectionNameFa !== label) { item.collectionNameFa = label; changes += 1; }
+      } else if (LATIN_SCRIPT_RE.test(cleanDisplayText(item.collectionNameFa))) {
+        delete item.collectionNameFa;
+        changes += 1;
+      }
     }
-    if (!label) continue;
-    label = normalizeCollectionLabel(label);
-    for (const item of members) if (item.collectionNameFa !== label) { item.collectionNameFa = label; changes += 1; }
   }
   return changes;
 }
