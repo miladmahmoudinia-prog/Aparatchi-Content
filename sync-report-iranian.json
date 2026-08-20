@@ -1,16 +1,16 @@
 {
-  "startedAt": "2026-08-20T14:30:36.217Z",
+  "startedAt": "2026-08-20T16:10:40.957Z",
   "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-08-20T14:42:34.858Z",
+  "runDeadlineAt": "2026-08-20T16:22:39.870Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 703087,
+  "remainingRunMsAtFinish": 649281,
   "imageMirroringSkipped": true,
-  "originalCount": 6174,
-  "finalCount": 6174,
+  "originalCount": 6218,
+  "finalCount": 6218,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
-  "backfillQueueTotal": 155,
+  "backfillQueueTotal": 154,
   "backfillBacklogRemaining": 154,
   "backfillBlockedTotal": 12,
   "backfillActiveSeries": null,
@@ -58,8 +58,8 @@
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 0,
-  "seriesPublishedAfterCompletion": 1,
+  "seriesHiddenUntilComplete": 1,
+  "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 1,
@@ -79,27 +79,76 @@
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 20,
+  "duplicateCatalogItemsMerged": 13,
   "iranianSeriesDiagnostics": [
     {
-      "id": "84d22220-5f0f-11eb-98ca-adc674f51d6c",
-      "title": "سیاوش",
-      "result": "completed",
+      "id": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "title": "سایه باز",
+      "result": "advanced",
       "reason": "added-or-updated",
       "addedEpisodes": 0,
-      "remainingEpisodeCount": 0,
+      "remainingEpisodeCount": 12,
       "retryLater": false
     }
   ],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "84d22220-5f0f-11eb-98ca-adc674f51d6c",
-      "title": "سیاوش",
+      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "title": "سایه باز",
       "source": "iranian-priority",
-      "discoveredEpisodeCount": 18,
-      "catalogEpisodeCount": 18,
-      "missing": [],
+      "discoveredEpisodeCount": 20,
+      "catalogEpisodeCount": 8,
+      "missing": [
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 6
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 7
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 8
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 9
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 11
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 12
+        }
+      ],
       "rejectedEpisodes": []
     }
   ],
@@ -1214,7 +1263,7 @@
       "isAiring": true
     }
   ],
-  "episodesDiscovered": 36,
+  "episodesDiscovered": 38,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
@@ -1258,11 +1307,16 @@
   "mediaHealthUnknown": 0,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [],
+  "errors": [
+    {
+      "scope": "iranian-series-filter-3-{\"free\":1,\"persian\":1,\"traffic\":1,\"noFreeFallback\":true}",
+      "message": "This operation was aborted"
+    }
+  ],
   "errorsTruncated": 0,
-  "apiRequests": 6,
-  "lastCheckpointAt": "2026-08-20T14:30:42.300Z",
-  "lastCheckpointReason": "iranian-complete-84d22220-5f0f-11eb-98ca-adc674f51d6c",
-  "remainingRunMsAtCheckpoint": 710140,
-  "finishedAt": "2026-08-20T14:30:51.771Z"
+  "apiRequests": 9,
+  "lastCheckpointAt": "2026-08-20T16:11:43.268Z",
+  "lastCheckpointReason": "iranian-deferred-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+  "remainingRunMsAtCheckpoint": 654631,
+  "finishedAt": "2026-08-20T16:11:50.589Z"
 }
