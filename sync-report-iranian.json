@@ -1,13 +1,13 @@
 {
-  "startedAt": "2026-08-20T20:07:20.558Z",
+  "startedAt": "2026-08-20T21:20:42.163Z",
   "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-08-20T20:19:19.242Z",
+  "runDeadlineAt": "2026-08-20T21:32:40.822Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 700927,
+  "remainingRunMsAtFinish": 636071,
   "imageMirroringSkipped": true,
-  "originalCount": 6300,
-  "finalCount": 6300,
+  "originalCount": 6339,
+  "finalCount": 6339,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
   "backfillQueueTotal": 157,
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 180,
-      "used": 1,
+      "used": 30,
       "exhausted": false
     }
   },
@@ -63,7 +63,7 @@
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 1,
-  "episodesProcessed": 1,
+  "episodesProcessed": 30,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 1,
   "iranianSeriesAddedOrUpdated": 1,
@@ -82,37 +82,42 @@
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [
     {
-      "id": "1cb2a690-d57f-11ef-a1f9-91af443a73a4",
-      "title": "مزرعه شادی",
+      "id": "4609c2e0-b53d-11ef-b652-adcde9163814",
+      "title": "کارتون بیگی و دوستان",
       "result": "advanced",
       "reason": "added-or-updated",
-      "addedEpisodes": 0,
-      "remainingEpisodeCount": 1,
+      "addedEpisodes": 30,
+      "remainingEpisodeCount": 4,
       "retryLater": false
     }
   ],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "1cb2a690-d57f-11ef-a1f9-91af443a73a4",
-      "title": "مزرعه شادی",
+      "seriesId": "4609c2e0-b53d-11ef-b652-adcde9163814",
+      "title": "کارتون بیگی و دوستان",
       "source": "iranian-priority",
-      "discoveredEpisodeCount": 54,
-      "catalogEpisodeCount": 53,
+      "discoveredEpisodeCount": 64,
+      "catalogEpisodeCount": 60,
       "missing": [
         {
           "seasonNumber": 1,
-          "episodeNumber": 55
+          "episodeNumber": 61
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 62
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 63
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 64
         }
       ],
-      "rejectedEpisodes": [
-        {
-          "id": "9dd3f1b0-f41d-11ef-a864-176e2e55cba0",
-          "seasonNumber": 1,
-          "episodeNumber": 55,
-          "reason": "no-usable-links"
-        }
-      ]
+      "rejectedEpisodes": []
     }
   ],
   "catalogEpisodeGapDiagnostics": [
@@ -851,7 +856,7 @@
       "seriesId": "ef5ac720-5161-11ee-ab8a-6363f5b61116",
       "title": "چوتا بیم",
       "missing": [],
-      "pendingEpisodeCount": 16,
+      "pendingEpisodeCount": 1,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": true
@@ -1158,7 +1163,7 @@
       "seriesId": "4609c2e0-b53d-11ef-b652-adcde9163814",
       "title": "کارتون بیگی و دوستان",
       "missing": [],
-      "pendingEpisodeCount": 34,
+      "pendingEpisodeCount": 4,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
@@ -1244,18 +1249,18 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 72,
-  "episodeGroupsAdded": 0,
+  "episodesDiscovered": 82,
+  "episodeGroupsAdded": 30,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 1,
+  "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
   "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 1,
+  "affiliateRequests": 30,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 1,
+  "affiliateNotFound": 0,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1288,16 +1293,11 @@
   "mediaHealthUnknown": 0,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [
-    {
-      "scope": "panel-show-links-episode-9dd3f1b0-f41d-11ef-a864-176e2e55cba0",
-      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/show_links/episode/9dd3f1b0-f41d-11ef-a864-176e2e55cba0"
-    }
-  ],
+  "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 8,
-  "lastCheckpointAt": "2026-08-20T20:07:29.025Z",
-  "lastCheckpointReason": "iranian-skip-1cb2a690-d57f-11ef-a1f9-91af443a73a4",
-  "remainingRunMsAtCheckpoint": 707739,
-  "finishedAt": "2026-08-20T20:07:38.314Z"
+  "apiRequests": 66,
+  "lastCheckpointAt": "2026-08-20T21:21:55.353Z",
+  "lastCheckpointReason": "iranian-skip-4609c2e0-b53d-11ef-b652-adcde9163814",
+  "remainingRunMsAtCheckpoint": 642925,
+  "finishedAt": "2026-08-20T21:22:04.751Z"
 }
