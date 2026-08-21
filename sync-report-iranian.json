@@ -1,18 +1,18 @@
 {
-  "startedAt": "2026-08-21T20:39:50.930Z",
+  "startedAt": "2026-08-21T22:07:40.582Z",
   "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-08-21T20:51:49.511Z",
+  "runDeadlineAt": "2026-08-21T22:19:39.451Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 598727,
+  "remainingRunMsAtFinish": 599480,
   "imageMirroringSkipped": true,
-  "originalCount": 6630,
-  "finalCount": 6630,
+  "originalCount": 6670,
+  "finalCount": 6670,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
-  "backfillQueueTotal": 170,
-  "backfillBacklogRemaining": 170,
-  "backfillBlockedTotal": 12,
+  "backfillQueueTotal": 172,
+  "backfillBacklogRemaining": 172,
+  "backfillBlockedTotal": 13,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
   "backfillSeriesBlockedThisRun": [],
@@ -58,16 +58,16 @@
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 0,
+  "seriesHiddenUntilComplete": 1,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
+  "iranianSeriesProcessed": 1,
   "episodesProcessed": 45,
-  "iranianSeriesPagesProcessed": 1,
+  "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 6,
-  "iranianSeriesAddedOrUpdated": 0,
-  "iranianSeriesRejectedNotIranian": 1,
+  "iranianSeriesAddedOrUpdated": 1,
+  "iranianSeriesRejectedNotIranian": 0,
   "iranianSeriesRejectedNoLinks": 5,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
@@ -132,17 +132,32 @@
       "discovery": "recent-page-1"
     },
     {
-      "id": "9190e970-d2ca-11ef-9927-89e8e01a0092",
-      "title": "بازی صبر",
-      "result": "rejected",
-      "reason": "not-iranian",
+      "id": "1cb2a690-d57f-11ef-a1f9-91af443a73a4",
+      "title": "مزرعه شادی",
+      "result": "advanced",
+      "reason": "added-or-updated",
       "addedEpisodes": 0,
-      "remainingEpisodeCount": 0,
+      "remainingEpisodeCount": 1,
       "retryLater": false
     }
   ],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "1cb2a690-d57f-11ef-a1f9-91af443a73a4",
+      "title": "مزرعه شادی",
+      "source": "iranian-priority",
+      "discoveredEpisodeCount": 54,
+      "catalogEpisodeCount": 53,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 55
+        }
+      ],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "581efd70-5698-11ef-8956-f95068daf4da",
@@ -1214,6 +1229,15 @@
       "isAiring": false
     },
     {
+      "seriesId": "066420f0-6ba7-11f0-9867-7902bf871948",
+      "title": "قاتل",
+      "missing": [],
+      "pendingEpisodeCount": 1,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
       "seriesId": "73d9c320-65b9-11ed-bc3a-7dff424de3f1",
       "title": "اولوبوب توپ",
       "missing": [],
@@ -1230,18 +1254,9 @@
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
-    },
-    {
-      "seriesId": "60627a80-752f-11ed-a8fb-318b87d49def",
-      "title": "قبیله مونچیچی",
-      "missing": [],
-      "pendingEpisodeCount": 5,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
     }
   ],
-  "episodesDiscovered": 164,
+  "episodesDiscovered": 204,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
@@ -1249,7 +1264,7 @@
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 45,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
+  "seriesAddedOrUpdated": 1,
   "affiliateRequests": 45,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 45,
@@ -1288,8 +1303,8 @@
   "errors": [],
   "errorsTruncated": 0,
   "apiRequests": 106,
-  "lastCheckpointAt": "2026-08-21T20:41:39.406Z",
-  "lastCheckpointReason": "iranian-skip-9190e970-d2ca-11ef-9927-89e8e01a0092",
-  "remainingRunMsAtCheckpoint": 606807,
-  "finishedAt": "2026-08-21T20:41:50.784Z"
+  "lastCheckpointAt": "2026-08-21T22:09:31.352Z",
+  "lastCheckpointReason": "iranian-skip-1cb2a690-d57f-11ef-a1f9-91af443a73a4",
+  "remainingRunMsAtCheckpoint": 605654,
+  "finishedAt": "2026-08-21T22:09:39.971Z"
 }
