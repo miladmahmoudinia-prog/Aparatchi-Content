@@ -140,15 +140,16 @@ const sanitizeClientMediaItem = (item) => {
   if (!item || !['movie', 'series'].includes(item.type)) return item;
   const iranian = item.ir === true || (Array.isArray(item.countryCodes) && item.countryCodes.includes('IR'));
   const operatorVariant = item.operatorOnly === true;
+  const verifiedOperatorIdentity = Boolean(
+    Number(item?.tmdbId || item?.tmdb?.id || 0) > 0 ||
+    /tt\d{6,12}/i.test(String(item?.imdb || item?.imdbId || item?.imdb_id || ''))
+  );
   // Owner-panel rows often arrive as transport-only shells: a Persian title,
   // poster and playable operator URL, but no trustworthy content identity.
   // They are retried by the bounded TMDB/donor classifier on every eligible
   // sync. Do not expose them in Movies, Iranian Movies, or Mobile Operator
   // until that classifier has positively resolved their real category.
-  if (
-    operatorVariant &&
-    (item.operatorClassificationStatus === 'pending' || item.operatorClassificationPending === true)
-  ) return null;
+  if (operatorVariant && !verifiedOperatorIdentity) return null;
   const prepared = (Array.isArray(item.downloads) ? item.downloads : []).map((section) => ({
     ...section,
     files: (Array.isArray(section?.files) ? section.files : []).flatMap((file) => {
