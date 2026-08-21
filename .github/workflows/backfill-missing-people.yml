@@ -66,7 +66,7 @@ jobs:
           set -euo pipefail
           git config user.name "aparatchi-content-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add catalog.json catalog-index.json catalog-items catalog-manifest.json sync-state.json sync-report*.json
+          git add catalog.json catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
           if [ -d assets/media ]; then git add assets/media; fi
           if git diff --cached --quiet; then
             echo "No cast/crew changes to commit."

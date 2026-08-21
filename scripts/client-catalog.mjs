@@ -20,6 +20,7 @@ const SUMMARY_FIELDS = [
 const stableJson = (value) => JSON.stringify(value, null, 2);
 const digest = (value, length = 16) =>
   createHash('sha256').update(value).digest('hex').slice(0, length);
+const catalogItemKey = (item) => `${String(item?.type || 'item')}:${String(item?.id || '')}`;
 
 const truncateOverview = (value) => {
   const text = typeof value === 'string' ? value.trim() : '';
@@ -702,6 +703,60 @@ export function buildClientCatalogArtifacts(catalog) {
   };
 }
 
+export function buildLiveCatalogBaseline(bootstrap) {
+  const items = Array.isArray(bootstrap?.items) ? bootstrap.items : [];
+  return {
+    schemaVersion: 1,
+    clientRevision: String(bootstrap?.clientRevision || ''),
+    itemCount: items.length,
+    itemDigests: Object.fromEntries(items.map((item) => [
+      catalogItemKey(item),
+      digest(JSON.stringify(item), 64),
+    ])),
+  };
+}
+
+export function buildLiveCatalogDelta(bootstrap, baseline, previousLive = null) {
+  const items = Array.isArray(bootstrap?.items) ? bootstrap.items : [];
+  const baselineDigests = baseline?.itemDigests && typeof baseline.itemDigests === 'object'
+    ? baseline.itemDigests
+    : {};
+  const currentByKey = new Map(items.map((item) => [catalogItemKey(item), item]));
+  const touchedKeys = new Set(Array.isArray(previousLive?.touchedKeys) ? previousLive.touchedKeys : []);
+
+  for (const [key, item] of currentByKey) {
+    if (baselineDigests[key] !== digest(JSON.stringify(item), 64)) touchedKeys.add(key);
+  }
+  for (const key of Object.keys(baselineDigests)) {
+    if (!currentByKey.has(key)) touchedKeys.add(key);
+  }
+
+  const body = {
+    schemaVersion: 1,
+    baseClientRevision: String(baseline?.clientRevision || ''),
+    clientRevision: String(bootstrap?.clientRevision || ''),
+    version: bootstrap?.version || 'live-catalog',
+    updatedAt: bootstrap?.updatedAt || new Date(0).toISOString(),
+    itemCount: items.length,
+    itemOrder: items.map(catalogItemKey),
+    touchedKeys: [...touchedKeys].sort(),
+    upserts: items.filter((item) => touchedKeys.has(catalogItemKey(item))),
+    iranianSchedule: Array.isArray(bootstrap?.iranianSchedule) ? bootstrap.iranianSchedule : [],
+    weeklySchedule: Array.isArray(bootstrap?.weeklySchedule) ? bootstrap.weeklySchedule : [],
+    featuredPeople: Array.isArray(bootstrap?.featuredPeople) ? bootstrap.featuredPeople : [],
+    ...(bootstrap?.imdbTop100 ? { imdbTop100: bootstrap.imdbTop100 } : {}),
+  };
+  const revision = digest(JSON.stringify(body), 64);
+  const live = { ...body, revision };
+  return {
+    live,
+    liveSerialized: `${JSON.stringify(live)}\n`,
+    liveRevision: revision,
+    liveSizeBytes: Buffer.byteLength(`${JSON.stringify(live)}\n`),
+    liveUpsertCount: live.upserts.length,
+  };
+}
+
 async function writeIfChanged(file, serialized) {
   try {
     if (await fs.readFile(file, 'utf8') === serialized) return false;
@@ -717,6 +772,8 @@ export async function writeClientCatalogArtifacts(root, catalog) {
   const artifacts = buildClientCatalogArtifacts(catalog);
   const indexPath = path.join(root, 'catalog-index.json');
   const bootstrapPath = path.join(root, 'catalog-bootstrap.json');
+  const liveBaselinePath = path.join(root, 'catalog-live-baseline.json');
+  const livePath = path.join(root, 'catalog-live.json');
   const detailsRoot = path.join(root, 'catalog-items');
   const stableDetailsRoot = path.join(root, 'catalog-stable');
   await fs.mkdir(detailsRoot, { recursive: true });
@@ -761,5 +818,29 @@ export async function writeClientCatalogArtifacts(root, catalog) {
 
   const indexChanged = await writeIfChanged(indexPath, artifacts.indexSerialized);
   const bootstrapChanged = await writeIfChanged(bootstrapPath, artifacts.bootstrapSerialized);
-  return { ...artifacts, indexChanged, bootstrapChanged, changedDetailFiles, changedStableDetailFiles };
+  let liveArtifacts = {};
+  let liveChanged = false;
+  try {
+    const baseline = JSON.parse(await fs.readFile(liveBaselinePath, 'utf8'));
+    let previousLive = null;
+    try {
+      previousLive = JSON.parse(await fs.readFile(livePath, 'utf8'));
+    } catch {
+      // First live artifact starts from the immutable bundled baseline.
+    }
+    liveArtifacts = buildLiveCatalogDelta(artifacts.bootstrap, baseline, previousLive);
+    liveChanged = await writeIfChanged(livePath, liveArtifacts.liveSerialized);
+  } catch {
+    // Repositories created before the live baseline remain compatible and keep
+    // publishing the complete bootstrap until a baseline is intentionally set.
+  }
+  return {
+    ...artifacts,
+    ...liveArtifacts,
+    indexChanged,
+    bootstrapChanged,
+    liveChanged,
+    changedDetailFiles,
+    changedStableDetailFiles,
+  };
 }

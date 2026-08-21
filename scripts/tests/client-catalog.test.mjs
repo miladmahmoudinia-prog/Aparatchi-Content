@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildClientCatalogArtifacts, clientSummaryForItem } from '../client-catalog.mjs';
+import {
+  buildClientCatalogArtifacts,
+  buildLiveCatalogBaseline,
+  buildLiveCatalogDelta,
+  clientSummaryForItem,
+} from '../client-catalog.mjs';
 
 test('client item summary keeps bounded episode actions and a compact first-screen people preview', () => {
   const item = {
@@ -42,6 +47,39 @@ test('detail path changes when the full item changes', () => {
   const first = clientSummaryForItem(base).summary.detailPath;
   const second = clientSummaryForItem({ ...base, downloads: [{ id: 'x', files: [] }] }).summary.detailPath;
   assert.notEqual(first, second);
+});
+
+test('live catalog grows without a title cap and carries only cumulative changes', () => {
+  const media = [{ files: [{ mode: 'download', url: 'https://cdn.test/movie.mp4' }] }];
+  const first = buildClientCatalogArtifacts({
+    version: 'base', updatedAt: 'base-time', items: [
+      { id: 'a', type: 'movie', nameFa: 'الف', name: 'A', downloads: media },
+      { id: 'b', type: 'movie', nameFa: 'ب', name: 'B', downloads: media },
+    ],
+  }).bootstrap;
+  const baseline = buildLiveCatalogBaseline(first);
+  const current = buildClientCatalogArtifacts({
+    version: 'next', updatedAt: 'next-time', items: [
+      { id: 'c', type: 'movie', nameFa: 'ج', name: 'C', downloads: media, firstSeenAt: '2026-08-21T00:00:00Z' },
+      { id: 'a', type: 'movie', nameFa: 'الف تازه', name: 'A', downloads: media },
+    ],
+  }).bootstrap;
+  const { live } = buildLiveCatalogDelta(current, baseline);
+
+  assert.equal(live.itemCount, 2);
+  assert.deepEqual(live.itemOrder, ['movie:c', 'movie:a']);
+  assert.deepEqual(live.upserts.map((item) => item.id), ['c', 'a']);
+  assert.ok(live.touchedKeys.includes('movie:b'), 'a removed baseline title remains cumulative truth');
+
+  const restored = buildClientCatalogArtifacts({
+    version: 'restored', updatedAt: 'restored-time', items: [
+      { id: 'b', type: 'movie', nameFa: 'ب', name: 'B', downloads: media },
+      { id: 'a', type: 'movie', nameFa: 'الف', name: 'A', downloads: media },
+    ],
+  }).bootstrap;
+  const next = buildLiveCatalogDelta(restored, baseline, live).live;
+  assert.ok(next.upserts.some((item) => item.id === 'b'), 'a restored title cannot disappear from an older installed app');
+  assert.ok(next.upserts.some((item) => item.id === 'a'), 'a reverted title remains explicit after it was touched');
 });
 
 test('client catalog stays bounded with compact episode actions and at most eight lightweight people previews', () => {

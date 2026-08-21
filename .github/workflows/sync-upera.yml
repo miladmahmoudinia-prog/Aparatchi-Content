@@ -110,7 +110,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add catalog.json catalog-index.json catalog-bootstrap.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
+          git add catalog.json catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
           if [ -d assets/media ]; then
             git add assets/media
           fi
@@ -200,7 +200,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add catalog.json catalog-index.json catalog-bootstrap.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
+          git add catalog.json catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
           if git diff --cached --quiet; then
             echo "No Iranian-series changes."
           else
@@ -281,7 +281,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add catalog.json catalog-index.json catalog-bootstrap.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
+          git add catalog.json catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
           if [ -d assets/media ]; then
             git add assets/media
           fi
@@ -345,7 +345,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add catalog.json catalog-index.json catalog-bootstrap.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
+          git add catalog.json catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
 
           if git diff --cached --quiet; then
             echo "No archive changes."

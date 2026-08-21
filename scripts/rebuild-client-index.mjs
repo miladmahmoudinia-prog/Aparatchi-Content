@@ -24,7 +24,11 @@ console.log(JSON.stringify({
   clientRevision: artifacts.clientRevision,
   bootstrapSizeBytes: artifacts.bootstrapSizeBytes,
   bootstrapRevision: artifacts.bootstrapRevision,
+  liveRevision: artifacts.liveRevision,
+  liveSizeBytes: artifacts.liveSizeBytes,
+  liveUpsertCount: artifacts.liveUpsertCount,
   indexChanged: artifacts.indexChanged,
   bootstrapChanged: artifacts.bootstrapChanged,
+  liveChanged: artifacts.liveChanged,
   changedDetailFiles: artifacts.changedDetailFiles,
 }, null, 2));
