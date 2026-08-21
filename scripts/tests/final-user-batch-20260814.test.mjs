@@ -48,8 +48,8 @@ test('unverified operator-only records are hidden', () => {
   assert.equal(index.items.length, 0);
 });
 
-test('verified operator-only records stay visible and keep their badge category', () => {
-  const item = base({ operatorOnly: true, categoryKeys: ['mobile-operator'], downloads: [{ id: 'o', files: [
+test('identified operator-only records stay visible and keep their badge category', () => {
+  const item = base({ operatorOnly: true, tmdbId: 12345, categoryKeys: ['mobile-operator'], downloads: [{ id: 'o', files: [
     { id: 'p', mode: 'operator-play', operatorOnly: true, panelVerified: true, trafficOo: 1, url: 'https://video.upera.tv/x' },
   ]}] });
   const { index } = buildClientCatalogArtifacts({ items: [item] });
