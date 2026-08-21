@@ -173,6 +173,42 @@ const wildlifeEcologyTerms = [
 
 const indianLanguages = new Set(['hi', 'ta', 'te', 'ml', 'kn', 'bn', 'mr', 'pa', 'gu', 'ur']);
 
+const CLASSIC_COMEDY_COLLECTIONS = [
+  {
+    id: 'classic:laurel-and-hardy',
+    name: 'Laurel and Hardy Collection',
+    nameFa: 'کالکشن لورل و هاردی',
+    people: [
+      ['stan laurel', 'استن لورل'],
+      ['oliver hardy', 'اولیور هاردی'],
+    ],
+  },
+  {
+    id: 'classic:charlie-chaplin',
+    name: 'Charlie Chaplin Collection',
+    nameFa: 'کالکشن چارلی چاپلین',
+    people: [
+      ['charlie chaplin', 'چارلی چاپلین'],
+    ],
+  },
+];
+
+export function classicComedyCollectionFor(input = {}) {
+  if (input?.type !== 'movie') return null;
+  const genres = Array.isArray(input?.genres) ? input.genres.join(' ') : '';
+  if (input?.isDocumentary === true || includesAny(genres, documentaryTerms)) return null;
+  const people = (Array.isArray(input?.people) ? input.people : [])
+    .filter((person) => person && ['actor', 'director'].includes(clean(person.role)))
+    .map((person) => searchable(`${person.name || ''} ${person.nameFa || ''}`));
+  for (const collection of CLASSIC_COMEDY_COLLECTIONS) {
+    const matchesEveryPerson = collection.people.every((aliases) =>
+      people.some((person) => aliases.some((alias) => person.includes(searchable(alias))))
+    );
+    if (matchesEveryPerson) return { ...collection };
+  }
+  return null;
+}
+
 export function isWildlifeDocumentaryText({ title = '', genres = [], overview = '' } = {}) {
   const normalizedTitle = normalize(title);
   const normalizedOverview = normalize(overview);
@@ -286,13 +322,22 @@ export function classifyCatalogItem(input = {}) {
     Number(input.year || 0) === 2025 &&
     exactTitleNames.some((name) => verifiedArghavanShortTitles.has(name))
   );
+  const verifiedFeatureLengthTitle = Boolean(
+    type === 'movie' &&
+    Number(input.year || 0) === 2024 &&
+    exactTitleNames.includes('2073')
+  );
+  const runtimeMinutes = Number(input.runtime || input.runtimeMinutes || input.durationMinutes || 0);
+  const verifiedFeatureLengthRuntime = Number.isFinite(runtimeMinutes) && runtimeMinutes >= 40;
+  const classicComedyCollection = /^classic:(?:laurel-and-hardy|charlie-chaplin)$/i.test(clean(input.collectionId));
   const shortFilmSignal = includesAny(
-    `${titleText} ${genreText} ${overview}`,
+    `${titleText} ${genreText}`,
     shortFilmTerms,
   );
   const isShortFilm = Boolean(
     type === 'movie' &&
     !isAnimation && !isDocumentary && !isProgram &&
+    !verifiedFeatureLengthTitle && !verifiedFeatureLengthRuntime && !classicComedyCollection &&
     (verifiedArghavanShort || shortFilmSignal || existingKind === 'short-film' || existingKeys.includes('short-films'))
   );
 

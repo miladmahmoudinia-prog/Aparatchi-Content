@@ -158,6 +158,26 @@ test('client summary recognizes language from lightweight file metadata and carr
   assert.equal(summary.collectionId, 'collection-1');
   assert.equal(summary.collectionOrder, 2);
   assert.deepEqual(summary.availableLanguages, ['dubbed']);
+  const { bootstrap } = buildClientCatalogArtifacts({ version: 'test', updatedAt: 'now', items: [item] });
+  assert.equal(bootstrap.items[0].collectionNameFa, 'مجموعه نمونه');
+  assert.equal(bootstrap.items[0].collectionName, 'Sample Collection');
+});
+
+test('finishing an old series archive does not promote it ahead of genuinely newer discoveries', () => {
+  const media = [{ id: 's1e1', seasonNumber: 1, episodeNumber: 1, sourceUpdatedAt: '2025-01-01T00:00:00.000Z', files: [{ mode: 'download', url: 'https://cdn.test/e1.mp4' }] }];
+  const oldArchive = {
+    id: 'old-archive', type: 'series', nameFa: 'آرشیو قدیمی', name: 'Old Archive',
+    firstSeenAt: '2026-06-01T00:00:00.000Z', publishedAt: '2026-08-21T00:00:00.000Z',
+    publicationStatus: 'published', archiveComplete: true, episodeCount: 1,
+    latestEpisode: { episodeNumber: 1 }, downloads: media,
+  };
+  const newDiscovery = {
+    id: 'new-discovery', type: 'series', nameFa: 'سریال تازه', name: 'New Discovery',
+    firstSeenAt: '2026-08-20T00:00:00.000Z', publicationStatus: 'published',
+    archiveComplete: true, episodeCount: 1, latestEpisode: { episodeNumber: 1 }, downloads: media,
+  };
+  const artifacts = buildClientCatalogArtifacts({ version: 'test', updatedAt: 'now', items: [oldArchive, newDiscovery] });
+  assert.deepEqual(artifacts.index.items.map((item) => item.id), ['new-discovery', 'old-archive']);
 });
 
 test('movies without usable media stay server-side for repair but are hidden from the client index', () => {

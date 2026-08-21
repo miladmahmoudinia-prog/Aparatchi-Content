@@ -8,6 +8,7 @@ import { applyVerifiedPersianTitleOverrides } from './persian-title-overrides.mj
 import { applyOperatorMetadataRepair } from './operator-metadata-repair.mjs';
 import {
   classifyCatalogItem as classifyCatalogRules,
+  classicComedyCollectionFor,
   isManagedCategoryKey as managedCategoryKey,
   isManagedCategoryLabel as managedCategoryLabel,
 } from './classification.mjs';
@@ -948,12 +949,18 @@ if (effectiveSyncMode === 'PEOPLE') {
   }
 } else if (effectiveSyncMode === 'IRANIAN') {
   // Dedicated hourly lane: one Iranian narrative series stays selected until
-  // every discoverable episode has usable media. This lane is independent of
-  // the global foreign/archive backlog.
+  // every discoverable episode has usable media. Probe page one first so a
+  // newly released Iranian series is not forced to wait for the long archive
+  // cursor to wrap back from an older page.
   await withAffiliateRequestScope(
     'iranian-series',
     iranianSeriesRequestQuota,
-    syncIranianSeriesArchive,
+    async () => {
+      const handledRecent = await syncRecentIranianSeriesDiscovery();
+      if (!handledRecent && !affiliateBudgetExhausted && !affiliateScopeExhausted) {
+        await syncIranianSeriesArchive();
+      }
+    },
   );
 } else if (effectiveSyncMode === 'BACKFILL') {
   // The archive queue is intentionally exclusive: one series is completed
@@ -1671,10 +1678,18 @@ async function syncIncrementalTitles() {
 }
 
 async function syncAiringSeriesUpdates() {
+  const currentYear = new Date().getUTCFullYear();
   const candidates = items
     .filter((item) =>
       item?.type === 'series' &&
-      item?.isAiring === true &&
+      (
+        item?.isAiring === true ||
+        // Iranian feeds frequently omit/clear the airing flag even while a
+        // current production is still receiving episodes. Keep current-year
+        // published Iranian series in the bounded hourly refresh lane so a
+        // title such as «اهل ایران» cannot remain frozen at an old episode.
+        (effectiveIranianIdentity(item) && Number(item?.year || 0) >= currentYear)
+      ) &&
       item?.publicationStatus === 'published'
     )
     .sort((a, b) =>
@@ -1724,6 +1739,78 @@ async function syncAiringSeriesUpdates() {
   state.airingSeriesOffset = candidates.length
     ? (start + checked) % candidates.length
     : 0;
+}
+
+async function syncRecentIranianSeriesDiscovery() {
+  let payload;
+  try {
+    payload = await fetchIranianSeriesPage(1);
+  } catch (error) {
+    rememberError('iranian-series-recent-page-1', error);
+    return false;
+  }
+
+  const candidates = dedupeCandidates(payload.items)
+    .map((candidate) => ({
+      candidate,
+      existing: findExistingItem(candidate, 'series'),
+      timestamp: candidateSourceTimestamp(candidate),
+    }))
+    .filter(({ candidate, existing, timestamp }) => {
+      if (!existing) return true;
+      const storedTimestamp = Math.max(
+        Date.parse(String(existing?.sourceUpdatedAt || '')) || 0,
+        Date.parse(String(existing?.sourceCreatedAt || '')) || 0,
+      );
+      return timestamp > storedTimestamp;
+    })
+    .sort((a, b) =>
+      Number(inferIranian(b.candidate)) - Number(inferIranian(a.candidate)) ||
+      b.timestamp - a.timestamp
+    )
+    .slice(0, 12);
+
+  for (const { candidate } of candidates) {
+    if (affiliateBudgetExhausted || affiliateScopeExhausted) return true;
+    const sourceId = String(baseCatalogId(candidate) || candidate?.t_id || candidate?.series_id || '');
+    stats.iranianSeriesCandidates += 1;
+    let result;
+    try {
+      result = await processSeries(candidate, 'iranian-recent', {
+        requireIranian: true,
+        episodeStrategy: 'latest',
+        episodeLimit: Math.min(120, Math.max(1, priorityEpisodesPerSeries)),
+        onlyMissing: true,
+      });
+    } catch (error) {
+      rememberError(`iranian-series-recent-${sourceId || 'unknown'}`, error);
+      result = { added: false, reason: 'request-error', retryLater: false };
+    }
+
+    const refreshed = items.find((item) =>
+      item?.type === 'series' &&
+      (String(baseCatalogId(item)) === sourceId || String(item.id || '') === sourceId)
+    );
+    const belongsToIranianSeries = Boolean(
+      refreshed &&
+      classifyCatalogRules({ ...refreshed, categoryKeys: [], categoryLabels: [] }).categoryKeys.includes('iranian-series')
+    );
+    rememberDiagnostic('iranianSeriesDiagnostics', {
+      id: sourceId,
+      title: cleanText(candidate?.name_fa || candidate?.name || refreshed?.nameFa || refreshed?.name || ''),
+      result: result?.archiveComplete ? 'completed' : result?.added ? 'advanced' : 'rejected',
+      reason: result?.reason || '',
+      addedEpisodes: Number(result?.addedEpisodes || 0),
+      remainingEpisodeCount: Number(result?.remainingEpisodeCount || 0),
+      retryLater: Boolean(result?.retryLater),
+      discovery: 'recent-page-1',
+    });
+
+    if (result?.retryLater) return true;
+    if (!belongsToIranianSeries) continue;
+    return Boolean(result?.added);
+  }
+  return false;
 }
 
 
@@ -4586,15 +4673,27 @@ async function resolveTmdbTitle(item) {
     if (direct?.id) return { id: Number(direct.id), mediaType };
   }
 
-  const query = cleanText(item?.name || item?.nameFa);
+  const query = cleanText(item?.nameFa || item?.name);
   if (!query) return null;
-  const search = await fetchTmdbJson(`search/${mediaType}`, {
+  const searchQuery = {
     query,
     include_adult: 'false',
-    language: 'en-US',
     ...(item?.year ? { [mediaType === 'tv' ? 'first_air_date_year' : 'year']: item.year } : {}),
-  });
-  const selected = selectTmdbSearchResult(item, search?.results);
+  };
+  // TMDB localizes `title`/`name` according to the requested language. The
+  // operator panel commonly supplies only a Persian title, so an en-US-only
+  // search could return the correct row but then reject it during exact-title
+  // validation because only its English display title was present. Search the
+  // Persian view first and merge the English view as a fallback. IMDb IDs, when
+  // supplied by the provider, still take the exact `/find` route above.
+  const [searchFa, searchEn] = await Promise.all([
+    fetchTmdbJson(`search/${mediaType}`, { ...searchQuery, language: 'fa-IR' }),
+    fetchTmdbJson(`search/${mediaType}`, { ...searchQuery, language: 'en-US' }),
+  ]);
+  const selected = selectTmdbSearchResult(item, [
+    ...(Array.isArray(searchFa?.results) ? searchFa.results : []),
+    ...(Array.isArray(searchEn?.results) ? searchEn.results : []),
+  ]);
   return selected?.id ? { id: Number(selected.id), mediaType } : null;
 }
 
@@ -6072,13 +6171,22 @@ function effectiveIranianIdentity(item) {
 
 function reclassifyCatalogItem(item) {
   if (!item || !['movie', 'series'].includes(item.type)) return item;
-  const operatorClassificationPending = operatorClassificationNeedsVerification(item);
-  const classification = classifyCatalogRules({ ...item, operatorClassificationPending });
-  const preservedKeys = (Array.isArray(item.categoryKeys) ? item.categoryKeys : [])
+  const classicCollection = classicComedyCollectionFor(item);
+  const classifiedItem = classicCollection
+    ? {
+        ...item,
+        collectionId: classicCollection.id,
+        collectionName: classicCollection.name,
+        collectionNameFa: classicCollection.nameFa,
+      }
+    : item;
+  const operatorClassificationPending = operatorClassificationNeedsVerification(classifiedItem);
+  const classification = classifyCatalogRules({ ...classifiedItem, operatorClassificationPending });
+  const preservedKeys = (Array.isArray(classifiedItem.categoryKeys) ? classifiedItem.categoryKeys : [])
     .filter((key) => !isManagedCategoryKey(key));
-  const preservedLabels = (Array.isArray(item.categoryLabels) ? item.categoryLabels : [])
+  const preservedLabels = (Array.isArray(classifiedItem.categoryLabels) ? classifiedItem.categoryLabels : [])
     .filter((label) => !isManagedCategoryLabel(label));
-  const directLanguages = uniqueStrings((Array.isArray(item.downloads) ? item.downloads : [])
+  const directLanguages = uniqueStrings((Array.isArray(classifiedItem.downloads) ? classifiedItem.downloads : [])
     .flatMap((section) => [
       section?.title,
       section?.badge,
@@ -6094,7 +6202,7 @@ function reclassifyCatalogItem(item) {
     }).filter(Boolean));
 
   return {
-    ...item,
+    ...classifiedItem,
     ir: classification.ir,
     contentKind: classification.contentKind,
     isAnimation: classification.isAnimation,
@@ -6102,7 +6210,7 @@ function reclassifyCatalogItem(item) {
     isDocumentary: classification.isDocumentary,
     isShortFilm: classification.isShortFilm,
     isWildlife: classification.isWildlife,
-    ...(catalogVariant(item) === 'operator' ? { operatorClassificationStatus: operatorClassificationPending ? 'pending' : (item.operatorClassificationStatus || 'resolved') } : {}),
+    ...(catalogVariant(classifiedItem) === 'operator' ? { operatorClassificationStatus: operatorClassificationPending ? 'pending' : (classifiedItem.operatorClassificationStatus || 'resolved') } : {}),
     isTalkShow: classification.isTalkShow,
     // Rebuild badges from currently validated media; never preserve stale dubbing/subtitle claims.
     availableLanguages: directLanguages,

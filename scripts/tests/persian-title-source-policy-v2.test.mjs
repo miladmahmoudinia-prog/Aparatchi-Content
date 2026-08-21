@@ -5,7 +5,7 @@ import {
   isLikelySyntheticPersianDisplayTitle,
 } from '../persian-title-overrides.mjs';
 
-test('foreign phonetic Persian labels fall back to the original title', () => {
+test('foreign phonetic Persian labels remain Persian instead of falling back to English', () => {
   const item = {
     id: 'surviving-paradise',
     type: 'movie',
@@ -17,8 +17,8 @@ test('foreign phonetic Persian labels fall back to the original title', () => {
   assert.equal(isLikelySyntheticPersianDisplayTitle(item), true);
   const catalog = { items: [item] };
   applyVerifiedPersianTitleOverrides(catalog);
-  assert.equal(item.nameFa, 'Surviving Paradise: A Family Tale');
-  assert.equal(item.nameFaSource, 'original-title-fallback');
+  assert.equal(item.nameFa, 'سرویوینگ پارادایس: ا فامیلی تاله');
+  assert.equal(item.nameFaSource, 'authoritative-metadata');
 });
 
 test('real Persian translations and verified Persian titles are preserved', () => {
@@ -41,14 +41,14 @@ test('real Persian translations and verified Persian titles are preserved', () =
   assert.equal(iranian.nameFa, 'مستانه');
 });
 
-test('legacy generated markers still fall back even when phonetic similarity is low', () => {
+test('legacy generated Persian markers remain Persian', () => {
   const item = {
     id: 'legacy', type: 'series', name: 'Unknown Original', nameFa: 'عنوان ساختگی',
     nameFaGenerated: true, nameFaSource: 'generated-transliteration', countryCodes: ['US'],
   };
   const catalog = { items: [item] };
   applyVerifiedPersianTitleOverrides(catalog);
-  assert.equal(item.nameFa, 'Unknown Original');
-  assert.equal(item.nameFaGenerated, undefined);
-  assert.equal(item.nameFaSource, 'original-title-fallback');
+  assert.equal(item.nameFa, 'عنوان ساختگی');
+  assert.equal(item.nameFaGenerated, true);
+  assert.equal(item.nameFaSource, 'generated-transliteration');
 });

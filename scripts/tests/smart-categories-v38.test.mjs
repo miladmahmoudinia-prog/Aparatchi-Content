@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
-import { classifyCatalogItem } from '../classification.mjs';
+import { classifyCatalogItem, classicComedyCollectionFor } from '../classification.mjs';
 import { buildClientCatalogArtifacts } from '../client-catalog.mjs';
 
 test('Arghavan sample goes to short films, not Iranian movies', () => {
@@ -34,11 +34,65 @@ test('unknown weak operator shell cannot pollute regional movie shelves', () => 
   assert.ok(!result.categoryKeys.includes('foreign-movies'));
 });
 
+test('unknown operator shells stay server-side until automatic classification resolves them', () => {
+  const pending = {
+    id: 'pending-operator-shell',
+    type: 'movie',
+    nameFa: 'عنوان ناشناخته',
+    name: 'عنوان ناشناخته',
+    operatorOnly: true,
+    operatorClassificationStatus: 'pending',
+    categoryKeys: ['movies', 'mobile-operator'],
+    downloads: [{ files: [{
+      mode: 'operator-play',
+      operatorOnly: true,
+      panelVerified: true,
+      trafficOo: 1,
+      url: 'https://cdn.test/operator.mp4',
+    }] }],
+  };
+  const artifacts = buildClientCatalogArtifacts({ version: 'test', updatedAt: 'now', items: [pending] });
+  assert.equal(artifacts.index.items.length, 0);
+  assert.equal(artifacts.bootstrap.items.length, 0);
+});
+
+test('verified operator titles publish in their resolved specialized category', () => {
+  const verified = {
+    id: 'verified-operator-documentary',
+    type: 'movie',
+    nameFa: 'مستند نمونه',
+    name: 'Sample Documentary',
+    operatorOnly: true,
+    operatorClassificationStatus: 'verified',
+    contentKind: 'documentary',
+    categoryKeys: ['documentaries', 'mobile-operator'],
+    downloads: [{ files: [{
+      mode: 'operator-play',
+      operatorOnly: true,
+      panelVerified: true,
+      trafficOo: 1,
+      url: 'https://cdn.test/operator-documentary.mp4',
+    }] }],
+  };
+  const artifacts = buildClientCatalogArtifacts({ version: 'test', updatedAt: 'now', items: [verified] });
+  assert.deepEqual(artifacts.index.items[0].categoryKeys, ['documentaries', 'mobile-operator']);
+});
+
 test('operator sync searches TMDB classification before final publish', () => {
   const source = fs.readFileSync('scripts/sync-upera.mjs', 'utf8');
   assert.ok(source.includes('await enrichOperatorClassificationMetadata();'));
   assert.ok(source.includes("item.operatorClassificationSource = 'tmdb'"));
   assert.ok(source.includes('operatorClassificationNeedsVerification(item)'));
+  assert.ok(source.includes("language: 'fa-IR'"));
+  assert.ok(source.includes("language: 'en-US'"));
+  assert.ok(source.includes('external_source: \'imdb_id\''));
+});
+
+test('Iranian lane probes recent titles and refreshes current-year series even without a stale airing flag', () => {
+  const source = fs.readFileSync('scripts/sync-upera.mjs', 'utf8');
+  assert.ok(source.includes('await syncRecentIranianSeriesDiscovery();'));
+  assert.ok(source.includes("discovery: 'recent-page-1'"));
+  assert.ok(source.includes('(effectiveIranianIdentity(item) && Number(item?.year || 0) >= currentYear)'));
 });
 
 test('client bootstrap carries short film category', () => {
@@ -55,4 +109,43 @@ test('client bootstrap carries short film category', () => {
   assert.equal(artifacts.index.items.length, 1);
   assert.equal(artifacts.bootstrap.items.length, 1);
   assert.ok(artifacts.bootstrap.items[0].categoryKeys.includes('short-films'));
+});
+
+test('2073 cannot become a short film from a synopsis that merely mentions another short film', () => {
+  const result = classifyCatalogItem({
+    type: 'movie', year: 2024, nameFa: '2073', name: '2073',
+    overview: 'این فیلم بلند از فیلم کوتاه نمادین اسکله الهام گرفته است.',
+    contentKind: 'short-film', categoryKeys: ['short-films'],
+    countryCodes: ['GB'], originalLanguage: 'en', genres: ['سایر'],
+  });
+  assert.equal(result.contentKind, 'movie');
+  assert.ok(result.categoryKeys.includes('foreign-movies'));
+  assert.ok(!result.categoryKeys.includes('short-films'));
+});
+
+test('Laurel and Hardy and Charlie Chaplin films receive stable classic collections', () => {
+  const laurelAndHardy = classicComedyCollectionFor({
+    type: 'movie', genres: ['کمدی', 'فیلم کوتاه'],
+    people: [
+      { role: 'actor', name: 'Stan Laurel' },
+      { role: 'actor', name: 'Oliver Hardy' },
+    ],
+  });
+  assert.equal(laurelAndHardy?.id, 'classic:laurel-and-hardy');
+  assert.equal(laurelAndHardy?.nameFa, 'کالکشن لورل و هاردی');
+  const classified = classifyCatalogItem({
+    type: 'movie', name: 'Busy Bodies', year: 1933,
+    genres: ['کمدی', 'فیلم کوتاه'], countryCodes: ['US'], originalLanguage: 'en',
+    collectionId: laurelAndHardy.id,
+  });
+  assert.ok(classified.categoryKeys.includes('collections'));
+  assert.ok(classified.categoryKeys.includes('foreign-movies'));
+  assert.ok(!classified.categoryKeys.includes('short-films'));
+
+  const chaplin = classicComedyCollectionFor({
+    type: 'movie', genres: ['کمدی'],
+    people: [{ role: 'director', name: 'Charlie Chaplin' }],
+  });
+  assert.equal(chaplin?.id, 'classic:charlie-chaplin');
+  assert.equal(chaplin?.nameFa, 'کالکشن چارلی چاپلین');
 });

@@ -48,7 +48,7 @@ test('unknown collection falls back to its own source name instead of a member t
     ],
   };
   await repairCatalogTitleCollectionTruth(catalog, { maxApiRepairs: 0 });
-  assert.deepEqual(catalog.items.map((item) => item.collectionNameFa), ['کالکشن Sample', 'کالکشن Sample']);
+  assert.deepEqual(catalog.items.map((item) => item.collectionNameFa), ['کالکشن سامپله', 'کالکشن سامپله']);
   assert.deepEqual(catalog.items.map((item) => item.nameFa), ['نمونه: بخش اول', 'نمونه: بخش دوم']);
 });
 
