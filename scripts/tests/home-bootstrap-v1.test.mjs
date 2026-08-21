@@ -106,10 +106,13 @@ test('real generated bootstrap stays compact while preserving every current titl
   }
   const bootstrap = JSON.parse(bootstrapRaw);
   const index = JSON.parse(indexRaw);
+  const manifest = JSON.parse(await fs.readFile('catalog-manifest.json', 'utf8'));
   assert.ok(Array.isArray(bootstrap.items));
   assert.ok(Array.isArray(index.items));
   assert.equal(bootstrap.items.length, index.items.length, 'real startup catalog sampled/truncated the current index');
-  assert.equal(bootstrap.clientRevision, buildClientCatalogArtifacts(JSON.parse(await fs.readFile('catalog.json', 'utf8'))).clientRevision);
+  assert.equal(bootstrap.clientRevision, manifest.clientRevision, 'published bootstrap is not bound to the published manifest');
+  assert.equal(index.items.length, manifest.clientItemCount, 'published index count drifted from the manifest');
+  assert.equal(bootstrap.items.length, manifest.bootstrapItemCount, 'published bootstrap count drifted from the manifest');
   for (const key of ['iranian-movies', 'foreign-movies', 'iranian-series', 'foreign-series', 'korean-movies', 'korean-series', 'indian-movies']) {
     assert.equal(count(bootstrap, key), count(index, key), `startup catalog underfilled ${key}`);
   }

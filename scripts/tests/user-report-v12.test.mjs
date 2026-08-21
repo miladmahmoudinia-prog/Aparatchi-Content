@@ -86,7 +86,7 @@ test('a real forward episode update can move an older series to the front', () =
   assert.equal(artifacts.index.items[0].id, 'real-update');
 });
 
-test('a series appears first when its completed archive is published for the first time', () => {
+test('publishing an older completed archive cannot move it ahead of a newer discovery', () => {
   const alreadyVisible = baseSeries({
     id: 'already-visible',
     firstSeenAt: '2026-08-12T00:00:00Z',
@@ -100,8 +100,11 @@ test('a series appears first when its completed archive is published for the fir
   newlyPublished.publishedAt = '2026-08-18T12:00:00Z';
 
   const artifacts = buildClientCatalogArtifacts(catalogOf([alreadyVisible, newlyPublished]));
-  assert.equal(artifacts.index.items[0].id, 'newly-published');
-  assert.equal(artifacts.index.items[0].publishedAt, newlyPublished.publishedAt);
+  assert.equal(artifacts.index.items[0].id, 'already-visible');
+  assert.equal(
+    artifacts.index.items.find((item) => item.id === 'newly-published')?.publishedAt,
+    newlyPublished.publishedAt,
+  );
 });
 
 test('client summary carries bounded people preview and discovery timestamp', () => {

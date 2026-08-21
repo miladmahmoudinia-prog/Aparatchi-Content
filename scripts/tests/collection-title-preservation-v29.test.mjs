@@ -16,7 +16,7 @@ test('an existing real Persian movie title is preserved across future cleanup', 
   assert.equal(catalog.items[0].nameFa, providerPersian);
 });
 
-test('an explicitly Aparatchi-generated Persian title may still fall back to the original source title', () => {
+test('an explicitly Aparatchi-generated Persian title never falls back to English', () => {
   const original = 'The Future Story of Love';
   const catalog = {
     items: [{
@@ -28,7 +28,8 @@ test('an explicitly Aparatchi-generated Persian title may still fall back to the
     }],
   };
   applyVerifiedPersianTitleOverrides(catalog);
-  assert.equal(catalog.items[0].nameFa, original);
+  assert.equal(catalog.items[0].nameFa, generatedPersianDisplayTitle(original));
+  assert.equal(catalog.items[0].nameFaGenerated, true);
 });
 
 test('a valid shared Persian franchise base is preserved for future collections', () => {
@@ -62,7 +63,7 @@ test('a future collection still rejects a one-installment title as the collectio
     ],
   };
   applyVerifiedPersianTitleOverrides(catalog);
-  assert.deepEqual(catalog.items.map((item) => item.collectionNameFa), ['کالکشن Future Saga', 'کالکشن Future Saga']);
+  assert.deepEqual(catalog.items.map((item) => item.collectionNameFa), ['کالکشن فوتره ساگا', 'کالکشن فوتره ساگا']);
 });
 
 test('title truth never overwrites an existing Persian movie title just because it contains Latin fragments', async () => {

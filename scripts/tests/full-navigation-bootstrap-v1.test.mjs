@@ -8,6 +8,8 @@ const artifacts = buildClientCatalogArtifacts(catalog);
 const index = artifacts.index;
 const bootstrap = artifacts.bootstrap;
 const manifest = JSON.parse(fs.readFileSync('catalog-manifest.json', 'utf8'));
+const publishedIndex = JSON.parse(fs.readFileSync('catalog-index.json', 'utf8'));
+const publishedBootstrap = JSON.parse(fs.readFileSync('catalog-bootstrap.json', 'utf8'));
 const MAX_BOOTSTRAP_BYTES = 10 * 1024 * 1024;
 
 const categoryCount = (payload, key) => payload.items.filter((item) =>
@@ -17,8 +19,9 @@ const categoryCount = (payload, key) => payload.items.filter((item) =>
 test('bootstrap is the complete current navigation archive in compact form', () => {
   assert.ok(index.items.length > 1000, 'full client index unexpectedly tiny');
   assert.equal(bootstrap.items.length, index.items.length, 'startup navigation sampled/truncated the archive');
-  assert.equal(manifest.clientItemCount, index.items.length, 'manifest client count drifted from generated index');
-  assert.equal(manifest.bootstrapItemCount, bootstrap.items.length, 'manifest startup count drifted from generated bootstrap');
+  assert.equal(manifest.clientItemCount, publishedIndex.items.length, 'manifest client count drifted from the published index');
+  assert.equal(manifest.bootstrapItemCount, publishedBootstrap.items.length, 'manifest startup count drifted from the published bootstrap');
+  assert.equal(manifest.clientRevision, publishedBootstrap.clientRevision, 'published bootstrap is not bound to the manifest revision');
   assert.equal(bootstrap.clientRevision, artifacts.clientRevision, 'bootstrap is not bound to the exact client index revision');
   assert.ok(artifacts.bootstrapSizeBytes < MAX_BOOTSTRAP_BYTES,
     `startup navigation grew beyond 10 MiB: ${artifacts.bootstrapSizeBytes}`);

@@ -358,17 +358,22 @@ function applyGeneratedPersianDisplayTitles(items) {
   let changes = 0;
   for (const item of items) {
     if (!item || !['movie', 'series'].includes(item.type)) continue;
-    const wasGenerated = item.nameFaGenerated === true || item.nameFaSource === GENERATED_TITLE_SOURCE;
-    const looksSynthetic = isLikelySyntheticPersianDisplayTitle(item);
-    if (!wasGenerated && !looksSynthetic) continue;
-
+    // Never replace a Persian-script display title with English. Earlier
+    // cleanup treated phonetic Persian as lower quality and wrote the original
+    // English title back into nameFa; that made collection members visibly
+    // switch languages. Authoritative translations still win, while a missing
+    // or legacy English fallback receives a deterministic Persian-script label
+    // until TMDB/Wikidata supplies a better localized title.
+    if (hasPersianScript(item.nameFa)) continue;
     const original = cleanDisplayText(item.name);
-    if (original && item.nameFa !== original) {
-      item.nameFa = original;
+    if (!original) continue;
+    const generated = generatedPersianDisplayTitle(original);
+    if (generated && hasPersianScript(generated) && item.nameFa !== generated) {
+      item.nameFa = generated;
       changes += 1;
     }
-    delete item.nameFaGenerated;
-    item.nameFaSource = 'original-title-fallback';
+    item.nameFaGenerated = true;
+    item.nameFaSource = GENERATED_TITLE_SOURCE;
   }
   return changes;
 }
@@ -431,6 +436,7 @@ function currentPersianCollectionIsSafe(value, members, collectionName) {
   const current = cleanDisplayText(value);
   if (!current || !hasPersianScript(current)) return false;
   const stripped = current.replace(/^(?:مجموعه|کالکشن)\s+/u, '').trim();
+  if (!hasPersianScript(stripped)) return false;
   const normalizedPersianBase = normalizePersianOverrideKey(stripped);
   if (!normalizedPersianBase) return false;
 
@@ -469,7 +475,8 @@ function currentPersianCollectionIsSafe(value, members, collectionName) {
 }
 function safeFallbackCollectionLabel(collectionName) {
   const base = originalCollectionBase(collectionName);
-  return base ? 'کالکشن ' + base : '';
+  const generated = generatedPersianDisplayTitle(base);
+  return generated && hasPersianScript(generated) ? 'کالکشن ' + generated : '';
 }
 function deriveMissingPersianCollectionNames(items) {
   const groups = new Map();

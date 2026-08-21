@@ -140,6 +140,15 @@ const sanitizeClientMediaItem = (item) => {
   if (!item || !['movie', 'series'].includes(item.type)) return item;
   const iranian = item.ir === true || (Array.isArray(item.countryCodes) && item.countryCodes.includes('IR'));
   const operatorVariant = item.operatorOnly === true;
+  // Owner-panel rows often arrive as transport-only shells: a Persian title,
+  // poster and playable operator URL, but no trustworthy content identity.
+  // They are retried by the bounded TMDB/donor classifier on every eligible
+  // sync. Do not expose them in Movies, Iranian Movies, or Mobile Operator
+  // until that classifier has positively resolved their real category.
+  if (
+    operatorVariant &&
+    (item.operatorClassificationStatus === 'pending' || item.operatorClassificationPending === true)
+  ) return null;
   const prepared = (Array.isArray(item.downloads) ? item.downloads : []).map((section) => ({
     ...section,
     files: (Array.isArray(section?.files) ? section.files : []).flatMap((file) => {
@@ -491,7 +500,6 @@ const clientCatalogFreshness = (item) => {
   const candidates = item?.type === 'series'
     ? [
         meaningfulIsCredible ? item?.meaningfulUpdatedAt : '',
-        item?.publishedAt,
         item?.firstSeenAt,
         item?.sourceCreatedAt,
         item?.createdAt,
@@ -506,7 +514,8 @@ const clientCatalogFreshness = (item) => {
 
 const BOOTSTRAP_NAVIGATION_FIELDS = [
   'id', 'slug', 'type', 'ir', 'year', 'nameFa', 'name', 'imdb',
-  'countryCodes', 'countryLabels', 'countryNames', 'originalLanguage', 'collectionId', 'collectionOrder',
+  'countryCodes', 'countryLabels', 'countryNames', 'originalLanguage',
+  'collectionId', 'collectionNameFa', 'collectionName', 'collectionOrder',
   'poster', 'posterFallback', 'backdrop', 'backdropFallback', 'overview', 'genres', 'rate', 'access', 'operatorOnly', 'availableLanguages',
   'episodeCount', 'seasonCount', 'latestEpisode', 'isAiring', 'publicationStatus',
   'updateLabel', 'meaningfulUpdatedAt', 'categoryKeys', 'categoryLabels',

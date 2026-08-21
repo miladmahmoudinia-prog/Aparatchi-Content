@@ -5,7 +5,7 @@ import {
   isLikelySyntheticPersianDisplayTitle,
 } from '../persian-title-overrides.mjs';
 
-test('full foreign phrase transliteration falls back to the original title', () => {
+test('full foreign phrase transliteration remains Persian instead of falling back to English', () => {
   const item = {
     id: 'surviving-paradise',
     type: 'movie',
@@ -16,8 +16,8 @@ test('full foreign phrase transliteration falls back to the original title', () 
   };
   assert.equal(isLikelySyntheticPersianDisplayTitle(item), true);
   applyVerifiedPersianTitleOverrides({ items: [item] });
-  assert.equal(item.nameFa, 'Surviving Paradise: A Family Tale');
-  assert.equal(item.nameFaSource, 'original-title-fallback');
+  assert.equal(item.nameFa, 'سرویوینگ پارادایس: ا فامیلی تاله');
+  assert.equal(item.nameFaSource, 'authoritative-metadata');
 });
 
 test('short proper-name Persian titles are never rejected by phonetic similarity alone', () => {
@@ -43,13 +43,26 @@ test('real translations, verified titles and Persian-origin titles are preserved
   assert.deepEqual(items.map((item) => item.nameFa), ['داستان یک خانواده', 'گذرگاه', 'مستانه']);
 });
 
-test('legacy explicit generated markers still fall back regardless of phrase length', () => {
+test('legacy explicit generated markers remain Persian regardless of phrase length', () => {
   const item = {
     id: 'legacy', type: 'series', name: 'Unknown Original', nameFa: 'عنوان ساختگی',
     nameFaGenerated: true, nameFaSource: 'generated-transliteration', countryCodes: ['US'],
   };
   applyVerifiedPersianTitleOverrides({ items: [item] });
-  assert.equal(item.nameFa, 'Unknown Original');
-  assert.equal(item.nameFaGenerated, undefined);
-  assert.equal(item.nameFaSource, 'original-title-fallback');
+  assert.equal(item.nameFa, 'عنوان ساختگی');
+  assert.equal(item.nameFaGenerated, true);
+  assert.equal(item.nameFaSource, 'generated-transliteration');
+});
+
+test('legacy English fallback is repaired back to Persian script', () => {
+  const item = {
+    id: 'elfkins', type: 'movie', name: 'The Elfkins: Baking a Difference',
+    nameFa: 'The Elfkins: Baking a Difference', nameFaSource: 'original-title-fallback',
+    countryCodes: ['DE'],
+  };
+  applyVerifiedPersianTitleOverrides({ items: [item] });
+  assert.match(item.nameFa, /[\u0600-\u06ff]/u);
+  assert.doesNotMatch(item.nameFa, /\p{Script=Latin}/u);
+  assert.equal(item.nameFaGenerated, true);
+  assert.equal(item.nameFaSource, 'generated-transliteration');
 });
