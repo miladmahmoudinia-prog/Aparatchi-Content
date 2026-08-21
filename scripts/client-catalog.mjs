@@ -515,14 +515,14 @@ const BOOTSTRAP_NAVIGATION_FIELDS = [
 ];
 
 const compactBootstrapMovieFile = (file) => ({
-  ...(file?.id ? { id: file.id } : {}),
-  ...(file?.quality ? { quality: file.quality } : {}),
   url: file.url,
   mode: file.mode,
   ...(file?.language ? { language: file.language } : {}),
   ...(file?.operatorOnly ? { operatorOnly: true } : {}),
   ...(file?.panelVerified ? { panelVerified: true } : {}),
-  ...(file?.trafficOo != null ? { trafficOo: file.trafficOo } : {}),
+  ...(Array.isArray(file?.supportedOperators) && file.supportedOperators.length
+    ? { supportedOperators: file.supportedOperators }
+    : {}),
 });
 
 const compactBootstrapMovieActionPreview = (downloads) => {
@@ -586,24 +586,60 @@ const compactBootstrapSeriesEpisodePreviews = (downloads) =>
     }];
   });
 
-const compactBootstrapNavigationItem = (item, keepImmediateDetail = false) => {
+const compactBootstrapLatestSeriesEpisodePreview = (downloads) => {
+  const latest = (Array.isArray(downloads) ? downloads : [])
+    .filter((section) => Number(section?.episodeNumber || 0) > 0)
+    .sort((a, b) =>
+      Number(b?.seasonNumber || 0) - Number(a?.seasonNumber || 0) ||
+      Number(b?.episodeNumber || 0) - Number(a?.episodeNumber || 0)
+    )[0];
+  return latest ? compactBootstrapSeriesEpisodePreviews([latest]) : [];
+};
+
+const compactBootstrapPeoplePreview = (people, limit = 4) =>
+  compactPersonReferences(people).slice(0, limit).map((person) => ({
+    ...(person.nameFa ? { nameFa: person.nameFa } : {}),
+    ...(person.name && person.name !== person.nameFa ? { name: person.name } : {}),
+    role: person.role,
+    ...(person.character ? { character: person.character } : {}),
+    ...(person.image ? { image: person.image } : {}),
+    ...(person.tmdbId ? { tmdbId: person.tmdbId } : {}),
+  }));
+
+const compactBootstrapNavigationItem = (item) => {
   const compact = {};
   for (const field of BOOTSTRAP_NAVIGATION_FIELDS) {
     if (Object.prototype.hasOwnProperty.call(item || {}, field)) compact[field] = item[field];
   }
-  // Keep richer first-screen rows, but do not repeat cast and media payloads for
-  // thousands of archive entries. Every entry retains detailPath and hydrates
-  // its exact detail shard when opened.
-  if (keepImmediateDetail && Array.isArray(item?.people) && item.people.length) {
-    compact.people = item.people.slice(0, 8);
+
+  // JSON false/empty values are implicit on Mobile. Omitting them pays for a
+  // useful first-paint preview without reintroducing a sampled title ceiling.
+  for (const field of ['operatorOnly', 'isAiring', 'isAnimation', 'isAnime', 'isTalkShow', 'isDocumentary', 'isWildlife']) {
+    if (compact[field] === false) delete compact[field];
   }
-  if (keepImmediateDetail && item?.type === 'movie') {
+  for (const field of ['availableLanguages', 'countryCodes', 'countryLabels', 'countryNames']) {
+    if (Array.isArray(compact[field]) && compact[field].length === 0) delete compact[field];
+  }
+  if (compact.slug === `${compact.type}-${compact.id}`) delete compact.slug;
+  if (compact.name === compact.nameFa) delete compact.name;
+  if (compact.posterFallback === compact.poster) delete compact.posterFallback;
+  if (compact.backdropFallback === compact.backdrop) delete compact.backdropFallback;
+
+  // Every title gets the same bounded first-paint contract. Previously only
+  // the newest 36 titles carried people/actions, so older posters opened as a
+  // partial page and visibly filled one or two seconds later.
+  const people = compactBootstrapPeoplePreview(item?.people, 4);
+  if (people.length) compact.people = people;
+
+  if (item?.type === 'movie') {
     const downloads = compactBootstrapMovieActionPreview(item.downloads);
     if (downloads.length) compact.downloads = downloads;
     if (/^https?:\/\//i.test(String(item.streamUrl || '').trim())) compact.streamUrl = item.streamUrl;
     if (item.streamMode) compact.streamMode = item.streamMode;
-  } else if (keepImmediateDetail && item?.type === 'series') {
-    const downloads = compactBootstrapSeriesEpisodePreviews(item.downloads);
+  } else if (item?.type === 'series') {
+    // One latest actionable episode is sufficient for the immediate controls;
+    // the complete archive remains in the immutable detail shard.
+    const downloads = compactBootstrapLatestSeriesEpisodePreview(item.downloads);
     if (downloads.length) compact.downloads = downloads;
   }
   return compact;
@@ -672,9 +708,7 @@ export function buildClientCatalogArtifacts(catalog) {
   // optional detail-enrichment source; category completeness must not depend on
   // downloading/parsing it after the app is already visible.
   const clientRevision = createHash('sha256').update(indexSerialized).digest('hex');
-  const bootstrapItems = completeBootstrapNavigation(items).map((item, index) =>
-    compactBootstrapNavigationItem(item, index < 36)
-  );
+  const bootstrapItems = completeBootstrapNavigation(items).map(compactBootstrapNavigationItem);
   const bootstrap = {
     version: index.version,
     updatedAt: index.updatedAt,

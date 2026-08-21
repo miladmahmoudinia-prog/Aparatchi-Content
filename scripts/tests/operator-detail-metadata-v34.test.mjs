@@ -62,7 +62,7 @@ test('reported operator documentary samples use documentary identity without bro
   assert.ok(narrative.categoryKeys.includes('iranian-movies'));
 });
 
-test('bootstrap carries overview, genres and full bounded people preview before detail opens', () => {
+test('bootstrap carries overview, genres and an immediate bounded people preview before detail opens', () => {
   const item = {
     id: 'operator-doc', type: 'movie', year: 2024, nameFa: 'مستند تست', name: 'Test Doc', ir: true,
     contentKind: 'documentary', isDocumentary: true, genres: ['مستند'], countryCodes: ['IR'], countryLabels: ['ایران'],
@@ -78,6 +78,6 @@ test('bootstrap carries overview, genres and full bounded people preview before 
   assert.equal(bootstrap.overview, item.overview);
   assert.deepEqual(bootstrap.genres, ['مستند']);
   assert.deepEqual(bootstrap.countryLabels, ['ایران']);
-  assert.equal(bootstrap.people.length, 8);
+  assert.equal(bootstrap.people.length, 4);
   assert.ok(bootstrap.categoryKeys.includes('mobile-operator'));
 });
