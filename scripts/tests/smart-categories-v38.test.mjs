@@ -63,6 +63,7 @@ test('verified operator titles publish in their resolved specialized category', 
     nameFa: 'مستند نمونه',
     name: 'Sample Documentary',
     operatorOnly: true,
+    tmdbId: 99123,
     operatorClassificationStatus: 'verified',
     contentKind: 'documentary',
     categoryKeys: ['documentaries', 'mobile-operator'],
@@ -76,6 +77,25 @@ test('verified operator titles publish in their resolved specialized category', 
   };
   const artifacts = buildClientCatalogArtifacts({ version: 'test', updatedAt: 'now', items: [verified] });
   assert.deepEqual(artifacts.index.items[0].categoryKeys, ['documentaries', 'mobile-operator']);
+});
+
+test('operator identity, not optional cast or overview completeness, controls publication', () => {
+  const media = [{ files: [{
+    mode: 'operator-play', operatorOnly: true, panelVerified: true, trafficOo: 1,
+    url: 'https://cdn.test/operator-famous.mp4',
+  }] }];
+  const identified = {
+    id: 'known-famous-title', type: 'movie', nameFa: 'فیلم معروف', name: 'Famous Film',
+    operatorOnly: true, tmdbId: 12345, categoryKeys: ['movies', 'mobile-operator'], downloads: media,
+  };
+  const unidentified = {
+    ...identified, id: 'unverified-shell', tmdbId: undefined,
+    operatorClassificationStatus: 'verified', people: [{ nameFa: 'بازیگر نمایشی', role: 'actor' }],
+  };
+  const artifacts = buildClientCatalogArtifacts({ version: 'test', updatedAt: 'now', items: [identified, unidentified] });
+  assert.deepEqual(artifacts.index.items.map((item) => item.id), ['known-famous-title']);
+  assert.equal(artifacts.index.items[0].overview, undefined);
+  assert.equal(artifacts.index.items[0].people, undefined);
 });
 
 test('operator sync searches TMDB classification before final publish', () => {
