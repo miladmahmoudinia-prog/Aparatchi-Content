@@ -68,7 +68,7 @@ test('bootstrap carries overview, genres and an immediate bounded people preview
     contentKind: 'documentary', isDocumentary: true, genres: ['مستند'], countryCodes: ['IR'], countryLabels: ['ایران'],
     overview: 'خلاصه‌ای که باید از همان نمایش اول صفحه جزئیات حاضر باشد.',
     categoryKeys: ['documentaries', 'mobile-operator'], categoryLabels: ['مستند', 'ویژه اینترنت همراه'],
-    operatorOnly: true,
+    operatorOnly: true, tmdbId: 12345,
     people: Array.from({ length: 10 }, (_, index) => ({ id: `p${index}`, nameFa: `نفر ${index}`, role: index === 0 ? 'director' : 'actor' })),
     downloads: [{ id: 'operator', files: [operatorFile] }],
   };
