@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 import { classifyCatalogItem } from '../classification.mjs';
+import { buildClientCatalogArtifacts } from '../client-catalog.mjs';
 
 test('Arghavan sample goes to short films, not Iranian movies', () => {
   const result = classifyCatalogItem({ type: 'movie', year: 2025, nameFa: 'لمس جهان', name: 'لمس جهان', ir: true, genres: ['سایر'] });
@@ -41,6 +42,17 @@ test('operator sync searches TMDB classification before final publish', () => {
 });
 
 test('client bootstrap carries short film category', () => {
-  const source = fs.readFileSync('scripts/client-catalog.mjs', 'utf8');
-  assert.ok(source.includes("'documentaries', 'short-films', 'wildlife'"));
+  const item = {
+    id: 'short-film-bootstrap',
+    type: 'movie',
+    nameFa: 'فیلم کوتاه نمونه',
+    name: 'Short Film Sample',
+    contentKind: 'short-film',
+    categoryKeys: ['short-films'],
+    downloads: [{ files: [{ mode: 'download', url: 'https://cdn.test/short-film.mp4' }] }],
+  };
+  const artifacts = buildClientCatalogArtifacts({ version: 'test', updatedAt: 'now', items: [item] });
+  assert.equal(artifacts.index.items.length, 1);
+  assert.equal(artifacts.bootstrap.items.length, 1);
+  assert.ok(artifacts.bootstrap.items[0].categoryKeys.includes('short-films'));
 });
