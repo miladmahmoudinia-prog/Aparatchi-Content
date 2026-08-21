@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-08-20T21:20:42.163Z",
+  "startedAt": "2026-08-21T09:11:52.724Z",
   "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-08-20T21:32:40.822Z",
+  "runDeadlineAt": "2026-08-21T09:23:51.436Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 636071,
+  "remainingRunMsAtFinish": 704893,
   "imageMirroringSkipped": true,
-  "originalCount": 6339,
-  "finalCount": 6339,
+  "originalCount": 6386,
+  "finalCount": 6386,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
-  "backfillQueueTotal": 157,
-  "backfillBacklogRemaining": 157,
+  "backfillQueueTotal": 159,
+  "backfillBacklogRemaining": 159,
   "backfillBlockedTotal": 12,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 180,
-      "used": 30,
+      "used": 0,
       "exhausted": false
     }
   },
@@ -58,16 +58,16 @@
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 1,
+  "seriesHiddenUntilComplete": 0,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 1,
-  "episodesProcessed": 30,
+  "iranianSeriesProcessed": 0,
+  "episodesProcessed": 0,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 1,
-  "iranianSeriesAddedOrUpdated": 1,
-  "iranianSeriesRejectedNotIranian": 0,
+  "iranianSeriesAddedOrUpdated": 0,
+  "iranianSeriesRejectedNotIranian": 1,
   "iranianSeriesRejectedNoLinks": 0,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
@@ -82,44 +82,17 @@
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [
     {
-      "id": "4609c2e0-b53d-11ef-b652-adcde9163814",
-      "title": "کارتون بیگی و دوستان",
-      "result": "advanced",
-      "reason": "added-or-updated",
-      "addedEpisodes": 30,
-      "remainingEpisodeCount": 4,
+      "id": "ccc81ec0-15ff-11ee-9cda-bd8d2c04de0e",
+      "title": "ربودن",
+      "result": "rejected",
+      "reason": "not-iranian",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
       "retryLater": false
     }
   ],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [
-    {
-      "seriesId": "4609c2e0-b53d-11ef-b652-adcde9163814",
-      "title": "کارتون بیگی و دوستان",
-      "source": "iranian-priority",
-      "discoveredEpisodeCount": 64,
-      "catalogEpisodeCount": 60,
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 61
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 62
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 63
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 64
-        }
-      ],
-      "rejectedEpisodes": []
-    }
-  ],
+  "seriesEpisodeDiagnostics": [],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "581efd70-5698-11ef-8956-f95068daf4da",
@@ -1095,6 +1068,24 @@
       "isAiring": false
     },
     {
+      "seriesId": "83fef960-65e3-11ed-9c33-050fff55edb5",
+      "title": "مدرسه پردردسر",
+      "missing": [],
+      "pendingEpisodeCount": 16,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
+      "seriesId": "68f6fa90-205e-11ed-8b05-c5845bd10ca7",
+      "title": "پیاز و سیب",
+      "missing": [],
+      "pendingEpisodeCount": 17,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
       "seriesId": "7b2b2160-3ecc-11f0-a3b9-a190bcb182e0",
       "title": "تک: قهرمانان دبیرستان",
       "missing": [],
@@ -1229,36 +1220,18 @@
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": true
-    },
-    {
-      "seriesId": "0b67e020-cd7a-11ec-b8dc-ff7e5b3d806a",
-      "title": "راه‌پله",
-      "missing": [],
-      "pendingEpisodeCount": 16,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "0190a510-2f47-11ed-b182-695c59f11f4a",
-      "title": "اولی و مون",
-      "missing": [],
-      "pendingEpisodeCount": 39,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
     }
   ],
-  "episodesDiscovered": 82,
-  "episodeGroupsAdded": 30,
+  "episodesDiscovered": 33,
+  "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 30,
+  "seriesAddedOrUpdated": 0,
+  "affiliateRequests": 0,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -1295,9 +1268,9 @@
   "removedWithoutFreeLinks": 0,
   "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 66,
-  "lastCheckpointAt": "2026-08-20T21:21:55.353Z",
-  "lastCheckpointReason": "iranian-skip-4609c2e0-b53d-11ef-b652-adcde9163814",
-  "remainingRunMsAtCheckpoint": 642925,
-  "finishedAt": "2026-08-20T21:22:04.751Z"
+  "apiRequests": 6,
+  "lastCheckpointAt": "2026-08-21T09:11:58.113Z",
+  "lastCheckpointReason": "iranian-skip-ccc81ec0-15ff-11ee-9cda-bd8d2c04de0e",
+  "remainingRunMsAtCheckpoint": 711052,
+  "finishedAt": "2026-08-21T09:12:06.543Z"
 }
