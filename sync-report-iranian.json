@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-08-21T16:17:50.938Z",
+  "startedAt": "2026-08-21T18:52:26.151Z",
   "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-08-21T16:29:49.535Z",
+  "runDeadlineAt": "2026-08-21T19:04:24.760Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 603041,
+  "remainingRunMsAtFinish": 604147,
   "imageMirroringSkipped": true,
-  "originalCount": 6556,
-  "finalCount": 6556,
+  "originalCount": 6591,
+  "finalCount": 6591,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
-  "backfillQueueTotal": 167,
-  "backfillBacklogRemaining": 167,
+  "backfillQueueTotal": 168,
+  "backfillBacklogRemaining": 168,
   "backfillBlockedTotal": 12,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
@@ -19,7 +19,7 @@
   "backfillEpisodesAdded": 0,
   "backfillSeriesVisited": 0,
   "backfillCheckpoints": 1,
-  "episodesMarkedUnavailable": 46,
+  "episodesMarkedUnavailable": 45,
   "backfillNoProgressRuns": 0,
   "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 180,
-      "used": 46,
+      "used": 45,
       "exhausted": false
     }
   },
@@ -58,16 +58,16 @@
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 1,
+  "seriesHiddenUntilComplete": 0,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 1,
-  "episodesProcessed": 46,
+  "iranianSeriesProcessed": 0,
+  "episodesProcessed": 45,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 6,
-  "iranianSeriesAddedOrUpdated": 1,
-  "iranianSeriesRejectedNotIranian": 0,
+  "iranianSeriesAddedOrUpdated": 0,
+  "iranianSeriesRejectedNotIranian": 1,
   "iranianSeriesRejectedNoLinks": 5,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
@@ -132,39 +132,17 @@
       "discovery": "recent-page-1"
     },
     {
-      "id": "1cb2a690-d57f-11ef-a1f9-91af443a73a4",
-      "title": "مزرعه شادی",
-      "result": "advanced",
-      "reason": "added-or-updated",
+      "id": "4ccbc1b0-ddcc-11ec-b619-b15289a2db9d",
+      "title": "اتفاقات عجیب",
+      "result": "rejected",
+      "reason": "not-iranian",
       "addedEpisodes": 0,
-      "remainingEpisodeCount": 1,
+      "remainingEpisodeCount": 0,
       "retryLater": false
     }
   ],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [
-    {
-      "seriesId": "1cb2a690-d57f-11ef-a1f9-91af443a73a4",
-      "title": "مزرعه شادی",
-      "source": "iranian-priority",
-      "discoveredEpisodeCount": 54,
-      "catalogEpisodeCount": 53,
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 55
-        }
-      ],
-      "rejectedEpisodes": [
-        {
-          "id": "9dd3f1b0-f41d-11ef-a864-176e2e55cba0",
-          "seasonNumber": 1,
-          "episodeNumber": 55,
-          "reason": "no-usable-links"
-        }
-      ]
-    }
-  ],
+  "seriesEpisodeDiagnostics": [],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "581efd70-5698-11ef-8956-f95068daf4da",
@@ -1236,6 +1214,15 @@
       "isAiring": false
     },
     {
+      "seriesId": "73d9c320-65b9-11ed-bc3a-7dff424de3f1",
+      "title": "اولوبوب توپ",
+      "missing": [],
+      "pendingEpisodeCount": 42,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
       "seriesId": "7b2b2160-3ecc-11f0-a3b9-a190bcb182e0",
       "title": "تک: قهرمانان دبیرستان",
       "missing": [],
@@ -1251,30 +1238,21 @@
       "pendingEpisodeCount": 31,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "b74306c0-72df-11ec-bfca-d3499156d004",
-      "title": "خانم نظافتچی",
-      "missing": [],
-      "pendingEpisodeCount": 10,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
+      "isAiring": true
     }
   ],
-  "episodesDiscovered": 204,
+  "episodesDiscovered": 192,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 46,
+  "episodesRejectedNoLinks": 45,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 46,
+  "seriesAddedOrUpdated": 0,
+  "affiliateRequests": 45,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 46,
+  "affiliateNotFound": 45,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1307,16 +1285,11 @@
   "mediaHealthUnknown": 0,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [
-    {
-      "scope": "panel-show-links-episode-9dd3f1b0-f41d-11ef-a864-176e2e55cba0",
-      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/show_links/episode/9dd3f1b0-f41d-11ef-a864-176e2e55cba0"
-    }
-  ],
+  "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 108,
-  "lastCheckpointAt": "2026-08-21T16:19:36.046Z",
-  "lastCheckpointReason": "iranian-skip-1cb2a690-d57f-11ef-a1f9-91af443a73a4",
-  "remainingRunMsAtCheckpoint": 610451,
-  "finishedAt": "2026-08-21T16:19:46.494Z"
+  "apiRequests": 106,
+  "lastCheckpointAt": "2026-08-21T18:54:10.250Z",
+  "lastCheckpointReason": "iranian-skip-4ccbc1b0-ddcc-11ec-b619-b15289a2db9d",
+  "remainingRunMsAtCheckpoint": 611494,
+  "finishedAt": "2026-08-21T18:54:20.613Z"
 }
