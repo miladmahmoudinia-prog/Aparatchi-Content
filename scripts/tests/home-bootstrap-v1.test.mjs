@@ -47,6 +47,7 @@ test('bootstrap contains the complete navigation catalog, IMDb and bounded first
   items.push({
     ...playableMovie('operator-1', ['movies', 'iranian-movies', 'mobile-operator'], '2026-08-17T00:00:00.000Z'),
     operatorOnly: true,
+    tmdbId: 12345,
     downloads: [{
       id: 'operator-media',
       files: [{
