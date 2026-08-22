@@ -1,18 +1,18 @@
 {
-  "startedAt": "2026-08-22T09:53:43.167Z",
+  "startedAt": "2026-08-22T11:34:48.177Z",
   "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-08-22T10:05:41.721Z",
+  "runDeadlineAt": "2026-08-22T11:46:46.673Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 603152,
+  "remainingRunMsAtFinish": 593360,
   "imageMirroringSkipped": true,
-  "originalCount": 6921,
-  "finalCount": 6921,
+  "originalCount": 6967,
+  "finalCount": 6967,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
-  "backfillQueueTotal": 178,
-  "backfillBacklogRemaining": 178,
-  "backfillBlockedTotal": 11,
+  "backfillQueueTotal": 177,
+  "backfillBacklogRemaining": 176,
+  "backfillBlockedTotal": 12,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
   "backfillSeriesBlockedThisRun": [],
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 180,
-      "used": 45,
+      "used": 49,
       "exhausted": false
     }
   },
@@ -59,15 +59,15 @@
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
   "seriesHiddenUntilComplete": 0,
-  "seriesPublishedAfterCompletion": 0,
+  "seriesPublishedAfterCompletion": 1,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
-  "episodesProcessed": 45,
+  "iranianSeriesProcessed": 1,
+  "episodesProcessed": 49,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 6,
-  "iranianSeriesAddedOrUpdated": 0,
-  "iranianSeriesRejectedNotIranian": 1,
+  "iranianSeriesAddedOrUpdated": 1,
+  "iranianSeriesRejectedNotIranian": 0,
   "iranianSeriesRejectedNoLinks": 5,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
@@ -132,17 +132,27 @@
       "discovery": "recent-page-1"
     },
     {
-      "id": "c050b270-7283-11f0-8c30-13f40bcd6f20",
-      "title": "اسرار جادوگر خاموش",
-      "result": "rejected",
-      "reason": "not-iranian",
-      "addedEpisodes": 0,
+      "id": "4609c2e0-b53d-11ef-b652-adcde9163814",
+      "title": "کارتون بیگی و دوستان",
+      "result": "completed",
+      "reason": "added-or-updated",
+      "addedEpisodes": 4,
       "remainingEpisodeCount": 0,
       "retryLater": false
     }
   ],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "4609c2e0-b53d-11ef-b652-adcde9163814",
+      "title": "کارتون بیگی و دوستان",
+      "source": "iranian-priority",
+      "discoveredEpisodeCount": 64,
+      "catalogEpisodeCount": 64,
+      "missing": [],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "581efd70-5698-11ef-8956-f95068daf4da",
@@ -1241,16 +1251,16 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 163,
-  "episodeGroupsAdded": 0,
+  "episodesDiscovered": 214,
+  "episodeGroupsAdded": 4,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 45,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
-  "affiliateRequests": 45,
+  "seriesAddedOrUpdated": 1,
+  "affiliateRequests": 49,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 45,
   "rateLimitHits": 0,
@@ -1287,9 +1297,9 @@
   "removedWithoutFreeLinks": 0,
   "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 106,
-  "lastCheckpointAt": "2026-08-22T09:55:27.583Z",
-  "lastCheckpointReason": "iranian-skip-c050b270-7283-11f0-8c30-13f40bcd6f20",
-  "remainingRunMsAtCheckpoint": 610917,
-  "finishedAt": "2026-08-22T09:55:38.569Z"
+  "apiRequests": 114,
+  "lastCheckpointAt": "2026-08-22T11:36:41.261Z",
+  "lastCheckpointReason": "iranian-skip-4609c2e0-b53d-11ef-b652-adcde9163814",
+  "remainingRunMsAtCheckpoint": 601887,
+  "finishedAt": "2026-08-22T11:36:53.313Z"
 }
