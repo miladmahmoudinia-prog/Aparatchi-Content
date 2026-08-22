@@ -1,18 +1,18 @@
 {
-  "startedAt": "2026-08-22T04:19:02.254Z",
+  "startedAt": "2026-08-22T05:30:50.159Z",
   "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-08-22T04:31:00.845Z",
+  "runDeadlineAt": "2026-08-22T05:42:49.011Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 604226,
+  "remainingRunMsAtFinish": 602165,
   "imageMirroringSkipped": true,
-  "originalCount": 6768,
-  "finalCount": 6768,
+  "originalCount": 6820,
+  "finalCount": 6820,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
-  "backfillQueueTotal": 176,
-  "backfillBacklogRemaining": 176,
-  "backfillBlockedTotal": 12,
+  "backfillQueueTotal": 177,
+  "backfillBacklogRemaining": 177,
+  "backfillBlockedTotal": 11,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
   "backfillSeriesBlockedThisRun": [],
@@ -62,12 +62,12 @@
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
+  "iranianSeriesProcessed": 1,
   "episodesProcessed": 45,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 6,
-  "iranianSeriesAddedOrUpdated": 0,
-  "iranianSeriesRejectedNotIranian": 1,
+  "iranianSeriesAddedOrUpdated": 1,
+  "iranianSeriesRejectedNotIranian": 0,
   "iranianSeriesRejectedNoLinks": 5,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
@@ -132,17 +132,27 @@
       "discovery": "recent-page-1"
     },
     {
-      "id": "7d2d44a0-d9b4-11f0-9032-69b9c2aef1c2",
-      "title": "جنگ میان خشکی و دریا",
-      "result": "rejected",
-      "reason": "not-iranian",
+      "id": "2a00d500-3eed-11e8-bbc0-ef914c209838",
+      "title": "ابله",
+      "result": "completed",
+      "reason": "added-or-updated",
       "addedEpisodes": 0,
       "remainingEpisodeCount": 0,
       "retryLater": false
     }
   ],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "2a00d500-3eed-11e8-bbc0-ef914c209838",
+      "title": "ابله",
+      "source": "iranian-priority",
+      "discoveredEpisodeCount": 14,
+      "catalogEpisodeCount": 14,
+      "missing": [],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "581efd70-5698-11ef-8956-f95068daf4da",
@@ -1241,7 +1251,7 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 155,
+  "episodesDiscovered": 164,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
@@ -1249,7 +1259,7 @@
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 45,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
+  "seriesAddedOrUpdated": 1,
   "affiliateRequests": 45,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 45,
@@ -1288,8 +1298,8 @@
   "errors": [],
   "errorsTruncated": 0,
   "apiRequests": 106,
-  "lastCheckpointAt": "2026-08-22T04:20:46.298Z",
-  "lastCheckpointReason": "iranian-skip-7d2d44a0-d9b4-11f0-9032-69b9c2aef1c2",
-  "remainingRunMsAtCheckpoint": 611461,
-  "finishedAt": "2026-08-22T04:20:56.619Z"
+  "lastCheckpointAt": "2026-08-22T05:32:37.758Z",
+  "lastCheckpointReason": "iranian-complete-2a00d500-3eed-11e8-bbc0-ef914c209838",
+  "remainingRunMsAtCheckpoint": 608784,
+  "finishedAt": "2026-08-22T05:32:46.846Z"
 }
