@@ -638,7 +638,10 @@ const compactBootstrapNavigationItem = (item) => {
   // Every title gets the same bounded first-paint contract. Previously only
   // the newest 36 titles carried people/actions, so older posters opened as a
   // partial page and visibly filled one or two seconds later.
-  const people = compactBootstrapPeoplePreview(item?.people, 4);
+  // Three people are enough for the immediate first paint. Keeping four for
+  // every title pushed the complete startup artifact beyond its 10 MiB safety
+  // bound and made every otherwise-successful sync red.
+  const people = compactBootstrapPeoplePreview(item?.people, 3);
   if (people.length) compact.people = people;
 
   if (item?.type === 'movie') {
