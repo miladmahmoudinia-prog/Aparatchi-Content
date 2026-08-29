@@ -635,13 +635,23 @@ const compactBootstrapNavigationItem = (item) => {
   if (compact.posterFallback === compact.poster) delete compact.posterFallback;
   if (compact.backdropFallback === compact.backdrop) delete compact.backdropFallback;
 
+  // Hourly imports commonly repeat the exact same ISO timestamp in four
+  // fields. Keep the semantic timestamp and omit aliases Mobile would parse
+  // to the same value. This saves substantially more startup weight than
+  // reducing visible cast/crew or episode actions.
+  if (compact.firstSeenAt) {
+    if (compact.createdAt === compact.firstSeenAt) delete compact.createdAt;
+    if (compact.sourceCreatedAt === compact.firstSeenAt) delete compact.sourceCreatedAt;
+  } else if (compact.createdAt && compact.sourceCreatedAt === compact.createdAt) {
+    delete compact.sourceCreatedAt;
+  }
+  if (compact.sourceUpdatedAt && compact.updatedAt === compact.sourceUpdatedAt) delete compact.updatedAt;
+  if (compact.meaningfulUpdatedAt && compact.sourceUpdatedAt === compact.meaningfulUpdatedAt) delete compact.sourceUpdatedAt;
+
   // Every title gets the same bounded first-paint contract. Previously only
   // the newest 36 titles carried people/actions, so older posters opened as a
   // partial page and visibly filled one or two seconds later.
-  // Three people are enough for the immediate first paint. Keeping four for
-  // every title pushed the complete startup artifact beyond its 10 MiB safety
-  // bound and made every otherwise-successful sync red.
-  const people = compactBootstrapPeoplePreview(item?.people, 3);
+  const people = compactBootstrapPeoplePreview(item?.people, 4);
   if (people.length) compact.people = people;
 
   if (item?.type === 'movie') {
