@@ -45,6 +45,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Rebuild compact client catalog before regression tests
+        run: node scripts/rebuild-client-catalog.mjs
+
       - name: Run sync regression tests
         run: node --test scripts/tests/*.test.mjs
 
