@@ -1,0 +1,91 @@
+name: Hotfix Sync Regression Gate
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/hotfix-sync-red.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 60
+
+      - name: Patch client truth and Iranian source
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+
+          function replaceExact(file, from, to, label) {
+            let text = fs.readFileSync(file, 'utf8');
+            if (!text.includes(from)) throw new Error(`${label}: expected source not found in ${file}`);
+            text = text.replace(from, to);
+            fs.writeFileSync(file, text);
+          }
+
+          replaceExact(
+            'scripts/client-catalog.mjs',
+            `  const preparedForClient = iranian\n    ? prepared\n    : prepared.map((section) => ({`,
+            `  const preparedForClient = (iranian || operatorVariant)\n    ? prepared\n    : prepared.map((section) => ({`,
+            'operator media exemption',
+          );
+          replaceExact(
+            'scripts/client-catalog.mjs',
+            `    if (neutralFiles.length && iranian) {`,
+            `    if (neutralFiles.length && !operatorVariant) {`,
+            'foreign conflict neutral preservation',
+          );
+          replaceExact(
+            'scripts/client-catalog.mjs',
+            `  if (!iranian && !availableLanguages.length) return null;`,
+            `  if (!iranian && !operatorVariant && !availableLanguages.length && conflicts.size === 0) return null;`,
+            'foreign visibility gate',
+          );
+
+          replaceExact(
+            'scripts/sync-upera.mjs',
+            `    // Fallback scan: some deployments ignore/rename the Persian filter.\n    { free: 1, persian: 0, traffic: 1, noFreeFallback: true },`,
+            `    // Never fall back to the generic foreign feed here. If upstream ignores\n    // the Iranian filters, inferIranian will reject those rows without making\n    // the archive cursor spend hours walking the entire foreign catalog.`,
+            'unsafe Iranian generic fallback',
+          );
+
+          replaceExact(
+            '.github/workflows/repair-iranian-series.yml',
+            'for pass in $(seq 1 4); do',
+            'for pass in $(seq 1 24); do',
+            'Iranian repair bounded loop',
+          );
+          NODE
+
+      - name: Commit source repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .git/index.lock
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/client-catalog.mjs scripts/sync-upera.mjs .github/workflows/repair-iranian-series.yml
+          git commit -m "fix: restore client media truth and Iranian source filtering"
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Run regression suite after source repair
+        shell: bash
+        run: node --test scripts/tests/*.test.mjs
