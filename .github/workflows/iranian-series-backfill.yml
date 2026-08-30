@@ -15,7 +15,7 @@ permissions:
 
 concurrency:
   group: aparatchi-content-write-lock
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   backfill:
@@ -95,9 +95,6 @@ jobs:
           fs.writeFileSync(file, source);
           NODE
 
-          # The normal catalog sync already handles newly airing titles and
-          # visible repairs. This lane is archive-only from its very first pass,
-          # so a stale visible repair can never consume the backfill slot.
           export APARATCHI_SKIP_IRANIAN_RECENT='true'
           COMPLETED=0
           for pass in $(seq 1 30); do
