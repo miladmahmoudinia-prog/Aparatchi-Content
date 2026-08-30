@@ -1,18 +1,18 @@
 {
-  "startedAt": "2026-08-30T20:47:03.683Z",
+  "startedAt": "2026-08-30T22:16:27.072Z",
   "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-08-30T20:57:02.027Z",
+  "runDeadlineAt": "2026-08-30T22:26:25.431Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 584763,
+  "remainingRunMsAtFinish": 584029,
   "imageMirroringSkipped": true,
-  "originalCount": 7406,
-  "finalCount": 7406,
+  "originalCount": 7470,
+  "finalCount": 7470,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
-  "backfillQueueTotal": 182,
-  "backfillBacklogRemaining": 182,
-  "backfillBlockedTotal": 11,
+  "backfillQueueTotal": 181,
+  "backfillBacklogRemaining": 181,
+  "backfillBlockedTotal": 12,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
   "backfillSeriesBlockedThisRun": [],
@@ -64,10 +64,10 @@
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 1,
   "episodesProcessed": 0,
-  "iranianSeriesPagesProcessed": 0,
+  "iranianSeriesPagesProcessed": 1,
   "iranianSeriesCandidates": 1,
-  "iranianSeriesAddedOrUpdated": 0,
-  "iranianSeriesRejectedNotIranian": 1,
+  "iranianSeriesAddedOrUpdated": 1,
+  "iranianSeriesRejectedNotIranian": 0,
   "iranianSeriesRejectedNoLinks": 0,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
@@ -82,38 +82,29 @@
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [
     {
-      "id": "6f4a5550-90cb-11f1-b74a-f34817502b6d",
-      "title": "وستی ها",
-      "result": "rejected",
-      "reason": "not-iranian",
+      "id": "08447d70-9b7e-11eb-8510-7d24d94903ac",
+      "title": "قرآن",
+      "result": "completed",
+      "reason": "added-or-updated",
       "addedEpisodes": 0,
-      "remainingEpisodeCount": 1,
+      "remainingEpisodeCount": 0,
       "retryLater": false,
-      "newlyPublished": false,
-      "meaningfulProgress": false,
-      "discovery": "visible-repair",
-      "expectedEpisodes": 1,
-      "usableEpisodes": 0,
-      "repairDeferred": true
+      "newlyPublished": false
     }
   ],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
-  "catalogEpisodeGapDiagnostics": [
+  "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
-      "title": "باب اسفنجی شلوار مکعبی",
-      "missing": [
-        {
-          "seasonNumber": 13,
-          "episodeNumber": 9
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
+      "seriesId": "08447d70-9b7e-11eb-8510-7d24d94903ac",
+      "title": "قرآن",
+      "source": "iranian-priority",
+      "discoveredEpisodeCount": 30,
+      "catalogEpisodeCount": 30,
+      "missing": [],
+      "rejectedEpisodes": []
+    }
+  ],
+  "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
       "title": "سایه باز",
@@ -182,6 +173,20 @@
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
+    },
+    {
+      "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
+      "title": "باب اسفنجی شلوار مکعبی",
+      "missing": [
+        {
+          "seasonNumber": 13,
+          "episodeNumber": 9
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
     },
     {
       "seriesId": "1cb2a690-d57f-11ef-a1f9-91af443a73a4",
@@ -1216,7 +1221,7 @@
       "isAiring": true
     }
   ],
-  "episodesDiscovered": 20,
+  "episodesDiscovered": 48,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
@@ -1224,7 +1229,7 @@
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
+  "seriesAddedOrUpdated": 1,
   "affiliateRequests": 0,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
@@ -1262,9 +1267,9 @@
   "removedWithoutFreeLinks": 0,
   "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 1,
-  "lastCheckpointAt": "2026-08-30T20:47:04.466Z",
-  "lastCheckpointReason": "iranian-visible-repair-6f4a5550-90cb-11f1-b74a-f34817502b6d",
-  "remainingRunMsAtCheckpoint": 593900,
-  "finishedAt": "2026-08-30T20:47:17.264Z"
+  "apiRequests": 3,
+  "lastCheckpointAt": "2026-08-30T22:16:29.021Z",
+  "lastCheckpointReason": "iranian-skip-08447d70-9b7e-11eb-8510-7d24d94903ac",
+  "remainingRunMsAtCheckpoint": 592837,
+  "finishedAt": "2026-08-30T22:16:41.402Z"
 }
