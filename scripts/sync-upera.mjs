@@ -956,8 +956,11 @@ if (effectiveSyncMode === 'PEOPLE') {
     'iranian-series',
     iranianSeriesRequestQuota,
     async () => {
-      const handledRecent = await syncRecentIranianSeriesDiscovery();
-      if (!handledRecent && !affiliateBudgetExhausted && !affiliateScopeExhausted) {
+      await syncRecentIranianSeriesDiscovery();
+      // Recent airing updates and sequential archive publication have separate
+      // responsibilities. A harmless page-one refresh must never starve the
+      // archive queue while request budget remains.
+      if (!affiliateBudgetExhausted && !affiliateScopeExhausted) {
         await syncIranianSeriesArchive();
       }
     },
@@ -1770,7 +1773,7 @@ async function syncRecentIranianSeriesDiscovery() {
     )
     .slice(0, 12);
 
-  for (const { candidate } of candidates) {
+  for (const { candidate, existing } of candidates) {
     if (affiliateBudgetExhausted || affiliateScopeExhausted) return true;
     const sourceId = String(baseCatalogId(candidate) || candidate?.t_id || candidate?.series_id || '');
     stats.iranianSeriesCandidates += 1;
@@ -1795,6 +1798,24 @@ async function syncRecentIranianSeriesDiscovery() {
       refreshed &&
       classifyCatalogRules({ ...refreshed, categoryKeys: [], categoryLabels: [] }).categoryKeys.includes('iranian-series')
     );
+    const wasPublished = Boolean(
+      existing?.publicationStatus === 'published' ||
+      existing?.visibilityLocked
+    );
+    const newlyPublished = Boolean(
+      !wasPublished &&
+      refreshed?.publicationStatus === 'published' &&
+      refreshed?.archiveComplete === true
+    );
+    const meaningfulRecentProgress = Boolean(
+      newlyPublished ||
+      Number(result?.addedEpisodes || 0) > 0 ||
+      (
+        result?.added &&
+        refreshed &&
+        refreshed.publicationStatus !== 'published'
+      )
+    );
     rememberDiagnostic('iranianSeriesDiagnostics', {
       id: sourceId,
       title: cleanText(candidate?.name_fa || candidate?.name || refreshed?.nameFa || refreshed?.name || ''),
@@ -1803,12 +1824,14 @@ async function syncRecentIranianSeriesDiscovery() {
       addedEpisodes: Number(result?.addedEpisodes || 0),
       remainingEpisodeCount: Number(result?.remainingEpisodeCount || 0),
       retryLater: Boolean(result?.retryLater),
+      newlyPublished,
+      meaningfulProgress: meaningfulRecentProgress,
       discovery: 'recent-page-1',
     });
 
     if (result?.retryLater) return true;
     if (!belongsToIranianSeries) continue;
-    return Boolean(result?.added);
+    if (meaningfulRecentProgress) return true;
   }
   return false;
 }
@@ -2397,6 +2420,7 @@ async function syncIranianSeriesArchive() {
       addedEpisodes: Number(result?.addedEpisodes || 0),
       remainingEpisodeCount: Number(result?.remainingEpisodeCount || 0),
       retryLater: Boolean(result?.retryLater),
+      newlyPublished: Boolean(result?.newlyPublished),
     });
 
     // Foreign/documentary/invalid rows do not belong in this queue.
@@ -3137,7 +3161,22 @@ async function processSeries(
       rememberError(`panel-series-episodes-${id}`, error);
     }
   }
-  const series = detail.series;
+  // The page row can carry a newer updated_at than the detail endpoint.
+  // Preserve the newest source timestamp so a completed title is not mistaken
+  // for fresh work on every Iranian-lane pass.
+  const series = detail.series
+    ? {
+        ...detail.series,
+        updated_at: maxDate(
+          detail.series?.updated_at,
+          detail.series?.updatedAt,
+          candidate?.updated_at,
+          candidate?.updatedAt,
+          candidate?.created_at,
+          candidate?.createdAt,
+        ),
+      }
+    : null;
   const episodeDiscoveryComplete = detail.episodeDiscoveryComplete !== false;
 
   if (!series) {
@@ -3547,6 +3586,11 @@ async function processSeries(
     remainingEpisodeCount: remainingSourceEpisodes.length,
     sourceEpisodeCount: episodesByCoordinate.length,
     episodeDiscoveryComplete,
+    newlyPublished: Boolean(
+      publicationStatus === 'published' &&
+      existing?.publicationStatus !== 'published' &&
+      !existing?.visibilityLocked
+    ),
     reason: episodeDiscoveryComplete
       ? 'added-or-updated'
       : 'episode-discovery-incomplete',
