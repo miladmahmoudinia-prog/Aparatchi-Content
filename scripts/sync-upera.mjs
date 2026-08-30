@@ -1756,10 +1756,18 @@ async function syncRecentIranianSeriesDiscovery() {
   const candidates = dedupeCandidates(payload.items)
     .map((candidate) => ({
       candidate,
+      sourceId: String(baseCatalogId(candidate) || candidate?.t_id || candidate?.series_id || ''),
       existing: findExistingItem(candidate, 'series'),
       timestamp: candidateSourceTimestamp(candidate),
     }))
-    .filter(({ candidate, existing, timestamp }) => {
+    .filter(({ sourceId, existing, timestamp }) => {
+      // Terminal recent-page checks are remembered across the bounded shell
+      // passes. A row is reconsidered only when the source timestamp changes,
+      // so rejected/no-op rows cannot multiply API work 24 times per run.
+      const checkedTimestamp = Number(
+        state.iranianRecentSeriesCheckedAt?.[sourceId] || 0,
+      );
+      if (timestamp > 0 && checkedTimestamp >= timestamp) return false;
       if (!existing) return true;
       const storedTimestamp = Math.max(
         Date.parse(String(existing?.sourceUpdatedAt || '')) || 0,
@@ -1773,9 +1781,8 @@ async function syncRecentIranianSeriesDiscovery() {
     )
     .slice(0, 12);
 
-  for (const { candidate, existing } of candidates) {
+  for (const { candidate, existing, sourceId, timestamp } of candidates) {
     if (affiliateBudgetExhausted || affiliateScopeExhausted) return true;
-    const sourceId = String(baseCatalogId(candidate) || candidate?.t_id || candidate?.series_id || '');
     stats.iranianSeriesCandidates += 1;
     let result;
     try {
@@ -1816,6 +1823,34 @@ async function syncRecentIranianSeriesDiscovery() {
         refreshed.publicationStatus !== 'published'
       )
     );
+
+    const terminalRecentCheck = Boolean(
+      !result?.retryLater &&
+      result?.reason !== 'request-error' &&
+      (!meaningfulRecentProgress || result?.archiveComplete)
+    );
+    if (terminalRecentCheck && sourceId && timestamp > 0) {
+      if (
+        !state.iranianRecentSeriesCheckedAt ||
+        typeof state.iranianRecentSeriesCheckedAt !== 'object' ||
+        Array.isArray(state.iranianRecentSeriesCheckedAt)
+      ) {
+        state.iranianRecentSeriesCheckedAt = {};
+      }
+      state.iranianRecentSeriesCheckedAt[sourceId] = Math.max(
+        Number(state.iranianRecentSeriesCheckedAt[sourceId] || 0),
+        timestamp,
+      );
+      // Page one is small, but keep a bounded history so stale source ids can
+      // never make sync-state.json grow without limit.
+      state.iranianRecentSeriesCheckedAt = Object.fromEntries(
+        Object.entries(state.iranianRecentSeriesCheckedAt)
+          .filter(([id, value]) => id && Number(value) > 0)
+          .sort(([, left], [, right]) => Number(right) - Number(left))
+          .slice(0, 96),
+      );
+    }
+
     rememberDiagnostic('iranianSeriesDiagnostics', {
       id: sourceId,
       title: cleanText(candidate?.name_fa || candidate?.name || refreshed?.nameFa || refreshed?.name || ''),
