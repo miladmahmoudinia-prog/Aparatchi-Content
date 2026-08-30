@@ -188,8 +188,20 @@ const sanitizeClientMediaItem = (item) => {
     }
   }
 
+  // Aparatchi exposes foreign media only when the source positively proves
+  // Persian dubbing or Persian subtitles. Native Iranian titles keep their
+  // ordinary Persian media without a redundant language badge.
+  const preparedForClient = iranian
+    ? prepared
+    : prepared.map((section) => ({
+        ...section,
+        files: (section.files || []).filter((file) =>
+          file?.language === 'dubbed' || file?.language === 'subtitled'
+        ),
+      }));
+
   const languagesByUrl = new Map();
-  for (const section of prepared) {
+  for (const section of preparedForClient) {
     for (const file of section.files || []) {
       if (file.language !== 'dubbed' && file.language !== 'subtitled') continue;
       const url = String(file.url || '').trim();
@@ -215,7 +227,7 @@ const sanitizeClientMediaItem = (item) => {
     if (mode === 'play') return 2;
     return 1;
   };
-  for (const section of prepared) {
+  for (const section of preparedForClient) {
     for (const file of section.files || []) {
       const url = String(file?.url || '').trim();
       if (!conflicts.has(url)) continue;
@@ -225,7 +237,7 @@ const sanitizeClientMediaItem = (item) => {
   }
   const emittedConflictUrls = new Set();
 
-  const downloads = prepared.flatMap((section) => {
+  const downloads = preparedForClient.flatMap((section) => {
     const files = (section.files || []).filter((file) => !conflicts.has(String(file.url || '').trim()));
     const neutralFiles = [];
     for (const file of section.files || []) {
@@ -253,7 +265,7 @@ const sanitizeClientMediaItem = (item) => {
       }
     }
 
-    if (neutralFiles.length) {
+    if (neutralFiles.length && iranian) {
       result.push({
         ...section,
         id: `${String(section?.id || "media")}-neutral`,
@@ -272,6 +284,8 @@ const sanitizeClientMediaItem = (item) => {
     (section.files || []).map((file) => file.language)
       .filter((value) => value === 'dubbed' || value === 'subtitled')
   ))];
+  // Foreign titles without proven Persian dub/sub are not part of the app catalog.
+  if (!iranian && !availableLanguages.length) return null;
   const languageCategoryKeys = [...new Set([
     ...(Array.isArray(item.categoryKeys) ? item.categoryKeys : [])
       .map((key) => String(key || '').trim())

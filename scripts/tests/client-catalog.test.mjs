@@ -50,7 +50,7 @@ test('detail path changes when the full item changes', () => {
 });
 
 test('live catalog grows without a title cap and carries only cumulative changes', () => {
-  const media = [{ files: [{ mode: 'download', url: 'https://cdn.test/movie.mp4' }] }];
+  const media = [{ files: [{ mode: 'download', url: 'https://cdn.test/movie.mp4', language: 'subtitled' }] }];
   const first = buildClientCatalogArtifacts({
     version: 'base', updatedAt: 'base-time', items: [
       { id: 'a', type: 'movie', nameFa: 'الف', name: 'A', downloads: media },
@@ -164,7 +164,7 @@ test('client summary recognizes language from lightweight file metadata and carr
 });
 
 test('finishing an old series archive does not promote it ahead of genuinely newer discoveries', () => {
-  const media = [{ id: 's1e1', seasonNumber: 1, episodeNumber: 1, sourceUpdatedAt: '2025-01-01T00:00:00.000Z', files: [{ mode: 'download', url: 'https://cdn.test/e1.mp4' }] }];
+  const media = [{ id: 's1e1', seasonNumber: 1, episodeNumber: 1, sourceUpdatedAt: '2025-01-01T00:00:00.000Z', files: [{ mode: 'download', url: 'https://cdn.test/e1.mp4', language: 'subtitled' }] }];
   const oldArchive = {
     id: 'old-archive', type: 'series', nameFa: 'آرشیو قدیمی', name: 'Old Archive',
     firstSeenAt: '2026-06-01T00:00:00.000Z', publishedAt: '2026-08-21T00:00:00.000Z',
@@ -203,7 +203,7 @@ test('client summary recognizes Persian dubbing variants that used to be missed'
 test('client index accepts MKV direct downloads but rejects purchase-only links', () => {
   const catalog = {
     version: '1', updatedAt: 'now', items: [
-      { id: 'mkv', type: 'movie', nameFa: 'ام‌کی‌وی', name: 'MKV', downloads: [{ id: 'd', files: [{ id: 'f', mode: 'download', url: 'https://cdn.test/file.mkv' }] }] },
+      { id: 'mkv', type: 'movie', nameFa: 'ام‌کی‌وی', name: 'MKV', downloads: [{ id: 'd', files: [{ id: 'f', mode: 'download', url: 'https://cdn.test/file.mkv', language: 'subtitled' }] }] },
       { id: 'purchase', type: 'movie', nameFa: 'خرید', name: 'Purchase', downloads: [{ id: 'p', files: [{ id: 'p1', mode: 'download', url: 'https://example.test/buy' }] }] },
     ],
   };
@@ -215,9 +215,9 @@ test('series summary keeps every episode while bootstrap carries the latest acti
   const downloads = Array.from({ length: 5 }, (_, index) => ({
     id: `e${index + 1}`, seasonNumber: 1, episodeNumber: index + 1,
     files: [
-      { id: `d${index}`, mode: 'download', url: `https://cdn.test/e${index}.mkv` },
-      { id: `p${index}`, mode: 'play', url: `https://cdn.test/e${index}.m3u8` },
-      { id: `x${index}`, mode: 'download', url: `https://cdn.test/e${index}-extra.mp4` },
+      { id: `d${index}`, mode: 'download', url: `https://cdn.test/e${index}.mkv`, language: 'subtitled' },
+      { id: `p${index}`, mode: 'play', url: `https://cdn.test/e${index}.m3u8`, language: 'subtitled' },
+      { id: `x${index}`, mode: 'download', url: `https://cdn.test/e${index}-extra.mp4`, language: 'subtitled' },
     ],
   }));
   const item = {
@@ -233,14 +233,13 @@ test('series summary keeps every episode while bootstrap carries the latest acti
   assert.equal(artifacts.bootstrap.items[0].downloads[0].episodeNumber, 5);
 });
 
-test('missing ir flag never makes a foreign title Iranian and keeps real media neutral', () => {
+test('missing ir flag never makes a foreign title Iranian and unproven-language media stays out of the app', () => {
   const item = {
     id: 'foreign-neutral', type: 'movie', nameFa: 'خارجی', name: 'Foreign',
     countryCodes: ['US'], downloads: [{ id: 'd', files: [{ id: 'f', mode: 'download', url: 'https://cdn.test/f.mp4' }] }],
   };
   const artifacts = buildClientCatalogArtifacts({ version: '1', updatedAt: 'now', items: [item] });
-  assert.equal(artifacts.index.items.length, 1);
-  assert.deepEqual(artifacts.index.items[0].availableLanguages, []);
+  assert.equal(artifacts.index.items.length, 0);
 });
 
 test('a real dubbed foreign download survives and is labelled dubbed', () => {
@@ -252,7 +251,7 @@ test('a real dubbed foreign download survives and is labelled dubbed', () => {
   assert.equal(artifacts.index.items[0].availableLanguages[0], 'dubbed');
 });
 
-test('same URL with contradictory languages survives once as neutral media', () => {
+test('same URL with contradictory Persian-language claims is not exposed as neutral foreign media', () => {
   const item = {
     id: 'conflict', type: 'movie', nameFa: 'تعارض', name: 'Conflict', countryCodes: ['US'],
     downloads: [
@@ -261,7 +260,16 @@ test('same URL with contradictory languages survives once as neutral media', () 
     ],
   };
   const artifacts = buildClientCatalogArtifacts({ version: '1', updatedAt: 'now', items: [item] });
-  const files = artifacts.index.items[0].downloads.flatMap((section) => section.files || []);
-  assert.equal(files.length, 1);
-  assert.equal(files[0].language, undefined);
+  assert.equal(artifacts.index.items.length, 0);
+});
+
+
+test('native Iranian media remains visible without a redundant language badge', () => {
+  const item = {
+    id: 'iranian-native', type: 'movie', ir: true, nameFa: 'ایرانی', name: 'Iranian',
+    downloads: [{ id: 'native', files: [{ id: 'f', mode: 'download', url: 'https://cdn.test/ir.mp4' }] }],
+  };
+  const artifacts = buildClientCatalogArtifacts({ version: '1', updatedAt: 'now', items: [item] });
+  assert.equal(artifacts.index.items.length, 1);
+  assert.deepEqual(artifacts.index.items[0].availableLanguages, []);
 });
