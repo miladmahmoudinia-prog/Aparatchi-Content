@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-08-30T12:29:38.116Z",
-  "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-08-30T12:41:36.550Z",
+  "startedAt": "2026-08-30T12:48:15.463Z",
+  "runTimeLimitMinutes": 10,
+  "runDeadlineAt": "2026-08-30T12:58:13.859Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 700356,
+  "remainingRunMsAtFinish": 584354,
   "imageMirroringSkipped": true,
   "originalCount": 7342,
   "finalCount": 7342,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
-  "backfillQueueTotal": 181,
-  "backfillBacklogRemaining": 181,
+  "backfillQueueTotal": 180,
+  "backfillBacklogRemaining": 180,
   "backfillBlockedTotal": 11,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
@@ -58,16 +58,16 @@
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 0,
+  "seriesHiddenUntilComplete": 1,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
+  "iranianSeriesProcessed": 2,
   "episodesProcessed": 0,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 1,
-  "iranianSeriesAddedOrUpdated": 0,
-  "iranianSeriesRejectedNotIranian": 1,
+  "iranianSeriesAddedOrUpdated": 1,
+  "iranianSeriesRejectedNotIranian": 0,
   "iranianSeriesRejectedNoLinks": 0,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
@@ -82,19 +82,114 @@
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [
     {
-      "id": "66e5a1d0-38dc-11ed-b000-b736a964c2e2",
-      "title": "سرویس حمل و نقل کوچولوها",
-      "result": "rejected",
-      "reason": "not-iranian",
+      "id": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "title": "سایه باز",
+      "result": "advanced",
+      "reason": "added-or-updated",
       "addedEpisodes": 0,
-      "remainingEpisodeCount": 0,
+      "remainingEpisodeCount": 12,
       "retryLater": false,
-      "newlyPublished": false
+      "newlyPublished": false,
+      "meaningfulProgress": true,
+      "discovery": "visible-repair",
+      "expectedEpisodes": 20,
+      "usableEpisodes": 8,
+      "repairDeferred": false
     }
   ],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "title": "سایه باز",
+      "source": "iranian-visible-repair",
+      "discoveredEpisodeCount": 20,
+      "catalogEpisodeCount": 8,
+      "missing": [
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 6
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 7
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 8
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 9
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 11
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 12
+        }
+      ],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
+    {
+      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "title": "سایه باز",
+      "missing": [],
+      "pendingEpisodeCount": 12,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "1c420950-f150-11ec-b618-911bca52bf97",
+      "title": "دونالد اردک",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 7
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 16
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 18
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
     {
       "seriesId": "88c59200-895d-11f0-8c7b-8d0be9327ffe",
       "title": "سرنوشت/عجیب و غریب جعلی",
@@ -152,15 +247,6 @@
       ],
       "pendingEpisodeCount": 0,
       "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "title": "سایه باز",
-      "missing": [],
-      "pendingEpisodeCount": 12,
-      "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": true
     },
@@ -864,28 +950,6 @@
       "isAiring": true
     },
     {
-      "seriesId": "1c420950-f150-11ec-b618-911bca52bf97",
-      "title": "دونالد اردک",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 7
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 16
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 18
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
       "seriesId": "4e9aa590-3299-11ed-bb68-518a072b5706",
       "title": "اسکردی سنجابه",
       "missing": [],
@@ -1192,7 +1256,7 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 168,
+  "episodesDiscovered": 38,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
@@ -1200,7 +1264,7 @@
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
+  "seriesAddedOrUpdated": 1,
   "affiliateRequests": 0,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
@@ -1238,9 +1302,9 @@
   "removedWithoutFreeLinks": 0,
   "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 6,
-  "lastCheckpointAt": "2026-08-30T12:29:44.683Z",
-  "lastCheckpointReason": "iranian-skip-66e5a1d0-38dc-11ed-b000-b736a964c2e2",
-  "remainingRunMsAtCheckpoint": 708528,
-  "finishedAt": "2026-08-30T12:29:56.194Z"
+  "apiRequests": 1,
+  "lastCheckpointAt": "2026-08-30T12:48:16.562Z",
+  "lastCheckpointReason": "iranian-visible-repair-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+  "remainingRunMsAtCheckpoint": 593651,
+  "finishedAt": "2026-08-30T12:48:29.505Z"
 }
