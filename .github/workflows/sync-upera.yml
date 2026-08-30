@@ -38,6 +38,10 @@ jobs:
       - name: Checkout content repository
         uses: actions/checkout@v6
         with:
+          # This workflow can sit behind another catalog writer in the shared
+          # concurrency queue. Always start from the latest main after the lock
+          # is acquired instead of the stale SHA that originally queued the run.
+          ref: main
           fetch-depth: 60
 
       - name: Setup Node.js
