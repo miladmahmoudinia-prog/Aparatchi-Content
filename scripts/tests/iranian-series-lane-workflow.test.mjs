@@ -8,7 +8,7 @@ test('dedicated Iranian lane skips terminal non-Iranian rows within the same wor
   assert.match(workflow, /- name: Complete one Iranian series sequentially/);
   assert.match(
     workflow,
-    /- name: Complete one Iranian series sequentially[\\s\\S]*?timeout-minutes: 30[\\s\\S]*?continue-on-error: true/,
+    /- name: Complete one Iranian series sequentially[\s\S]*?timeout-minutes: 30[\s\S]*?continue-on-error: true/,
   );
   assert.match(workflow, /UPERA_SYNC_MODE: 'IRANIAN'/);
   assert.match(workflow, /UPERA_OPERATOR_DISCOVERY_ENABLED: 'false'/);
