@@ -1,0 +1,84 @@
+name: Apply Persian-Only Foreign Media
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/patch-persian-only-client-media.mjs'
+      - '.github/workflows/apply-persian-only-media.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout latest content
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 40
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Apply Persian-only media filter
+        run: |
+          node --check scripts/patch-persian-only-client-media.mjs
+          node scripts/patch-persian-only-client-media.mjs
+          node --check scripts/client-catalog.mjs
+
+      - name: Run client catalog regression tests
+        run: node --test scripts/tests/client-catalog.test.mjs
+
+      - name: Rebuild client catalog
+        run: node scripts/rebuild-client-catalog.mjs
+
+      - name: Verify no foreign visible title is language-neutral
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const index = JSON.parse(fs.readFileSync('catalog-index.json', 'utf8'));
+          const bad = (index.items || []).filter((item) => {
+            const iranian = item?.ir === true || (Array.isArray(item?.countryCodes) && item.countryCodes.includes('IR'));
+            if (iranian) return false;
+            const languages = Array.isArray(item?.availableLanguages) ? item.availableLanguages : [];
+            return !languages.includes('dubbed') && !languages.includes('subtitled');
+          });
+          console.log(JSON.stringify({ visibleItems: index.items?.length || 0, foreignWithoutPersianLanguage: bad.length, sample: bad.slice(0, 10).map((item) => ({ id: item.id, title: item.nameFa || item.name })) }, null, 2));
+          if (bad.length) process.exit(1);
+          NODE
+
+      - name: Commit Persian-only client catalog
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .git/index.lock
+          git add scripts/client-catalog.mjs catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-manifest.json catalog-items catalog-stable
+          if git diff --cached --quiet; then
+            echo "Persian-only media filtering already applied."
+            exit 0
+          fi
+          git commit -m "fix: keep foreign client media Persian-only"
+          PUSHED=0
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              PUSHED=1
+              break
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            rm -f .git/index.lock
+            sleep $((attempt * 2))
+          done
+          [ "$PUSHED" -eq 1 ] || exit 1
