@@ -11,7 +11,7 @@ test('dedicated Iranian lane skips terminal non-Iranian rows within the same wor
   assert.match(workflow, /for pass in \$\(seq 1 24\)/);
   assert.match(workflow, /sync-report-iranian\.json/);
   assert.match(workflow, /decision=\"\$\(node -e/);
-  assert.match(workflow, /last\.result===\"completed\"/);
+  assert.match(workflow, /const newlyPublished=Boolean\(last&&last\.newlyPublished\)/);\n  assert.match(workflow, /last\.result===\"completed\"&&newlyPublished/);\n  assert.match(workflow, /last&&last\.result===\"completed\"\) process\.stdout\.write\(\"skip\"\)/);
   assert.match(workflow, /IRANIAN_COMPLETED=\$\(\(IRANIAN_COMPLETED \+ 1\)\)/);
   assert.match(workflow, /if \[ \"\$IRANIAN_COMPLETED\" -ge 3 \]; then/);
   assert.match(workflow, /if \[ \"\$decision\" != \"skip\" \]; then/);
