@@ -1,0 +1,69 @@
+name: Apply Category Truth Hotfix
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/apply-category-truth-hotfix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 60
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Keep animation and anime out of Programs
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const file = 'scripts/classification.mjs';
+          let source = fs.readFileSync(file, 'utf8');
+          const before = `  const isProgram = isChildrenProgram || isTalkShow || isRealityCompetition || isGeneralProgram ||\n    (trustedSpecializedKind && existingKind === 'program');`;
+          const after = `  const isProgram = !isAnimation && (\n    isChildrenProgram || isTalkShow || isRealityCompetition || isGeneralProgram ||\n    (trustedSpecializedKind && existingKind === 'program')\n  );`;
+          if (!source.includes(before)) throw new Error('Program classification hook not found');
+          source = source.replace(before, after);
+          fs.writeFileSync(file, source);
+          NODE
+
+      - name: Rebuild client catalog
+        run: node scripts/rebuild-client-catalog.mjs
+
+      - name: Regression tests
+        run: node --test scripts/tests/*.test.mjs
+
+      - name: Commit category and client output fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .git/index.lock
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/classification.mjs catalog-index.json catalog-bootstrap.json catalog-live.json catalog-manifest.json catalog-items catalog-stable 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo 'No category/client changes to commit.'
+            exit 0
+          fi
+          git commit -m 'fix: keep animation out of program categories'
+          git pull --rebase origin main
+          git push origin HEAD:main
