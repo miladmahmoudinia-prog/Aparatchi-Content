@@ -1,13 +1,13 @@
 {
-  "startedAt": "2026-08-30T01:31:23.090Z",
+  "startedAt": "2026-08-30T06:31:54.070Z",
   "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-08-30T01:43:21.617Z",
+  "runDeadlineAt": "2026-08-30T06:43:52.578Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 597653,
+  "remainingRunMsAtFinish": 587151,
   "imageMirroringSkipped": true,
-  "originalCount": 7182,
-  "finalCount": 7182,
+  "originalCount": 7216,
+  "finalCount": 7216,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
   "backfillQueueTotal": 183,
@@ -62,12 +62,12 @@
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
+  "iranianSeriesProcessed": 1,
   "episodesProcessed": 48,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 6,
-  "iranianSeriesAddedOrUpdated": 0,
-  "iranianSeriesRejectedNotIranian": 1,
+  "iranianSeriesAddedOrUpdated": 1,
+  "iranianSeriesRejectedNotIranian": 0,
   "iranianSeriesRejectedNoLinks": 5,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
@@ -132,17 +132,27 @@
       "discovery": "recent-page-1"
     },
     {
-      "id": "8a57ccb0-d6bd-11ed-8720-bfbab25d85b7",
-      "title": "پنگوئن‌های ماداگاسکار",
-      "result": "rejected",
-      "reason": "not-iranian",
+      "id": "e9bddc80-0571-11f0-b295-09ad878b3c23",
+      "title": "با بابام",
+      "result": "completed",
+      "reason": "added-or-updated",
       "addedEpisodes": 0,
       "remainingEpisodeCount": 0,
       "retryLater": false
     }
   ],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "e9bddc80-0571-11f0-b295-09ad878b3c23",
+      "title": "با بابام",
+      "source": "iranian-priority",
+      "discoveredEpisodeCount": 23,
+      "catalogEpisodeCount": 23,
+      "missing": [],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "581efd70-5698-11ef-8956-f95068daf4da",
@@ -1241,7 +1251,7 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 253,
+  "episodesDiscovered": 177,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
@@ -1249,7 +1259,7 @@
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 48,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
+  "seriesAddedOrUpdated": 1,
   "affiliateRequests": 48,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 48,
@@ -1288,8 +1298,8 @@
   "errors": [],
   "errorsTruncated": 0,
   "apiRequests": 112,
-  "lastCheckpointAt": "2026-08-30T01:33:12.819Z",
-  "lastCheckpointReason": "iranian-skip-8a57ccb0-d6bd-11ed-8720-bfbab25d85b7",
-  "remainingRunMsAtCheckpoint": 605542,
-  "finishedAt": "2026-08-30T01:33:23.964Z"
+  "lastCheckpointAt": "2026-08-30T06:33:53.093Z",
+  "lastCheckpointReason": "iranian-skip-e9bddc80-0571-11f0-b295-09ad878b3c23",
+  "remainingRunMsAtCheckpoint": 595897,
+  "finishedAt": "2026-08-30T06:34:05.427Z"
 }
