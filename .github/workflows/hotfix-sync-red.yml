@@ -48,6 +48,10 @@ jobs:
             git push origin HEAD:main
           fi
 
+      - name: Rebuild compact client catalog
+        shell: bash
+        run: node scripts/rebuild-client-catalog.mjs
+
       - name: Run full regression suite
         shell: bash
         run: node --test scripts/tests/*.test.mjs
