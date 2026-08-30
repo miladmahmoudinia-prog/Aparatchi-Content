@@ -2,7 +2,8 @@ name: Enrich cast images from TMDB
 
 on:
   schedule:
-    - cron: '11 */6 * * *'
+    # Start after the hourly catalog sync window and finish well before the next one.
+    - cron: '4 */6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -15,7 +16,7 @@ concurrency:
 jobs:
   enrich:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 22
 
     steps:
       - name: Checkout content repository
@@ -39,29 +40,33 @@ jobs:
           fi
 
       - name: Enrich cast, countries and anime classification
+        timeout-minutes: 9
         env:
           TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
-          TMDB_MAX_TITLES_PER_RUN: '2500'
-          TMDB_REQUEST_DELAY_MS: '300'
+          TMDB_MAX_TITLES_PER_RUN: '650'
+          TMDB_REQUEST_DELAY_MS: '260'
           TMDB_REFRESH_DAYS: '30'
         run: node scripts/enrich-tmdb.mjs
 
       - name: Repair missing Persian titles, collection names and posters
+        timeout-minutes: 6
         env:
           TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
-          PERSIAN_TITLE_MAX_TITLES_PER_RUN: '3000'
-          PERSIAN_TITLE_REQUEST_DELAY_MS: '90'
+          PERSIAN_TITLE_MAX_TITLES_PER_RUN: '700'
+          PERSIAN_TITLE_REQUEST_DELAY_MS: '80'
           PERSIAN_TITLE_NEGATIVE_CACHE_HOURS: '1'
         run: node scripts/enrich-persian-titles.mjs
 
       - name: Enforce movie-title and collection-title separation
+        timeout-minutes: 4
         env:
           TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
-          TITLE_TRUTH_MAX_API_REPAIRS: '600'
-          TITLE_TRUTH_REQUEST_DELAY_MS: '70'
+          TITLE_TRUTH_MAX_API_REPAIRS: '180'
+          TITLE_TRUTH_REQUEST_DELAY_MS: '60'
         run: node scripts/title-collection-truth-v18.mjs
 
       - name: Refresh IMDb Top 100 rankings
+        timeout-minutes: 2
         env:
           IMDB_TOP_REFRESH_HOURS: '20'
           TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
