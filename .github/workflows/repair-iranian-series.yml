@@ -23,9 +23,8 @@ concurrency:
 jobs:
   repair:
     if: >-
-      github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 34
 
@@ -74,8 +73,8 @@ jobs:
           node --check "$RUNTIME_SYNC"
 
           IRANIAN_COMPLETED=0
-          for pass in $(seq 1 4); do
-            echo "Iranian repair pass ${pass}/4"
+          for pass in $(seq 1 24); do
+            echo "Iranian repair pass ${pass}/24"
             node "$RUNTIME_SYNC"
 
             if [ ! -f sync-report-iranian.json ]; then
