@@ -1,6 +1,12 @@
 name: Sync Upera Catalog
 
 on:
+  # One-shot push hook for the repaired queue validation.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync-upera.yml'
+
   schedule:
     # GitHub cron uses UTC. Discover and publish new titles every hour.
     - cron: '34 * * * *'
