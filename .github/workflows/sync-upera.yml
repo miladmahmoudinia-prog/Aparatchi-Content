@@ -122,6 +122,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .git/index.lock
 
           git add catalog.json catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
           if [ -d assets/media ]; then
@@ -179,14 +180,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # The source "Persian" filter is noisy. Keep advancing terminal
-          # foreign/invalid rows inside this same workflow run instead of
-          # wasting one hourly cycle per rejected row. Finish titles strictly
-          # one at a time, then continue to the next title only after the prior
-          # archive is complete; cap each workflow at three completions.
+          # Finish titles strictly one at a time. A successful publication may
+          # advance to the next title, up to three completions. A rejected or
+          # no-progress pass must stop immediately: rerunning the script in the
+          # same job only re-reads the same dead source window and can exhaust
+          # the 30-minute step timeout before its state is safely committed.
           IRANIAN_COMPLETED=0
-          for pass in $(seq 1 24); do
-            echo "Iranian series lane pass ${pass}/24"
+          for pass in $(seq 1 4); do
+            echo "Iranian series lane pass ${pass}/4"
             node scripts/sync-upera.mjs
 
             if [ ! -f sync-report-iranian.json ]; then
@@ -203,9 +204,9 @@ jobs:
               fi
               continue
             fi
-            if [ "$decision" != "skip" ]; then
-              break
-            fi
+
+            echo "Iranian lane made no publishable progress (${decision}); checkpoint now instead of repeating the same source rows."
+            break
           done
 
       - name: Commit Iranian-series progress
@@ -216,6 +217,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .git/index.lock
           git add catalog.json catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
           if git diff --cached --quiet; then
             echo "No Iranian-series changes."
@@ -296,6 +298,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .git/index.lock
 
           git add catalog.json catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
           if [ -d assets/media ]; then
@@ -360,6 +363,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .git/index.lock
 
           git add catalog.json catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
 
@@ -397,7 +401,7 @@ jobs:
           if [ '${{ steps.archive_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} archive"; fi
           if [ '${{ steps.commit_archive.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} commit-archive"; fi
           if [ -n "$FAILED_STAGES" ]; then
-            echo "::warning title=Partial sync::Saved all available progress; retry these stages on the next two-hour run:$FAILED_STAGES"
+            echo "::warning title=Partial sync::Saved all available progress; retry these stages on the next hourly run:$FAILED_STAGES"
           else
             echo "All sync stages completed successfully."
           fi
