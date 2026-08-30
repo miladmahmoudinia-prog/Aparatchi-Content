@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const workflow = fs.readFileSync('.github/workflows/sync-upera.yml', 'utf8');
 
-test('dedicated Iranian lane skips terminal non-Iranian rows within the same workflow run', () => {
+test('dedicated Iranian lane repairs broken existing episode archives before source crawl', () => {
   assert.match(workflow, /- name: Complete one Iranian series sequentially/);
   assert.match(
     workflow,
@@ -12,12 +12,16 @@ test('dedicated Iranian lane skips terminal non-Iranian rows within the same wor
   );
   assert.match(workflow, /UPERA_SYNC_MODE: 'IRANIAN'/);
   assert.match(workflow, /UPERA_OPERATOR_DISCOVERY_ENABLED: 'false'/);
+  assert.match(workflow, /RUNTIME_SYNC="scripts\/\.sync-upera-iranian-runtime\.mjs"/);
+  assert.match(workflow, /APARATCHI_SKIP_IRANIAN_RECENT/);
+  assert.match(workflow, /const iranianVisibleRepairCandidates/);
+  assert.match(workflow, /iranian-visible-repair/);
+  assert.match(workflow, /iranianVisibleRepairActiveId/);
+  assert.match(workflow, /iranianVisibleRepairDeferredAt/);
+  assert.match(workflow, /expectedEpisodes > usableEpisodes/);
   assert.match(workflow, /for pass in \$\(seq 1 24\)/);
   assert.match(workflow, /sync-report-iranian\.json/);
-  assert.match(workflow, /decision=\"\$\(node -e/);
-  assert.match(workflow, /const newlyPublished=Boolean\(last&&last\.newlyPublished\)/);
-  assert.match(workflow, /last\.result===\"completed\"&&newlyPublished/);
-  assert.match(workflow, /last&&last\.result===\"completed\"\) process\.stdout\.write\(\"skip\"\)/);
+  assert.match(workflow, /last&&last\.discovery===\"visible-repair\"&&last\.result===\"rejected\"/);
   assert.match(workflow, /IRANIAN_COMPLETED=\$\(\(IRANIAN_COMPLETED \+ 1\)\)/);
   assert.match(workflow, /if \[ \"\$IRANIAN_COMPLETED\" -ge 3 \]; then/);
   assert.match(workflow, /if \[ \"\$decision\" != \"skip\" \]; then/);
