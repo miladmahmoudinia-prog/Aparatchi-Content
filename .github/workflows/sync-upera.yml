@@ -140,7 +140,7 @@ jobs:
 
       - name: Complete one Iranian series sequentially
         id: iranian_sync
-        timeout-minutes: 30
+        timeout-minutes: 26
         continue-on-error: true
         env:
           UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
@@ -199,8 +199,8 @@ jobs:
           node --check "$RUNTIME_SYNC"
           export APARATCHI_SKIP_IRANIAN_RECENT='true'
 
-          for pass in $(seq 1 90); do
-            echo "Iranian archive-only pass ${pass}/90"
+          for pass in $(seq 1 24); do
+            echo "Iranian archive-only pass ${pass}/24"
             node "$RUNTIME_SYNC"
 
             CURRENT_PUBLISHED="$(count_published)"
@@ -233,6 +233,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          pkill -f 'scripts/.sync-upera-iranian-runtime.mjs' >/dev/null 2>&1 || true
+          sleep 1
           rm -f .git/index.lock scripts/.sync-upera-iranian-runtime.mjs
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -243,6 +245,12 @@ jobs:
             git commit -m "chore: advance Iranian series sequentially"
             PUSHED=0
             for attempt in 1 2 3 4 5; do
+              pkill -f 'scripts/.sync-upera-iranian-runtime.mjs' >/dev/null 2>&1 || true
+              rm -f .git/index.lock scripts/.sync-upera-iranian-runtime.mjs
+              git add -A
+              if ! git diff --cached --quiet; then
+                git commit --amend --no-edit
+              fi
               if git pull --rebase origin main && git push origin HEAD:main; then
                 PUSHED=1
                 break
