@@ -1,12 +1,9 @@
 name: Enrich cast images from TMDB
 
 on:
+  schedule:
+    - cron: '11 */6 * * *'
   workflow_dispatch:
-  workflow_run:
-    workflows:
-      - Repair Iranian Series Episodes
-    types:
-      - completed
 
 permissions:
   contents: write
@@ -17,9 +14,6 @@ concurrency:
 
 jobs:
   enrich:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -28,7 +22,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: main
-          fetch-depth: 0
+          fetch-depth: 60
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -75,8 +69,10 @@ jobs:
 
       - name: Commit enriched catalog
         run: |
+          set -euo pipefail
           git config user.name "aparatchi-content-bot"
           git config user.email "actions@users.noreply.github.com"
+          rm -f .git/index.lock
           git add catalog.json catalog-index.json catalog-items catalog-stable catalog-manifest.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json tmdb-cache.json tmdb-enrichment-report.json persian-title-cache.json imdb-top-cache.json
           if [ -d assets/media ]; then
             git add assets/media
@@ -93,6 +89,7 @@ jobs:
               break
             fi
             git rebase --abort >/dev/null 2>&1 || true
+            rm -f .git/index.lock
             sleep $((attempt * 2))
           done
           [ "$PUSHED" -eq 1 ] || exit 1
