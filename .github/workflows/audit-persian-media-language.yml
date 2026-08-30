@@ -22,19 +22,26 @@ jobs:
           ref: main
           fetch-depth: 1
 
-      - name: Audit foreign playable titles without Persian language truth
+      - name: Audit live client and Iranian-series truth
         shell: bash
         run: |
           node - <<'NODE'
           const fs = require('fs');
           const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
-          const items = Array.isArray(catalog.items) ? catalog.items : [];
-          const languageFromText = (value) => {
-            const text = String(value || '');
-            if (/دوبله|دو\s*زبانه|دوزبانه|صوت\s*فارسی|صدای\s*فارسی|persian\s*(?:dub|audio|voice)|farsi\s*(?:dub|audio|voice)|dubbed|\bdub\b/i.test(text)) return 'dubbed';
-            if (/زیر\s*نویس|زير\s*نويس|هارد\s*ساب|سافت\s*ساب|persian\s*sub|farsi\s*sub|subtitle|subbed|\bsub\b/i.test(text)) return 'subtitled';
-            return '';
-          };
+          const index = JSON.parse(fs.readFileSync('catalog-index.json', 'utf8'));
+          const serverItems = Array.isArray(catalog.items) ? catalog.items : [];
+          const clientItems = Array.isArray(index.items) ? index.items : [];
+
+          const normalized = (value) => String(value || '')
+            .replace(/[\u200c\u200f\u202a-\u202e]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+          const isIranian = (item) => Boolean(
+            item?.ir === true ||
+            (Array.isArray(item?.countryCodes) && item.countryCodes.includes('IR')) ||
+            (Array.isArray(item?.categoryKeys) && item.categoryKeys.includes('iranian-series'))
+          );
           const usable = (file) => {
             const url = String(file?.url || '').trim();
             if (!/^https?:\/\//i.test(url)) return false;
@@ -43,50 +50,82 @@ jobs:
             if (mode === 'play') return /\.(?:m3u8|mp4)(?:$|[?#])/i.test(url);
             return /\.(?:mp4|m4v|mov|webm|mkv)(?:$|[?#])/i.test(url);
           };
-          const result = [];
-          for (const item of items) {
-            if (!item || !['movie','series'].includes(item.type)) continue;
-            const iranian = item.ir === true || (Array.isArray(item.countryCodes) && item.countryCodes.includes('IR'));
-            if (iranian) continue;
-            const files = [];
-            const languages = new Set();
-            for (const section of Array.isArray(item.downloads) ? item.downloads : []) {
-              for (const file of Array.isArray(section?.files) ? section.files : []) {
-                if (!usable(file)) continue;
-                const detected = file?.language === 'dubbed' || file?.language === 'subtitled'
-                  ? file.language
-                  : languageFromText([section?.title, section?.badge, section?.language, file?.label, file?.title, file?.name].filter(Boolean).join(' '));
-                if (detected) languages.add(detected);
-                files.push({
-                  sectionTitle: section?.title || '',
-                  sectionBadge: section?.badge || '',
-                  sectionLanguage: section?.language || '',
-                  label: file?.label || '',
-                  fileLanguage: file?.language || '',
-                  mode: file?.mode || '',
-                  quality: file?.quality || '',
-                  detected,
-                });
-              }
+          const episodeTruth = (item) => {
+            const keys = new Set();
+            for (const section of Array.isArray(item?.downloads) ? item.downloads : []) {
+              const episode = Number(section?.episodeNumber || 0);
+              if (!(episode > 0)) continue;
+              if (!(Array.isArray(section?.files) && section.files.some(usable))) continue;
+              keys.add(`${Math.max(1, Number(section?.seasonNumber || 1))}:${episode}`);
             }
-            if (!files.length || languages.size) continue;
-            result.push({
-              id: item.id,
-              title: item.nameFa || item.name || '',
-              name: item.name || '',
-              type: item.type,
-              operatorOnly: item.operatorOnly === true,
-              categoryKeys: item.categoryKeys || [],
-              availableLanguages: item.availableLanguages || [],
-              files: files.slice(0, 8),
-            });
-          }
-          const wanted = /murderbot|phantom pups|spring of youth|beegee|blue exorcist|tremore|مردربات|سگ های شبح|سگ‌های شبح|بهار جوانی|جن گیر آبی|جن‌گیر آبی/i;
-          const named = result.filter((item) => wanted.test(`${item.title} ${item.name}`));
-          console.log('PERSIAN_MEDIA_AUDIT=' + JSON.stringify({
-            totalCatalogItems: items.length,
-            foreignPlayableWithoutPersianLanguageEvidence: result.length,
-            namedScreenshotMatches: named,
-            sample: result.slice(0, 30),
-          }));
+            const expected = Math.max(
+              Number(item?.episodeCount || 0),
+              Number(item?.latestEpisode?.episodeNumber || 0),
+            );
+            return { expectedEpisodes: expected, usableEpisodes: keys.size };
+          };
+          const isPeopleOfIran = (item) => {
+            const fa = normalized(item?.nameFa || item?.titleFa || '');
+            const en = normalized(item?.name || item?.title || '');
+            return fa.includes('اهل ایران') || en === 'people of iran' || en.includes('people of iran');
+          };
+          const compact = (item) => item ? {
+            id: item.id,
+            nameFa: item.nameFa || item.titleFa || '',
+            name: item.name || item.title || '',
+            publicationStatus: item.publicationStatus || '',
+            archiveComplete: item.archiveComplete === true,
+            visibilityLocked: item.visibilityLocked === true,
+            categoryKeys: item.categoryKeys || [],
+            episodeCount: Number(item.episodeCount || 0),
+            latestEpisode: item.latestEpisode || null,
+            downloadSections: Array.isArray(item.downloads) ? item.downloads.length : 0,
+            ...episodeTruth(item),
+          } : null;
+
+          const serverIranianSeries = serverItems.filter((item) => item?.type === 'series' && isIranian(item));
+          const clientIranianSeries = clientItems.filter((item) => item?.type === 'series' && isIranian(item));
+          const zeroUsable = serverIranianSeries
+            .map((item) => ({ item, truth: episodeTruth(item) }))
+            .filter(({ truth }) => truth.expectedEpisodes > 0 && truth.usableEpisodes === 0)
+            .map(({ item }) => compact(item));
+          const incomplete = serverIranianSeries
+            .map((item) => ({ item, truth: episodeTruth(item) }))
+            .filter(({ truth }) => truth.expectedEpisodes > truth.usableEpisodes)
+            .sort((a, b) => (b.truth.expectedEpisodes - b.truth.usableEpisodes) - (a.truth.expectedEpisodes - a.truth.usableEpisodes))
+            .slice(0, 20)
+            .map(({ item }) => compact(item));
+
+          const foreignWithoutPersianLanguage = clientItems.filter((item) => {
+            if (!item || !['movie', 'series'].includes(item.type) || isIranian(item)) return false;
+            const languages = Array.isArray(item.availableLanguages) ? item.availableLanguages : [];
+            return !languages.includes('dubbed') && !languages.includes('subtitled');
+          });
+          const originalLeaks = clientItems.filter((item) => {
+            const langs = [
+              ...(Array.isArray(item?.availableLanguages) ? item.availableLanguages : []),
+              ...(Array.isArray(item?.downloads) ? item.downloads.flatMap((section) => [
+                section?.language,
+                ...(Array.isArray(section?.files) ? section.files.map((file) => file?.language) : []),
+              ]) : []),
+            ].map(normalized);
+            return langs.includes('original') || langs.includes('نسخه اصلی');
+          });
+
+          const report = {
+            totalCatalogItems: serverItems.length,
+            visibleClientItems: clientItems.length,
+            iranianSeriesServerCount: serverIranianSeries.length,
+            iranianSeriesClientVisibleCount: clientIranianSeries.length,
+            serverIranianSeriesWithDeclaredEpisodesButZeroUsable: zeroUsable.length,
+            zeroUsableSample: zeroUsable.slice(0, 20),
+            incompleteIranianSeriesSample: incomplete,
+            peopleOfIranServer: serverItems.filter(isPeopleOfIran).map(compact),
+            peopleOfIranClient: clientItems.filter(isPeopleOfIran).map(compact),
+            foreignClientWithoutDubOrSub: foreignWithoutPersianLanguage.length,
+            originalLanguageLeaksInClient: originalLeaks.length,
+            badForeignSample: foreignWithoutPersianLanguage.slice(0, 10).map((item) => ({ id: item.id, nameFa: item.nameFa, name: item.name })),
+          };
+          console.log('APARATCHI_CURRENT_AUDIT=' + JSON.stringify(report));
+          if (foreignWithoutPersianLanguage.length || originalLeaks.length) process.exitCode = 1;
           NODE
