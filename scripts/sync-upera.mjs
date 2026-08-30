@@ -3691,8 +3691,9 @@ async function fetchIranianSeriesPage(page) {
     { free: '', persian: 1, traffic: 1, noFreeFallback: true },
     { free: 1, persian: 'true', traffic: 1, noFreeFallback: true },
     { free: 1, persian: '', country: 'IR', traffic: 1, noFreeFallback: true },
-    // Fallback scan: some deployments ignore/rename the Persian filter.
-    { free: 1, persian: 0, traffic: 1, noFreeFallback: true },
+    // Never fall back to the generic foreign feed here. If upstream ignores
+    // the Iranian filters, inferIranian will reject those rows without making
+    // the archive cursor spend hours walking the entire foreign catalog.
   ];
 
   const results = [];

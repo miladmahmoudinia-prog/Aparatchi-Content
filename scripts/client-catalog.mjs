@@ -191,7 +191,7 @@ const sanitizeClientMediaItem = (item) => {
   // Aparatchi exposes foreign media only when the source positively proves
   // Persian dubbing or Persian subtitles. Native Iranian titles keep their
   // ordinary Persian media without a redundant language badge.
-  const preparedForClient = iranian
+  const preparedForClient = (iranian || operatorVariant)
     ? prepared
     : prepared.map((section) => ({
         ...section,
@@ -265,7 +265,7 @@ const sanitizeClientMediaItem = (item) => {
       }
     }
 
-    if (neutralFiles.length && iranian) {
+    if (neutralFiles.length && !operatorVariant) {
       result.push({
         ...section,
         id: `${String(section?.id || "media")}-neutral`,
@@ -285,7 +285,7 @@ const sanitizeClientMediaItem = (item) => {
       .filter((value) => value === 'dubbed' || value === 'subtitled')
   ))];
   // Foreign titles without proven Persian dub/sub are not part of the app catalog.
-  if (!iranian && !availableLanguages.length) return null;
+  if (!iranian && !operatorVariant && !availableLanguages.length && conflicts.size === 0) return null;
   const languageCategoryKeys = [...new Set([
     ...(Array.isArray(item.categoryKeys) ? item.categoryKeys : [])
       .map((key) => String(key || '').trim())
