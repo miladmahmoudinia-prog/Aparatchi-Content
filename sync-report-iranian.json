@@ -1,25 +1,25 @@
 {
-  "startedAt": "2026-08-30T22:16:27.072Z",
+  "startedAt": "2026-08-30T23:16:07.622Z",
   "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-08-30T22:26:25.431Z",
+  "runDeadlineAt": "2026-08-30T23:26:06.403Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 584029,
+  "remainingRunMsAtFinish": 555581,
   "imageMirroringSkipped": true,
-  "originalCount": 7470,
-  "finalCount": 7470,
+  "originalCount": 7502,
+  "finalCount": 7502,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
   "backfillQueueTotal": 181,
   "backfillBacklogRemaining": 181,
-  "backfillBlockedTotal": 12,
+  "backfillBlockedTotal": 13,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
   "backfillSeriesBlockedThisRun": [],
   "backfillEpisodesAdded": 0,
   "backfillSeriesVisited": 0,
   "backfillCheckpoints": 1,
-  "episodesMarkedUnavailable": 0,
+  "episodesMarkedUnavailable": 15,
   "backfillNoProgressRuns": 0,
   "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 180,
-      "used": 0,
+      "used": 15,
       "exhausted": false
     }
   },
@@ -62,13 +62,13 @@
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 1,
-  "episodesProcessed": 0,
-  "iranianSeriesPagesProcessed": 1,
+  "iranianSeriesProcessed": 0,
+  "episodesProcessed": 15,
+  "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 1,
-  "iranianSeriesAddedOrUpdated": 1,
+  "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
-  "iranianSeriesRejectedNoLinks": 0,
+  "iranianSeriesRejectedNoLinks": 1,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
   "operatorSeriesAddedOrUpdated": 0,
@@ -82,10 +82,10 @@
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [
     {
-      "id": "08447d70-9b7e-11eb-8510-7d24d94903ac",
-      "title": "قرآن",
-      "result": "completed",
-      "reason": "added-or-updated",
+      "id": "28b7de30-67ec-11f1-b197-e53fbcbba794",
+      "title": "بیست و یک",
+      "result": "rejected",
+      "reason": "no-usable-links",
       "addedEpisodes": 0,
       "remainingEpisodeCount": 0,
       "retryLater": false,
@@ -93,94 +93,27 @@
     }
   ],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [
-    {
-      "seriesId": "08447d70-9b7e-11eb-8510-7d24d94903ac",
-      "title": "قرآن",
-      "source": "iranian-priority",
-      "discoveredEpisodeCount": 30,
-      "catalogEpisodeCount": 30,
-      "missing": [],
-      "rejectedEpisodes": []
-    }
-  ],
+  "seriesEpisodeDiagnostics": [],
   "catalogEpisodeGapDiagnostics": [
     {
-      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "title": "سایه باز",
-      "missing": [],
-      "pendingEpisodeCount": 12,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "88c59200-895d-11f0-8c7b-8d0be9327ffe",
-      "title": "سرنوشت/عجیب و غریب جعلی",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 9
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "5a181d30-602d-11ed-91cf-e3497a0eb443",
-      "title": "کهکشان بوبوی بوی",
+      "seriesId": "223b4500-d7ca-11ef-a2a5-65ed70f68a2b",
+      "title": "دلبندان",
       "missing": [
         {
           "seasonNumber": 1,
           "episodeNumber": 1
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "d37fbe40-6009-11ed-b713-8d57f0175080",
-      "title": "بلیز و ماشین های هیولایی",
-      "missing": [
-        {
-          "seasonNumber": 3,
-          "episodeNumber": 16
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
-      "title": "قهرمان درون",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 4
         },
         {
           "seasonNumber": 1,
-          "episodeNumber": 7
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
-      "title": "باب اسفنجی شلوار مکعبی",
-      "missing": [
+          "episodeNumber": 2
+        },
         {
-          "seasonNumber": 13,
-          "episodeNumber": 9
+          "seasonNumber": 1,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
         }
       ],
       "pendingEpisodeCount": 0,
@@ -223,6 +156,117 @@
       ],
       "pendingEpisodeCount": 1,
       "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
+      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
+      "title": "كله گنده ها",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        }
+      ],
+      "pendingEpisodeCount": 4,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
+      "seriesId": "90db53b0-d88f-11ec-9dff-e339959f7c76",
+      "title": "عشق، مرگ و ربات‌ها",
+      "missing": [
+        {
+          "seasonNumber": 4,
+          "episodeNumber": 4
+        }
+      ],
+      "pendingEpisodeCount": 1,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
+      "seriesId": "d37fbe40-6009-11ed-b713-8d57f0175080",
+      "title": "بلیز و ماشین های هیولایی",
+      "missing": [
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 16
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "5a181d30-602d-11ed-91cf-e3497a0eb443",
+      "title": "کهکشان بوبوی بوی",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "88c59200-895d-11f0-8c7b-8d0be9327ffe",
+      "title": "سرنوشت/عجیب و غریب جعلی",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 9
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
+      "title": "قهرمان درون",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 7
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "title": "سایه باز",
+      "missing": [],
+      "pendingEpisodeCount": 12,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
+      "title": "باب اسفنجی شلوار مکعبی",
+      "missing": [
+        {
+          "seasonNumber": 13,
+          "episodeNumber": 9
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": false
     },
@@ -793,20 +837,6 @@
       "isAiring": false
     },
     {
-      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "title": "كله گنده ها",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 1
-        }
-      ],
-      "pendingEpisodeCount": 4,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
       "seriesId": "4fea0f40-a6e6-11f0-8afc-df3a2ea8758f",
       "title": "آخرین سنگر",
       "missing": [],
@@ -1201,38 +1231,20 @@
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
-    },
-    {
-      "seriesId": "68f6fa90-205e-11ed-8b05-c5845bd10ca7",
-      "title": "پیاز و سیب",
-      "missing": [],
-      "pendingEpisodeCount": 17,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "7e975bf0-63f9-11ed-aa7f-6b6e46e23211",
-      "title": "نادی کارآگاه شهر اسباب بازی ها",
-      "missing": [],
-      "pendingEpisodeCount": 68,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
     }
   ],
-  "episodesDiscovered": 48,
+  "episodesDiscovered": 32,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 0,
+  "episodesRejectedNoLinks": 15,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 0,
+  "seriesAddedOrUpdated": 0,
+  "affiliateRequests": 15,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 0,
+  "affiliateNotFound": 15,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1267,9 +1279,9 @@
   "removedWithoutFreeLinks": 0,
   "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 3,
-  "lastCheckpointAt": "2026-08-30T22:16:29.021Z",
-  "lastCheckpointReason": "iranian-skip-08447d70-9b7e-11eb-8510-7d24d94903ac",
-  "remainingRunMsAtCheckpoint": 592837,
-  "finishedAt": "2026-08-30T22:16:41.402Z"
+  "apiRequests": 33,
+  "lastCheckpointAt": "2026-08-30T23:16:40.948Z",
+  "lastCheckpointReason": "iranian-skip-28b7de30-67ec-11f1-b197-e53fbcbba794",
+  "remainingRunMsAtCheckpoint": 562736,
+  "finishedAt": "2026-08-30T23:16:50.822Z"
 }
