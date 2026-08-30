@@ -10,12 +10,12 @@ test('main Iranian lane owns historical publishing and skips noisy Persian-langu
   assert.match(syncWorkflow, /- name: Complete one Iranian series sequentially/);
   assert.match(
     syncWorkflow,
-    /- name: Complete one Iranian series sequentially[\s\S]*?timeout-minutes: 30[\s\S]*?continue-on-error: true/,
+    /- name: Complete one Iranian series sequentially[\s\S]*?timeout-minutes: 26[\s\S]*?continue-on-error: true/,
   );
   assert.match(syncWorkflow, /UPERA_SYNC_MODE: 'IRANIAN'/);
   assert.match(syncWorkflow, /UPERA_OPERATOR_DISCOVERY_ENABLED: 'false'/);
   assert.match(syncWorkflow, /export APARATCHI_SKIP_IRANIAN_RECENT='true'/);
-  assert.match(syncWorkflow, /for pass in \$\(seq 1 90\)/);
+  assert.match(syncWorkflow, /for pass in \$\(seq 1 24\)/);
   assert.match(syncWorkflow, /Published Iranian series before/);
   assert.match(syncWorkflow, /Published Iranian series after/);
   assert.match(syncWorkflow, /country: 'IR'/);
