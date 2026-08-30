@@ -65,13 +65,6 @@ jobs:
             `    // Never fall back to the generic foreign feed here. If upstream ignores\n    // the Iranian filters, inferIranian will reject those rows without making\n    // the archive cursor spend hours walking the entire foreign catalog.`,
             'unsafe Iranian generic fallback',
           );
-
-          replaceExact(
-            '.github/workflows/repair-iranian-series.yml',
-            'for pass in $(seq 1 4); do',
-            'for pass in $(seq 1 24); do',
-            'Iranian repair bounded loop',
-          );
           NODE
 
       - name: Commit source repair
@@ -81,7 +74,7 @@ jobs:
           rm -f .git/index.lock
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/client-catalog.mjs scripts/sync-upera.mjs .github/workflows/repair-iranian-series.yml
+          git add scripts/client-catalog.mjs scripts/sync-upera.mjs
           git commit -m "fix: restore client media truth and Iranian source filtering"
           git pull --rebase origin main
           git push origin HEAD:main
