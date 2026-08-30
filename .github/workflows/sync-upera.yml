@@ -140,6 +140,9 @@ jobs:
 
       - name: Complete one Iranian series sequentially
         id: iranian_sync
+        # Leave enough job time for the always-run commit checkpoint and the
+        # remaining maintenance lanes, even when the source is mostly invalid.
+        timeout-minutes: 30
         continue-on-error: true
         env:
           UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
