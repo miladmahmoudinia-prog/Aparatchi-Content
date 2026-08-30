@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-08-30T20:38:46.882Z",
-  "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-08-30T20:50:45.269Z",
+  "startedAt": "2026-08-30T20:47:03.683Z",
+  "runTimeLimitMinutes": 10,
+  "runDeadlineAt": "2026-08-30T20:57:02.027Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 699693,
+  "remainingRunMsAtFinish": 584763,
   "imageMirroringSkipped": true,
   "originalCount": 7406,
   "finalCount": 7406,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
-  "backfillQueueTotal": 183,
-  "backfillBacklogRemaining": 183,
+  "backfillQueueTotal": 182,
+  "backfillBacklogRemaining": 182,
   "backfillBlockedTotal": 11,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
@@ -62,7 +62,7 @@
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
+  "iranianSeriesProcessed": 1,
   "episodesProcessed": 0,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 1,
@@ -82,19 +82,47 @@
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [
     {
-      "id": "1b93f850-f6b7-11ef-a0a7-c7f27fa8ebbe",
-      "title": "کائنات",
+      "id": "6f4a5550-90cb-11f1-b74a-f34817502b6d",
+      "title": "وستی ها",
       "result": "rejected",
       "reason": "not-iranian",
       "addedEpisodes": 0,
-      "remainingEpisodeCount": 0,
+      "remainingEpisodeCount": 1,
       "retryLater": false,
-      "newlyPublished": false
+      "newlyPublished": false,
+      "meaningfulProgress": false,
+      "discovery": "visible-repair",
+      "expectedEpisodes": 1,
+      "usableEpisodes": 0,
+      "repairDeferred": true
     }
   ],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [],
   "catalogEpisodeGapDiagnostics": [
+    {
+      "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
+      "title": "باب اسفنجی شلوار مکعبی",
+      "missing": [
+        {
+          "seasonNumber": 13,
+          "episodeNumber": 9
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
+      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "title": "سایه باز",
+      "missing": [],
+      "pendingEpisodeCount": 12,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
     {
       "seriesId": "88c59200-895d-11f0-8c7b-8d0be9327ffe",
       "title": "سرنوشت/عجیب و غریب جعلی",
@@ -214,29 +242,6 @@
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": false
-    },
-    {
-      "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
-      "title": "باب اسفنجی شلوار مکعبی",
-      "missing": [
-        {
-          "seasonNumber": 13,
-          "episodeNumber": 9
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "title": "سایه باز",
-      "missing": [],
-      "pendingEpisodeCount": 12,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
     },
     {
       "seriesId": "41f10cf0-c0ac-11ed-89f6-67eb03123d9b",
@@ -1211,7 +1216,7 @@
       "isAiring": true
     }
   ],
-  "episodesDiscovered": 31,
+  "episodesDiscovered": 20,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
@@ -1257,9 +1262,9 @@
   "removedWithoutFreeLinks": 0,
   "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 5,
-  "lastCheckpointAt": "2026-08-30T20:38:53.118Z",
-  "lastCheckpointReason": "iranian-skip-1b93f850-f6b7-11ef-a0a7-c7f27fa8ebbe",
-  "remainingRunMsAtCheckpoint": 708568,
-  "finishedAt": "2026-08-30T20:39:05.576Z"
+  "apiRequests": 1,
+  "lastCheckpointAt": "2026-08-30T20:47:04.466Z",
+  "lastCheckpointReason": "iranian-visible-repair-6f4a5550-90cb-11f1-b74a-f34817502b6d",
+  "remainingRunMsAtCheckpoint": 593900,
+  "finishedAt": "2026-08-30T20:47:17.264Z"
 }
