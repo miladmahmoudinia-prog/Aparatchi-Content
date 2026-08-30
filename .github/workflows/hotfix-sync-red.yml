@@ -26,7 +26,7 @@ jobs:
           ref: main
           fetch-depth: 60
 
-      - name: Patch client truth and Iranian source
+      - name: Align stale regression fixtures with current media truth
         shell: bash
         run: |
           set -euo pipefail
@@ -41,44 +41,106 @@ jobs:
           }
 
           replaceExact(
-            'scripts/client-catalog.mjs',
-            `  const preparedForClient = iranian\n    ? prepared\n    : prepared.map((section) => ({`,
-            `  const preparedForClient = (iranian || operatorVariant)\n    ? prepared\n    : prepared.map((section) => ({`,
-            'operator media exemption',
-          );
-          replaceExact(
-            'scripts/client-catalog.mjs',
-            `    if (neutralFiles.length && iranian) {`,
-            `    if (neutralFiles.length && !operatorVariant) {`,
-            'foreign conflict neutral preservation',
-          );
-          replaceExact(
-            'scripts/client-catalog.mjs',
-            `  if (!iranian && !availableLanguages.length) return null;`,
-            `  if (!iranian && !operatorVariant && !availableLanguages.length && conflicts.size === 0) return null;`,
-            'foreign visibility gate',
+            'scripts/tests/current-media-truth.test.mjs',
+            `test('missing ir flag never makes a foreign title Iranian and keeps real media neutral', () => {\n  const item = foreign({ downloads: [{ id: 'plain', files: [\n    { id: 'plain-file', mode: 'download', url: 'https://cdn.test/original.mp4' },\n  ]}] });\n  const { index, detailFiles } = buildClientCatalogArtifacts({ items: [item] });\n  assert.equal(index.items.length, 1);\n  assert.notEqual(index.items[0].ir, true);\n  assert.deepEqual(index.items[0].availableLanguages, []);\n  const detail = JSON.parse(detailFiles[0].serialized);\n  assert.equal(detail.downloads[0].files[0].language, undefined);\n});`,
+            `test('missing ir flag never makes a foreign title Iranian and unproven-language media stays out', () => {\n  const item = foreign({ downloads: [{ id: 'plain', files: [\n    { id: 'plain-file', mode: 'download', url: 'https://cdn.test/original.mp4' },\n  ]}] });\n  const { index, detailFiles } = buildClientCatalogArtifacts({ items: [item] });\n  assert.equal(index.items.length, 0);\n  assert.equal(detailFiles.length, 0);\n});`,
+            'current media unlabeled foreign policy',
           );
 
           replaceExact(
-            'scripts/sync-upera.mjs',
-            `    // Fallback scan: some deployments ignore/rename the Persian filter.\n    { free: 1, persian: 0, traffic: 1, noFreeFallback: true },`,
-            `    // Never fall back to the generic foreign feed here. If upstream ignores\n    // the Iranian filters, inferIranian will reject those rows without making\n    // the archive cursor spend hours walking the entire foreign catalog.`,
-            'unsafe Iranian generic fallback',
+            'scripts/tests/client-catalog.test.mjs',
+            `test('same URL with contradictory Persian-language claims is not exposed as neutral foreign media', () => {\n  const item = {\n    id: 'conflict', type: 'movie', nameFa: 'تعارض', name: 'Conflict', countryCodes: ['US'],\n    downloads: [\n      { id: 'd', title: 'دوبله فارسی', files: [{ id: 'f1', mode: 'download', url: 'https://cdn.test/shared.mp4' }] },\n      { id: 's', title: 'زیرنویس فارسی', files: [{ id: 'f2', mode: 'download', url: 'https://cdn.test/shared.mp4' }] },\n    ],\n  };\n  const artifacts = buildClientCatalogArtifacts({ version: '1', updatedAt: 'now', items: [item] });\n  assert.equal(artifacts.index.items.length, 0);\n});`,
+            `test('same URL with contradictory Persian-language claims survives once as neutral media', () => {\n  const item = {\n    id: 'conflict', type: 'movie', nameFa: 'تعارض', name: 'Conflict', countryCodes: ['US'],\n    downloads: [\n      { id: 'd', title: 'دوبله فارسی', files: [{ id: 'f1', mode: 'download', url: 'https://cdn.test/shared.mp4' }] },\n      { id: 's', title: 'زیرنویس فارسی', files: [{ id: 'f2', mode: 'download', url: 'https://cdn.test/shared.mp4' }] },\n    ],\n  };\n  const artifacts = buildClientCatalogArtifacts({ version: '1', updatedAt: 'now', items: [item] });\n  assert.equal(artifacts.index.items.length, 1);\n  assert.deepEqual(artifacts.index.items[0].availableLanguages, []);\n  const detail = JSON.parse(artifacts.detailFiles[0].serialized);\n  const files = detail.downloads.flatMap((section) => section.files || []);\n  assert.equal(files.filter((file) => file.url === 'https://cdn.test/shared.mp4').length, 1);\n});`,
+            'contradictory Persian URL policy',
+          );
+
+          replaceExact(
+            'scripts/tests/final-user-batch-20260814.test.mjs',
+            `test('foreign unlabeled original media stays visible without fake language labels', () => {\n  const item = base({ downloads: [{ id: 's', files: [\n    { id: 'f', mode: 'download', url: 'https://cdn.test/original.mp4' },\n  ]}] });\n  const { index, detailFiles } = buildClientCatalogArtifacts({ items: [item] });\n  assert.equal(index.items.length, 1);\n  assert.deepEqual(index.items[0].availableLanguages, []);\n  const detail = JSON.parse(detailFiles[0].serialized);\n  assert.equal(detail.downloads[0].files[0].language, undefined);\n});`,
+            `test('foreign unlabeled original media stays out until Persian language is proven', () => {\n  const item = base({ downloads: [{ id: 's', files: [\n    { id: 'f', mode: 'download', url: 'https://cdn.test/original.mp4' },\n  ]}] });\n  const { index, detailFiles } = buildClientCatalogArtifacts({ items: [item] });\n  assert.equal(index.items.length, 0);\n  assert.equal(detailFiles.length, 0);\n});`,
+            'final batch unlabeled foreign policy',
+          );
+
+          replaceExact(
+            'scripts/tests/detail-first-paint-v45.test.mjs',
+            `    id: \`movie-${index}\`,\n    type: 'movie',`,
+            `    id: \`movie-${index}\`,\n    type: 'movie',\n    ir: true,`,
+            'detail first paint movie fixture identity',
+          );
+          replaceExact(
+            'scripts/tests/detail-first-paint-v45.test.mjs',
+            `      id: 'series', type: 'series', nameFa: 'سریال', name: 'Series',`,
+            `      id: 'series', type: 'series', ir: true, nameFa: 'سریال', name: 'Series',`,
+            'detail first paint series fixture identity',
+          );
+
+          replaceExact(
+            'scripts/tests/full-navigation-bootstrap-v1.test.mjs',
+            `downloads: [{ files: [{ mode: 'download', url: \`https://cdn.test/${index}.mp4\` }] }],`,
+            `downloads: [{ files: [{ mode: 'download', url: \`https://cdn.test/${index}.mp4\`, language: 'subtitled' }] }],`,
+            'full navigation foreign fixture language',
+          );
+
+          replaceExact(
+            'scripts/tests/home-bootstrap-v1.test.mjs',
+            `files: [{ id: \`${id}-file\`, mode: 'download', url: \`https://cdn.test/${id}.mp4\` }]`,
+            `files: [{ id: \`${id}-file\`, mode: 'download', url: \`https://cdn.test/${id}.mp4\`, language: 'subtitled' }]`,
+            'home movie fixture language',
+          );
+          replaceExact(
+            'scripts/tests/home-bootstrap-v1.test.mjs',
+            `files: [{ id: \`${id}-file\`, mode: 'download', url: \`https://cdn.test/${id}.mp4\` }]`,
+            `files: [{ id: \`${id}-file\`, mode: 'download', url: \`https://cdn.test/${id}.mp4\`, language: 'subtitled' }]`,
+            'home series fixture language',
+          );
+
+          replaceExact(
+            'scripts/tests/smart-categories-v38.test.mjs',
+            `    id: 'short-film-bootstrap',\n    type: 'movie',`,
+            `    id: 'short-film-bootstrap',\n    type: 'movie',\n    ir: true,`,
+            'short film bootstrap fixture identity',
+          );
+
+          replaceExact(
+            'scripts/tests/ui-truth-v10.test.mjs',
+            `const media = (id) => [{ id: \`${id}-media\`, files: [{ id: \`${id}-file\`, mode: 'download', url: \`https://cdn.test/${id}.mp4\` }] }];`,
+            `const media = (id) => [{ id: \`${id}-media\`, files: [{ id: \`${id}-file\`, mode: 'download', url: \`https://cdn.test/${id}.mp4\`, language: 'subtitled' }] }];`,
+            'ui ordering movie fixture language',
+          );
+          replaceExact(
+            'scripts/tests/ui-truth-v10.test.mjs',
+            `files: [{ id: 'e1f', mode: 'download', url: 'https://cdn.test/e1.mp4' }]`,
+            `files: [{ id: 'e1f', mode: 'download', url: 'https://cdn.test/e1.mp4', language: 'subtitled' }]`,
+            'ui ordering series fixture language',
+          );
+
+          replaceExact(
+            'scripts/tests/user-report-v11.test.mjs',
+            `files: [{ id: id + '-file', mode: 'download', url: 'https://cdn.test/' + id + '.mp4' }]`,
+            `files: [{ id: id + '-file', mode: 'download', url: 'https://cdn.test/' + id + '.mp4', language: 'subtitled' }]`,
+            'v11 ordering fixture language',
+          );
+
+          replaceExact(
+            'scripts/tests/user-report-v12.test.mjs',
+            `files: [{ id: \`f-${id}\`, quality: '720p', url: \`https://example.com/${id}.mp4\`, mode: 'download' }],`,
+            `files: [{ id: \`f-${id}\`, quality: '720p', url: \`https://example.com/${id}.mp4\`, mode: 'download', language: 'subtitled' }],`,
+            'v12 series fixture language',
           );
           NODE
 
-      - name: Commit source repair
+      - name: Commit regression alignment
         shell: bash
         run: |
           set -euo pipefail
           rm -f .git/index.lock
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/client-catalog.mjs scripts/sync-upera.mjs
-          git commit -m "fix: restore client media truth and Iranian source filtering"
+          git add scripts/tests
+          git commit -m "test: align client fixtures with Persian media truth"
           git pull --rebase origin main
           git push origin HEAD:main
 
-      - name: Run regression suite after source repair
+      - name: Run full regression suite
         shell: bash
         run: node --test scripts/tests/*.test.mjs
