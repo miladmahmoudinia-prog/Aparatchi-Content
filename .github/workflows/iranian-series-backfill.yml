@@ -95,15 +95,13 @@ jobs:
           fs.writeFileSync(file, source);
           NODE
 
+          # The normal catalog sync already handles newly airing titles and
+          # visible repairs. This lane is archive-only from its very first pass,
+          # so a stale visible repair can never consume the backfill slot.
+          export APARATCHI_SKIP_IRANIAN_RECENT='true'
           COMPLETED=0
           for pass in $(seq 1 30); do
-            echo "Iranian archive backfill pass ${pass}/30"
-            if [ "$pass" -gt 1 ]; then
-              export APARATCHI_SKIP_IRANIAN_RECENT='true'
-            else
-              unset APARATCHI_SKIP_IRANIAN_RECENT || true
-            fi
-
+            echo "Iranian archive-only backfill pass ${pass}/30"
             node "$RUNTIME_SYNC"
 
             if [ ! -f sync-report-iranian.json ]; then
@@ -111,9 +109,9 @@ jobs:
               break
             fi
 
-            decision="$(node -e 'const fs=require("fs"); const r=JSON.parse(fs.readFileSync("sync-report-iranian.json","utf8")); const d=Array.isArray(r.iranianSeriesDiagnostics)?r.iranianSeriesDiagnostics:[]; const last=d.length?d[d.length-1]:null; const retry=Boolean(last&&last.retryLater); const stopped=Boolean(r.stoppedByTimeBudget); const added=Number(last&&last.addedEpisodes||0); const newlyPublished=Boolean(last&&last.newlyPublished); if(stopped||retry) process.stdout.write("stop"); else if(last&&last.result==="completed"&&newlyPublished) process.stdout.write("published"); else if(last&&last.result==="completed") process.stdout.write("continue"); else if(last&&last.discovery==="visible-repair"&&added===0) process.stdout.write("continue"); else if(last&&last.result==="advanced") process.stdout.write("continue"); else process.stdout.write("continue");')"
+            decision="$(node -e 'const fs=require("fs"); const r=JSON.parse(fs.readFileSync("sync-report-iranian.json","utf8")); const d=Array.isArray(r.iranianSeriesDiagnostics)?r.iranianSeriesDiagnostics:[]; const last=d.length?d[d.length-1]:null; const retry=Boolean(last&&last.retryLater); const stopped=Boolean(r.stoppedByTimeBudget); const newlyPublished=Boolean(last&&last.newlyPublished); if(stopped||retry) process.stdout.write("stop"); else if(last&&last.result==="completed"&&newlyPublished) process.stdout.write("published"); else process.stdout.write("continue");')"
 
-            echo "Iranian backfill decision: ${decision}"
+            echo "Iranian archive-only decision: ${decision}"
             if [ "$decision" = "published" ]; then
               COMPLETED=$((COMPLETED + 1))
               echo "Published one Iranian archive series in this run."
