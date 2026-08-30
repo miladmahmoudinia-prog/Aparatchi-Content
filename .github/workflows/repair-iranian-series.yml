@@ -1,12 +1,6 @@
 name: Repair Iranian Series Episodes
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/repair-iranian-series.yml'
-      - 'scripts/patch-iranian-visible-repair.mjs'
   workflow_run:
     workflows:
       - 'Sync Upera Catalog'
@@ -23,6 +17,9 @@ concurrency:
 
 jobs:
   repair:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 34
 
@@ -71,8 +68,8 @@ jobs:
           node --check "$RUNTIME_SYNC"
 
           IRANIAN_COMPLETED=0
-          for pass in $(seq 1 24); do
-            echo "Iranian repair pass ${pass}/24"
+          for pass in $(seq 1 4); do
+            echo "Iranian repair pass ${pass}/4"
             node "$RUNTIME_SYNC"
 
             if [ ! -f sync-report-iranian.json ]; then
@@ -91,11 +88,7 @@ jobs:
               continue
             fi
 
-            if [ "$decision" = "skip" ]; then
-              continue
-            fi
-
-            echo "Iranian repair checkpoint after ${decision}."
+            echo "Iranian repair made no complete-title progress (${decision}); checkpoint now instead of repeating the same rows."
             break
           done
 
