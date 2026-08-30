@@ -15,7 +15,7 @@ const playableMovie = (id, freshness, extra = {}) => ({
   firstSeenAt: freshness.firstSeenAt, sourceCreatedAt: freshness.sourceCreatedAt,
   createdAt: freshness.createdAt, updatedAt: freshness.updatedAt, sourceUpdatedAt: freshness.sourceUpdatedAt,
   poster: 'https://example.test/' + id + '.jpg', backdrop: 'https://example.test/' + id + '-backdrop.jpg',
-  downloads: [{ id: id + '-media', files: [{ id: id + '-file', mode: 'download', url: 'https://cdn.test/' + id + '.mp4' }] }],
+  downloads: [{ id: id + '-media', files: [{ id: id + '-file', mode: 'download', url: 'https://cdn.test/' + id + '.mp4', language: 'subtitled' }] }],
   ...extra,
 });
 

@@ -251,7 +251,7 @@ test('a real dubbed foreign download survives and is labelled dubbed', () => {
   assert.equal(artifacts.index.items[0].availableLanguages[0], 'dubbed');
 });
 
-test('same URL with contradictory Persian-language claims is not exposed as neutral foreign media', () => {
+test('same URL with contradictory Persian-language claims survives once as neutral media', () => {
   const item = {
     id: 'conflict', type: 'movie', nameFa: 'تعارض', name: 'Conflict', countryCodes: ['US'],
     downloads: [
@@ -260,9 +260,12 @@ test('same URL with contradictory Persian-language claims is not exposed as neut
     ],
   };
   const artifacts = buildClientCatalogArtifacts({ version: '1', updatedAt: 'now', items: [item] });
-  assert.equal(artifacts.index.items.length, 0);
+  assert.equal(artifacts.index.items.length, 1);
+  assert.deepEqual(artifacts.index.items[0].availableLanguages, []);
+  const detail = JSON.parse(artifacts.detailFiles[0].serialized);
+  const files = detail.downloads.flatMap((section) => section.files || []);
+  assert.equal(files.filter((file) => file.url === 'https://cdn.test/shared.mp4').length, 1);
 });
-
 
 test('native Iranian media remains visible without a redundant language badge', () => {
   const item = {

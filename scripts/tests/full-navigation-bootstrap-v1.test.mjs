@@ -48,7 +48,7 @@ test('startup navigation has no fixed title-count ceiling', () => {
     name: `Title ${index}`,
     poster: `https://img.test/${index}.jpg`,
     categoryKeys: ['movies', 'foreign-movies'],
-    downloads: [{ files: [{ mode: 'download', url: `https://cdn.test/${index}.mp4` }] }],
+    downloads: [{ files: [{ mode: 'download', url: `https://cdn.test/${index}.mp4`, language: 'subtitled' }] }],
   }));
   const future = buildClientCatalogArtifacts({ version: 'future', updatedAt: 'future', items });
   assert.equal(future.index.items.length, 5003);

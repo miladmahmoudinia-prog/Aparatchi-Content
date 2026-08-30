@@ -29,15 +29,13 @@ test('one contradictory URL becomes one neutral playable choice', () => {
   assert.equal(files.filter((file) => file.url === 'https://cdn.test/same.mp4').length, 1);
 });
 
-test('foreign unlabeled original media stays visible without fake language labels', () => {
+test('foreign unlabeled original media stays out until Persian language is proven', () => {
   const item = base({ downloads: [{ id: 's', files: [
     { id: 'f', mode: 'download', url: 'https://cdn.test/original.mp4' },
   ]}] });
   const { index, detailFiles } = buildClientCatalogArtifacts({ items: [item] });
-  assert.equal(index.items.length, 1);
-  assert.deepEqual(index.items[0].availableLanguages, []);
-  const detail = JSON.parse(detailFiles[0].serialized);
-  assert.equal(detail.downloads[0].files[0].language, undefined);
+  assert.equal(index.items.length, 0);
+  assert.equal(detailFiles.length, 0);
 });
 
 test('unverified operator-only records are hidden', () => {

@@ -16,7 +16,7 @@ const playableMovie = (id, categoryKeys, firstSeenAt = '2026-08-15T00:00:00.000Z
   poster: `https://img.test/${id}.jpg`,
   backdrop: `https://img.test/${id}-bg.jpg`,
   overview: `خلاصه فارسی ${id}`,
-  downloads: [{ id: `${id}-download`, files: [{ id: `${id}-file`, mode: 'download', url: `https://cdn.test/${id}.mp4` }] }],
+  downloads: [{ id: `${id}-download`, files: [{ id: `${id}-file`, mode: 'download', url: `https://cdn.test/${id}.mp4`, language: 'subtitled' }] }],
 });
 
 const playableSeries = (id, categoryKeys, firstSeenAt = '2026-08-15T00:00:00.000Z') => ({
@@ -34,7 +34,7 @@ const playableSeries = (id, categoryKeys, firstSeenAt = '2026-08-15T00:00:00.000
   overview: `خلاصه فارسی ${id}`,
   latestEpisode: { id: `${id}-ep`, seasonNumber: 1, episodeNumber: 1 },
   episodeCount: 1,
-  downloads: [{ id: `${id}-episode`, seasonNumber: 1, episodeNumber: 1, files: [{ id: `${id}-file`, mode: 'download', url: `https://cdn.test/${id}.mp4` }] }],
+  downloads: [{ id: `${id}-episode`, seasonNumber: 1, episodeNumber: 1, files: [{ id: `${id}-file`, mode: 'download', url: `https://cdn.test/${id}.mp4`, language: 'subtitled' }] }],
 });
 
 const count = (payload, key) => payload.items.filter((item) => (item.categoryKeys || []).includes(key)).length;

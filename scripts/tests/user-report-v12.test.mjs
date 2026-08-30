@@ -9,7 +9,7 @@ const playable = (id, sourceUpdatedAt) => ({
   seasonNumber: 1,
   episodeNumber: Number(id),
   sourceUpdatedAt,
-  files: [{ id: `f-${id}`, quality: '720p', url: `https://example.com/${id}.mp4`, mode: 'download' }],
+  files: [{ id: `f-${id}`, quality: '720p', url: `https://example.com/${id}.mp4`, mode: 'download', language: 'subtitled' }],
 });
 
 const baseSeries = (overrides = {}) => ({

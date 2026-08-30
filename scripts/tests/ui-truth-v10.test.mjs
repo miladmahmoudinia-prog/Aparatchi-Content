@@ -33,10 +33,10 @@ test('Home bootstrap carries immediate lightweight actions for its media-equippe
 });
 
 test('client ordering is real add/update freshness, not production year', () => {
-  const media = (id) => [{ id: `${id}-media`, files: [{ id: `${id}-file`, mode: 'download', url: `https://cdn.test/${id}.mp4` }] }];
+  const media = (id) => [{ id: `${id}-media`, files: [{ id: `${id}-file`, mode: 'download', url: `https://cdn.test/${id}.mp4`, language: 'subtitled' }] }];
   const catalog = { items: [
     { id: 'new-year-old-update', type: 'movie', name: 'New Year', nameFa: 'سال جدید', year: 2026, poster: 'https://img.test/a.jpg', backdrop: 'https://img.test/a-bg.jpg', downloads: media('a'), firstSeenAt: '2026-08-01T00:00:00Z' },
-    { id: 'old-year-fresh-update', type: 'series', name: 'Old Year Fresh', nameFa: 'قدیمی تازه', year: 2015, poster: 'https://img.test/b.jpg', backdrop: 'https://img.test/b-bg.jpg', downloads: [{ id: 'e1', seasonNumber: 1, episodeNumber: 1, files: [{ id: 'e1f', mode: 'download', url: 'https://cdn.test/e1.mp4' }] }], meaningfulUpdatedAt: '2026-08-16T10:00:00Z', updateLabel: 'قسمت ۱ اضافه شد', publicationStatus: 'published' },
+    { id: 'old-year-fresh-update', type: 'series', name: 'Old Year Fresh', nameFa: 'قدیمی تازه', year: 2015, poster: 'https://img.test/b.jpg', backdrop: 'https://img.test/b-bg.jpg', downloads: [{ id: 'e1', seasonNumber: 1, episodeNumber: 1, files: [{ id: 'e1f', mode: 'download', url: 'https://cdn.test/e1.mp4', language: 'subtitled' }] }], meaningfulUpdatedAt: '2026-08-16T10:00:00Z', updateLabel: 'قسمت ۱ اضافه شد', publicationStatus: 'published' },
   ] };
   const artifacts = buildClientCatalogArtifacts(catalog);
   assert.equal(artifacts.index.items[0].id, 'old-year-fresh-update');

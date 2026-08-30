@@ -119,6 +119,7 @@ test('client bootstrap carries short film category', () => {
   const item = {
     id: 'short-film-bootstrap',
     type: 'movie',
+    ir: true,
     nameFa: 'فیلم کوتاه نمونه',
     name: 'Short Film Sample',
     contentKind: 'short-film',

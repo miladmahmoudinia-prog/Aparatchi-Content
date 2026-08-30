@@ -8,16 +8,13 @@ const foreign = (extra = {}) => ({
   countryCodes: ['US'], ...extra,
 });
 
-test('missing ir flag never makes a foreign title Iranian and keeps real media neutral', () => {
+test('missing ir flag never makes a foreign title Iranian and unproven-language media stays out', () => {
   const item = foreign({ downloads: [{ id: 'plain', files: [
     { id: 'plain-file', mode: 'download', url: 'https://cdn.test/original.mp4' },
   ]}] });
   const { index, detailFiles } = buildClientCatalogArtifacts({ items: [item] });
-  assert.equal(index.items.length, 1);
-  assert.notEqual(index.items[0].ir, true);
-  assert.deepEqual(index.items[0].availableLanguages, []);
-  const detail = JSON.parse(detailFiles[0].serialized);
-  assert.equal(detail.downloads[0].files[0].language, undefined);
+  assert.equal(index.items.length, 0);
+  assert.equal(detailFiles.length, 0);
 });
 
 test('a real dubbed foreign download survives and is labelled dubbed', () => {

@@ -13,6 +13,7 @@ test('first-paint people and movie actions are not limited to the first 36 title
   const items = Array.from({ length: 80 }, (_, index) => ({
     id: `movie-${index}`,
     type: 'movie',
+    ir: true,
     nameFa: `فیلم ${index}`,
     name: `Movie ${index}`,
     poster: `https://img.test/movie-${index}.jpg`,
@@ -36,7 +37,7 @@ test('series first paint carries only the newest actionable episode', () => {
   }));
   const { bootstrap } = buildClientCatalogArtifacts({
     version: 'v45', updatedAt: 'now', items: [{
-      id: 'series', type: 'series', nameFa: 'سریال', name: 'Series',
+      id: 'series', type: 'series', ir: true, nameFa: 'سریال', name: 'Series',
       publicationStatus: 'published', archiveComplete: true,
       people: Array.from({ length: 6 }, (_value, index) => person('series', index)),
       downloads,
