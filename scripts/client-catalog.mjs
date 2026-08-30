@@ -613,7 +613,9 @@ const compactBootstrapPeoplePreview = (people, limit = 4) =>
     role: person.role,
     ...(person.character ? { character: person.character } : {}),
     ...(person.image ? { image: person.image } : {}),
-    ...(person.tmdbId ? { tmdbId: person.tmdbId } : {}),
+    // TMDB ids belong to the full detail shard. Home only needs the visible
+    // identity fields; omitting this internal id keeps the complete bootstrap
+    // below GitHub's first-install safety bound as people enrichment grows.
   }));
 
 const compactBootstrapNavigationItem = (item) => {
