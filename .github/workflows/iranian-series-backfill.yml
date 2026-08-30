@@ -1,13 +1,6 @@
 name: Complete Iranian Series Backfill
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/iranian-series-backfill.yml'
-  schedule:
-    - cron: '42 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -20,7 +13,7 @@ concurrency:
 jobs:
   backfill:
     runs-on: ubuntu-latest
-    timeout-minutes: 55
+    timeout-minutes: 48
     steps:
       - name: Checkout latest main
         uses: actions/checkout@v6
@@ -29,19 +22,19 @@ jobs:
           fetch-depth: 60
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: '22'
 
       - name: Complete one Iranian archive title without repair blocking
-        timeout-minutes: 46
+        timeout-minutes: 40
         env:
           UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
           UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
           UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
           UPERA_SYNC_MODE: 'IRANIAN'
           UPERA_OPERATOR_DISCOVERY_ENABLED: 'false'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '8'
+          APARATCHI_RUN_TIME_LIMIT_MINUTES: '10'
           APARATCHI_CHECKPOINT_RESERVE_MS: '45000'
           APARATCHI_REQUEST_TIMEOUT_MS: '12000'
           APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
@@ -52,85 +45,54 @@ jobs:
           UPERA_IRANIAN_SERIES_TITLES_PER_RUN: '1'
           UPERA_PRIORITY_EPISODES_PER_SERIES: '120'
           UPERA_MAX_EPISODE_PAGES: '80'
-          UPERA_OPERATOR_MOVIE_REQUEST_QUOTA: '8'
-          UPERA_OPERATOR_SERIES_REQUEST_QUOTA: '8'
-          UPERA_OPERATOR_MOVIE_PAGES_PER_RUN: '2'
-          UPERA_OPERATOR_SERIES_PAGES_PER_RUN: '2'
           APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
         shell: bash
         run: |
           set -euo pipefail
-
           count_published() {
             node -e 'const fs=require("fs"); const c=JSON.parse(fs.readFileSync("catalog.json","utf8")); process.stdout.write(String((c.items||[]).filter(i=>i?.type==="series"&&i?.categoryKeys?.includes("iranian-series")&&i?.publicationStatus==="published").length));'
           }
-
-          print_cursor() {
-            node -e 'const fs=require("fs"); const s=JSON.parse(fs.readFileSync("sync-state.json","utf8")); const r=fs.existsSync("sync-report-iranian.json")?JSON.parse(fs.readFileSync("sync-report-iranian.json","utf8")):{}; const d=Array.isArray(r.iranianSeriesDiagnostics)?r.iranianSeriesDiagnostics:[]; console.log(JSON.stringify({page:s.iranianSeriesPage,offset:s.iranianSeriesOffset,activeId:s.iranianSeriesActiveId||"",currentId:s.iranianSeriesCurrentId||"",currentEpisode:s.iranianSeriesCurrentEpisode||0,lastDiagnostic:d.length?d[d.length-1]:null},null,2));'
-          }
-
           START_PUBLISHED="$(count_published)"
           echo "Published Iranian series before: ${START_PUBLISHED}"
-          print_cursor
 
           RUNTIME_SYNC="scripts/.sync-upera-iranian-backfill-runtime.mjs"
           cp scripts/sync-upera.mjs "$RUNTIME_SYNC"
           trap 'rm -f "$RUNTIME_SYNC"' EXIT
-
           node - "$RUNTIME_SYNC" <<'NODE'
           const fs = require('fs');
           const file = process.argv[2];
           let source = fs.readFileSync(file, 'utf8');
-          const needle = '      await syncRecentIranianSeriesDiscovery();';
-          const replacement = "      if (process.env.APARATCHI_SKIP_IRANIAN_RECENT !== 'true') {\n        await syncRecentIranianSeriesDiscovery();\n      }";
-          if (!source.includes(needle)) throw new Error('Iranian recent-discovery hook not found');
-          source = source.replace(needle, replacement);
+          const recentNeedle = '      await syncRecentIranianSeriesDiscovery();';
+          const recentReplacement = "      if (process.env.APARATCHI_SKIP_IRANIAN_RECENT !== 'true') {\n        await syncRecentIranianSeriesDiscovery();\n      }";
+          if (!source.includes(recentNeedle)) throw new Error('Iranian recent-discovery hook not found');
+          source = source.replace(recentNeedle, recentReplacement);
+          const variantsStart = source.indexOf('  const variants = [', source.indexOf('async function fetchIranianSeriesPage'));
+          const variantsEnd = source.indexOf('  ];', variantsStart);
+          if (variantsStart < 0 || variantsEnd < 0) throw new Error('Iranian variants block not found');
+          const replacement = "  const variants = [\n    { free: 1, persian: '', country: 'IR', traffic: 1, noFreeFallback: true },\n    { free: '', persian: '', country: 'IR', traffic: 1, noFreeFallback: true },\n  ];";
+          source = source.slice(0, variantsStart) + replacement + source.slice(variantsEnd + 4);
           fs.writeFileSync(file, source);
           NODE
-
-          # NORMAL sync owns fresh/current/repair work. This lane is strictly
-          # archive-only from pass one so an already-visible repair can never
-          # consume the historical publishing slot.
           export APARATCHI_SKIP_IRANIAN_RECENT='true'
 
-          PUBLISHED_ONE=0
           for pass in $(seq 1 90); do
             echo "Iranian archive-only pass ${pass}/90"
             node "$RUNTIME_SYNC"
-
             CURRENT_PUBLISHED="$(count_published)"
             echo "Published Iranian series now: ${CURRENT_PUBLISHED} (started ${START_PUBLISHED})"
-            print_cursor
-
             if [ "$CURRENT_PUBLISHED" -gt "$START_PUBLISHED" ]; then
-              echo "Published one Iranian archive series in this run."
-              PUBLISHED_ONE=1
               break
             fi
-
             if [ ! -f sync-report-iranian.json ]; then
-              echo "Iranian report missing; stop safely."
               break
             fi
-
-            SHOULD_STOP="$(node -e 'const fs=require("fs"); const r=JSON.parse(fs.readFileSync("sync-report-iranian.json","utf8")); const d=Array.isArray(r.iranianSeriesDiagnostics)?r.iranianSeriesDiagnostics:[]; const last=d.length?d[d.length-1]:null; process.stdout.write((r.stoppedByTimeBudget||Boolean(last&&last.retryLater))?"yes":"no");')"
-            if [ "$SHOULD_STOP" = "yes" ]; then
-              echo "Current title needs the next hourly budget; save cursor and stop."
-              break
-            fi
+            SHOULD_STOP="$(node -e 'const fs=require("fs"); const r=JSON.parse(fs.readFileSync("sync-report-iranian.json","utf8")); const d=Array.isArray(r.iranianSeriesDiagnostics)?r.iranianSeriesDiagnostics:[]; const last=d[d.length-1]||{}; process.stdout.write((r.stoppedByTimeBudget||last.retryLater)?"yes":"no");')"
+            [ "$SHOULD_STOP" = "no" ] || break
           done
-
           rm -f "$RUNTIME_SYNC"
           trap - EXIT
           node scripts/rebuild-client-catalog.mjs
-
-          FINAL_PUBLISHED="$(count_published)"
-          echo "Published Iranian series after: ${FINAL_PUBLISHED}"
-          print_cursor
-
-          if [ "$FINAL_PUBLISHED" -le "$START_PUBLISHED" ]; then
-            echo "No publishable Iranian archive title was completed in this budget; cursor progress will still be committed."
-          fi
+          echo "Published Iranian series after: $(count_published)"
 
       - name: Commit Iranian backfill progress
         if: always()
@@ -140,29 +102,11 @@ jobs:
           rm -f .git/index.lock scripts/.sync-upera-iranian-backfill-runtime.mjs
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          # This runner is isolated to the Iranian lane. Stage every generated
-          # checkpoint/output so git pull can never be blocked by an unstaged
-          # tracked file after a partial or time-budgeted pass.
           git add -A
           if git diff --cached --quiet; then
             echo "No Iranian backfill changes to commit."
             exit 0
           fi
-
           git commit -m "chore: advance Iranian archive backfill"
-          git status --short
-
-          PUSHED=0
-          for attempt in 1 2 3 4 5; do
-            if git pull --rebase origin main && git push origin HEAD:main; then
-              PUSHED=1
-              break
-            fi
-            git rebase --abort >/dev/null 2>&1 || true
-            sleep $((attempt * 2))
-          done
-          if [ "$PUSHED" -ne 1 ]; then
-            echo "::error::Could not push Iranian backfill progress."
-            exit 1
-          fi
+          git pull --rebase origin main
+          git push origin HEAD:main
