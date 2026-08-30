@@ -315,8 +315,10 @@ export function classifyCatalogItem(input = {}) {
     (trustedSpecializedKind && existingKeys.includes('reality'))
   );
   const isGeneralProgram = includesAny(programIdentityText, generalProgramTerms) || includesAny(titleText, promotionalTitleTerms);
-  const isProgram = isChildrenProgram || isTalkShow || isRealityCompetition || isGeneralProgram ||
-    (trustedSpecializedKind && existingKind === 'program');
+  const isProgram = !isAnimation && (
+    isChildrenProgram || isTalkShow || isRealityCompetition || isGeneralProgram ||
+    (trustedSpecializedKind && existingKind === 'program')
+  );
   const verifiedArghavanShort = Boolean(
     type === 'movie' &&
     Number(input.year || 0) === 2025 &&
