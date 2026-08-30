@@ -305,16 +305,16 @@ export function classifyCatalogItem(input = {}) {
     includesAny(programIdentityText, childrenProgramTerms) ||
     (trustedSpecializedKind && existingKind === 'children-program')
   );
-  const isTalkShow = Boolean(
+  const isTalkShow = Boolean(!isAnimation && (
     includesAny(programIdentityText, talkShowTerms) ||
     (trustedSpecializedKind && existingKind === 'talk-show')
-  );
-  const isRealityCompetition = Boolean(
+  ));
+  const isRealityCompetition = Boolean(!isAnimation && (
     includesAny(programIdentityText, realityTerms) ||
     (trustedSpecializedKind && existingKind === 'reality-competition') ||
     (trustedSpecializedKind && existingKeys.includes('reality'))
-  );
-  const isGeneralProgram = includesAny(programIdentityText, generalProgramTerms) || includesAny(titleText, promotionalTitleTerms);
+  ));
+  const isGeneralProgram = !isAnimation && (includesAny(programIdentityText, generalProgramTerms) || includesAny(titleText, promotionalTitleTerms));
   const isProgram = !isAnimation && (
     isChildrenProgram || isTalkShow || isRealityCompetition || isGeneralProgram ||
     (trustedSpecializedKind && existingKind === 'program')
