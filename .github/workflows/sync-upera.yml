@@ -180,15 +180,41 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Finish titles strictly one at a time. A successful publication may
-          # advance to the next title, up to three completions. A rejected or
-          # no-progress pass must stop immediately: rerunning the script in the
-          # same job only re-reads the same dead source window and can exhaust
-          # the 30-minute step timeout before its state is safely committed.
+
+          # The first pass probes page one for genuinely new/current Iranian
+          # series. Later passes in this SAME workflow must go straight to the
+          # persistent archive cursor; otherwise the same no-link page-one rows
+          # consume the request quota over and over and the archive never moves.
+          RUNTIME_SYNC="scripts/.sync-upera-iranian-runtime.mjs"
+          cp scripts/sync-upera.mjs "$RUNTIME_SYNC"
+          trap 'rm -f "$RUNTIME_SYNC"' EXIT
+          node - "$RUNTIME_SYNC" <<'NODE'
+          const fs = require('fs');
+          const file = process.argv[2];
+          let source = fs.readFileSync(file, 'utf8');
+          const needle = '      await syncRecentIranianSeriesDiscovery();';
+          const replacement = "      if (process.env.APARATCHI_SKIP_IRANIAN_RECENT !== 'true') {\n        await syncRecentIranianSeriesDiscovery();\n      }";
+          if (!source.includes(needle)) {
+            throw new Error('Iranian recent-discovery hook not found');
+          }
+          source = source.replace(needle, replacement);
+          fs.writeFileSync(file, source);
+          NODE
+
+          # The source "Persian" filter is noisy. Keep advancing terminal
+          # foreign/invalid rows inside this same workflow run instead of
+          # wasting one hourly cycle per rejected row. Finish titles strictly
+          # one at a time, then continue to the next title only after the prior
+          # archive is complete; cap each workflow at three completions.
           IRANIAN_COMPLETED=0
-          for pass in $(seq 1 4); do
-            echo "Iranian series lane pass ${pass}/4"
-            node scripts/sync-upera.mjs
+          for pass in $(seq 1 24); do
+            echo "Iranian series lane pass ${pass}/24"
+            if [ "$pass" -gt 1 ]; then
+              export APARATCHI_SKIP_IRANIAN_RECENT='true'
+            else
+              unset APARATCHI_SKIP_IRANIAN_RECENT || true
+            fi
+            node "$RUNTIME_SYNC"
 
             if [ ! -f sync-report-iranian.json ]; then
               echo "Iranian report missing; stop bounded retry loop."
@@ -204,9 +230,9 @@ jobs:
               fi
               continue
             fi
-
-            echo "Iranian lane made no publishable progress (${decision}); checkpoint now instead of repeating the same source rows."
-            break
+            if [ "$decision" != "skip" ]; then
+              break
+            fi
           done
 
       - name: Commit Iranian-series progress
