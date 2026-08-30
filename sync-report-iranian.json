@@ -1,13 +1,13 @@
 {
-  "startedAt": "2026-08-30T12:07:10.502Z",
-  "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-08-30T12:17:09.219Z",
+  "startedAt": "2026-08-30T12:29:38.116Z",
+  "runTimeLimitMinutes": 12,
+  "runDeadlineAt": "2026-08-30T12:41:36.550Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 559812,
+  "remainingRunMsAtFinish": 700356,
   "imageMirroringSkipped": true,
-  "originalCount": 7312,
-  "finalCount": 7312,
+  "originalCount": 7342,
+  "finalCount": 7342,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
   "backfillQueueTotal": 181,
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 180,
-      "used": 12,
+      "used": 0,
       "exhausted": false
     }
   },
@@ -58,16 +58,16 @@
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 1,
+  "seriesHiddenUntilComplete": 0,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 2,
-  "episodesProcessed": 12,
+  "iranianSeriesProcessed": 0,
+  "episodesProcessed": 0,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 1,
-  "iranianSeriesAddedOrUpdated": 1,
-  "iranianSeriesRejectedNotIranian": 0,
+  "iranianSeriesAddedOrUpdated": 0,
+  "iranianSeriesRejectedNotIranian": 1,
   "iranianSeriesRejectedNoLinks": 0,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
@@ -82,156 +82,79 @@
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [
     {
-      "id": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "title": "سایه باز",
-      "result": "advanced",
-      "reason": "added-or-updated",
+      "id": "66e5a1d0-38dc-11ed-b000-b736a964c2e2",
+      "title": "سرویس حمل و نقل کوچولوها",
+      "result": "rejected",
+      "reason": "not-iranian",
       "addedEpisodes": 0,
-      "remainingEpisodeCount": 12,
+      "remainingEpisodeCount": 0,
       "retryLater": false,
-      "newlyPublished": false,
-      "meaningfulProgress": true,
-      "discovery": "visible-repair",
-      "expectedEpisodes": 20,
-      "usableEpisodes": 8,
-      "repairDeferred": false
+      "newlyPublished": false
     }
   ],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [
+  "seriesEpisodeDiagnostics": [],
+  "catalogEpisodeGapDiagnostics": [
     {
-      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "title": "سایه باز",
-      "source": "iranian-visible-repair",
-      "discoveredEpisodeCount": 20,
-      "catalogEpisodeCount": 8,
+      "seriesId": "88c59200-895d-11f0-8c7b-8d0be9327ffe",
+      "title": "سرنوشت/عجیب و غریب جعلی",
       "missing": [
         {
-          "seasonNumber": 2,
+          "seasonNumber": 1,
+          "episodeNumber": 9
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "5a181d30-602d-11ed-91cf-e3497a0eb443",
+      "title": "کهکشان بوبوی بوی",
+      "missing": [
+        {
+          "seasonNumber": 1,
           "episodeNumber": 1
-        },
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
+      "title": "باب اسفنجی شلوار مکعبی",
+      "missing": [
         {
-          "seasonNumber": 2,
-          "episodeNumber": 2
-        },
+          "seasonNumber": 13,
+          "episodeNumber": 9
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
+      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
+      "title": "قهرمان درون",
+      "missing": [
         {
-          "seasonNumber": 2,
-          "episodeNumber": 3
-        },
-        {
-          "seasonNumber": 2,
+          "seasonNumber": 1,
           "episodeNumber": 4
         },
         {
-          "seasonNumber": 2,
-          "episodeNumber": 5
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 6
-        },
-        {
-          "seasonNumber": 2,
+          "seasonNumber": 1,
           "episodeNumber": 7
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 8
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 9
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 10
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 11
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 12
         }
       ],
-      "rejectedEpisodes": [
-        {
-          "id": "66432d70-afea-11ee-8c5a-0d85a829458a",
-          "seasonNumber": 2,
-          "episodeNumber": 1,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "e7753e80-b57d-11ee-9792-5de50321b5e9",
-          "seasonNumber": 2,
-          "episodeNumber": 2,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "9f1d09e0-bb39-11ee-ad34-2de999d56652",
-          "seasonNumber": 2,
-          "episodeNumber": 3,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "f917db60-c0ba-11ee-9778-4145a25f7436",
-          "seasonNumber": 2,
-          "episodeNumber": 4,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "42d62d00-c639-11ee-96b8-699955455dff",
-          "seasonNumber": 2,
-          "episodeNumber": 5,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "d436fc60-cb1a-11ee-b009-a36c821ed7f9",
-          "seasonNumber": 2,
-          "episodeNumber": 6,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "49cfbf30-d0ca-11ee-b88e-cbf9eefc4e14",
-          "seasonNumber": 2,
-          "episodeNumber": 7,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "92cd72d0-d673-11ee-9f97-c3ead029025e",
-          "seasonNumber": 2,
-          "episodeNumber": 8,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "dd0088a0-dbb1-11ee-a0ae-a939cc5ab917",
-          "seasonNumber": 2,
-          "episodeNumber": 9,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "05532440-e112-11ee-b7f4-6934745aa68f",
-          "seasonNumber": 2,
-          "episodeNumber": 10,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "814bea50-e68a-11ee-a5a9-85f79974acbb",
-          "seasonNumber": 2,
-          "episodeNumber": 11,
-          "reason": "no-usable-links"
-        },
-        {
-          "id": "703638c0-ec0f-11ee-859a-b5a18e13af69",
-          "seasonNumber": 2,
-          "episodeNumber": 12,
-          "reason": "no-usable-links"
-        }
-      ]
-    }
-  ],
-  "catalogEpisodeGapDiagnostics": [
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
     {
       "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
       "title": "سایه باز",
@@ -321,72 +244,12 @@
       "isAiring": false
     },
     {
-      "seriesId": "5a181d30-602d-11ed-91cf-e3497a0eb443",
-      "title": "کهکشان بوبوی بوی",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 1
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "88c59200-895d-11f0-8c7b-8d0be9327ffe",
-      "title": "سرنوشت/عجیب و غریب جعلی",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 9
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
       "seriesId": "d37fbe40-6009-11ed-b713-8d57f0175080",
       "title": "بلیز و ماشین های هیولایی",
       "missing": [
         {
           "seasonNumber": 3,
           "episodeNumber": 16
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
-      "title": "قهرمان درون",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 4
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 7
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
-      "title": "باب اسفنجی شلوار مکعبی",
-      "missing": [
-        {
-          "seasonNumber": 13,
-          "episodeNumber": 9
         }
       ],
       "pendingEpisodeCount": 0,
@@ -660,6 +523,15 @@
       ],
       "pendingEpisodeCount": 9,
       "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
+      "seriesId": "6996b3d0-ac5a-11f0-a931-a1d81d500772",
+      "title": "نروی آدمکش",
+      "missing": [],
+      "pendingEpisodeCount": 1,
+      "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": false
     },
@@ -1318,27 +1190,18 @@
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
-    },
-    {
-      "seriesId": "506bec40-65c1-11ed-8e3e-49f7d035e4e5",
-      "title": "پابلو",
-      "missing": [],
-      "pendingEpisodeCount": 16,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
     }
   ],
-  "episodesDiscovered": 38,
+  "episodesDiscovered": 168,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 12,
+  "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 12,
+  "seriesAddedOrUpdated": 0,
+  "affiliateRequests": 0,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -1375,9 +1238,9 @@
   "removedWithoutFreeLinks": 0,
   "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 25,
-  "lastCheckpointAt": "2026-08-30T12:07:39.446Z",
-  "lastCheckpointReason": "iranian-visible-repair-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-  "remainingRunMsAtCheckpoint": 567112,
-  "finishedAt": "2026-08-30T12:07:49.407Z"
+  "apiRequests": 6,
+  "lastCheckpointAt": "2026-08-30T12:29:44.683Z",
+  "lastCheckpointReason": "iranian-skip-66e5a1d0-38dc-11ed-b000-b736a964c2e2",
+  "remainingRunMsAtCheckpoint": 708528,
+  "finishedAt": "2026-08-30T12:29:56.194Z"
 }
