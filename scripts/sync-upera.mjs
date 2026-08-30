@@ -3371,6 +3371,16 @@ async function processSeries(
     }
   }
 
+  // A newly published episode must not wait behind the historical artwork
+  // backlog. Capture its exact frame in the same sync run whenever ffmpeg is
+  // available; the PEOPLE lane will retry it if this bounded attempt fails.
+  if (latestForwardEpisode) {
+    const latestForwardGroup = findEpisodeGroup(mergedGroups, latestForwardEpisode);
+    if (latestForwardGroup) {
+      await generateEpisodeFrameArtwork({ id }, latestForwardGroup);
+    }
+  }
+
   let completeBackfill = true;
   let mediaLanguageAuditComplete = !options.refreshAllMedia;
   if (options.refreshAllMedia === true) {
@@ -5132,7 +5142,9 @@ async function generateMissingEpisodeFrames(item) {
   const usage = episodeArtworkUsage(item);
   const groups = (Array.isArray(item.downloads) ? item.downloads : [])
     .filter((group) => episodeGroupNeedsGeneratedFrame(item, group, usage))
-    .sort(compareEpisodeGroups);
+    // Prioritize the episode users are about to watch next. Older missing
+    // frames remain in the rotating queue after the newest episodes are ready.
+    .sort((a, b) => compareEpisodeGroups(b, a));
   for (const group of groups) {
     if (episodeFrameCapturesUsed >= episodeFrameCapturesPerRun) break;
     await generateEpisodeFrameArtwork(item, group, { force: Boolean(cleanText(group?.artwork)) });
