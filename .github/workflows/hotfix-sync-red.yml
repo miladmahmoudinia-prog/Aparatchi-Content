@@ -26,164 +26,11 @@ jobs:
           ref: main
           fetch-depth: 60
 
-      - name: Align stale regression fixtures with current media truth
+      - name: Align stale regression fixtures
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-
-          def repl(file, old, new, label, count=1):
-              path = Path(file)
-              text = path.read_text()
-              found = text.count(old)
-              if found < count:
-                  raise SystemExit(f"{label}: expected {count}, found {found} in {file}")
-              path.write_text(text.replace(old, new, count))
-
-          repl(
-              'scripts/tests/current-media-truth.test.mjs',
-              """test('missing ir flag never makes a foreign title Iranian and keeps real media neutral', () => {
-  const item = foreign({ downloads: [{ id: 'plain', files: [
-    { id: 'plain-file', mode: 'download', url: 'https://cdn.test/original.mp4' },
-  ]}] });
-  const { index, detailFiles } = buildClientCatalogArtifacts({ items: [item] });
-  assert.equal(index.items.length, 1);
-  assert.notEqual(index.items[0].ir, true);
-  assert.deepEqual(index.items[0].availableLanguages, []);
-  const detail = JSON.parse(detailFiles[0].serialized);
-  assert.equal(detail.downloads[0].files[0].language, undefined);
-});""",
-              """test('missing ir flag never makes a foreign title Iranian and unproven-language media stays out', () => {
-  const item = foreign({ downloads: [{ id: 'plain', files: [
-    { id: 'plain-file', mode: 'download', url: 'https://cdn.test/original.mp4' },
-  ]}] });
-  const { index, detailFiles } = buildClientCatalogArtifacts({ items: [item] });
-  assert.equal(index.items.length, 0);
-  assert.equal(detailFiles.length, 0);
-});""",
-              'current media unlabeled foreign policy',
-          )
-
-          repl(
-              'scripts/tests/client-catalog.test.mjs',
-              """test('same URL with contradictory Persian-language claims is not exposed as neutral foreign media', () => {
-  const item = {
-    id: 'conflict', type: 'movie', nameFa: 'تعارض', name: 'Conflict', countryCodes: ['US'],
-    downloads: [
-      { id: 'd', title: 'دوبله فارسی', files: [{ id: 'f1', mode: 'download', url: 'https://cdn.test/shared.mp4' }] },
-      { id: 's', title: 'زیرنویس فارسی', files: [{ id: 'f2', mode: 'download', url: 'https://cdn.test/shared.mp4' }] },
-    ],
-  };
-  const artifacts = buildClientCatalogArtifacts({ version: '1', updatedAt: 'now', items: [item] });
-  assert.equal(artifacts.index.items.length, 0);
-});""",
-              """test('same URL with contradictory Persian-language claims survives once as neutral media', () => {
-  const item = {
-    id: 'conflict', type: 'movie', nameFa: 'تعارض', name: 'Conflict', countryCodes: ['US'],
-    downloads: [
-      { id: 'd', title: 'دوبله فارسی', files: [{ id: 'f1', mode: 'download', url: 'https://cdn.test/shared.mp4' }] },
-      { id: 's', title: 'زیرنویس فارسی', files: [{ id: 'f2', mode: 'download', url: 'https://cdn.test/shared.mp4' }] },
-    ],
-  };
-  const artifacts = buildClientCatalogArtifacts({ version: '1', updatedAt: 'now', items: [item] });
-  assert.equal(artifacts.index.items.length, 1);
-  assert.deepEqual(artifacts.index.items[0].availableLanguages, []);
-  const detail = JSON.parse(artifacts.detailFiles[0].serialized);
-  const files = detail.downloads.flatMap((section) => section.files || []);
-  assert.equal(files.filter((file) => file.url === 'https://cdn.test/shared.mp4').length, 1);
-});""",
-              'contradictory Persian URL policy',
-          )
-
-          repl(
-              'scripts/tests/final-user-batch-20260814.test.mjs',
-              """test('foreign unlabeled original media stays visible without fake language labels', () => {
-  const item = base({ downloads: [{ id: 's', files: [
-    { id: 'f', mode: 'download', url: 'https://cdn.test/original.mp4' },
-  ]}] });
-  const { index, detailFiles } = buildClientCatalogArtifacts({ items: [item] });
-  assert.equal(index.items.length, 1);
-  assert.deepEqual(index.items[0].availableLanguages, []);
-  const detail = JSON.parse(detailFiles[0].serialized);
-  assert.equal(detail.downloads[0].files[0].language, undefined);
-});""",
-              """test('foreign unlabeled original media stays out until Persian language is proven', () => {
-  const item = base({ downloads: [{ id: 's', files: [
-    { id: 'f', mode: 'download', url: 'https://cdn.test/original.mp4' },
-  ]}] });
-  const { index, detailFiles } = buildClientCatalogArtifacts({ items: [item] });
-  assert.equal(index.items.length, 0);
-  assert.equal(detailFiles.length, 0);
-});""",
-              'final batch unlabeled foreign policy',
-          )
-
-          repl(
-              'scripts/tests/detail-first-paint-v45.test.mjs',
-              """    id: `movie-${index}`,
-    type: 'movie',""",
-              """    id: `movie-${index}`,
-    type: 'movie',
-    ir: true,""",
-              'detail first paint movie fixture identity',
-          )
-          repl(
-              'scripts/tests/detail-first-paint-v45.test.mjs',
-              """      id: 'series', type: 'series', nameFa: 'سریال', name: 'Series',""",
-              """      id: 'series', type: 'series', ir: true, nameFa: 'سریال', name: 'Series',""",
-              'detail first paint series fixture identity',
-          )
-
-          repl(
-              'scripts/tests/full-navigation-bootstrap-v1.test.mjs',
-              """    downloads: [{ files: [{ mode: 'download', url: `https://cdn.test/${index}.mp4` }] }],""",
-              """    downloads: [{ files: [{ mode: 'download', url: `https://cdn.test/${index}.mp4`, language: 'subtitled' }] }],""",
-              'full navigation foreign fixture language',
-          )
-
-          home_old = """files: [{ id: `${id}-file`, mode: 'download', url: `https://cdn.test/${id}.mp4` }]"""
-          home_new = """files: [{ id: `${id}-file`, mode: 'download', url: `https://cdn.test/${id}.mp4`, language: 'subtitled' }]"""
-          repl('scripts/tests/home-bootstrap-v1.test.mjs', home_old, home_new, 'home movie fixture language')
-          repl('scripts/tests/home-bootstrap-v1.test.mjs', home_old, home_new, 'home series fixture language')
-
-          repl(
-              'scripts/tests/smart-categories-v38.test.mjs',
-              """    id: 'short-film-bootstrap',
-    type: 'movie',""",
-              """    id: 'short-film-bootstrap',
-    type: 'movie',
-    ir: true,""",
-              'short film bootstrap fixture identity',
-          )
-
-          repl(
-              'scripts/tests/ui-truth-v10.test.mjs',
-              """const media = (id) => [{ id: `${id}-media`, files: [{ id: `${id}-file`, mode: 'download', url: `https://cdn.test/${id}.mp4` }] }];""",
-              """const media = (id) => [{ id: `${id}-media`, files: [{ id: `${id}-file`, mode: 'download', url: `https://cdn.test/${id}.mp4`, language: 'subtitled' }] }];""",
-              'ui ordering movie fixture language',
-          )
-          repl(
-              'scripts/tests/ui-truth-v10.test.mjs',
-              """files: [{ id: 'e1f', mode: 'download', url: 'https://cdn.test/e1.mp4' }]""",
-              """files: [{ id: 'e1f', mode: 'download', url: 'https://cdn.test/e1.mp4', language: 'subtitled' }]""",
-              'ui ordering series fixture language',
-          )
-
-          repl(
-              'scripts/tests/user-report-v11.test.mjs',
-              """files: [{ id: id + '-file', mode: 'download', url: 'https://cdn.test/' + id + '.mp4' }]""",
-              """files: [{ id: id + '-file', mode: 'download', url: 'https://cdn.test/' + id + '.mp4', language: 'subtitled' }]""",
-              'v11 ordering fixture language',
-          )
-
-          repl(
-              'scripts/tests/user-report-v12.test.mjs',
-              """files: [{ id: `f-${id}`, quality: '720p', url: `https://example.com/${id}.mp4`, mode: 'download' }],""",
-              """files: [{ id: `f-${id}`, quality: '720p', url: `https://example.com/${id}.mp4`, mode: 'download', language: 'subtitled' }],""",
-              'v12 series fixture language',
-          )
-          PY
+          node scripts/align-regression-fixtures.mjs
 
       - name: Commit regression alignment
         shell: bash
@@ -193,9 +40,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add scripts/tests
-          git commit -m "test: align client fixtures with Persian media truth"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          if git diff --cached --quiet; then
+            echo "Regression fixtures already aligned."
+          else
+            git commit -m "test: align client fixtures with Persian media truth"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
 
       - name: Run full regression suite
         shell: bash
