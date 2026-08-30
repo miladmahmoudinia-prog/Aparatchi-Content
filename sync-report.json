@@ -1,15 +1,15 @@
 {
-  "startedAt": "2026-08-30T12:29:38.116Z",
-  "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-08-30T12:41:36.550Z",
-  "stoppedByTimeBudget": false,
-  "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 700356,
+  "startedAt": "2026-08-30T12:30:29.853Z",
+  "runTimeLimitMinutes": 10,
+  "runDeadlineAt": "2026-08-30T12:40:28.344Z",
+  "stoppedByTimeBudget": true,
+  "timeBudgetStopContext": "episode-artwork-metadata",
+  "remainingRunMsAtFinish": 0,
   "imageMirroringSkipped": true,
   "originalCount": 7342,
   "finalCount": 7342,
-  "requestedSyncMode": "IRANIAN",
-  "effectiveSyncMode": "IRANIAN",
+  "requestedSyncMode": "PEOPLE",
+  "effectiveSyncMode": "PEOPLE",
   "backfillQueueTotal": 181,
   "backfillBacklogRemaining": 181,
   "backfillBlockedTotal": 11,
@@ -18,7 +18,7 @@
   "backfillSeriesBlockedThisRun": [],
   "backfillEpisodesAdded": 0,
   "backfillSeriesVisited": 0,
-  "backfillCheckpoints": 1,
+  "backfillCheckpoints": 0,
   "episodesMarkedUnavailable": 0,
   "backfillNoProgressRuns": 0,
   "normalSyncSkippedForBackfill": false,
@@ -40,13 +40,7 @@
   "recentSeriesNewCandidates": 0,
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
-  "affiliateRequestScopes": {
-    "iranian-series": {
-      "limit": 180,
-      "used": 0,
-      "exhausted": false
-    }
-  },
+  "affiliateRequestScopes": {},
   "skippedByScopedBudget": 0,
   "moviePagesProcessed": 0,
   "movieTitlesProcessed": 0,
@@ -65,9 +59,9 @@
   "iranianSeriesProcessed": 0,
   "episodesProcessed": 0,
   "iranianSeriesPagesProcessed": 0,
-  "iranianSeriesCandidates": 1,
+  "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
-  "iranianSeriesRejectedNotIranian": 1,
+  "iranianSeriesRejectedNotIranian": 0,
   "iranianSeriesRejectedNoLinks": 0,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
@@ -80,18 +74,7 @@
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
-  "iranianSeriesDiagnostics": [
-    {
-      "id": "66e5a1d0-38dc-11ed-b000-b736a964c2e2",
-      "title": "سرویس حمل و نقل کوچولوها",
-      "result": "rejected",
-      "reason": "not-iranian",
-      "addedEpisodes": 0,
-      "remainingEpisodeCount": 0,
-      "retryLater": false,
-      "newlyPublished": false
-    }
-  ],
+  "iranianSeriesDiagnostics": [],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [],
   "catalogEpisodeGapDiagnostics": [
@@ -1192,10 +1175,10 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 168,
+  "episodesDiscovered": 0,
   "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 0,
-  "episodeArtworkSeriesChecked": 0,
+  "episodeArtworkCandidates": 428,
+  "episodeArtworkSeriesChecked": 2,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
@@ -1210,20 +1193,20 @@
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
-  "episodeFrameErrors": 0,
+  "episodeFrameErrors": 75,
   "seriesKeptVisibleDuringBackfill": 0,
   "seriesRestoredByMonotonicGuard": 0,
-  "peopleEnrichmentCandidates": 0,
-  "peopleEnrichmentProcessed": 0,
-  "peopleEnrichmentSucceeded": 0,
-  "peopleEnrichmentFailed": 0,
-  "peopleEnrichmentSkippedFresh": 0,
+  "peopleEnrichmentCandidates": 1948,
+  "peopleEnrichmentProcessed": 20,
+  "peopleEnrichmentSucceeded": 7,
+  "peopleEnrichmentFailed": 13,
+  "peopleEnrichmentSkippedFresh": 30,
   "peopleEnrichmentFromSource": 0,
-  "peopleEnrichmentFromTmdb": 0,
+  "peopleEnrichmentFromTmdb": 7,
   "peopleEnrichmentFromImdb": 0,
-  "peopleAdded": 0,
-  "tmdbRequests": 0,
-  "imdbRequests": 0,
+  "peopleAdded": 76,
+  "tmdbRequests": 73,
+  "imdbRequests": 23,
   "mediaRepairCandidates": 0,
   "mediaRepairChecked": 0,
   "mediaRepairRecovered": 0,
@@ -1236,11 +1219,369 @@
   "mediaHealthUnknown": 0,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [],
+  "errors": [
+    {
+      "scope": "people-16417840-d8ab-11eb-9860-abe692ec7e7c",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-1612cfd0-ed94-11eb-97ed-c77cd7db8395",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-15eeb4c0-df2a-11ec-9a2c-9557975b790b",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-15e0f6e0-ddfe-11ed-83f1-935a16c88d8a",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-159f0930-57eb-11ea-827c-81dfadf6d90e",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-158cff20-1219-11eb-90c5-235897473347",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-15699430-a887-11ec-b6b8-f95640809940",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-7d9b7640-0106-11f1-9374-fd2c71e6eb38",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-7dca03a0-0106-11f1-afce-415dfcfa1249",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-815a8bb0-0106-11f1-a82d-a31ed53119cf--operator",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-81bb5fc0-0106-11f1-9258-110721803e7c--operator",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-843a2960-0106-11f1-a911-094d47543715--operator",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "people-86a2f330-0106-11f1-b2f1-57367138b2df",
+      "message": "فهرست عوامل معتبری پیدا نشد."
+    },
+    {
+      "scope": "operator-overview-ff8fd9b0-2310-11f1-96ae-db45aff6315a--operator",
+      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/865306?language=fa-IR"
+    },
+    {
+      "scope": "operator-overview-0bcfc080-2311-11f1-ae67-012944162448--operator",
+      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/865265?language=fa-IR"
+    },
+    {
+      "scope": "episode-frame-89546ca0-34d6-11ed-804f-2daa476fafb8-11",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 97 -i https://aparatchi.upera.tv/2809881-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/e6d7067979ab124690c9ef5b.jpg\n[tcp @ 0x562005fe3340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x562005d25e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2809881-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-89546ca0-34d6-11ed-804f-2daa476fafb8-10",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 170 -i https://aparatchi.upera.tv/2809770-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/854922cd6fe6048eacf15988.jpg\n[tcp @ 0x55732c88b340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55732c5cde40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2809770-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-89546ca0-34d6-11ed-804f-2daa476fafb8-9",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 153 -i https://aparatchi.upera.tv/2809769-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/f92bf189e5849d23f523ecf3.jpg\n[tcp @ 0x562feb9c7340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x562feb709e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2809769-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-89546ca0-34d6-11ed-804f-2daa476fafb8-8",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 136 -i https://aparatchi.upera.tv/2809768-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/b76f5b21d31a82e999ccd7b0.jpg\n[tcp @ 0x55e2f7115340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55e2f6e57e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2809768-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-89546ca0-34d6-11ed-804f-2daa476fafb8-7",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 119 -i https://aparatchi.upera.tv/2809767-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/2569ed09818b2e5721f34212.jpg\n[tcp @ 0x555f3eadb340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x555f3e81de40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2809767-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-89546ca0-34d6-11ed-804f-2daa476fafb8-6",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 102 -i https://aparatchi.upera.tv/2809766-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/07b7bcc3d4be330512a819de.jpg\n[tcp @ 0x55acfaa4a340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55acfa78ce40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2809766-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-89546ca0-34d6-11ed-804f-2daa476fafb8-5",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 175 -i https://aparatchi.upera.tv/2809754-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/6d38e265badc0a3133b6c31e.jpg\n[tcp @ 0x55f322210340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55f321f52e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2809754-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-89546ca0-34d6-11ed-804f-2daa476fafb8-4",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 158 -i https://aparatchi.upera.tv/2809742-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/949d126d744a412132400f22.jpg\n[tcp @ 0x558d7a257340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x558d79f99e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2809742-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-89546ca0-34d6-11ed-804f-2daa476fafb8-3",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 141 -i https://aparatchi.upera.tv/2809739-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/8d4ce52408f19cd9b1579a70.jpg\n[tcp @ 0x5583454e8340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55834522ae40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2809739-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-89546ca0-34d6-11ed-804f-2daa476fafb8-2",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 124 -i https://aparatchi.upera.tv/2809737-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/b7c0b1b0bd3b92cdc0829110.jpg\n[tcp @ 0x556dc9b7e340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x556dc98c0e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2809737-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-89546ca0-34d6-11ed-804f-2daa476fafb8-1",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 107 -i https://aparatchi.upera.tv/2809736-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/10857d14748552228e402a08.jpg\n[tcp @ 0x557aa8d53340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x557aa8a95e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/2809736-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-64",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 98 -i https://aparatchi.upera.tv/3024318-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/f5e9a70affa18f17928f6c4b.jpg\n[tcp @ 0x55e19d00e340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55e19cd50e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024318-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-63",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 171 -i https://aparatchi.upera.tv/3024317-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/c4a55ba3f51b3c199fc58829.jpg\n[tcp @ 0x5566096ad340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5566093efe40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024317-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-62",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 154 -i https://aparatchi.upera.tv/3024316-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/6fdb77e7a9ff37ec9e6ca7a8.jpg\n[tcp @ 0x55ac54a14340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55ac54756e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024316-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-61",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 137 -i https://aparatchi.upera.tv/3025325-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/0a6b2d8cf0b367c7050ec9e7.jpg\n[tcp @ 0x55bbc84ec340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55bbc822ee40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3025325-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-60",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 120 -i https://aparatchi.upera.tv/3024314-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/e5ccfcc275338d2e785e2826.jpg\n[tcp @ 0x56097173f340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x560971481e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024314-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-59",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 103 -i https://aparatchi.upera.tv/3024313-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/ab97d95cfdd4fad119c565f4.jpg\n[tcp @ 0x55ced135a340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55ced109ce40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024313-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-58",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 176 -i https://aparatchi.upera.tv/3024312-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/e583711f3945313c7e82b02e.jpg\n[tcp @ 0x55dfbbeb9340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55dfbbbfbe40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024312-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-57",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 159 -i https://aparatchi.upera.tv/3024311-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/5371371e99f2e7c4624ddcf4.jpg\n[tcp @ 0x55fca1369340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55fca10abe40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024311-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-56",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 142 -i https://aparatchi.upera.tv/3024310-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/2e9a2e42fbcc0de85179be0c.jpg\n[tcp @ 0x5580797b2340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5580794f4e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024310-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-55",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 125 -i https://aparatchi.upera.tv/3024309-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/c7661bd0389aa4a849c66549.jpg\n[tcp @ 0x564cd8827340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x564cd8569e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024309-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-54",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 108 -i https://aparatchi.upera.tv/3024308-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/84226eba22aa43390637be95.jpg\n[tcp @ 0x56549fc9d340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x56549f9dfe40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024308-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-53",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 91 -i https://aparatchi.upera.tv/3024307-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/4403e511c18f63e8b45cb9df.jpg\n[tcp @ 0x558bbc339340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x558bbc07be40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024307-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-52",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 164 -i https://aparatchi.upera.tv/3024306-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/1ced344dcfa04d52f8ac9896.jpg\n[tcp @ 0x558eb36b8340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x558eb33fae40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024306-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-51",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 147 -i https://aparatchi.upera.tv/3024305-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/a8c4f82664b20477124780b3.jpg\n[tcp @ 0x561229f3b340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x561229c7de40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024305-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-50",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 130 -i https://aparatchi.upera.tv/3024304-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/fe85ee639afec9c987048608.jpg\n[tcp @ 0x55af87483340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55af871c5e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024304-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-49",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 113 -i https://aparatchi.upera.tv/3024303-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/817a36e1cefe86418147d1e4.jpg\n[tcp @ 0x55f7cb590340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55f7cb2d2e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024303-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-48",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 96 -i https://aparatchi.upera.tv/3024302-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/ba5573ed42967e44a9a258b7.jpg\n[tcp @ 0x556762677340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5567623b9e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024302-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-47",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 169 -i https://aparatchi.upera.tv/3024301-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/6de9d18476dc5450f82da833.jpg\n[tcp @ 0x55d8f51a9340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55d8f4eebe40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024301-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-46",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 152 -i https://aparatchi.upera.tv/3024300-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/48c351585a7701a92a84fc85.jpg\n[tcp @ 0x55863bf55340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55863bc97e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024300-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-45",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 135 -i https://aparatchi.upera.tv/3024299-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/258eabee75bcf3637ec3d6e0.jpg\n[tcp @ 0x56223e850340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x56223e592e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024299-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-44",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 118 -i https://aparatchi.upera.tv/3024298-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/8adbce8dbc78af13cc7957fb.jpg\n[tcp @ 0x56492c403340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x56492c145e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024298-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-43",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 101 -i https://aparatchi.upera.tv/3024297-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/983aac0e76dd5a4eca79967d.jpg\n[tcp @ 0x55a0127af340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55a0124f1e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024297-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-42",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 174 -i https://aparatchi.upera.tv/3024280-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/99c8fe800152cc6f2dceda4f.jpg\n[tcp @ 0x557a5959a340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x557a592dce40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024280-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-41",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 157 -i https://aparatchi.upera.tv/3024279-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/f9f1d40ecf917ac02e98b0a3.jpg\n[tcp @ 0x5607d1036340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5607d0d78e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024279-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-40",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 140 -i https://aparatchi.upera.tv/3024278-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/6450f4cf7107c3ddec7f4310.jpg\n[tcp @ 0x55f15bcfa340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55f15ba3ce40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024278-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-39",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 123 -i https://aparatchi.upera.tv/3024277-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/d4b79349cb00dc9e922fef82.jpg\n[tcp @ 0x55c130fdf340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55c130d21e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024277-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-38",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 106 -i https://aparatchi.upera.tv/3024276-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/7479419e66083016833b82f7.jpg\n[tcp @ 0x559610b4f340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x559610891e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024276-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-37",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 179 -i https://aparatchi.upera.tv/3024275-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/0e80ca5f51cde36ec6e3e307.jpg\n[tcp @ 0x55cf0031c340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55cf0005ee40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024275-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-36",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 162 -i https://aparatchi.upera.tv/3024274-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/2dea87185f46362f10c92e83.jpg\n[tcp @ 0x55ea19fcf340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55ea19d11e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024274-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-35",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 145 -i https://aparatchi.upera.tv/3024273-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/0e5ee092cdb71fdc5a63565a.jpg\n[tcp @ 0x55651dd63340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55651daa5e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024273-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-34",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 128 -i https://aparatchi.upera.tv/3024272-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/e90596f588b0646084699785.jpg\n[tcp @ 0x5558f3183340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5558f2ec5e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024272-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-33",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 111 -i https://aparatchi.upera.tv/3024271-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/3c7dcfd60768db39748d777b.jpg\n[tcp @ 0x55c038b6d340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55c0388afe40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024271-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-32",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 94 -i https://aparatchi.upera.tv/3024270-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/5108fa8002ef7f7356f8ca89.jpg\n[tcp @ 0x55ccabeaa340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55ccabbece40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024270-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-31",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 167 -i https://aparatchi.upera.tv/3024269-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/5df9b0f89931716d816669d4.jpg\n[tcp @ 0x560e431bb340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x560e42efde40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3024269-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-30",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 150 -i https://aparatchi.upera.tv/3016800-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/be67825bd3725fd447792005.jpg\n[tcp @ 0x5583146df340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x558314421e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016800-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-29",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 133 -i https://aparatchi.upera.tv/3016799-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/d8e5fa75fe6619bd61d31ced.jpg\n[tcp @ 0x5566098aa340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5566095ece40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016799-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-28",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 116 -i https://aparatchi.upera.tv/3016798-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/09258b30277efaeceeabadbf.jpg\n[tcp @ 0x56088cba9340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x56088c8ebe40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016798-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-27",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 99 -i https://aparatchi.upera.tv/3016789-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/99a008ec318991353f7e879e.jpg\n[tcp @ 0x56144de4a340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x56144db8ce40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016789-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-26",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 172 -i https://aparatchi.upera.tv/3016788-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/000431c4c32143848ec33129.jpg\n[tcp @ 0x558f89040340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x558f88d82e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016788-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-25",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 155 -i https://aparatchi.upera.tv/3016787-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/14d4f519cbeb386552424a1f.jpg\n[tcp @ 0x55b7a1938340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55b7a167ae40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016787-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-24",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 138 -i https://aparatchi.upera.tv/3016786-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/7ae91e2a55dafa86bfac3ac4.jpg\n[tcp @ 0x559c4007a340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x559c3fdbce40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016786-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-23",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 121 -i https://aparatchi.upera.tv/3016785-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/d450ef0b718e357cc3d31101.jpg\n[tcp @ 0x55f70088a340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55f7005cce40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016785-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-22",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 104 -i https://aparatchi.upera.tv/3016784-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/13b607cc8a0a57b96b8beaa1.jpg\n[tcp @ 0x5573424d0340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x557342212e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016784-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-21",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 177 -i https://aparatchi.upera.tv/3016767-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/07233bdd0546b879eb315940.jpg\n[tcp @ 0x56388bfb0340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x56388bcf2e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016767-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-20",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 160 -i https://aparatchi.upera.tv/3016766-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/1345f524bbe22ae25b4ff303.jpg\n[tcp @ 0x558bbd7b8340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x558bbd4fae40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016766-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-19",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 143 -i https://aparatchi.upera.tv/3016765-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/3837c9b424ff36fb02c67ce8.jpg\n[tcp @ 0x557f2bc50340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x557f2b992e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016765-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-18",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 126 -i https://aparatchi.upera.tv/3016764-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/f027ec9561b3e6332522f75c.jpg\n[tcp @ 0x55df64307340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55df64049e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016764-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-17",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 109 -i https://aparatchi.upera.tv/3016763-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/3f6b5de97b4e835cc7841070.jpg\n[tcp @ 0x56261097f340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5626106c1e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016763-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-16",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 92 -i https://aparatchi.upera.tv/3016757-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/a370ad5cc9a0d13e34cbfa28.jpg\n[tcp @ 0x560df0a18340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x560df075ae40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016757-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-15",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 165 -i https://aparatchi.upera.tv/3016756-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/86b931adaddbe82fbc5c6a54.jpg\n[tcp @ 0x563d36b18340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x563d3685ae40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016756-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-14",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 148 -i https://aparatchi.upera.tv/3016755-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/9b7909f0da86013884816fcb.jpg\n[tcp @ 0x5628fb570340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5628fb2b2e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016755-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-13",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 131 -i https://aparatchi.upera.tv/3016754-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/0870d3943fd8f584ce0339a1.jpg\n[tcp @ 0x558b09e58340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x558b09b9ae40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016754-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-12",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 114 -i https://aparatchi.upera.tv/3016753-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/083319934c6ae7ebaa8fdfcd.jpg\n[tcp @ 0x55daa854c340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55daa828ee40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016753-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-11",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 97 -i https://aparatchi.upera.tv/3016752-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/3e7245a3ecbda08f859584a9.jpg\n[tcp @ 0x5559bb0a8340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x5559badeae40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3016752-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-10",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 170 -i https://aparatchi.upera.tv/3010240-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/3a2f08967ac544890e095aa0.jpg\n[tcp @ 0x55c16bc72340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55c16b9b4e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3010240-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-9",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 153 -i https://aparatchi.upera.tv/3010239-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/3a18d334b566b6990bc61044.jpg\n[tcp @ 0x557a15ee1340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x557a15c23e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3010239-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-8",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 136 -i https://aparatchi.upera.tv/3010238-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/71583aa76206c11a7a6b27ea.jpg\n[tcp @ 0x55bee467b340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55bee43bde40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3010238-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-7",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 119 -i https://aparatchi.upera.tv/3010237-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/ec672fa43512c0b147458284.jpg\n[tcp @ 0x55a002220340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55a001f62e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3010237-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-6",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 102 -i https://aparatchi.upera.tv/3010236-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/e7af323a9dc2f6678a0a6876.jpg\n[tcp @ 0x55bec0480340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55bec01c2e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3010236-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-5",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 175 -i https://aparatchi.upera.tv/3010235-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/33f26dc566b7229f3bd963dd.jpg\n[tcp @ 0x55ac3fd73340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55ac3fab5e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3010235-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-4",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 158 -i https://aparatchi.upera.tv/3010234-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/fd092e25fc311081bceecace.jpg\n[tcp @ 0x55f97d738340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55f97d47ae40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3010234-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-3",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 141 -i https://aparatchi.upera.tv/3010233-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/aac53cf1a5e587c047026794.jpg\n[tcp @ 0x55bdb6b76340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55bdb68b8e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3010233-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-2",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 124 -i https://aparatchi.upera.tv/3010232-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/428468fe05e9831e33d4f65c.jpg\n[tcp @ 0x55841ab3f340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x55841a881e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3010232-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    },
+    {
+      "scope": "episode-frame-4609c2e0-b53d-11ef-b652-adcde9163814-1",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 107 -i https://aparatchi.upera.tv/3010227-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/f5e7413be4d7992597ed8554.jpg\n[tcp @ 0x562dbf6ce340] Connection to tcp://s100.upera.tv:443 failed: Connection timed out\n[in#0 @ 0x562dbf410e40] Error opening input: Connection timed out\nError opening input file https://aparatchi.upera.tv/3010227-0-480.mp4?ref=3580590.\nError opening input files: Connection timed out\n"
+    }
+  ],
   "errorsTruncated": 0,
-  "apiRequests": 6,
-  "lastCheckpointAt": "2026-08-30T12:29:44.683Z",
-  "lastCheckpointReason": "iranian-skip-66e5a1d0-38dc-11ed-b000-b736a964c2e2",
-  "remainingRunMsAtCheckpoint": 708528,
-  "finishedAt": "2026-08-30T12:29:56.194Z"
+  "apiRequests": 110,
+  "finishedAt": "2026-08-30T12:46:14.013Z"
 }
