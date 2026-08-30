@@ -27,7 +27,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: aparatchi-content-write-lock
+  group: ${{ github.event_name == 'push' && 'aparatchi-content-hotfix-sync' || 'aparatchi-content-write-lock' }}
   cancel-in-progress: ${{ github.event_name == 'push' }}
 
 jobs:
