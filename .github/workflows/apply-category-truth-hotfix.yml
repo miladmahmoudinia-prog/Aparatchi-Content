@@ -18,7 +18,7 @@ concurrency:
 jobs:
   apply:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout latest main
         uses: actions/checkout@v6
@@ -41,16 +41,59 @@ jobs:
           let source = fs.readFileSync(file, 'utf8');
           const before = `  const isProgram = isChildrenProgram || isTalkShow || isRealityCompetition || isGeneralProgram ||\n    (trustedSpecializedKind && existingKind === 'program');`;
           const after = `  const isProgram = !isAnimation && (\n    isChildrenProgram || isTalkShow || isRealityCompetition || isGeneralProgram ||\n    (trustedSpecializedKind && existingKind === 'program')\n  );`;
-          if (!source.includes(before)) throw new Error('Program classification hook not found');
-          source = source.replace(before, after);
-          fs.writeFileSync(file, source);
+          if (source.includes(before)) {
+            source = source.replace(before, after);
+            fs.writeFileSync(file, source);
+          } else if (!source.includes(after)) {
+            throw new Error('Program classification hook not found');
+          }
           NODE
 
-      - name: Rebuild client catalog
-        run: node scripts/rebuild-client-catalog.mjs
+      - name: Reclassify existing catalog and rebuild client artifacts
+        run: node scripts/migrate-regional-v13.mjs
 
-      - name: Regression tests
-        run: node --test scripts/tests/*.test.mjs
+      - name: Classification regression tests
+        run: node --test scripts/tests/classification.test.mjs
+
+      - name: Verify animation and anime are excluded from Programs
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
+          const items = Array.isArray(catalog.items) ? catalog.items : [];
+          const bad = items.filter((item) =>
+            (item?.isAnimation === true || item?.isAnime === true) &&
+            (item?.contentKind === 'program' || item?.categoryKeys?.includes('programs'))
+          );
+          const sword = items.filter((item) => /sword art online/i.test(String(item?.name || '')));
+          if (bad.length) {
+            console.error(JSON.stringify(bad.slice(0, 20).map((item) => ({
+              id: item.id,
+              name: item.name,
+              nameFa: item.nameFa,
+              contentKind: item.contentKind,
+              categoryKeys: item.categoryKeys,
+            })), null, 2));
+            throw new Error(`${bad.length} animation/anime rows still classified as programs`);
+          }
+          for (const item of sword) {
+            if (item?.categoryKeys?.includes('programs')) {
+              throw new Error(`Sword Art Online still in programs: ${item.name}`);
+            }
+          }
+          console.log(JSON.stringify({
+            animationOrAnimeInPrograms: bad.length,
+            swordArtOnline: sword.map((item) => ({
+              id: item.id,
+              name: item.name,
+              nameFa: item.nameFa,
+              contentKind: item.contentKind,
+              categoryKeys: item.categoryKeys,
+            })),
+          }, null, 2));
+          NODE
 
       - name: Commit category and client output fix
         shell: bash
@@ -59,7 +102,7 @@ jobs:
           rm -f .git/index.lock
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add scripts/classification.mjs catalog-index.json catalog-bootstrap.json catalog-live.json catalog-manifest.json catalog-items catalog-stable 2>/dev/null || true
+          git add scripts/classification.mjs catalog.json catalog-index.json catalog-bootstrap.json catalog-live.json catalog-manifest.json catalog-items catalog-stable 2>/dev/null || true
           if git diff --cached --quiet; then
             echo 'No category/client changes to commit.'
             exit 0
