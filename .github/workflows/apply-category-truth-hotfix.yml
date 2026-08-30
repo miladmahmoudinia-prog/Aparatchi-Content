@@ -39,14 +39,29 @@ jobs:
           const fs = require('fs');
           const file = 'scripts/classification.mjs';
           let source = fs.readFileSync(file, 'utf8');
-          const before = `  const isProgram = isChildrenProgram || isTalkShow || isRealityCompetition || isGeneralProgram ||\n    (trustedSpecializedKind && existingKind === 'program');`;
-          const after = `  const isProgram = !isAnimation && (\n    isChildrenProgram || isTalkShow || isRealityCompetition || isGeneralProgram ||\n    (trustedSpecializedKind && existingKind === 'program')\n  );`;
-          if (source.includes(before)) {
-            source = source.replace(before, after);
-            fs.writeFileSync(file, source);
-          } else if (!source.includes(after)) {
-            throw new Error('Program classification hook not found');
+          const replacements = [
+            [
+              `  const isTalkShow = Boolean(\n    includesAny(programIdentityText, talkShowTerms) ||\n    (trustedSpecializedKind && existingKind === 'talk-show')\n  );`,
+              `  const isTalkShow = Boolean(!isAnimation && (\n    includesAny(programIdentityText, talkShowTerms) ||\n    (trustedSpecializedKind && existingKind === 'talk-show')\n  ));`,
+            ],
+            [
+              `  const isRealityCompetition = Boolean(\n    includesAny(programIdentityText, realityTerms) ||\n    (trustedSpecializedKind && existingKind === 'reality-competition') ||\n    (trustedSpecializedKind && existingKeys.includes('reality'))\n  );`,
+              `  const isRealityCompetition = Boolean(!isAnimation && (\n    includesAny(programIdentityText, realityTerms) ||\n    (trustedSpecializedKind && existingKind === 'reality-competition') ||\n    (trustedSpecializedKind && existingKeys.includes('reality'))\n  ));`,
+            ],
+            [
+              `  const isGeneralProgram = includesAny(programIdentityText, generalProgramTerms) || includesAny(titleText, promotionalTitleTerms);`,
+              `  const isGeneralProgram = !isAnimation && (includesAny(programIdentityText, generalProgramTerms) || includesAny(titleText, promotionalTitleTerms));`,
+            ],
+            [
+              `  const isProgram = isChildrenProgram || isTalkShow || isRealityCompetition || isGeneralProgram ||\n    (trustedSpecializedKind && existingKind === 'program');`,
+              `  const isProgram = !isAnimation && (\n    isChildrenProgram || isTalkShow || isRealityCompetition || isGeneralProgram ||\n    (trustedSpecializedKind && existingKind === 'program')\n  );`,
+            ],
+          ];
+          for (const [before, after] of replacements) {
+            if (source.includes(before)) source = source.replace(before, after);
+            else if (!source.includes(after)) throw new Error(`Classification hook not found: ${before.slice(0, 70)}`);
           }
+          fs.writeFileSync(file, source);
           NODE
 
       - name: Reclassify existing catalog and rebuild client artifacts
@@ -63,9 +78,13 @@ jobs:
           const fs = require('fs');
           const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
           const items = Array.isArray(catalog.items) ? catalog.items : [];
+          const programKinds = new Set(['program', 'reality-competition', 'talk-show']);
           const bad = items.filter((item) =>
             (item?.isAnimation === true || item?.isAnime === true) &&
-            (item?.contentKind === 'program' || item?.categoryKeys?.includes('programs'))
+            (programKinds.has(String(item?.contentKind || '')) ||
+              item?.categoryKeys?.includes('programs') ||
+              item?.categoryKeys?.includes('reality') ||
+              item?.categoryKeys?.includes('talk-shows'))
           );
           const sword = items.filter((item) => /sword art online/i.test(String(item?.name || '')));
           if (bad.length) {
@@ -76,15 +95,15 @@ jobs:
               contentKind: item.contentKind,
               categoryKeys: item.categoryKeys,
             })), null, 2));
-            throw new Error(`${bad.length} animation/anime rows still classified as programs`);
+            throw new Error(`${bad.length} animation/anime rows still carry program identity`);
           }
           for (const item of sword) {
-            if (item?.categoryKeys?.includes('programs')) {
-              throw new Error(`Sword Art Online still in programs: ${item.name}`);
+            if (programKinds.has(String(item?.contentKind || '')) || item?.categoryKeys?.includes('programs')) {
+              throw new Error(`Sword Art Online still carries program identity: ${item.name}`);
             }
           }
           console.log(JSON.stringify({
-            animationOrAnimeInPrograms: bad.length,
+            animationOrAnimeWithProgramIdentity: bad.length,
             swordArtOnline: sword.map((item) => ({
               id: item.id,
               name: item.name,
@@ -107,6 +126,6 @@ jobs:
             echo 'No category/client changes to commit.'
             exit 0
           fi
-          git commit -m 'fix: keep animation out of program categories'
+          git commit -m 'fix: clear stale program identity from animation'
           git pull --rebase origin main
           git push origin HEAD:main
