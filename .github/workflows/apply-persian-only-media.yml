@@ -65,7 +65,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           rm -f .git/index.lock
-          git add scripts/client-catalog.mjs catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-manifest.json catalog-items catalog-stable
+          git add scripts/client-catalog.mjs scripts/tests/client-catalog.test.mjs catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-manifest.json catalog-items catalog-stable
           if git diff --cached --quiet; then
             echo "Persian-only media filtering already applied."
             exit 0
