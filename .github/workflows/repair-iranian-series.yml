@@ -1,16 +1,6 @@
 name: Repair Iranian Series Episodes
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/repair-iranian-series.yml'
-  workflow_run:
-    workflows:
-      - 'Sync Upera Catalog'
-    types:
-      - completed
   workflow_dispatch:
 
 permissions:
@@ -22,13 +12,8 @@ concurrency:
 
 jobs:
   repair:
-    if: >-
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 34
-
     steps:
       - name: Checkout latest content
         uses: actions/checkout@v6
@@ -73,76 +58,29 @@ jobs:
           node scripts/patch-iranian-visible-repair.mjs "$RUNTIME_SYNC"
           node --check "$RUNTIME_SYNC"
 
-          IRANIAN_COMPLETED=0
-          for pass in $(seq 1 24); do
-            echo "Iranian repair pass ${pass}/24"
+          for pass in $(seq 1 4); do
+            echo "Iranian visible repair pass ${pass}/4"
             node "$RUNTIME_SYNC"
-
             if [ ! -f sync-report-iranian.json ]; then
-              echo "Iranian report missing; stop repair loop."
               break
             fi
-
-            decision="$(node -e 'const fs=require("fs"); const report=JSON.parse(fs.readFileSync("sync-report-iranian.json","utf8")); const processed=Number(report.iranianSeriesProcessed||0); const updated=Number(report.iranianSeriesAddedOrUpdated||0); const diagnostics=Array.isArray(report.iranianSeriesDiagnostics)?report.iranianSeriesDiagnostics:[]; const last=diagnostics.length?diagnostics[diagnostics.length-1]:null; const retry=Boolean(last&&last.retryLater); const stopped=Boolean(report.stoppedByTimeBudget); if(stopped||retry) process.stdout.write("stop"); else if(last&&last.result==="completed") process.stdout.write("completed"); else if(last&&last.result==="advanced") process.stdout.write("progress"); else if(last&&last.result==="rejected") process.stdout.write("skip"); else process.stdout.write(processed>0||updated>0?"progress":"skip");')"
-
-            if [ "$decision" = "completed" ]; then
-              IRANIAN_COMPLETED=$((IRANIAN_COMPLETED + 1))
-              if [ "$IRANIAN_COMPLETED" -ge 3 ]; then
-                echo "Completed three Iranian series episode archives in this repair run."
-                break
-              fi
-              continue
-            fi
-
-            echo "Iranian repair made no complete-title progress (${decision}); checkpoint now instead of repeating the same rows."
-            break
+            decision="$(node -e 'const fs=require("fs"); const r=JSON.parse(fs.readFileSync("sync-report-iranian.json","utf8")); const d=Array.isArray(r.iranianSeriesDiagnostics)?r.iranianSeriesDiagnostics:[]; const last=d[d.length-1]||{}; process.stdout.write((r.stoppedByTimeBudget||last.retryLater||last.result==="advanced")?"stop":(last.result==="rejected"?"skip":"stop"));')"
+            [ "$decision" = "skip" ] || break
           done
 
       - name: Commit repaired Iranian episodes
-        id: commit_repair
         if: always()
         shell: bash
         run: |
           set -euo pipefail
+          rm -f .git/index.lock scripts/.sync-upera-iranian-repair-runtime.mjs
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm -f .git/index.lock
-
-          git add catalog.json catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
-          if [ -d assets/media ]; then
-            git add assets/media
-          fi
-
+          git add -A
           if git diff --cached --quiet; then
             echo "No Iranian episode repair changes."
             exit 0
           fi
-
           git commit -m "chore: repair Iranian series episodes"
-          PUSHED=0
-          for attempt in 1 2 3 4 5; do
-            if git pull --rebase origin main && git push origin HEAD:main; then
-              PUSHED=1
-              break
-            fi
-            git rebase --abort >/dev/null 2>&1 || true
-            rm -f .git/index.lock
-            echo "Repository changed during repair push; retry ${attempt}/5"
-            sleep $((attempt * 2))
-          done
-
-          if [ "$PUSHED" -ne 1 ]; then
-            echo "::error::Could not push Iranian episode repair after 5 attempts."
-            exit 1
-          fi
-
-      - name: Report real Iranian repair result
-        if: always()
-        shell: bash
-        run: |
-          if [ -f sync-report-iranian.json ]; then
-            node -e 'const fs=require("fs"); const r=JSON.parse(fs.readFileSync("sync-report-iranian.json","utf8")); const d=Array.isArray(r.iranianSeriesDiagnostics)?r.iranianSeriesDiagnostics:[]; const last=d[d.length-1]||{}; const scope=r.affiliateRequestScopes&&r.affiliateRequestScopes["iranian-series"]||{}; console.log(JSON.stringify({requests:Number(scope.used||0),processed:Number(r.iranianSeriesProcessed||0),updated:Number(r.iranianSeriesAddedOrUpdated||0),last},null,2));'
-          fi
-          if [ '${{ steps.iranian_repair.outcome }}' = 'failure' ]; then
-            echo "::warning::Iranian repair stage failed; committed any checkpointed progress."
-          fi
+          git pull --rebase origin main
+          git push origin HEAD:main
