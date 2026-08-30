@@ -1,0 +1,92 @@
+name: Audit Persian Media Language
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/audit-persian-media-language.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout latest content
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Audit foreign playable titles without Persian language truth
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
+          const items = Array.isArray(catalog.items) ? catalog.items : [];
+          const languageFromText = (value) => {
+            const text = String(value || '');
+            if (/دوبله|دو\s*زبانه|دوزبانه|صوت\s*فارسی|صدای\s*فارسی|persian\s*(?:dub|audio|voice)|farsi\s*(?:dub|audio|voice)|dubbed|\bdub\b/i.test(text)) return 'dubbed';
+            if (/زیر\s*نویس|زير\s*نويس|هارد\s*ساب|سافت\s*ساب|persian\s*sub|farsi\s*sub|subtitle|subbed|\bsub\b/i.test(text)) return 'subtitled';
+            return '';
+          };
+          const usable = (file) => {
+            const url = String(file?.url || '').trim();
+            if (!/^https?:\/\//i.test(url)) return false;
+            const mode = String(file?.mode || 'download');
+            if (mode === 'operator-play' || mode === 'operator-download') return true;
+            if (mode === 'play') return /\.(?:m3u8|mp4)(?:$|[?#])/i.test(url);
+            return /\.(?:mp4|m4v|mov|webm|mkv)(?:$|[?#])/i.test(url);
+          };
+          const result = [];
+          for (const item of items) {
+            if (!item || !['movie','series'].includes(item.type)) continue;
+            const iranian = item.ir === true || (Array.isArray(item.countryCodes) && item.countryCodes.includes('IR'));
+            if (iranian) continue;
+            const files = [];
+            const languages = new Set();
+            for (const section of Array.isArray(item.downloads) ? item.downloads : []) {
+              for (const file of Array.isArray(section?.files) ? section.files : []) {
+                if (!usable(file)) continue;
+                const detected = file?.language === 'dubbed' || file?.language === 'subtitled'
+                  ? file.language
+                  : languageFromText([section?.title, section?.badge, section?.language, file?.label, file?.title, file?.name].filter(Boolean).join(' '));
+                if (detected) languages.add(detected);
+                files.push({
+                  sectionTitle: section?.title || '',
+                  sectionBadge: section?.badge || '',
+                  sectionLanguage: section?.language || '',
+                  label: file?.label || '',
+                  fileLanguage: file?.language || '',
+                  mode: file?.mode || '',
+                  quality: file?.quality || '',
+                  detected,
+                });
+              }
+            }
+            if (!files.length || languages.size) continue;
+            result.push({
+              id: item.id,
+              title: item.nameFa || item.name || '',
+              name: item.name || '',
+              type: item.type,
+              operatorOnly: item.operatorOnly === true,
+              categoryKeys: item.categoryKeys || [],
+              availableLanguages: item.availableLanguages || [],
+              files: files.slice(0, 8),
+            });
+          }
+          const wanted = /murderbot|phantom pups|spring of youth|beegee|blue exorcist|tremore|مردربات|سگ های شبح|سگ‌های شبح|بهار جوانی|جن گیر آبی|جن‌گیر آبی/i;
+          const named = result.filter((item) => wanted.test(`${item.title} ${item.name}`));
+          console.log('PERSIAN_MEDIA_AUDIT=' + JSON.stringify({
+            totalCatalogItems: items.length,
+            foreignPlayableWithoutPersianLanguageEvidence: result.length,
+            namedScreenshotMatches: named,
+            sample: result.slice(0, 30),
+          }));
+          NODE
