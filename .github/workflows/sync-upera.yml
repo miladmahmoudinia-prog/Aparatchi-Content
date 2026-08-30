@@ -131,6 +131,13 @@ jobs:
             [ "$PUSHED" -eq 1 ] || { echo "::error::Could not push new-content progress."; exit 1; }
           fi
 
+      - name: Purge broken Iranian queue residues
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/remove-broken-ahl-iran.mjs
+          node scripts/rebuild-client-catalog.mjs
+
       - name: Complete one Iranian series sequentially
         id: iranian_sync
         timeout-minutes: 30
