@@ -6,23 +6,18 @@ on:
       - main
     paths:
       - '.github/workflows/sync-upera.yml'
-
   schedule:
-    # GitHub cron uses UTC. Discover and publish new titles every hour.
     - cron: '34 * * * *'
-
   workflow_dispatch:
     inputs:
       movie_pages:
         description: 'تعداد صفحات فیلم برای بررسی محتوای تازه'
         required: false
         default: '12'
-
       series_pages:
         description: 'تعداد صفحات سریال برای بررسی محتوای تازه'
         required: false
         default: '12'
-
       new_hours:
         description: 'بررسی تغییرات چند ساعت اخیر'
         required: false
@@ -38,15 +33,11 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 68
-
+    timeout-minutes: 56
     steps:
       - name: Checkout content repository
         uses: actions/checkout@v6
         with:
-          # This workflow can sit behind another catalog writer in the shared
-          # concurrency queue. Always start from the latest main after the lock
-          # is acquired instead of the stale SHA that originally queued the run.
           ref: main
           fetch-depth: 60
 
@@ -67,7 +58,6 @@ jobs:
           MOVIE_PAGES='${{ github.event.inputs.movie_pages }}'
           SERIES_PAGES='${{ github.event.inputs.series_pages }}'
           NEW_HOURS='${{ github.event.inputs.new_hours }}'
-
           echo "MOVIE_PAGES_PER_RUN=${MOVIE_PAGES:-12}" >> "$GITHUB_ENV"
           echo "SERIES_PAGES_PER_RUN=${SERIES_PAGES:-12}" >> "$GITHUB_ENV"
           echo "NEW_TITLES_HOURS=${NEW_HOURS:-24}" >> "$GITHUB_ENV"
@@ -75,6 +65,7 @@ jobs:
       - name: Discover new movies and series first
         id: normal_sync
         continue-on-error: true
+        timeout-minutes: 15
         env:
           UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
           UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
@@ -115,20 +106,14 @@ jobs:
         run: node scripts/sync-upera.mjs
 
       - name: Commit new-content progress
-        id: commit_normal
         if: always()
         shell: bash
         run: |
           set -euo pipefail
+          rm -f .git/index.lock
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm -f .git/index.lock
-
-          git add catalog.json catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
-          if [ -d assets/media ]; then
-            git add assets/media
-          fi
-
+          git add -A
           if git diff --cached --quiet; then
             echo "No new-content changes."
           else
@@ -140,19 +125,14 @@ jobs:
                 break
               fi
               git rebase --abort >/dev/null 2>&1 || true
-              echo "Repository changed during push; retry ${attempt}/5"
+              rm -f .git/index.lock
               sleep $((attempt * 2))
             done
-            if [ "$PUSHED" -ne 1 ]; then
-              echo "::error::Could not push new-content progress after 5 attempts."
-              exit 1
-            fi
+            [ "$PUSHED" -eq 1 ] || { echo "::error::Could not push new-content progress."; exit 1; }
           fi
 
       - name: Complete one Iranian series sequentially
         id: iranian_sync
-        # Leave enough job time for the always-run commit checkpoint and the
-        # remaining maintenance lanes, even when the source is mostly invalid.
         timeout-minutes: 30
         continue-on-error: true
         env:
@@ -161,7 +141,7 @@ jobs:
           UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
           UPERA_SYNC_MODE: 'IRANIAN'
           UPERA_OPERATOR_DISCOVERY_ENABLED: 'false'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '12'
+          APARATCHI_RUN_TIME_LIMIT_MINUTES: '10'
           APARATCHI_CHECKPOINT_RESERVE_MS: '45000'
           APARATCHI_REQUEST_TIMEOUT_MS: '12000'
           APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
@@ -172,68 +152,73 @@ jobs:
           UPERA_IRANIAN_SERIES_TITLES_PER_RUN: '1'
           UPERA_PRIORITY_EPISODES_PER_SERIES: '120'
           UPERA_MAX_EPISODE_PAGES: '80'
-          UPERA_OPERATOR_MOVIE_REQUEST_QUOTA: '8'
-          UPERA_OPERATOR_SERIES_REQUEST_QUOTA: '8'
-          UPERA_OPERATOR_MOVIE_PAGES_PER_RUN: '2'
-          UPERA_OPERATOR_SERIES_PAGES_PER_RUN: '2'
           APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
         shell: bash
         run: |
           set -euo pipefail
 
-          # The first pass probes page one for genuinely new/current Iranian
-          # series. Later passes in this SAME workflow must go straight to the
-          # persistent archive cursor; otherwise the same no-link page-one rows
-          # consume the request quota over and over and the archive never moves.
+          count_published() {
+            node -e 'const fs=require("fs"); const c=JSON.parse(fs.readFileSync("catalog.json","utf8")); process.stdout.write(String((c.items||[]).filter(i=>i?.type==="series"&&i?.categoryKeys?.includes("iranian-series")&&i?.publicationStatus==="published").length));'
+          }
+
+          START_PUBLISHED="$(count_published)"
+          echo "Published Iranian series before: ${START_PUBLISHED}"
+
           RUNTIME_SYNC="scripts/.sync-upera-iranian-runtime.mjs"
           cp scripts/sync-upera.mjs "$RUNTIME_SYNC"
           trap 'rm -f "$RUNTIME_SYNC"' EXIT
+
           node - "$RUNTIME_SYNC" <<'NODE'
           const fs = require('fs');
           const file = process.argv[2];
           let source = fs.readFileSync(file, 'utf8');
-          const needle = '      await syncRecentIranianSeriesDiscovery();';
-          const replacement = "      if (process.env.APARATCHI_SKIP_IRANIAN_RECENT !== 'true') {\n        await syncRecentIranianSeriesDiscovery();\n      }";
-          if (!source.includes(needle)) {
-            throw new Error('Iranian recent-discovery hook not found');
+
+          const recentNeedle = '      await syncRecentIranianSeriesDiscovery();';
+          const recentReplacement = "      if (process.env.APARATCHI_SKIP_IRANIAN_RECENT !== 'true') {\n        await syncRecentIranianSeriesDiscovery();\n      }";
+          if (!source.includes(recentNeedle)) throw new Error('Iranian recent-discovery hook not found');
+          source = source.replace(recentNeedle, recentReplacement);
+
+          const functionStart = source.indexOf('async function fetchIranianSeriesPage');
+          const variantsStart = source.indexOf('  const variants = [', functionStart);
+          const variantsEnd = source.indexOf('  ];', variantsStart);
+          if (functionStart < 0 || variantsStart < 0 || variantsEnd < 0) {
+            throw new Error('Iranian source filter block not found');
           }
-          source = source.replace(needle, replacement);
+          const replacement = "  const variants = [\n    { free: 1, persian: '', country: 'IR', traffic: 1, noFreeFallback: true },\n    { free: '', persian: '', country: 'IR', traffic: 1, noFreeFallback: true },\n  ];";
+          source = source.slice(0, variantsStart) + replacement + source.slice(variantsEnd + 4);
           fs.writeFileSync(file, source);
           NODE
 
-          # The source "Persian" filter is noisy. Keep advancing terminal
-          # foreign/invalid rows inside this same workflow run instead of
-          # wasting one hourly cycle per rejected row. Finish titles strictly
-          # one at a time, then continue to the next title only after the prior
-          # archive is complete; cap each workflow at three completions.
-          IRANIAN_COMPLETED=0
-          for pass in $(seq 1 24); do
-            echo "Iranian series lane pass ${pass}/24"
-            if [ "$pass" -gt 1 ]; then
-              export APARATCHI_SKIP_IRANIAN_RECENT='true'
-            else
-              unset APARATCHI_SKIP_IRANIAN_RECENT || true
-            fi
+          node --check "$RUNTIME_SYNC"
+          export APARATCHI_SKIP_IRANIAN_RECENT='true'
+
+          for pass in $(seq 1 90); do
+            echo "Iranian archive-only pass ${pass}/90"
             node "$RUNTIME_SYNC"
 
-            if [ ! -f sync-report-iranian.json ]; then
-              echo "Iranian report missing; stop bounded retry loop."
+            CURRENT_PUBLISHED="$(count_published)"
+            echo "Published Iranian series now: ${CURRENT_PUBLISHED} (started ${START_PUBLISHED})"
+            if [ "$CURRENT_PUBLISHED" -gt "$START_PUBLISHED" ]; then
+              echo "Published one Iranian archive series in this hourly run."
               break
             fi
 
-            decision="$(node -e 'const fs=require("fs"); const report=JSON.parse(fs.readFileSync("sync-report-iranian.json","utf8")); const processed=Number(report.iranianSeriesProcessed||0); const updated=Number(report.iranianSeriesAddedOrUpdated||0); const diagnostics=Array.isArray(report.iranianSeriesDiagnostics)?report.iranianSeriesDiagnostics:[]; const last=diagnostics.length?diagnostics[diagnostics.length-1]:null; const retry=Boolean(last&&last.retryLater); const stopped=Boolean(report.stoppedByTimeBudget); const newlyPublished=Boolean(last&&last.newlyPublished); if(stopped||retry) process.stdout.write("stop"); else if(last&&last.result==="completed"&&newlyPublished) process.stdout.write("completed"); else if(last&&last.result==="completed") process.stdout.write("skip"); else process.stdout.write(processed>0||updated>0?"stop":"skip");')"
-            if [ "$decision" = "completed" ]; then
-              IRANIAN_COMPLETED=$((IRANIAN_COMPLETED + 1))
-              if [ "$IRANIAN_COMPLETED" -ge 3 ]; then
-                echo "Completed three Iranian series sequentially in this run."
-                break
-              fi
-              continue
+            if [ ! -f sync-report-iranian.json ]; then
+              echo "Iranian report missing; stop safely."
+              break
             fi
-            if [ "$decision" != "skip" ]; then
+
+            SHOULD_STOP="$(node -e 'const fs=require("fs"); const r=JSON.parse(fs.readFileSync("sync-report-iranian.json","utf8")); const d=Array.isArray(r.iranianSeriesDiagnostics)?r.iranianSeriesDiagnostics:[]; const last=d[d.length-1]||{}; process.stdout.write((r.stoppedByTimeBudget||last.retryLater)?"yes":"no");')"
+            if [ "$SHOULD_STOP" = "yes" ]; then
+              echo "Current Iranian title needs the next hourly budget."
               break
             fi
           done
+
+          rm -f "$RUNTIME_SYNC"
+          trap - EXIT
+          node scripts/rebuild-client-catalog.mjs
+          echo "Published Iranian series after: $(count_published)"
 
       - name: Commit Iranian-series progress
         id: commit_iranian
@@ -241,10 +226,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          rm -f .git/index.lock scripts/.sync-upera-iranian-runtime.mjs
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm -f .git/index.lock
-          git add catalog.json catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
+          git add -A
           if git diff --cached --quiet; then
             echo "No Iranian-series changes."
           else
@@ -256,178 +241,31 @@ jobs:
                 break
               fi
               git rebase --abort >/dev/null 2>&1 || true
-              echo "Repository changed during push; retry ${attempt}/5"
+              rm -f .git/index.lock
               sleep $((attempt * 2))
             done
-            if [ "$PUSHED" -ne 1 ]; then
-              echo "::error::Could not push Iranian-series progress after 5 attempts."
-              exit 1
-            fi
-          fi
-
-      - name: Ensure ffmpeg for episode thumbnails
-        shell: bash
-        run: |
-          set +e
-          if command -v ffmpeg >/dev/null 2>&1; then
-            ffmpeg -version | head -n 1
-            exit 0
-          fi
-
-          export DEBIAN_FRONTEND=noninteractive
-          echo 'ffmpeg is missing; trying one bounded install instead of blocking the whole catalog sync.'
-          timeout 90s sudo apt-get update \
-            -o Acquire::Retries=2 \
-            -o Acquire::http::Timeout=20 \
-            -o Acquire::https::Timeout=20
-          UPDATE_STATUS=$?
-          if [ "$UPDATE_STATUS" -ne 0 ]; then
-            echo "::warning::ffmpeg apt update timed out/failed; episode frame capture will be skipped in this run."
-            exit 0
-          fi
-
-          timeout 90s sudo apt-get install -y --no-install-recommends ffmpeg
-          INSTALL_STATUS=$?
-          if [ "$INSTALL_STATUS" -ne 0 ] || ! command -v ffmpeg >/dev/null 2>&1; then
-            echo "::warning::ffmpeg install timed out/failed; continuing sync without frame capture."
-            exit 0
-          fi
-          ffmpeg -version | head -n 1
-
-      - name: Complete missing cast and crew metadata
-        id: people_sync
-        continue-on-error: true
-        env:
-          UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
-          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
-          TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN || secrets.TMDB_READ_ACCESS_TOKEN }}
-          UPERA_SYNC_MODE: 'PEOPLE'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '10'
-          APARATCHI_CHECKPOINT_RESERVE_MS: '30000'
-          APARATCHI_REQUEST_TIMEOUT_MS: '12000'
-          APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
-          APARATCHI_PEOPLE_TITLES_PER_RUN: '20'
-          APARATCHI_PEOPLE_MAX_PER_TITLE: '12'
-          APARATCHI_PEOPLE_RETRY_HOURS: '12'
-          APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN: '48'
-          APARATCHI_EPISODE_ARTWORK_MIRROR_PER_RUN: '72'
-          APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN: '96'
-          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '144'
-          APARATCHI_IMAGE_MIRROR_CONCURRENCY: '4'
-        run: node scripts/sync-upera.mjs
-
-      - name: Commit cast and crew progress
-        id: commit_people
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm -f .git/index.lock
-
-          git add catalog.json catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
-          if [ -d assets/media ]; then
-            git add assets/media
-          fi
-
-          if git diff --cached --quiet; then
-            echo "No cast/crew changes."
-          else
-            git commit -m "chore: enrich cast and crew metadata"
-            PUSHED=0
-            for attempt in 1 2 3 4 5; do
-              if git pull --rebase origin main && git push origin HEAD:main; then
-                PUSHED=1
-                break
-              fi
-              git rebase --abort >/dev/null 2>&1 || true
-              echo "Repository changed during push; retry ${attempt}/5"
-              sleep $((attempt * 2))
-            done
-            if [ "$PUSHED" -ne 1 ]; then
-              echo "::error::Could not push cast/crew progress after 5 attempts."
-              exit 1
-            fi
-          fi
-
-      - name: Release stale archive cursor before backfill
-        env:
-          APARATCHI_BLOCKED_COOLDOWN_HOURS: '6'
-        run: node scripts/prepare-archive-backfill.mjs
-
-      - name: Advance oldest-year archive completion
-        id: archive_sync
-        continue-on-error: true
-        env:
-          UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
-          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
-          UPERA_SYNC_MODE: 'BACKFILL'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '14'
-          APARATCHI_CHECKPOINT_RESERVE_MS: '45000'
-          APARATCHI_REQUEST_TIMEOUT_MS: '15000'
-          APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
-          UPERA_MAX_REQUESTS_PER_RUN: '240'
-          UPERA_BACKFILL_EPISODES_PER_RUN: '240'
-          UPERA_BACKFILL_SERIES_PER_RUN: '1'
-          UPERA_BACKFILL_EPISODES_PER_SERIES: '60'
-          UPERA_MAX_EPISODE_PAGES: '50'
-          UPERA_BACKFILL_MAX_NO_PROGRESS_RUNS: '3'
-          UPERA_EPISODE_UNAVAILABLE_AFTER_ATTEMPTS: '8'
-          UPERA_UNAVAILABLE_EPISODE_RETRY_HOURS: '1'
-          UPERA_BLOCKED_RETRY_HOURS: '6'
-          UPERA_RETRY_BLOCKED: 'false'
-          UPERA_REQUEST_DELAY_MS: '650'
-          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
-        run: node scripts/sync-upera.mjs
-
-      - name: Commit archive progress
-        id: commit_archive
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm -f .git/index.lock
-
-          git add catalog.json catalog-index.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json catalog-items catalog-stable catalog-manifest.json sync-state.json sync-report*.json
-
-          if git diff --cached --quiet; then
-            echo "No archive changes."
-          else
-            git commit -m "chore: advance oldest-year archive completion"
-            PUSHED=0
-            for attempt in 1 2 3 4 5; do
-              if git pull --rebase origin main && git push origin HEAD:main; then
-                PUSHED=1
-                break
-              fi
-              git rebase --abort >/dev/null 2>&1 || true
-              echo "Repository changed during push; retry ${attempt}/5"
-              sleep $((attempt * 2))
-            done
-            if [ "$PUSHED" -ne 1 ]; then
-              echo "::error::Could not push archive progress after 5 attempts."
-              exit 1
-            fi
+            [ "$PUSHED" -eq 1 ] || { echo "::error::Could not push Iranian-series progress."; exit 1; }
           fi
 
       - name: Report sync status
         if: always()
         shell: bash
         run: |
-          FAILED_STAGES=""
-          if [ '${{ steps.normal_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} normal"; fi
-          if [ '${{ steps.commit_normal.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} commit-normal"; fi
-          if [ '${{ steps.iranian_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} iranian"; fi
-          if [ '${{ steps.commit_iranian.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} commit-iranian"; fi
-          if [ '${{ steps.people_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} people"; fi
-          if [ '${{ steps.commit_people.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} commit-people"; fi
-          if [ '${{ steps.archive_sync.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} archive"; fi
-          if [ '${{ steps.commit_archive.outcome }}' = 'failure' ]; then FAILED_STAGES="${FAILED_STAGES} commit-archive"; fi
-          if [ -n "$FAILED_STAGES" ]; then
-            echo "::warning title=Partial sync::Saved all available progress; retry these stages on the next hourly run:$FAILED_STAGES"
-          else
-            echo "All sync stages completed successfully."
-          fi
+          node - <<'NODE'
+          const fs = require('fs');
+          const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
+          const iranian = (catalog.items || []).filter((item) =>
+            item?.type === 'series' &&
+            item?.categoryKeys?.includes('iranian-series') &&
+            item?.publicationStatus === 'published'
+          );
+          const report = fs.existsSync('sync-report-iranian.json')
+            ? JSON.parse(fs.readFileSync('sync-report-iranian.json', 'utf8'))
+            : {};
+          const diagnostics = Array.isArray(report.iranianSeriesDiagnostics) ? report.iranianSeriesDiagnostics : [];
+          console.log(JSON.stringify({
+            publishedIranianSeries: iranian.length,
+            iranianRequests: Number(report?.affiliateRequestScopes?.['iranian-series']?.used || 0),
+            lastIranianDiagnostic: diagnostics.at(-1) || null,
+          }, null, 2));
+          NODE
