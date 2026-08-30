@@ -1,9 +1,6 @@
 name: Sync Upera Catalog
 
 on:
-  push:
-    paths:
-      - '.github/workflows/sync-upera.yml'
   schedule:
     # GitHub cron uses UTC. Discover and publish new titles every hour.
     - cron: '34 * * * *'
