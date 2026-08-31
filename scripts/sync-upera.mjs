@@ -3802,7 +3802,7 @@ async function fetchPanelSeriesEpisodes(seriesId) {
   do {
     const url = new URL(`${PANEL_API_BASE}/owner/get/series/season/${encodeURIComponent(seriesId)}`);
     url.searchParams.set('page', String(page));
-    const json = await fetchPanelJson(url);
+    const json = await fetchPanelJson(url, { method: 'POST' });
     const result = pagedResult(json, 'season');
     episodes.push(...result.items);
     lastPage = Math.min(maxEpisodePaginationPages, positiveInt(result.lastPage, 1));

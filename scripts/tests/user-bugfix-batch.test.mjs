@@ -57,3 +57,14 @@ test('Iranian sequential cursor has a persistent active source id', () => {
   assert.ok(source.includes('iranianSeriesActiveId'));
   assert.ok(source.includes('const lockedId = cleanText(state.iranianSeriesActiveId'));
 });
+
+
+test('panel series season endpoint uses POST', () => {
+  const source = fs.readFileSync(new URL('../sync-upera.mjs', import.meta.url), 'utf8');
+  const start = source.indexOf('async function fetchPanelSeriesEpisodes(seriesId)');
+  const end = source.indexOf('\nasync function fetchScopedArchivePage', start);
+  assert.ok(start >= 0 && end > start);
+  const block = source.slice(start, end);
+  assert.ok(block.includes("fetchPanelJson(url, { method: 'POST' })"));
+  assert.ok(!block.includes('const json = await fetchPanelJson(url);'));
+});
