@@ -1,13 +1,13 @@
 {
-  "startedAt": "2026-08-30T23:16:07.622Z",
+  "startedAt": "2026-08-31T06:12:50.033Z",
   "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-08-30T23:26:06.403Z",
+  "runDeadlineAt": "2026-08-31T06:22:48.793Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 555581,
+  "remainingRunMsAtFinish": 586028,
   "imageMirroringSkipped": true,
-  "originalCount": 7502,
-  "finalCount": 7502,
+  "originalCount": 7535,
+  "finalCount": 7535,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
   "backfillQueueTotal": 181,
@@ -19,7 +19,7 @@
   "backfillEpisodesAdded": 0,
   "backfillSeriesVisited": 0,
   "backfillCheckpoints": 1,
-  "episodesMarkedUnavailable": 15,
+  "episodesMarkedUnavailable": 0,
   "backfillNoProgressRuns": 0,
   "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 180,
-      "used": 15,
+      "used": 0,
       "exhausted": false
     }
   },
@@ -62,13 +62,13 @@
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
-  "episodesProcessed": 15,
-  "iranianSeriesPagesProcessed": 0,
+  "iranianSeriesProcessed": 1,
+  "episodesProcessed": 0,
+  "iranianSeriesPagesProcessed": 1,
   "iranianSeriesCandidates": 1,
-  "iranianSeriesAddedOrUpdated": 0,
+  "iranianSeriesAddedOrUpdated": 1,
   "iranianSeriesRejectedNotIranian": 0,
-  "iranianSeriesRejectedNoLinks": 1,
+  "iranianSeriesRejectedNoLinks": 0,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
   "operatorSeriesAddedOrUpdated": 0,
@@ -82,10 +82,10 @@
   "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [
     {
-      "id": "28b7de30-67ec-11f1-b197-e53fbcbba794",
-      "title": "بیست و یک",
-      "result": "rejected",
-      "reason": "no-usable-links",
+      "id": "85d855e0-340e-11ed-8ac9-f1be46586898",
+      "title": "هشتگ خاله سوسکه",
+      "result": "completed",
+      "reason": "added-or-updated",
       "addedEpisodes": 0,
       "remainingEpisodeCount": 0,
       "retryLater": false,
@@ -93,8 +93,78 @@
     }
   ],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "85d855e0-340e-11ed-8ac9-f1be46586898",
+      "title": "هشتگ خاله سوسکه",
+      "source": "iranian-priority",
+      "discoveredEpisodeCount": 15,
+      "catalogEpisodeCount": 15,
+      "missing": [],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
+    {
+      "seriesId": "88c59200-895d-11f0-8c7b-8d0be9327ffe",
+      "title": "سرنوشت/عجیب و غریب جعلی",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 9
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "5a181d30-602d-11ed-91cf-e3497a0eb443",
+      "title": "کهکشان بوبوی بوی",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "d37fbe40-6009-11ed-b713-8d57f0175080",
+      "title": "بلیز و ماشین های هیولایی",
+      "missing": [
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 16
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
+      "title": "قهرمان درون",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 7
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
     {
       "seriesId": "223b4500-d7ca-11ef-a2a5-65ed70f68a2b",
       "title": "دلبندان",
@@ -186,66 +256,6 @@
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
-    },
-    {
-      "seriesId": "d37fbe40-6009-11ed-b713-8d57f0175080",
-      "title": "بلیز و ماشین های هیولایی",
-      "missing": [
-        {
-          "seasonNumber": 3,
-          "episodeNumber": 16
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "5a181d30-602d-11ed-91cf-e3497a0eb443",
-      "title": "کهکشان بوبوی بوی",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 1
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "88c59200-895d-11f0-8c7b-8d0be9327ffe",
-      "title": "سرنوشت/عجیب و غریب جعلی",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 9
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
-      "title": "قهرمان درون",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 4
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 7
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
     },
     {
       "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
@@ -1233,18 +1243,18 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 32,
+  "episodesDiscovered": 33,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 15,
+  "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
-  "affiliateRequests": 15,
+  "seriesAddedOrUpdated": 1,
+  "affiliateRequests": 0,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 15,
+  "affiliateNotFound": 0,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1279,9 +1289,9 @@
   "removedWithoutFreeLinks": 0,
   "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 33,
-  "lastCheckpointAt": "2026-08-30T23:16:40.948Z",
-  "lastCheckpointReason": "iranian-skip-28b7de30-67ec-11f1-b197-e53fbcbba794",
-  "remainingRunMsAtCheckpoint": 562736,
-  "finishedAt": "2026-08-30T23:16:50.822Z"
+  "apiRequests": 3,
+  "lastCheckpointAt": "2026-08-31T06:12:52.497Z",
+  "lastCheckpointReason": "iranian-skip-85d855e0-340e-11ed-8ac9-f1be46586898",
+  "remainingRunMsAtCheckpoint": 593535,
+  "finishedAt": "2026-08-31T06:13:02.765Z"
 }
