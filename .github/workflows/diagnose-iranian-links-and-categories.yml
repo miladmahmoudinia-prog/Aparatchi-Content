@@ -2,7 +2,8 @@ name: Diagnose Iranian links and categories
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - '.github/workflows/diagnose-iranian-links-and-categories.yml'
   workflow_dispatch:
@@ -15,12 +16,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 100
 
-      - uses: actions/setup-node@v6
+      - name: Setup Node
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -36,7 +39,9 @@ jobs:
           const itemsOf = x => Array.isArray(x?.items) ? x.items : [];
           const counts = x => {
             const m = new Map();
-            for (const item of itemsOf(x)) for (const key of (item?.categoryKeys || [])) m.set(key,(m.get(key)||0)+1);
+            for (const item of itemsOf(x)) {
+              for (const key of (item?.categoryKeys || [])) m.set(key,(m.get(key)||0)+1);
+            }
             return m;
           };
           const a = counts(before), b = counts(after);
@@ -44,7 +49,7 @@ jobs:
           const rows = keys.map(key => ({key,before:a.get(key)||0,after:b.get(key)||0,delta:(b.get(key)||0)-(a.get(key)||0)}))
             .filter(r => r.delta !== 0)
             .sort((x,y) => Math.abs(y.delta)-Math.abs(x.delta) || x.key.localeCompare(y.key));
-          console.log(JSON.stringify({
+          console.log('CATEGORY_AUDIT', JSON.stringify({
             clientItemsBefore: itemsOf(before).length,
             clientItemsAfter: itemsOf(after).length,
             clientItemDelta: itemsOf(after).length-itemsOf(before).length,
@@ -52,22 +57,23 @@ jobs:
           }, null, 2));
           NODE
 
-      - name: Probe stuck Iranian series through Seeko and panel
+      - name: Probe stuck Iranian media
+        shell: bash
         env:
           UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
-        run: node - <<'NODE'
+        run: |
+          node - <<'NODE'
           const panelToken = String(process.env.UPERA_PANEL_TOKEN || '').trim();
           if (!panelToken) throw new Error('UPERA_PANEL_TOKEN missing');
           const auth = /^Bearer\s+/i.test(panelToken) ? panelToken : `Bearer ${panelToken}`;
           const seriesId = '9099ceb0-f7e4-11ef-bc79-f9e0e2736f56';
           const seekoBase = 'https://seeko.film/api/v1';
           const panelBase = 'https://panel-api.upera.tv/api/v1';
-
           const fetchJson = async (url, options={}) => {
             const res = await fetch(url, options);
             let json = null;
             try { json = JSON.parse(await res.text()); } catch {}
-            return {status:res.status, ok:res.ok, json};
+            return {status:res.status, json};
           };
           const headers = {Authorization:auth,'Content-Type':'application/json',Accept:'application/json'};
           const walk = (node, out=[], depth=0) => {
@@ -102,31 +108,30 @@ jobs:
 
           const seeko = await fetchJson(`${seekoBase}/ghost/get/series/${seriesId}?affiliate=1`, {headers:{Accept:'application/json'}});
           const seekoEpisodes = walk(seeko.json).slice(0,5);
-          console.log('SEEKO_DETAIL', JSON.stringify({status:seeko.status, episodes:seekoEpisodes}));
+          console.log('SEEKO_DETAIL', JSON.stringify({status:seeko.status,episodes:seekoEpisodes}));
 
           const seasonUrl = `${panelBase}/owner/get/series/season/${seriesId}?page=1`;
-          const panelSeasonGet = await fetchJson(seasonUrl,{headers});
-          const panelSeasonPost = await fetchJson(seasonUrl,{method:'POST',headers,body:JSON.stringify({page:1})});
-          const panelEpisodes = walk(panelSeasonPost.json).slice(0,5);
-          console.log('PANEL_SEASON_GET', JSON.stringify(summary(panelSeasonGet)));
-          console.log('PANEL_SEASON_POST', JSON.stringify({...summary(panelSeasonPost),episodes:panelEpisodes}));
+          const seasonGet = await fetchJson(seasonUrl,{headers});
+          const seasonPost = await fetchJson(seasonUrl,{method:'POST',headers,body:JSON.stringify({page:1})});
+          const panelEpisodes = walk(seasonPost.json).slice(0,5);
+          console.log('PANEL_SEASON_GET',JSON.stringify(summary(seasonGet)));
+          console.log('PANEL_SEASON_POST',JSON.stringify({...summary(seasonPost),episodes:panelEpisodes}));
 
-          const lookupBodies = [
+          const bodies = [
             {query:'',ir:-1,sale_method:-1,payment_method:0,specific_id:seriesId,nodata:1,page:1},
             {query:'',ir:-1,sale_method:3,payment_method:0,specific_id:seriesId,nodata:1,owner:9194919,page:1}
           ];
-          for (let i=0;i<lookupBodies.length;i++) {
-            const r=await fetchJson(`${panelBase}/owner/get/series`,{method:'POST',headers,body:JSON.stringify(lookupBodies[i])});
-            const candidates=walk(r.json).slice(0,5);
-            console.log(`PANEL_SERIES_LOOKUP_${i+1}`,JSON.stringify({...summary(r),candidates}));
+          for (let i=0;i<bodies.length;i++) {
+            const r=await fetchJson(`${panelBase}/owner/get/series`,{method:'POST',headers,body:JSON.stringify(bodies[i])});
+            console.log(`PANEL_SERIES_LOOKUP_${i+1}`,JSON.stringify({...summary(r),episodes:walk(r.json).slice(0,5)}));
           }
 
-          const ids = [...new Set([seekoEpisodes[0]?.id,panelEpisodes[0]?.id].filter(Boolean))];
+          const ids=[...new Set([seekoEpisodes[0]?.id,panelEpisodes[0]?.id].filter(Boolean))];
           for (const id of ids) {
             for (const method of ['GET','POST']) {
-              const r=await fetchJson(`${panelBase}/owner/show_links/episode/${encodeURIComponent(id)}`,{
-                method,headers,...(method==='POST'?{body:JSON.stringify({})}:{})
-              });
+              const options={method,headers};
+              if (method==='POST') options.body=JSON.stringify({});
+              const r=await fetchJson(`${panelBase}/owner/show_links/episode/${encodeURIComponent(id)}`,options);
               console.log(`SHOW_LINKS_${method}_${id}`,JSON.stringify(summary(r)));
             }
           }
