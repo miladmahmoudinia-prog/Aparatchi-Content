@@ -22,34 +22,25 @@ jobs:
         run: |
           node - <<'NODE'
           const API='https://seeko.film/api/v1';
-          const known=[
-            ['سیاوش','84d22220-5f0f-11eb-98ca-adc674f51d6c'],
-            ['شهرزاد','09070160-3a34-11e8-976b-cbc7d564706f'],
-            ['شوخی کردم','30995770-d91a-11e8-a1de-3fdec812a3e5'],
-          ];
-          const get=async u=>{const r=await fetch(u,{headers:{Accept:'application/json','User-Agent':'Aparatchi-Diagnose/1'}}); console.log('HTTP',r.status,u); const t=await r.text(); if(!r.ok) return null; try{return JSON.parse(t)}catch{return null}};
-          const pick=(obj)=>{
-            const seen=new Set(), out=[];
-            const walk=(v,d=0)=>{if(!v||typeof v!=='object'||d>6||seen.has(v))return;seen.add(v);if(Array.isArray(v)){for(const x of v)walk(x,d+1);return;} for(const [k,x] of Object.entries(v)){if(/country|iran|\bir\b/i.test(k)||(/country|iran|ایران/i.test(String(x))&&typeof x!=='object')) out.push([k,x]); walk(x,d+1)}};
-            walk(obj); return out.slice(0,80);
-          };
-          for(const [name,id] of known){
-            const j=await get(`${API}/ghost/get/series/${encodeURIComponent(id)}?affiliate=1`);
-            console.log('\nKNOWN',name,id);
-            console.log(JSON.stringify(pick(j),null,2));
+          const req=async(u,opt={})=>{const r=await fetch(u,{...opt,headers:{Accept:'application/json','User-Agent':'Aparatchi-Diagnose/2',...(opt.headers||{})}}); const t=await r.text(); console.log('HTTP',r.status,String(u)); if(!r.ok)return null; try{return JSON.parse(t)}catch{return null}};
+          for(const [name,id] of [['سیاوش','84d22220-5f0f-11eb-98ca-adc674f51d6c'],['شهرزاد','09070160-3a34-11e8-976b-cbc7d564706f']]){
+            const j=await req(`${API}/ghost/get/series/${id}?affiliate=1`); const s=j?.data?.series??j?.data??j;
+            console.log('KNOWN',name,JSON.stringify({id:s?.id,name_fa:s?.name_fa,name:s?.name,ir:s?.ir,country:s?.country,country_id:s?.country_id,original_language:s?.original_language}));
           }
           const variants=[
             ['generic',{free:1,country:0,persian:0}],
-            ['IR',{free:1,country:'IR',persian:''}],
-            ['iran',{free:1,country:'iran',persian:''}],
-            ['fa',{free:1,country:0,persian:1}],
+            ['persian1',{free:1,country:0,persian:1}],
+            ['countryIR',{free:1,country:'IR',persian:''}],
+            ['countryIran',{free:1,country:'iran',persian:''}],
+            ['freePersian',{free:'',country:0,persian:1}],
           ];
           for(const [label,q] of variants){
             const u=new URL(`${API}/ghost/get/series/sort`);
             for(const [k,v] of Object.entries({trending:1,genre:'all',query:'',affiliate:1,traffic:1,page:1,...q}))u.searchParams.set(k,String(v));
-            const j=await get(u);
+            const j=await req(u,{method:'POST'});
             const root=j?.data??j??{}; const node=root?.series??root; const rows=Array.isArray(node)?node:Array.isArray(node?.data)?node.data:Array.isArray(root?.data)?root.data:[];
-            console.log('\nVARIANT',label,'rows',rows.length,'last',node?.last_page??root?.last_page);
-            console.log(JSON.stringify(rows.slice(0,12).map(x=>({id:x.id||x.t_id,nameFa:x.name_fa,name:x.name,ir:x.ir,is_iranian:x.is_iranian,country:x.country,country_id:x.country_id,countryCode:x.countryCode,original_language:x.original_language})),null,2));
+            const simplified=rows.slice(0,20).map(x=>({id:x.id||x.t_id,nameFa:x.name_fa,name:x.name,ir:x.ir,country:x.country,country_id:x.country_id,original_language:x.original_language}));
+            console.log('VARIANT',label,'rows',rows.length,'last',node?.last_page??root?.last_page,'irRows',simplified.filter(x=>Number(x.ir)===1).length);
+            console.log(JSON.stringify(simplified));
           }
           NODE
