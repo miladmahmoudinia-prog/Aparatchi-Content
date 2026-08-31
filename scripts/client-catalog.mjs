@@ -99,6 +99,11 @@ const verifiedOperatorOnlyFile = (file) => Boolean(
   Number(file?.trafficOo) === 1 && String(file?.url || '').trim().toLowerCase().startsWith('https://')
 );
 
+const verifiedPublicPanelFile = (file) => Boolean(
+  file?.mode === 'operator-play' && file?.operatorOnly === false && file?.panelVerified === true &&
+  Number(file?.trafficOo) === 0 && String(file?.url || '').trim().toLowerCase().startsWith('https://')
+);
+
 const clientSeriesFileIsUsable = (file) => {
   const url = typeof file?.url === 'string' ? file.url.trim() : '';
   if (!/^https?:\/\//i.test(url)) return false;
@@ -155,7 +160,8 @@ const sanitizeClientMediaItem = (item) => {
     files: (Array.isArray(section?.files) ? section.files : []).flatMap((file) => {
       if (!file || typeof file !== 'object') return [];
       if (String(file.mode || '').startsWith('operator-')) {
-        return operatorVariant && verifiedOperatorOnlyFile(file) ? [{ ...file }] : [];
+        if (operatorVariant) return verifiedOperatorOnlyFile(file) ? [{ ...file }] : [];
+        return verifiedPublicPanelFile(file) ? [{ ...file }] : [];
       }
       if (operatorVariant) return [];
       const language = clientFileLanguage(file, section);
