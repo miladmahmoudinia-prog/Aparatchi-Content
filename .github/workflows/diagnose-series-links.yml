@@ -1,0 +1,59 @@
+name: Diagnose series links
+
+on:
+  push:
+    paths:
+      - '.github/workflows/diagnose-series-links.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Inspect Iranian series media pipeline
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const catalog = JSON.parse(fs.readFileSync('catalog.json','utf8'));
+          const index = JSON.parse(fs.readFileSync('catalog-index.json','utf8'));
+          const bootstrap = JSON.parse(fs.readFileSync('catalog-bootstrap.json','utf8'));
+          const items = catalog.items || [];
+          const idx = index.items || [];
+          const boot = bootstrap.items || [];
+          const iranianPublished = items.filter(x => x?.type === 'series' && x?.categoryKeys?.includes('iranian-series') && x?.publicationStatus === 'published');
+          iranianPublished.sort((a,b) => Date.parse(b.meaningfulUpdatedAt||b.publishedAt||b.updatedAt||0)-Date.parse(a.meaningfulUpdatedAt||a.publishedAt||a.updatedAt||0));
+          const targets = [];
+          const people = items.find(x => /اهل\s*ایران|People\s*of\s*Iran/i.test(`${x?.nameFa||''} ${x?.name||''}`));
+          if (people) targets.push(people);
+          if (iranianPublished[0] && !targets.some(x => x.id === iranianPublished[0].id)) targets.push(iranianPublished[0]);
+          for (const item of targets) {
+            const summary = idx.find(x => String(x.id) === String(item.id));
+            const b = boot.find(x => String(x.id) === String(item.id));
+            const detailPath = summary?.detailPath || b?.detailPath || '';
+            let detail = null;
+            if (detailPath && fs.existsSync(detailPath)) detail = JSON.parse(fs.readFileSync(detailPath,'utf8'));
+            const count = (sections) => ({
+              sections: Array.isArray(sections) ? sections.length : 0,
+              files: Array.isArray(sections) ? sections.reduce((n,s)=>n+(Array.isArray(s?.files)?s.files.length:0),0) : 0,
+              episodes: Array.isArray(sections) ? new Set(sections.map(s=>`${s?.seasonNumber||1}:${s?.episodeNumber||0}`).filter(k=>!k.endsWith(':0'))).size : 0,
+              sample: Array.isArray(sections) ? sections.flatMap(s => (s?.files||[]).slice(0,1).map(f => ({episode:s?.episodeNumber,mode:f?.mode,url:f?.url,language:f?.language}))).slice(0,3) : []
+            });
+            console.log(JSON.stringify({
+              id:item.id,nameFa:item.nameFa,name:item.name,
+              server:count(item.downloads),
+              serverEpisodeCount:item.episodeCount,
+              index: summary ? {...count(summary.downloads), episodeCount:summary.episodeCount, detailPath:summary.detailPath} : null,
+              bootstrap: b ? {...count(b.downloads), episodeCount:b.episodeCount, detailPath:b.detailPath} : null,
+              detailExists:Boolean(detail),
+              detail: detail ? {...count(detail.downloads), episodeCount:detail.episodeCount, detailLoaded:detail.detailLoaded} : null,
+            },null,2));
+          }
+          NODE
