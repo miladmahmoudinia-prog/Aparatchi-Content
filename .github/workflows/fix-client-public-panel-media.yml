@@ -1,0 +1,94 @@
+name: Fix client public panel media
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/fix-client-public-panel-media.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 40
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Patch public panel media handling
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('fs');
+          const file = 'scripts/client-catalog.mjs';
+          let source = fs.readFileSync(file, 'utf8');
+
+          const helperNeedle = `const verifiedOperatorOnlyFile = (file) => Boolean(\n  file?.mode === 'operator-play' && file?.operatorOnly === true && file?.panelVerified === true &&\n  Number(file?.trafficOo) === 1 && String(file?.url || '').trim().toLowerCase().startsWith('https://')\n);`;
+          const helperReplacement = `${helperNeedle}\n\nconst verifiedPublicPanelFile = (file) => Boolean(\n  file?.mode === 'operator-play' && file?.operatorOnly === false && file?.panelVerified === true &&\n  Number(file?.trafficOo) === 0 && String(file?.url || '').trim().toLowerCase().startsWith('https://')\n);`;
+          if (source.includes(helperNeedle) && !source.includes('const verifiedPublicPanelFile =')) {
+            source = source.replace(helperNeedle, helperReplacement);
+          }
+
+          const oldBranch = `      if (String(file.mode || '').startsWith('operator-')) {\n        return operatorVariant && verifiedOperatorOnlyFile(file) ? [{ ...file }] : [];\n      }`;
+          const newBranch = `      if (String(file.mode || '').startsWith('operator-')) {\n        if (operatorVariant) return verifiedOperatorOnlyFile(file) ? [{ ...file }] : [];\n        return verifiedPublicPanelFile(file) ? [{ ...file }] : [];\n      }`;
+          if (source.includes(oldBranch)) {
+            source = source.replace(oldBranch, newBranch);
+          } else if (!source.includes('return verifiedPublicPanelFile(file) ? [{ ...file }] : [];')) {
+            throw new Error('client operator media branch not found');
+          }
+
+          fs.writeFileSync(file, source);
+          NODE
+          node --check scripts/client-catalog.mjs
+          grep -F "const verifiedPublicPanelFile =" scripts/client-catalog.mjs
+          grep -F "return verifiedPublicPanelFile(file)" scripts/client-catalog.mjs
+
+      - name: Run regression tests
+        run: node --test scripts/tests/*.test.mjs
+
+      - name: Rebuild client catalog
+        run: node scripts/rebuild-client-catalog.mjs
+
+      - name: Verify client Iranian lane is 18+
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');
+          const c=JSON.parse(fs.readFileSync('catalog-index.json','utf8'));
+          const items=Array.isArray(c?.items)?c.items:[];
+          const iranian=items.filter(i=>i?.type==='series'&&i?.categoryKeys?.includes('iranian-series'));
+          const target=iranian.find(i=>String(i?.id)==='ae3ff430-06a7-11ed-871b-e72cbae03849');
+          console.log(JSON.stringify({clientItems:items.length,iranianSeries:iranian.length,aftabParastPresent:Boolean(target),aftabParast:target?{id:target.id,nameFa:target.nameFa,episodeCount:target.episodeCount,publicationStatus:target.publicationStatus}:null},null,2));
+          if(iranian.length<18||!target) process.exit(1);
+          NODE
+
+      - name: Commit fix and rebuilt artifacts
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/client-catalog.mjs catalog-index.json catalog-bootstrap.json catalog-manifest.json catalog-live.json catalog-live-baseline.json catalog-items catalog-stable
+          if git diff --cached --quiet; then
+            echo "No client changes to commit."
+            exit 0
+          fi
+          git commit -m "fix: keep verified public panel playback in client"
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 2))
+          done
+          exit 1
