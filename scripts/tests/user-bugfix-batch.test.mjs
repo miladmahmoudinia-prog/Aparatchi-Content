@@ -35,10 +35,12 @@ test('sync source has no Persian UI fallback named نسخه اصلی', () => {
   assert.ok(source.includes("UPERA_SYNC_MODE || 'AUTO'"));
 });
 
-test('Iranian lane is independent and sequential', () => {
+test('Iranian lane is independent, exact-country and sequential for one new title', () => {
   const source = fs.readFileSync(new URL('../sync-upera.mjs', import.meta.url), 'utf8');
   assert.ok(source.includes("syncModeSetting === 'IRANIAN'"));
-  assert.ok(source.includes('DO NOT advance offset'));
+  assert.ok(source.includes("country: 'IR'"));
+  assert.ok(source.includes('if (existing && !isLocked)'));
+  assert.ok(source.includes('state.iranianSeriesActiveId'));
   assert.ok(source.includes('IRANIAN_SERIES_REBUILD_VERSION = 1'));
 });
 
