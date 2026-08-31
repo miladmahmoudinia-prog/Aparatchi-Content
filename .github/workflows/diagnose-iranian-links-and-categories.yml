@@ -1,0 +1,133 @@
+name: Diagnose Iranian links and categories
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/diagnose-iranian-links-and-categories.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 100
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Audit category growth
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show d7c5d6e826b175a7d9a86ecd3f9dcea89f6d21fa:catalog-index.json > /tmp/catalog-index-before.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const before = JSON.parse(fs.readFileSync('/tmp/catalog-index-before.json','utf8'));
+          const after = JSON.parse(fs.readFileSync('catalog-index.json','utf8'));
+          const itemsOf = x => Array.isArray(x?.items) ? x.items : [];
+          const counts = x => {
+            const m = new Map();
+            for (const item of itemsOf(x)) for (const key of (item?.categoryKeys || [])) m.set(key,(m.get(key)||0)+1);
+            return m;
+          };
+          const a = counts(before), b = counts(after);
+          const keys = [...new Set([...a.keys(),...b.keys()])].sort();
+          const rows = keys.map(key => ({key,before:a.get(key)||0,after:b.get(key)||0,delta:(b.get(key)||0)-(a.get(key)||0)}))
+            .filter(r => r.delta !== 0)
+            .sort((x,y) => Math.abs(y.delta)-Math.abs(x.delta) || x.key.localeCompare(y.key));
+          console.log(JSON.stringify({
+            clientItemsBefore: itemsOf(before).length,
+            clientItemsAfter: itemsOf(after).length,
+            clientItemDelta: itemsOf(after).length-itemsOf(before).length,
+            changedCategories: rows
+          }, null, 2));
+          NODE
+
+      - name: Probe stuck Iranian series through Seeko and panel
+        env:
+          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
+        run: node - <<'NODE'
+          const panelToken = String(process.env.UPERA_PANEL_TOKEN || '').trim();
+          if (!panelToken) throw new Error('UPERA_PANEL_TOKEN missing');
+          const auth = /^Bearer\s+/i.test(panelToken) ? panelToken : `Bearer ${panelToken}`;
+          const seriesId = '9099ceb0-f7e4-11ef-bc79-f9e0e2736f56';
+          const seekoBase = 'https://seeko.film/api/v1';
+          const panelBase = 'https://panel-api.upera.tv/api/v1';
+
+          const fetchJson = async (url, options={}) => {
+            const res = await fetch(url, options);
+            let json = null;
+            try { json = JSON.parse(await res.text()); } catch {}
+            return {status:res.status, ok:res.ok, json};
+          };
+          const headers = {Authorization:auth,'Content-Type':'application/json',Accept:'application/json'};
+          const walk = (node, out=[], depth=0) => {
+            if (!node || depth > 8 || out.length >= 20) return out;
+            if (Array.isArray(node)) { for (const x of node) walk(x,out,depth+1); return out; }
+            if (typeof node !== 'object') return out;
+            const id = node.id || node.episode_id || node.episodeId;
+            const ep = node.episode_number ?? node.episodeNumber ?? node.episode ?? node.number ?? node.order;
+            const season = node.season_number ?? node.seasonNumber ?? node.season;
+            if (id && (ep != null || /episode/i.test(String(node.type||'')))) out.push({id:String(id),episode:ep??null,season:season??null});
+            for (const v of Object.values(node)) walk(v,out,depth+1);
+            return out;
+          };
+          const findTraffic = (node, depth=0) => {
+            if (!node || typeof node !== 'object' || depth>7) return null;
+            for (const k of ['traffic_oo','trafficOo','trafficOO']) if (k in node && [0,1].includes(Number(node[k]))) return Number(node[k]);
+            for (const v of Object.values(node)) { const found=findTraffic(v,depth+1); if (found!==null) return found; }
+            return null;
+          };
+          const countLinks = (node, depth=0) => {
+            if (!node || depth>8) return 0;
+            if (Array.isArray(node)) return node.reduce((n,v)=>n+countLinks(v,depth+1),0);
+            if (typeof node !== 'object') return 0;
+            let n=0;
+            for (const [k,v] of Object.entries(node)) {
+              if (typeof v === 'string' && /^https?:\/\//i.test(v) && /^(link|url|href|stream_url|streamUrl|download_url|downloadUrl)$/i.test(k)) n++;
+              else n += countLinks(v,depth+1);
+            }
+            return n;
+          };
+          const summary = r => ({status:r.status, topKeys:r.json && typeof r.json==='object' ? Object.keys(r.json).slice(0,12):[], trafficOo:findTraffic(r.json), httpLinkCount:countLinks(r.json)});
+
+          const seeko = await fetchJson(`${seekoBase}/ghost/get/series/${seriesId}?affiliate=1`, {headers:{Accept:'application/json'}});
+          const seekoEpisodes = walk(seeko.json).slice(0,5);
+          console.log('SEEKO_DETAIL', JSON.stringify({status:seeko.status, episodes:seekoEpisodes}));
+
+          const seasonUrl = `${panelBase}/owner/get/series/season/${seriesId}?page=1`;
+          const panelSeasonGet = await fetchJson(seasonUrl,{headers});
+          const panelSeasonPost = await fetchJson(seasonUrl,{method:'POST',headers,body:JSON.stringify({page:1})});
+          const panelEpisodes = walk(panelSeasonPost.json).slice(0,5);
+          console.log('PANEL_SEASON_GET', JSON.stringify(summary(panelSeasonGet)));
+          console.log('PANEL_SEASON_POST', JSON.stringify({...summary(panelSeasonPost),episodes:panelEpisodes}));
+
+          const lookupBodies = [
+            {query:'',ir:-1,sale_method:-1,payment_method:0,specific_id:seriesId,nodata:1,page:1},
+            {query:'',ir:-1,sale_method:3,payment_method:0,specific_id:seriesId,nodata:1,owner:9194919,page:1}
+          ];
+          for (let i=0;i<lookupBodies.length;i++) {
+            const r=await fetchJson(`${panelBase}/owner/get/series`,{method:'POST',headers,body:JSON.stringify(lookupBodies[i])});
+            const candidates=walk(r.json).slice(0,5);
+            console.log(`PANEL_SERIES_LOOKUP_${i+1}`,JSON.stringify({...summary(r),candidates}));
+          }
+
+          const ids = [...new Set([seekoEpisodes[0]?.id,panelEpisodes[0]?.id].filter(Boolean))];
+          for (const id of ids) {
+            for (const method of ['GET','POST']) {
+              const r=await fetchJson(`${panelBase}/owner/show_links/episode/${encodeURIComponent(id)}`,{
+                method,headers,...(method==='POST'?{body:JSON.stringify({})}:{})
+              });
+              console.log(`SHOW_LINKS_${method}_${id}`,JSON.stringify(summary(r)));
+            }
+          }
+          NODE
