@@ -1,0 +1,42 @@
+name: Verify client Iranian series count
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/verify-client-iranian-count.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Verify mobile client Iranian lane
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const c = JSON.parse(fs.readFileSync('catalog-index.json','utf8'));
+          const items = Array.isArray(c?.items) ? c.items : [];
+          const iranian = items.filter(i => i?.type === 'series' && i?.categoryKeys?.includes('iranian-series'));
+          const targetId = 'ae3ff430-06a7-11ed-871b-e72cbae03849';
+          const target = iranian.find(i => String(i?.id) === targetId);
+          console.log(JSON.stringify({
+            clientItems: items.length,
+            iranianSeries: iranian.length,
+            aftabParastPresent: Boolean(target),
+            aftabParast: target ? {id:target.id,nameFa:target.nameFa,name:target.name,publicationStatus:target.publicationStatus,episodeCount:target.episodeCount} : null,
+            latestIranian: iranian.slice(0,8).map(i => ({id:i.id,nameFa:i.nameFa,name:i.name,publicationStatus:i.publicationStatus,episodeCount:i.episodeCount}))
+          }, null, 2));
+          if (iranian.length < 18 || !target) process.exit(1);
+          NODE
