@@ -4098,7 +4098,11 @@ async function fetchPanelShowLinks(id, type) {
   // but omit the already-known player URL. Because this response is
   // authenticated and scoped to the exact movie/episode id, the canonical Upera
   // /stream route is safe to reconstruct. Never do this without traffic_oo.
-  if (!verified.length && (rootTraffic === 0 || rootTraffic === 1)) {
+  const hasVerifiedPlayablePanelLink = verified.some((link) =>
+    isDirectMediaUrl(link?.link) ||
+    Boolean(operatorPortalDetails(link?.link)?.exactStream),
+  );
+  if (!hasVerifiedPlayablePanelLink && (rootTraffic === 0 || rootTraffic === 1)) {
     verified.push({
       link: `https://aparatchi.upera.tv/stream/${type}/${encodeURIComponent(id)}?ref=${encodeURIComponent(refId)}`,
       title: rootTraffic === 1 ? 'پخش ویژه اینترنت همراه' : 'پخش آنلاین',
