@@ -1,0 +1,64 @@
+name: Fix panel series season POST
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-panel-series-season-post.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 20
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Patch panel season endpoint and regression test
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const sourcePath = 'scripts/sync-upera.mjs';
+          let source = fs.readFileSync(sourcePath, 'utf8');
+          const start = source.indexOf('async function fetchPanelSeriesEpisodes(seriesId)');
+          const end = source.indexOf('\nasync function fetchScopedArchivePage', start);
+          if (start < 0 || end < 0) throw new Error('fetchPanelSeriesEpisodes block not found');
+          let block = source.slice(start, end);
+          const oldCall = '    const json = await fetchPanelJson(url);';
+          const newCall = "    const json = await fetchPanelJson(url, { method: 'POST' });";
+          if (!block.includes(oldCall) && !block.includes(newCall)) throw new Error('panel season fetch call not found');
+          block = block.replace(oldCall, newCall);
+          source = source.slice(0, start) + block + source.slice(end);
+          fs.writeFileSync(sourcePath, source);
+
+          const testPath = 'scripts/tests/user-bugfix-batch.test.mjs';
+          let test = fs.readFileSync(testPath, 'utf8');
+          if (!test.includes('panel series season endpoint uses POST')) {
+            test += `\n\ntest('panel series season endpoint uses POST', () => {\n  const source = fs.readFileSync(new URL('../sync-upera.mjs', import.meta.url), 'utf8');\n  const start = source.indexOf('async function fetchPanelSeriesEpisodes(seriesId)');\n  const end = source.indexOf('\\nasync function fetchScopedArchivePage', start);\n  assert.ok(start >= 0 && end > start);\n  const block = source.slice(start, end);\n  assert.ok(block.includes(\"fetchPanelJson(url, { method: 'POST' })\"));\n  assert.ok(!block.includes('const json = await fetchPanelJson(url);'));\n});\n`;
+            fs.writeFileSync(testPath, test);
+          }
+          NODE
+          node --check scripts/sync-upera.mjs
+          node --test scripts/tests/user-bugfix-batch.test.mjs
+      - name: Commit fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/sync-upera.mjs scripts/tests/user-bugfix-batch.test.mjs
+          if git diff --cached --quiet; then
+            echo 'Already patched.'
+            exit 0
+          fi
+          git commit -m 'fix: use POST for panel series episodes'
+          git pull --rebase origin main
+          git push origin HEAD:main
