@@ -16,7 +16,7 @@ import {
 const API_BASE = 'https://seeko.film/api/v1';
 const PANEL_API_BASE = 'https://panel-api.upera.tv/api/v1';
 const FILIMO_OWNER_ID = 9194919;
-const IRANIAN_SERIES_SCAN_VERSION = 4;
+const IRANIAN_SERIES_SCAN_VERSION = 5;
 const SERIES_COMPLETENESS_AUDIT_VERSION = 2;
 const MEDIA_LANGUAGE_AUDIT_VERSION = 8;
 const IRANIAN_SERIES_REBUILD_VERSION = 1;
@@ -447,6 +447,8 @@ if (!state.iranianSeriesNoProgress || typeof state.iranianSeriesNoProgress !== '
 if (Number(state.iranianSeriesScanVersion || 0) !== IRANIAN_SERIES_SCAN_VERSION) {
   state.iranianSeriesPage = 1;
   state.iranianSeriesOffset = 0;
+  state.iranianSeriesActiveId = '';
+  state.iranianSeriesNoProgress = {};
   state.iranianSeriesScanVersion = IRANIAN_SERIES_SCAN_VERSION;
 }
 state.operatorSeriesPage = positiveInt(state.operatorSeriesPage, 1);
@@ -2380,24 +2382,46 @@ function markSeriesBackfillBlocked(id, detail = {}) {
 }
 
 async function syncIranianSeriesArchive() {
-  // Strict sequential cursor: process ONE title per run and do not advance
-  // until complete. A permanently broken source is hidden and deferred after
-  // bounded attempts so it cannot freeze the whole Iranian queue forever.
-  const maxNoProgress = 3;
+  // This lane discovers one genuinely NEW Iranian series at a time. Existing
+  // titles are skipped in the same invocation instead of wasting an hourly run.
+  const maxNoProgress = 2;
   let pagesVisited = 0;
   const seenPages = new Set();
 
-  while (!affiliateBudgetExhausted && pagesVisited < Math.max(1, iranianSeriesPagesPerRun)) {
+  const suppressed = (candidate, sourceId) => {
+    const identity = normalizeIdentityName(String(candidate?.name_fa || candidate?.nameFa || '') + ' ' + String(candidate?.name || ''));
+    return sourceId === 'f72e7850-344c-11f1-9db2-59adfc143adb' ||
+      identity.includes('peopleofiran') || identity.includes('اهلایران') ||
+      identity.includes('thewesties') || identity.includes('وستیها');
+  };
+
+  const advanceCursor = (page, payload, candidates, nextOffset) => {
+    state.iranianSeriesActiveId = '';
+    state.iranianSeriesOffset = nextOffset;
+    if (nextOffset >= candidates.length) {
+      state.iranianSeriesPage = nextPage(page, payload.lastPage);
+      state.iranianSeriesOffset = 0;
+      stats.iranianSeriesPagesProcessed += 1;
+      pagesVisited += 1;
+    }
+  };
+
+  while (
+    !affiliateBudgetExhausted &&
+    !affiliateScopeExhausted &&
+    pagesVisited < Math.max(1, iranianSeriesPagesPerRun) &&
+    !runTimeBudgetReached('iranian-series-discovery', 65000)
+  ) {
     const page = positiveInt(state.iranianSeriesPage, 1);
-    if (seenPages.has(page)) return;
+    if (seenPages.has(page)) break;
     seenPages.add(page);
 
     let payload;
     try {
       payload = await fetchIranianSeriesPage(page);
     } catch (error) {
-      rememberError(`iranian-series-page-${page}`, error);
-      return;
+      rememberError('iranian-series-page-' + page, error);
+      break;
     }
 
     const candidates = dedupeCandidates(payload.items)
@@ -2405,8 +2429,9 @@ async function syncIranianSeriesArchive() {
     if (!candidates.length) {
       state.iranianSeriesPage = nextPage(page, payload.lastPage);
       state.iranianSeriesOffset = 0;
-      pagesVisited += 1;
+      state.iranianSeriesActiveId = '';
       stats.iranianSeriesPagesProcessed += 1;
+      pagesVisited += 1;
       continue;
     }
 
@@ -2418,121 +2443,137 @@ async function syncIranianSeriesArchive() {
         String(baseCatalogId(entry) || entry?.t_id || entry?.series_id || '') === lockedId,
       );
       if (lockedIndex >= 0) offset = lockedIndex;
-    }
-    const candidate = candidates[offset];
-    const sourceId = String(baseCatalogId(candidate) || candidate?.t_id || candidate?.series_id || '');
-    if (!lockedId && sourceId) state.iranianSeriesActiveId = sourceId;
-    const progressKey = sourceId || `p${page}-o${offset}`;
-    stats.iranianSeriesCandidates += 1;
-
-    let result;
-    try {
-      result = await processSeries(candidate, 'iranian-priority', {
-        requireIranian: true,
-        episodeStrategy: 'latest',
-        episodeLimit: Math.min(120, Math.max(1, priorityEpisodesPerSeries)),
-        onlyMissing: true,
-      });
-    } catch (error) {
-      rememberError(`iranian-series-${progressKey}`, error);
-      result = { added: false, reason: 'request-error', retryLater: false };
+      else state.iranianSeriesActiveId = '';
     }
 
-    const refreshed = items.find((item) =>
-      item?.type === 'series' &&
-      (String(baseCatalogId(item)) === sourceId || String(item.id || '') === sourceId)
-    );
-    const belongsToIranianSeries = Boolean(
-      refreshed &&
-      classifyCatalogRules({ ...refreshed, categoryKeys: [], categoryLabels: [] }).categoryKeys.includes('iranian-series')
-    );
-
-    rememberDiagnostic('iranianSeriesDiagnostics', {
-      id: sourceId,
-      title: cleanText(candidate?.name_fa || candidate?.name || refreshed?.nameFa || refreshed?.name || ''),
-      result: result?.archiveComplete ? 'completed' : result?.added ? 'advanced' : 'rejected',
-      reason: result?.reason || '',
-      addedEpisodes: Number(result?.addedEpisodes || 0),
-      remainingEpisodeCount: Number(result?.remainingEpisodeCount || 0),
-      retryLater: Boolean(result?.retryLater),
-      newlyPublished: Boolean(result?.newlyPublished),
-    });
-
-    // Foreign/documentary/invalid rows do not belong in this queue.
-    if (!belongsToIranianSeries && !result?.retryLater) {
-      delete state.iranianSeriesNoProgress[progressKey];
-      state.iranianSeriesActiveId = '';
-      offset += 1;
-      state.iranianSeriesOffset = offset;
-      if (offset >= candidates.length) {
-        state.iranianSeriesPage = nextPage(page, payload.lastPage);
-        state.iranianSeriesOffset = 0;
-        stats.iranianSeriesPagesProcessed += 1;
-      }
-      await persistSyncCheckpoint(`iranian-skip-${progressKey}`);
-      return;
-    }
-
-    if (
-      refreshed?.archiveComplete === true &&
-      refreshed?.publicationStatus === 'published' &&
-      Number(result?.remainingEpisodeCount || 0) === 0
+    let pageAdvanced = false;
+    while (
+      offset < candidates.length &&
+      !affiliateBudgetExhausted &&
+      !affiliateScopeExhausted &&
+      !runTimeBudgetReached('iranian-series-candidate', 60000)
     ) {
-      delete state.iranianSeriesNoProgress[progressKey];
-      state.iranianSeriesActiveId = '';
-      offset += 1;
-      state.iranianSeriesOffset = offset;
-      if (offset >= candidates.length) {
-        state.iranianSeriesPage = nextPage(page, payload.lastPage);
-        state.iranianSeriesOffset = 0;
-        stats.iranianSeriesPagesProcessed += 1;
+      const candidate = candidates[offset];
+      const sourceId = String(baseCatalogId(candidate) || candidate?.t_id || candidate?.series_id || '');
+      const progressKey = sourceId || ('p' + page + '-o' + offset);
+
+      if (suppressed(candidate, sourceId) || !inferIranian(candidate)) {
+        delete state.iranianSeriesNoProgress[progressKey];
+        advanceCursor(page, payload, candidates, offset + 1);
+        offset = nonNegativeInt(state.iranianSeriesOffset, 0);
+        if (state.iranianSeriesPage !== page) { pageAdvanced = true; break; }
+        continue;
       }
-      await persistSyncCheckpoint(`iranian-complete-${progressKey}`);
-      return;
-    }
 
-    const progressed = Number(result?.addedEpisodes || 0) > 0 || Boolean(result?.added && result?.retryLater);
-    if (progressed || result?.retryLater) {
-      state.iranianSeriesNoProgress[progressKey] = 0;
-      // DO NOT advance offset: next hourly run continues this exact series.
-      await persistSyncCheckpoint(`iranian-progress-${progressKey}`);
-      return;
-    }
+      const existing = findExistingItem(candidate, 'series');
+      const isLocked = Boolean(state.iranianSeriesActiveId && state.iranianSeriesActiveId === sourceId);
+      if (existing && !isLocked) {
+        delete state.iranianSeriesNoProgress[progressKey];
+        advanceCursor(page, payload, candidates, offset + 1);
+        offset = nonNegativeInt(state.iranianSeriesOffset, 0);
+        if (state.iranianSeriesPage !== page) { pageAdvanced = true; break; }
+        continue;
+      }
 
-    const attempts = nonNegativeInt(state.iranianSeriesNoProgress[progressKey], 0) + 1;
-    state.iranianSeriesNoProgress[progressKey] = attempts;
-    if (attempts >= maxNoProgress) {
-      if (refreshed) {
-        replaceItem({
-          ...refreshed,
-          archiveComplete: false,
-          publicationStatus: 'building-archive',
-          visibilityLocked: false,
-          archiveAuditStatus: 'blocked',
-          archiveBlockedReason: result?.reason || 'iranian-no-progress',
-          archiveBlockedAttempts: attempts,
-          archiveBlockedAt: new Date().toISOString(),
+      if (!state.iranianSeriesActiveId && sourceId) state.iranianSeriesActiveId = sourceId;
+      stats.iranianSeriesCandidates += 1;
+
+      let result;
+      try {
+        result = await processSeries(candidate, 'iranian-priority', {
+          requireIranian: true,
+          episodeStrategy: 'latest',
+          episodeLimit: Math.min(120, Math.max(1, priorityEpisodesPerSeries)),
+          onlyMissing: true,
         });
+      } catch (error) {
+        rememberError('iranian-series-' + progressKey, error);
+        result = { added: false, reason: 'request-error', retryLater: false };
       }
-      // Hidden broken title is retried later by repair/backfill lanes; advance
-      // this dedicated discovery queue so the next Iranian title can start.
-      state.iranianSeriesActiveId = '';
-      offset += 1;
-      state.iranianSeriesOffset = offset;
-      if (offset >= candidates.length) {
-        state.iranianSeriesPage = nextPage(page, payload.lastPage);
-        state.iranianSeriesOffset = 0;
-        stats.iranianSeriesPagesProcessed += 1;
+
+      const refreshed = items.find((item) =>
+        item?.type === 'series' &&
+        (String(baseCatalogId(item)) === sourceId || String(item.id || '') === sourceId)
+      );
+      const belongsToIranianSeries = Boolean(
+        refreshed &&
+        classifyCatalogRules({ ...refreshed, categoryKeys: [], categoryLabels: [] }).categoryKeys.includes('iranian-series')
+      );
+      const publishedNow = Boolean(
+        belongsToIranianSeries &&
+        refreshed?.archiveComplete === true &&
+        refreshed?.publicationStatus === 'published' &&
+        Number(result?.remainingEpisodeCount || 0) === 0
+      );
+
+      rememberDiagnostic('iranianSeriesDiagnostics', {
+        id: sourceId,
+        title: cleanText(candidate?.name_fa || candidate?.name || refreshed?.nameFa || refreshed?.name || ''),
+        result: publishedNow ? 'published-new' : result?.added ? 'advanced-new' : 'rejected',
+        reason: result?.reason || '',
+        addedEpisodes: Number(result?.addedEpisodes || 0),
+        remainingEpisodeCount: Number(result?.remainingEpisodeCount || 0),
+        retryLater: Boolean(result?.retryLater),
+        newlyPublished: publishedNow,
+        discovery: 'new-only-country-IR',
+      });
+
+      if (publishedNow) {
+        delete state.iranianSeriesNoProgress[progressKey];
+        advanceCursor(page, payload, candidates, offset + 1);
+        await persistSyncCheckpoint('iranian-published-new-' + progressKey);
+        return true;
       }
-      await persistSyncCheckpoint(`iranian-deferred-${progressKey}`);
-      return;
+
+      const progressed = Boolean(
+        belongsToIranianSeries &&
+        (Number(result?.addedEpisodes || 0) > 0 || (result?.added && refreshed?.publicationStatus === 'building-archive'))
+      );
+      if (progressed || result?.retryLater) {
+        state.iranianSeriesNoProgress[progressKey] = 0;
+        await persistSyncCheckpoint('iranian-progress-new-' + progressKey);
+        return false;
+      }
+
+      const attempts = nonNegativeInt(state.iranianSeriesNoProgress[progressKey], 0) + 1;
+      state.iranianSeriesNoProgress[progressKey] = attempts;
+      const terminal = !belongsToIranianSeries || ['not-iranian', 'no-usable-links', 'missing-detail'].includes(String(result?.reason || ''));
+      if (terminal || attempts >= maxNoProgress) {
+        if (refreshed && belongsToIranianSeries && refreshed.publicationStatus !== 'published') {
+          replaceItem({
+            ...refreshed,
+            archiveComplete: false,
+            publicationStatus: 'building-archive',
+            visibilityLocked: false,
+            archiveAuditStatus: 'blocked',
+            archiveBlockedReason: result?.reason || 'iranian-discovery-no-progress',
+            archiveBlockedAttempts: attempts,
+            archiveBlockedAt: new Date().toISOString(),
+          });
+        }
+        state.iranianSeriesActiveId = '';
+        advanceCursor(page, payload, candidates, offset + 1);
+        offset = nonNegativeInt(state.iranianSeriesOffset, 0);
+        if (state.iranianSeriesPage !== page) { pageAdvanced = true; break; }
+        continue;
+      }
+
+      await persistSyncCheckpoint('iranian-no-progress-new-' + progressKey);
+      return false;
     }
 
-    await persistSyncCheckpoint(`iranian-no-progress-${progressKey}`);
-    return;
+    if (pageAdvanced) continue;
+    if (offset >= candidates.length) {
+      state.iranianSeriesPage = nextPage(page, payload.lastPage);
+      state.iranianSeriesOffset = 0;
+      state.iranianSeriesActiveId = '';
+      stats.iranianSeriesPagesProcessed += 1;
+      pagesVisited += 1;
+    }
   }
-}
 
+  return false;
+}
 async function syncOperatorPriorityDiscovery() {
   // These scopes are deliberately independent from the year-by-year archive
   // queue. Each run advances its own page/offset cursor, so even a very large
@@ -3683,34 +3724,25 @@ async function fetchSeriesPage(page) {
 
 
 async function fetchIranianSeriesPage(page) {
-  // The upstream API has used more than one interpretation for the Persian
-  // filters. Query the known variants and merge them, then let inferIranian
-  // validate the detail record before it is added to the catalog.
+  // Verified against Seeko on 2026-08-31: country=IR is the actual Iranian
+  // archive selector. persian=1 returns the generic media-language feed.
   const variants = [
-    { free: 1, persian: 1, traffic: 1, noFreeFallback: true },
-    { free: '', persian: 1, traffic: 1, noFreeFallback: true },
-    { free: 1, persian: 'true', traffic: 1, noFreeFallback: true },
     { free: 1, persian: '', country: 'IR', traffic: 1, noFreeFallback: true },
-    // Never fall back to the generic foreign feed here. If upstream ignores
-    // the Iranian filters, inferIranian will reject those rows without making
-    // the archive cursor spend hours walking the entire foreign catalog.
+    { free: '', persian: '', country: 'IR', traffic: 1, noFreeFallback: true },
   ];
-
   const results = [];
   for (const filters of variants) {
     try {
       results.push(await fetchScopedArchivePage('series', page, filters));
     } catch (error) {
-      rememberError(`iranian-series-filter-${page}-${JSON.stringify(filters)}`, error);
+      rememberError('iranian-series-filter-' + page + '-' + JSON.stringify(filters), error);
     }
   }
-
   return {
     items: dedupeCandidates(results.flatMap((result) => result.items || [])),
     lastPage: Math.max(1, ...results.map((result) => Number(result.lastPage || 1))),
   };
 }
-
 async function fetchOperatorSeriesPage(page) {
   if (panelToken) return fetchPanelFilimoPage('series', page);
   return fetchScopedArchivePage('series', page, {
