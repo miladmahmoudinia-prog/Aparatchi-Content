@@ -1,0 +1,105 @@
+name: Fix real series player only
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/fix-real-series-player-only.yml'
+permissions:
+  contents: write
+concurrency:
+  group: aparatchi-content-write
+  cancel-in-progress: false
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 40
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Remove synthetic panel playback fallback
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const file = 'scripts/sync-upera.mjs';
+          let source = fs.readFileSync(file,'utf8');
+          const start = source.indexOf('  // Some panel deployments return traffic_oo and title metadata from show_links');
+          const endMarker = '  return uniqueByUrl(verified);\n}';
+          const end = source.indexOf(endMarker, start);
+          if (start < 0 || end < 0) throw new Error('synthetic panel fallback block not found');
+          const replacement = `  // Never manufacture a player URL from traffic_oo alone. show_links can\n  // return only paid upera.shop acquisition links with traffic_oo=0/1. A title\n  // is playable only when the authenticated panel response itself contains an\n  // exact player/stream URL. This prevents purchase pages from masquerading as\n  // online playback in Aparatchi.\n  return uniqueByUrl(verified);\n}`;
+          source = source.slice(0,start) + replacement + source.slice(end + endMarker.length);
+          fs.writeFileSync(file,source);
+          NODE
+          node --check scripts/sync-upera.mjs
+          if grep -Fq 'link: `https://aparatchi.upera.tv/stream/${type}/${encodeURIComponent(id)}' scripts/sync-upera.mjs; then
+            echo 'Synthetic player fallback still exists' >&2
+            exit 1
+          fi
+      - name: Remove false Aftab Parast publication and reset Iranian cursor
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const target='ae3ff430-06a7-11ed-871b-e72cbae03849';
+          const catalog=JSON.parse(fs.readFileSync('catalog.json','utf8'));
+          const before=(catalog.items||[]).length;
+          catalog.items=(catalog.items||[]).filter(i=>String(i?.id)!==target);
+          fs.writeFileSync('catalog.json',JSON.stringify(catalog,null,2)+'\n');
+          const state=JSON.parse(fs.readFileSync('sync-state.json','utf8'));
+          if (String(state.iranianSeriesActiveId||'')===target) state.iranianSeriesActiveId='';
+          if (state.iranianSeriesNoProgress && typeof state.iranianSeriesNoProgress==='object') delete state.iranianSeriesNoProgress[target];
+          // Restart close to the beginning so the corrected player gate re-evaluates candidates deterministically.
+          state.iranianSeriesPage=1;
+          state.iranianSeriesOffset=0;
+          fs.writeFileSync('sync-state.json',JSON.stringify(state,null,2)+'\n');
+          console.log(`Removed false purchase-only publication: ${before-(catalog.items||[]).length}`);
+          NODE
+          node scripts/rebuild-client-catalog.mjs
+      - name: Run Iranian lane with real-player gate
+        timeout-minutes: 18
+        env:
+          UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
+          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
+          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
+          TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN }}
+          UPERA_SYNC_MODE: IRANIAN
+          UPERA_IRANIAN_SERIES_REQUEST_QUOTA: '180'
+          APARATCHI_RUN_TIME_LIMIT_MINUTES: '15'
+          APARATCHI_CHECKPOINT_RESERVE_MS: '60000'
+        run: node scripts/sync-upera.mjs
+      - name: Rebuild and verify no fabricated player leaks
+        run: |
+          node scripts/rebuild-client-catalog.mjs
+          node - <<'NODE'
+          const fs=require('fs');
+          const catalog=JSON.parse(fs.readFileSync('catalog.json','utf8'));
+          const index=JSON.parse(fs.readFileSync('catalog-index.json','utf8'));
+          const target='ae3ff430-06a7-11ed-871b-e72cbae03849';
+          const allFiles=(catalog.items||[]).flatMap(i=>(i.downloads||[]).flatMap(s=>s.files||[]));
+          const synthetic=allFiles.filter(f=>f?.panelVerified===true && /^https:\/\/aparatchi\.upera\.tv\/stream\/(?:episode|movie)\//i.test(String(f?.url||'')));
+          const iranian=(index.items||[]).filter(i=>i?.type==='series'&&i?.categoryKeys?.includes('iranian-series'));
+          const aftab=(index.items||[]).find(i=>String(i?.id)===target);
+          console.log(JSON.stringify({iranianClientCount:iranian.length,aftabVisible:Boolean(aftab),syntheticPanelFiles:synthetic.length,latest:iranian.slice(0,5).map(i=>({id:i.id,nameFa:i.nameFa,episodeCount:i.episodeCount}))},null,2));
+          if (aftab) throw new Error('purchase-only Aftab Parast is still visible');
+          if (synthetic.length) throw new Error('fabricated panel player URLs remain');
+          NODE
+      - name: Run regression tests
+        run: node --test scripts/tests/*.test.mjs
+      - name: Commit corrected source and catalog
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/sync-upera.mjs catalog.json catalog-index.json catalog-bootstrap.json catalog-manifest.json catalog-live.json catalog-live-baseline.json sync-state.json sync-report.json catalog-items catalog-stable assets/media || true
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'fix: require real Upera player for series playback'
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt*2))
+          done
+          exit 1
