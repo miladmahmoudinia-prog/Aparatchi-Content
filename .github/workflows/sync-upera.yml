@@ -183,7 +183,8 @@ jobs:
           }
 
           START_PUBLISHED="$(count_published)"
-          echo "Published Iranian series before: ${START_PUBLISHED}"
+          TARGET_PUBLISHED="$((START_PUBLISHED + 2))"
+          echo "Published Iranian series before: ${START_PUBLISHED}; target: ${TARGET_PUBLISHED}"
 
           RUNTIME_SYNC="scripts/.sync-upera-iranian-runtime.mjs"
           cp scripts/sync-upera.mjs "$RUNTIME_SYNC"
@@ -219,8 +220,8 @@ jobs:
 
             CURRENT_PUBLISHED="$(count_published)"
             echo "Published Iranian series now: ${CURRENT_PUBLISHED} (started ${START_PUBLISHED})"
-            if [ "$CURRENT_PUBLISHED" -gt "$START_PUBLISHED" ]; then
-              echo "Published one Iranian archive series in this hourly run."
+            if [ "$CURRENT_PUBLISHED" -ge "$TARGET_PUBLISHED" ]; then
+              echo "Published two Iranian archive series in this hourly run."
               break
             fi
 
