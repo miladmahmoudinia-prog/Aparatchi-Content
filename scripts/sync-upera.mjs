@@ -25,6 +25,11 @@ const CATALOG_VERSION = '0.25.0-language-operator-artwork-truth';
 const AFFILIATE_URL_KEYS = [
   'link', 'url', 'href', 'download_url', 'downloadUrl', 'download_link', 'downloadLink',
   'stream_url', 'streamUrl', 'stream_link', 'streamLink', 'file_url', 'fileUrl', 'file',
+  // The owner panel exposes free extensionless playback under these keys.
+  // iframe/embed URLs are extracted too, then deliberately rejected by the
+  // HLS validator so only the actual player redirect survives.
+  'hls', 'hls_url', 'hlsUrl', 'player', 'player_url', 'playerUrl',
+  'iframe', 'iframe_url', 'iframeUrl', 'embed', 'embed_url', 'embedUrl',
 ];
 
 const PERSIAN_EPISODE_ORDINAL = '(?:اول|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم|دهم|یازدهم|دوازدهم|سیزدهم|چهاردهم|پانزدهم|شانزدهم|هفدهم|هجدهم|نوزدهم|بیستم|بیست\\s*و\\s*(?:یکم|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم)|سی\\s*و\\s*(?:یکم|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم)|آخر|پایانی|\\d{1,4})';
