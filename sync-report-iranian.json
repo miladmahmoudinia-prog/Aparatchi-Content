@@ -1,13 +1,13 @@
 {
-  "startedAt": "2026-09-01T00:52:07.553Z",
+  "startedAt": "2026-09-01T06:45:33.248Z",
   "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-09-01T01:02:05.944Z",
+  "runDeadlineAt": "2026-09-01T06:55:31.533Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 560803,
+  "remainingRunMsAtFinish": 532802,
   "imageMirroringSkipped": true,
-  "originalCount": 7662,
-  "finalCount": 7663,
+  "originalCount": 7682,
+  "finalCount": 7683,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
   "backfillQueueTotal": 184,
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 180,
-      "used": 11,
+      "used": 23,
       "exhausted": false
     }
   },
@@ -63,7 +63,7 @@
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 1,
-  "episodesProcessed": 11,
+  "episodesProcessed": 23,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 1,
   "iranianSeriesAddedOrUpdated": 1,
@@ -79,14 +79,14 @@
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 12,
+  "duplicateCatalogItemsMerged": 13,
   "iranianSeriesDiagnostics": [
     {
-      "id": "f2f5b9a0-d800-11ec-a24a-b5f5dfe3a598",
-      "title": "شهرک کلیله و دمنه (+۱۵)",
+      "id": "557f5290-f866-11eb-b77f-11a4e2147ac1",
+      "title": "خاتون",
       "result": "published-new",
       "reason": "added-or-updated",
-      "addedEpisodes": 11,
+      "addedEpisodes": 23,
       "remainingEpisodeCount": 0,
       "retryLater": false,
       "newlyPublished": true,
@@ -96,23 +96,23 @@
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "f2f5b9a0-d800-11ec-a24a-b5f5dfe3a598",
-      "title": "شهرک کلیله و دمنه (+۱۵)",
+      "seriesId": "557f5290-f866-11eb-b77f-11a4e2147ac1",
+      "title": "خاتون",
       "source": "iranian-priority",
-      "discoveredEpisodeCount": 11,
-      "catalogEpisodeCount": 11,
+      "discoveredEpisodeCount": 23,
+      "catalogEpisodeCount": 23,
       "missing": [],
       "rejectedEpisodes": []
     }
   ],
   "catalogEpisodeGapDiagnostics": [
     {
-      "seriesId": "d37fbe40-6009-11ed-b713-8d57f0175080",
-      "title": "بلیز و ماشین های هیولایی",
+      "seriesId": "88c59200-895d-11f0-8c7b-8d0be9327ffe",
+      "title": "سرنوشت/عجیب و غریب جعلی",
       "missing": [
         {
-          "seasonNumber": 3,
-          "episodeNumber": 16
+          "seasonNumber": 1,
+          "episodeNumber": 9
         }
       ],
       "pendingEpisodeCount": 0,
@@ -135,18 +135,32 @@
       "isAiring": true
     },
     {
-      "seriesId": "88c59200-895d-11f0-8c7b-8d0be9327ffe",
-      "title": "سرنوشت/عجیب و غریب جعلی",
+      "seriesId": "d37fbe40-6009-11ed-b713-8d57f0175080",
+      "title": "بلیز و ماشین های هیولایی",
       "missing": [
         {
-          "seasonNumber": 1,
-          "episodeNumber": 9
+          "seasonNumber": 3,
+          "episodeNumber": 16
         }
       ],
       "pendingEpisodeCount": 0,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
+    },
+    {
+      "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
+      "title": "باب اسفنجی شلوار مکعبی",
+      "missing": [
+        {
+          "seasonNumber": 13,
+          "episodeNumber": 9
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
     },
     {
       "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
@@ -256,7 +270,7 @@
       "pendingEpisodeCount": 1,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
-      "isAiring": false
+      "isAiring": true
     },
     {
       "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
@@ -266,20 +280,6 @@
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": true
-    },
-    {
-      "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
-      "title": "باب اسفنجی شلوار مکعبی",
-      "missing": [
-        {
-          "seasonNumber": 13,
-          "episodeNumber": 9
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
     },
     {
       "seriesId": "1c420950-f150-11ec-b618-911bca52bf97",
@@ -854,9 +854,13 @@
         {
           "seasonNumber": 1,
           "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 17
         }
       ],
-      "pendingEpisodeCount": 5,
+      "pendingEpisodeCount": 2,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
@@ -1053,7 +1057,7 @@
     },
     {
       "seriesId": "d5ec9060-37af-11f0-86d2-63d2cfdea9ad",
-      "title": "نه پازل",
+      "title": "نُه پازل",
       "missing": [],
       "pendingEpisodeCount": 1,
       "publicationStatus": "published",
@@ -1062,7 +1066,7 @@
     },
     {
       "seriesId": "18f98b40-5c9c-11f0-888c-01b327a09a15",
-      "title": "آیرون هارت",
+      "title": "قلب آهنین",
       "missing": [],
       "pendingEpisodeCount": 1,
       "publicationStatus": "published",
@@ -1249,8 +1253,8 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 29,
-  "episodeGroupsAdded": 11,
+  "episodesDiscovered": 41,
+  "episodeGroupsAdded": 23,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
@@ -1258,9 +1262,9 @@
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
   "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 11,
+  "affiliateRequests": 23,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 11,
+  "affiliateNotFound": 23,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1295,9 +1299,9 @@
   "removedWithoutFreeLinks": 0,
   "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 25,
-  "lastCheckpointAt": "2026-09-01T00:52:33.379Z",
-  "lastCheckpointReason": "iranian-published-new-f2f5b9a0-d800-11ec-a24a-b5f5dfe3a598",
-  "remainingRunMsAtCheckpoint": 569133,
-  "finishedAt": "2026-09-01T00:52:45.141Z"
+  "apiRequests": 49,
+  "lastCheckpointAt": "2026-09-01T06:46:26.133Z",
+  "lastCheckpointReason": "iranian-published-new-557f5290-f866-11eb-b77f-11a4e2147ac1",
+  "remainingRunMsAtCheckpoint": 541659,
+  "finishedAt": "2026-09-01T06:46:38.731Z"
 }
