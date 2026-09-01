@@ -958,6 +958,11 @@ if (effectiveSyncMode === 'PEOPLE') {
     'iranian-series',
     iranianSeriesRequestQuota,
     async () => {
+      // Finish ordinary Iranian series that already have real direct media
+      // before scanning more new titles. These partial archives were previously
+      // skipped forever because the discovery lane ignored every existing item.
+      await syncIranianIncompleteSeries();
+      if (affiliateBudgetExhausted || affiliateScopeExhausted) return;
       await syncRecentIranianSeriesDiscovery();
       // Recent airing updates and sequential archive publication have separate
       // responsibilities. A harmless page-one refresh must never starve the
@@ -2379,6 +2384,100 @@ function markSeriesBackfillBlocked(id, detail = {}) {
     archiveBlockedPending: nonNegativeInt(detail.pending, 0),
     archiveBlockedAt: new Date().toISOString(),
   });
+}
+
+async function syncIranianIncompleteSeries() {
+  const candidates = items
+    .filter((item) =>
+      item?.type === 'series' &&
+      effectiveIranianIdentity(item) &&
+      !item?.isDocumentary &&
+      item?.contentKind !== 'documentary' &&
+      item?.publicationStatus !== 'published' &&
+      seriesArchiveDeficit(item).total > 0 &&
+      (
+        catalogHasDownload(item) ||
+        catalogHasPublicPlayback(item)
+      ),
+    )
+    .sort((a, b) => {
+      const deficit = seriesArchiveDeficit(a).total - seriesArchiveDeficit(b).total;
+      if (deficit) return deficit;
+      return String(a?.updatedAt || '').localeCompare(String(b?.updatedAt || ''));
+    });
+
+  let completed = 0;
+  for (const candidate of candidates) {
+    if (
+      completed >= 2 ||
+      affiliateBudgetExhausted ||
+      affiliateScopeExhausted ||
+      runTimeBudgetReached('iranian-incomplete-series', 65000)
+    ) break;
+
+    const id = String(candidate.id || '');
+    const before = seriesArchiveDeficit(candidate);
+    const remainingBudget = Math.max(0, maxAffiliateRequests - affiliateRequestsUsed);
+    if (!id || remainingBudget <= 1) break;
+
+    let result;
+    try {
+      result = await processSeries(
+        { id, type: 'series' },
+        'fast-backfill',
+        {
+          episodeStrategy: 'latest',
+          episodeLimit: Math.max(1, Math.min(
+            priorityEpisodesPerSeries,
+            120,
+            remainingBudget - 1,
+          )),
+          onlyMissing: true,
+          requireIranian: true,
+        },
+      );
+    } catch (error) {
+      rememberError('iranian-incomplete-' + id, error);
+      continue;
+    }
+
+    const refreshed = items.find((item) =>
+      item?.type === 'series' && String(item.id) === id,
+    );
+    const after = seriesArchiveDeficit(refreshed);
+    const published = Boolean(
+      refreshed?.archiveComplete === true &&
+      refreshed?.publicationStatus === 'published' &&
+      after.total === 0
+    );
+
+    rememberDiagnostic('iranianSeriesDiagnostics', {
+      id,
+      title: refreshed?.nameFa || refreshed?.name || candidate?.nameFa || candidate?.name || id,
+      result: published ? 'published-existing' : after.total < before.total ? 'advanced-existing' : 'no-progress-existing',
+      reason: result?.reason || '',
+      addedEpisodes: Number(result?.addedEpisodes || 0),
+      remainingEpisodeCount: after.total,
+      retryLater: Boolean(result?.retryLater),
+      newlyPublished: published,
+      discovery: 'existing-incomplete-first',
+    });
+
+    if (published) {
+      completed += 1;
+      await persistSyncCheckpoint('iranian-existing-published-' + id);
+      continue;
+    }
+
+    if (after.total < before.total || Number(result?.addedEpisodes || 0) > 0) {
+      await persistSyncCheckpoint('iranian-existing-progress-' + id);
+      // Keep the remaining hourly budget on this exact archive next run rather
+      // than spreading one episode across several different series.
+      break;
+    }
+  }
+
+  return completed;
 }
 
 async function syncIranianSeriesArchive() {
