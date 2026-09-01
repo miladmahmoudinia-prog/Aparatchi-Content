@@ -4094,22 +4094,11 @@ async function fetchPanelShowLinks(id, type) {
     };
   }).filter((link) => Number(link._traffic_oo) === 0 || Number(link._traffic_oo) === 1);
 
-  // Some panel deployments return traffic_oo and title metadata from show_links
-  // but omit the already-known player URL. Because this response is
-  // authenticated and scoped to the exact movie/episode id, the canonical Upera
-  // /stream route is safe to reconstruct. Never do this without traffic_oo.
-  const hasVerifiedPlayablePanelLink = verified.some((link) =>
-    isDirectMediaUrl(link?.link) ||
-    Boolean(operatorPortalDetails(link?.link)?.exactStream),
-  );
-  if (!hasVerifiedPlayablePanelLink && (rootTraffic === 0 || rootTraffic === 1)) {
-    verified.push({
-      link: `https://aparatchi.upera.tv/stream/${type}/${encodeURIComponent(id)}?ref=${encodeURIComponent(refId)}`,
-      title: rootTraffic === 1 ? 'پخش ویژه اینترنت همراه' : 'پخش آنلاین',
-      _panel_verified: true,
-      _traffic_oo: rootTraffic,
-    });
-  }
+  // Never manufacture a player URL from traffic_oo alone. show_links can
+  // return only paid upera.shop acquisition links with traffic_oo=0/1. A title
+  // is playable only when the authenticated panel response itself contains an
+  // exact player/stream URL. This prevents purchase pages from masquerading as
+  // online playback in Aparatchi.
   return uniqueByUrl(verified);
 }
 

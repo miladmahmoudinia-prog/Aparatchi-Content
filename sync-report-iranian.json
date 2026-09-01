@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-09-01T20:13:35.926Z",
-  "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-09-01T20:23:34.241Z",
+  "startedAt": "2026-09-01T21:31:01.504Z",
+  "runTimeLimitMinutes": 15,
+  "runDeadlineAt": "2026-09-01T21:45:59.775Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 548740,
-  "imageMirroringSkipped": true,
+  "remainingRunMsAtFinish": 684550,
+  "imageMirroringSkipped": false,
   "originalCount": 7734,
-  "finalCount": 7735,
+  "finalCount": 7739,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
-  "backfillQueueTotal": 187,
-  "backfillBacklogRemaining": 187,
+  "backfillQueueTotal": 194,
+  "backfillBacklogRemaining": 195,
   "backfillBlockedTotal": 13,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
@@ -19,7 +19,7 @@
   "backfillEpisodesAdded": 0,
   "backfillSeriesVisited": 0,
   "backfillCheckpoints": 1,
-  "episodesMarkedUnavailable": 0,
+  "episodesMarkedUnavailable": 23,
   "backfillNoProgressRuns": 0,
   "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
@@ -41,13 +41,23 @@
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
   "affiliateRequestScopes": {
+    "operator-movies": {
+      "limit": 8,
+      "used": 8,
+      "exhausted": false
+    },
+    "operator-series": {
+      "limit": 9,
+      "used": 9,
+      "exhausted": true
+    },
     "iranian-series": {
       "limit": 180,
-      "used": 14,
+      "used": 38,
       "exhausted": false
     }
   },
-  "skippedByScopedBudget": 0,
+  "skippedByScopedBudget": 1,
   "moviePagesProcessed": 0,
   "movieTitlesProcessed": 0,
   "seriesPagesProcessed": 0,
@@ -58,47 +68,270 @@
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 0,
+  "seriesHiddenUntilComplete": 2,
   "seriesPublishedAfterCompletion": 1,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 1,
-  "episodesProcessed": 14,
+  "episodesProcessed": 49,
   "iranianSeriesPagesProcessed": 0,
-  "iranianSeriesCandidates": 1,
-  "iranianSeriesAddedOrUpdated": 1,
+  "iranianSeriesCandidates": 4,
+  "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
-  "iranianSeriesRejectedNoLinks": 0,
+  "iranianSeriesRejectedNoLinks": 3,
   "operatorSeriesPagesProcessed": 0,
-  "operatorSeriesCandidates": 0,
+  "operatorSeriesCandidates": 2,
   "operatorSeriesAddedOrUpdated": 0,
   "operatorSeriesRejectedNoOperatorLink": 0,
-  "operatorMoviePagesProcessed": 0,
-  "operatorMovieCandidates": 0,
-  "operatorMoviesAddedOrUpdated": 0,
+  "operatorMoviePagesProcessed": 1,
+  "operatorMovieCandidates": 8,
+  "operatorMoviesAddedOrUpdated": 1,
   "operatorMoviesRejectedNoOperatorLink": 0,
-  "operatorLinksFound": 0,
+  "operatorLinksFound": 1,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 13,
+  "duplicateCatalogItemsMerged": 0,
   "iranianSeriesDiagnostics": [
     {
-      "id": "18251290-da09-11ee-a182-21611e376633",
-      "title": "افعی تهران",
-      "result": "published-new",
+      "id": "f72e7850-344c-11f1-9db2-59adfc143adb",
+      "title": "اهل ایران",
+      "result": "completed",
       "reason": "added-or-updated",
       "addedEpisodes": 14,
       "remainingEpisodeCount": 0,
       "retryLater": false,
       "newlyPublished": true,
+      "meaningfulProgress": true,
+      "discovery": "recent-page-1"
+    },
+    {
+      "id": "83875e00-8f4f-11f1-ae48-9967235ecf21",
+      "title": "اعتراف می کنم",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "60e0aa90-669c-11f1-8f25-3b03c468e47b",
+      "title": "درجام",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "bcb446f0-6a30-11f1-afa4-3998b7c71390",
+      "title": "کوری",
+      "result": "rejected",
+      "reason": "request-budget",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": true,
+      "newlyPublished": false,
       "discovery": "new-only-country-IR"
     }
   ],
-  "operatorDiagnostics": [],
+  "operatorDiagnostics": [
+    {
+      "type": "movie",
+      "id": "e28713b0-013e-11f1-a699-855803c5a952",
+      "title": "اسکوب",
+      "result": "rejected",
+      "reason": "existing-public-title-already-complete",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "f726b2b0-013e-11f1-aca1-a153f726c5ee",
+      "title": "کاپون",
+      "result": "rejected",
+      "reason": "existing-public-title-already-complete",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "1839e630-013f-11f1-ba41-a70d9d6666ac",
+      "title": "زمان شکار",
+      "result": "rejected",
+      "reason": "existing-public-title-already-complete",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "1afceed0-013f-11f1-b1af-f71ebf5193e1",
+      "title": "مورتال کمبت: انتقام اسکورپیون",
+      "result": "added-or-updated",
+      "reason": "added-or-updated",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "233df920-013f-11f1-850e-8de8d6299140",
+      "title": "موزلی",
+      "result": "rejected",
+      "reason": "existing-public-title-already-complete",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "2acdd700-013f-11f1-9507-dd9c0008d4d9",
+      "title": "پل خواب",
+      "result": "added-or-updated",
+      "reason": "added-or-updated",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "3e40b040-013f-11f1-9032-6f144335e23b",
+      "title": "الا بلا بینگو",
+      "result": "rejected",
+      "reason": "existing-public-title-already-complete",
+      "retryLater": false
+    },
+    {
+      "type": "movie",
+      "id": "49ecb570-013f-11f1-a2da-999e4289e579",
+      "title": "ایپ من ۴: نهایی",
+      "result": "added-or-updated",
+      "reason": "added-or-updated",
+      "retryLater": false
+    },
+    {
+      "type": "series",
+      "id": "bfcbf8b0-00ff-11f1-96bd-c7743ad96446",
+      "title": "دردویل: تولدی دوباره",
+      "result": "added-or-updated",
+      "reason": "added-or-updated",
+      "retryLater": false
+    },
+    {
+      "type": "series",
+      "id": "d50aa1b0-00ff-11f1-a6f6-af1886bee3ad",
+      "title": "حماسه وینگ فدر",
+      "result": "added-or-updated",
+      "reason": "added-or-updated",
+      "retryLater": true
+    }
+  ],
   "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "18251290-da09-11ee-a182-21611e376633",
-      "title": "افعی تهران",
-      "source": "iranian-priority",
+      "seriesId": "bfcbf8b0-00ff-11f1-96bd-c7743ad96446",
+      "title": "دردویل: تولدی دوباره",
+      "source": "operator-priority",
+      "discoveredEpisodeCount": 14,
+      "catalogEpisodeCount": 6,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 6
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 7
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 8
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "d50aa1b0-00ff-11f1-a6f6-af1886bee3ad",
+      "title": "حماسه وینگ فدر",
+      "source": "operator-priority",
+      "discoveredEpisodeCount": 17,
+      "catalogEpisodeCount": 3,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 6
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 7
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 6
+        }
+      ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "f72e7850-344c-11f1-9db2-59adfc143adb",
+      "title": "اهل ایران",
+      "source": "iranian-recent",
       "discoveredEpisodeCount": 14,
       "catalogEpisodeCount": 14,
       "missing": [],
@@ -106,6 +339,15 @@
     }
   ],
   "catalogEpisodeGapDiagnostics": [
+    {
+      "seriesId": "18251290-da09-11ee-a182-21611e376633",
+      "title": "افعی تهران",
+      "missing": [],
+      "pendingEpisodeCount": 14,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
     {
       "seriesId": "88c59200-895d-11f0-8c7b-8d0be9327ffe",
       "title": "سرنوشت/عجیب و غریب جعلی",
@@ -153,6 +395,24 @@
       "isAiring": true
     },
     {
+      "seriesId": "f2f5b9a0-d800-11ec-a24a-b5f5dfe3a598",
+      "title": "شهرک کلیله و دمنه (+۱۵)",
+      "missing": [],
+      "pendingEpisodeCount": 11,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "ef2e4e90-e255-11ed-ae6a-a92a470ea4c2",
+      "title": "ناتو",
+      "missing": [],
+      "pendingEpisodeCount": 22,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
       "seriesId": "5a181d30-602d-11ed-91cf-e3497a0eb443",
       "title": "کهکشان بوبوی بوی",
       "missing": [
@@ -177,6 +437,33 @@
       ],
       "pendingEpisodeCount": 0,
       "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "448bb330-5cec-11ee-942a-5d812a5a8ad7",
+      "title": "پشت صحنه سریال پوست شیر",
+      "missing": [],
+      "pendingEpisodeCount": 2,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
+      "seriesId": "557f5290-f866-11eb-b77f-11a4e2147ac1",
+      "title": "خاتون",
+      "missing": [],
+      "pendingEpisodeCount": 23,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
+      "seriesId": "d5ffa660-8fa6-11eb-8f45-13f94a7b610e",
+      "title": "هفت خان",
+      "missing": [],
+      "pendingEpisodeCount": 40,
+      "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
     },
@@ -785,6 +1072,60 @@
       "isAiring": false
     },
     {
+      "seriesId": "bfcbf8b0-00ff-11f1-96bd-c7743ad96446",
+      "title": "دردویل: تولدی دوباره",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 6
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 7
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 8
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 3
+        }
+      ],
+      "pendingEpisodeCount": 8,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
       "seriesId": "07df50f0-46b6-11f1-9868-31bc2bdb9b3b",
       "title": "زیرزمین",
       "missing": [],
@@ -848,40 +1189,17 @@
       "isAiring": false
     },
     {
+      "seriesId": "d50aa1b0-00ff-11f1-a6f6-af1886bee3ad",
+      "title": "حماسه وینگ فدر",
+      "missing": [],
+      "pendingEpisodeCount": 14,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
       "seriesId": "e490cd80-00ff-11f1-a4ff-e38da3bbc92a",
       "title": "همسایه های فرشته: آرزویی جدید",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 5
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 7
-        }
-      ],
-      "pendingEpisodeCount": 1,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "c314eb20-00ff-11f1-a8fd-8730e9aafe0f",
-      "title": "فرصت های زندگی",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 11
-        }
-      ],
-      "pendingEpisodeCount": 1,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "bfcbf8b0-00ff-11f1-96bd-c7743ad96446",
-      "title": "دردویل: تولدی دوباره",
       "missing": [],
       "pendingEpisodeCount": 7,
       "publicationStatus": "building-archive",
@@ -889,19 +1207,28 @@
       "isAiring": false
     },
     {
+      "seriesId": "c314eb20-00ff-11f1-a8fd-8730e9aafe0f",
+      "title": "فرصت های زندگی",
+      "missing": [],
+      "pendingEpisodeCount": 16,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
+      "seriesId": "ca685620-00ff-11f1-84a7-79160442117e",
+      "title": "ضامن",
+      "missing": [],
+      "pendingEpisodeCount": 8,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
       "seriesId": "1920b500-00fe-11f1-a6e4-7dfb869810ad",
       "title": "آنه شرلی",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 4
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 17
-        }
-      ],
-      "pendingEpisodeCount": 2,
+      "missing": [],
+      "pendingEpisodeCount": 20,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
@@ -1173,116 +1500,29 @@
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
-    },
-    {
-      "seriesId": "6ea64180-5394-11ed-a110-bd6818753d57",
-      "title": "داینوفروز",
-      "missing": [
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 5
-        }
-      ],
-      "pendingEpisodeCount": 17,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "fce1fe90-68d4-11ed-a21e-5b899e0585f6",
-      "title": "ربات و هیولا",
-      "missing": [],
-      "pendingEpisodeCount": 14,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "181332c0-6804-11ed-93b1-9dc3eec15084",
-      "title": "کلانتر کلی",
-      "missing": [],
-      "pendingEpisodeCount": 10,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "92298d50-7d68-11ee-a0a4-7fcb67e9a4e0",
-      "title": "گروه گاراژی",
-      "missing": [],
-      "pendingEpisodeCount": 16,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "a9b1f030-c042-11ed-98d3-039c87d7e9e9",
-      "title": "اردوگاه لیک‌باتم",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 7
-        }
-      ],
-      "pendingEpisodeCount": 93,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "d4ce3f00-4759-11ed-8196-336b3b0c607a",
-      "title": "باتراسنایک ها و گامبل ها",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 11
-        }
-      ],
-      "pendingEpisodeCount": 15,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "d40b1030-74e3-11ed-b0eb-1d56624f5825",
-      "title": "پن زیرو: قهرمان پاره وقت",
-      "missing": [],
-      "pendingEpisodeCount": 29,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "c6efb850-4d5a-11ed-a043-9d98fb02c8e6",
-      "title": "بینگ",
-      "missing": [],
-      "pendingEpisodeCount": 68,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
     }
   ],
-  "episodesDiscovered": 32,
-  "episodeGroupsAdded": 14,
+  "episodesDiscovered": 118,
+  "episodeGroupsAdded": 23,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 0,
-  "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 14,
+  "episodesRejectedNoLinks": 24,
+  "moviesAddedOrUpdated": 3,
+  "seriesAddedOrUpdated": 3,
+  "affiliateRequests": 55,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 14,
+  "affiliateNotFound": 24,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
-  "skippedByBudget": 0,
-  "imagesMirrored": 0,
+  "skippedByBudget": 1,
+  "imagesMirrored": 17,
   "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
-  "episodeFrameErrors": 0,
+  "episodeFrameErrors": 1,
   "seriesKeptVisibleDuringBackfill": 0,
-  "seriesRestoredByMonotonicGuard": 3,
+  "seriesRestoredByMonotonicGuard": 1,
   "peopleEnrichmentCandidates": 0,
   "peopleEnrichmentProcessed": 0,
   "peopleEnrichmentSucceeded": 0,
@@ -1306,11 +1546,56 @@
   "mediaHealthUnknown": 0,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [],
+  "errors": [
+    {
+      "scope": "panel-movie-detail-e28713b0-013e-11f1-a699-855803c5a952",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/e28713b0-013e-11f1-a699-855803c5a952"
+    },
+    {
+      "scope": "panel-movie-detail-f726b2b0-013e-11f1-aca1-a153f726c5ee",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/f726b2b0-013e-11f1-aca1-a153f726c5ee"
+    },
+    {
+      "scope": "panel-movie-detail-1839e630-013f-11f1-ba41-a70d9d6666ac",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/1839e630-013f-11f1-ba41-a70d9d6666ac"
+    },
+    {
+      "scope": "panel-movie-detail-1afceed0-013f-11f1-b1af-f71ebf5193e1",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/1afceed0-013f-11f1-b1af-f71ebf5193e1"
+    },
+    {
+      "scope": "panel-movie-detail-233df920-013f-11f1-850e-8de8d6299140",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/233df920-013f-11f1-850e-8de8d6299140"
+    },
+    {
+      "scope": "panel-movie-detail-2acdd700-013f-11f1-9507-dd9c0008d4d9",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/2acdd700-013f-11f1-9507-dd9c0008d4d9"
+    },
+    {
+      "scope": "panel-movie-detail-3e40b040-013f-11f1-9032-6f144335e23b",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/3e40b040-013f-11f1-9032-6f144335e23b"
+    },
+    {
+      "scope": "panel-movie-detail-49ecb570-013f-11f1-a2da-999e4289e579",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/49ecb570-013f-11f1-a2da-999e4289e579"
+    },
+    {
+      "scope": "panel-series-detail-bfcbf8b0-00ff-11f1-96bd-c7743ad96446",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/bfcbf8b0-00ff-11f1-96bd-c7743ad96446?affiliate=1"
+    },
+    {
+      "scope": "panel-series-detail-d50aa1b0-00ff-11f1-a6f6-af1886bee3ad",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d50aa1b0-00ff-11f1-a6f6-af1886bee3ad?affiliate=1"
+    },
+    {
+      "scope": "episode-frame-f72e7850-344c-11f1-9db2-59adfc143adb-14",
+      "message": "spawn ffmpeg ENOENT"
+    }
+  ],
   "errorsTruncated": 0,
-  "apiRequests": 31,
-  "lastCheckpointAt": "2026-09-01T20:14:13.145Z",
-  "lastCheckpointReason": "iranian-published-new-18251290-da09-11ee-a182-21611e376633",
-  "remainingRunMsAtCheckpoint": 557556,
-  "finishedAt": "2026-09-01T20:14:25.501Z"
+  "apiRequests": 134,
+  "lastCheckpointAt": "2026-09-01T21:34:20.970Z",
+  "lastCheckpointReason": "iranian-progress-new-bcb446f0-6a30-11f1-afa4-3998b7c71390",
+  "remainingRunMsAtCheckpoint": 694917,
+  "finishedAt": "2026-09-01T21:34:35.225Z"
 }
