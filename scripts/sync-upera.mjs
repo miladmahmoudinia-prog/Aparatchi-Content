@@ -4464,6 +4464,22 @@ function reconcileUperaLanguageLinks(links) {
   return list;
 }
 
+function isDeclaredHlsLink(link) {
+  if (!link || !isHttp(link.link) || operatorPortalDetails(link.link)) return false;
+  let url;
+  try {
+    url = new URL(link.link);
+  } catch {
+    return false;
+  }
+  const trustedHost = /(^|\.)upera\.tv$/i.test(url.hostname);
+  const path = decodeURIComponent(url.pathname || '');
+  if (!trustedHost || /(^|\/)embed(?:\/|$)/i.test(path)) return false;
+  // Upera's free-link tab labels these extensionless player redirects as HLS.
+  // They resolve to the actual stream and must be preserved as play-only media.
+  return /(^|\s)hls(?:\s|$)|پخش\s*آنلاین|online\s*play/i.test(mediaLinkDescriptor(link));
+}
+
 function isLikelyDownloadableAffiliateLink(link) {
   return isDownloadableMediaUrl(link?.link);
 }
@@ -4535,7 +4551,7 @@ function parseMediaLinks(links, primaryLanguage = '') {
     // when the provider omitted the amount field. Never fall back to paid.
     const preferred = free.length
       ? free
-      : unknown.filter((link) => isDirectMediaUrl(link.link));
+      : unknown.filter((link) => isDirectMediaUrl(link.link) || isDeclaredHlsLink(link));
     if (!preferred.length) continue;
 
     const files = [];
@@ -4547,8 +4563,11 @@ function parseMediaLinks(links, primaryLanguage = '') {
         file = toDownloadFile(link, 'download');
         hasFreeAcquisition = true;
         if (/\.mp4(?:$|[?#])/i.test(link.link)) freePlayableMp4.push(link);
-      } else if (isPlayableMediaUrl(link.link) && /\.m3u8(?:$|[?#])/i.test(link.link)) {
-        // HLS is a play source, not a download action.
+      } else if (
+        (isPlayableMediaUrl(link.link) && /\.m3u8(?:$|[?#])/i.test(link.link)) ||
+        isDeclaredHlsLink(link)
+      ) {
+        // HLS, including Upera's extensionless redirect, is play-only media.
         file = toDownloadFile(link, 'play');
         freeHls.push(link);
         hasFreeAcquisition = true;
