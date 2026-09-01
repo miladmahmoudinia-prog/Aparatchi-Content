@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-09-01T12:51:10.499Z",
+  "startedAt": "2026-09-01T17:32:27.922Z",
   "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-09-01T13:01:08.849Z",
+  "runDeadlineAt": "2026-09-01T17:42:26.240Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 577236,
+  "remainingRunMsAtFinish": 533680,
   "imageMirroringSkipped": true,
-  "originalCount": 7702,
-  "finalCount": 7703,
+  "originalCount": 7715,
+  "finalCount": 7716,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
-  "backfillQueueTotal": 185,
-  "backfillBacklogRemaining": 185,
+  "backfillQueueTotal": 186,
+  "backfillBacklogRemaining": 186,
   "backfillBlockedTotal": 13,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 180,
-      "used": 2,
+      "used": 22,
       "exhausted": false
     }
   },
@@ -63,7 +63,7 @@
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 1,
-  "episodesProcessed": 2,
+  "episodesProcessed": 22,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 1,
   "iranianSeriesAddedOrUpdated": 1,
@@ -82,11 +82,11 @@
   "duplicateCatalogItemsMerged": 13,
   "iranianSeriesDiagnostics": [
     {
-      "id": "448bb330-5cec-11ee-942a-5d812a5a8ad7",
-      "title": "پشت صحنه سریال پوست شیر",
+      "id": "ef2e4e90-e255-11ed-ae6a-a92a470ea4c2",
+      "title": "ناتو",
       "result": "published-new",
       "reason": "added-or-updated",
-      "addedEpisodes": 2,
+      "addedEpisodes": 22,
       "remainingEpisodeCount": 0,
       "retryLater": false,
       "newlyPublished": true,
@@ -96,30 +96,16 @@
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "448bb330-5cec-11ee-942a-5d812a5a8ad7",
-      "title": "پشت صحنه سریال پوست شیر",
+      "seriesId": "ef2e4e90-e255-11ed-ae6a-a92a470ea4c2",
+      "title": "ناتو",
       "source": "iranian-priority",
-      "discoveredEpisodeCount": 2,
-      "catalogEpisodeCount": 2,
+      "discoveredEpisodeCount": 22,
+      "catalogEpisodeCount": 22,
       "missing": [],
       "rejectedEpisodes": []
     }
   ],
   "catalogEpisodeGapDiagnostics": [
-    {
-      "seriesId": "5a181d30-602d-11ed-91cf-e3497a0eb443",
-      "title": "کهکشان بوبوی بوی",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 1
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
     {
       "seriesId": "88c59200-895d-11f0-8c7b-8d0be9327ffe",
       "title": "سرنوشت/عجیب و غریب جعلی",
@@ -135,16 +121,26 @@
       "isAiring": true
     },
     {
-      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
-      "title": "قهرمان درون",
+      "seriesId": "5a181d30-602d-11ed-91cf-e3497a0eb443",
+      "title": "کهکشان بوبوی بوی",
       "missing": [
         {
           "seasonNumber": 1,
-          "episodeNumber": 4
-        },
+          "episodeNumber": 1
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "d37fbe40-6009-11ed-b713-8d57f0175080",
+      "title": "بلیز و ماشین های هیولایی",
+      "missing": [
         {
-          "seasonNumber": 1,
-          "episodeNumber": 7
+          "seasonNumber": 3,
+          "episodeNumber": 16
         }
       ],
       "pendingEpisodeCount": 0,
@@ -167,12 +163,16 @@
       "isAiring": false
     },
     {
-      "seriesId": "d37fbe40-6009-11ed-b713-8d57f0175080",
-      "title": "بلیز و ماشین های هیولایی",
+      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
+      "title": "قهرمان درون",
       "missing": [
         {
-          "seasonNumber": 3,
-          "episodeNumber": 16
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 7
         }
       ],
       "pendingEpisodeCount": 0,
@@ -850,8 +850,26 @@
     {
       "seriesId": "e490cd80-00ff-11f1-a4ff-e38da3bbc92a",
       "title": "همسایه های فرشته: آرزویی جدید",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 7
+        }
+      ],
+      "pendingEpisodeCount": 1,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
+      "seriesId": "c314eb20-00ff-11f1-a8fd-8730e9aafe0f",
+      "title": "فرصت های زندگی",
       "missing": [],
-      "pendingEpisodeCount": 3,
+      "pendingEpisodeCount": 6,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
@@ -1237,24 +1255,10 @@
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
-    },
-    {
-      "seriesId": "6cac8db0-7298-11f0-a92a-915e8ce3b467",
-      "title": "برد یا باخت",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 1
-        }
-      ],
-      "pendingEpisodeCount": 1,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
     }
   ],
-  "episodesDiscovered": 20,
-  "episodeGroupsAdded": 2,
+  "episodesDiscovered": 40,
+  "episodeGroupsAdded": 22,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
@@ -1262,9 +1266,9 @@
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
   "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 2,
+  "affiliateRequests": 22,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 2,
+  "affiliateNotFound": 22,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1299,9 +1303,9 @@
   "removedWithoutFreeLinks": 0,
   "errors": [],
   "errorsTruncated": 0,
-  "apiRequests": 7,
-  "lastCheckpointAt": "2026-09-01T12:51:18.314Z",
-  "lastCheckpointReason": "iranian-published-new-448bb330-5cec-11ee-942a-5d812a5a8ad7",
-  "remainingRunMsAtCheckpoint": 586741,
-  "finishedAt": "2026-09-01T12:51:31.613Z"
+  "apiRequests": 47,
+  "lastCheckpointAt": "2026-09-01T17:33:20.032Z",
+  "lastCheckpointReason": "iranian-published-new-ef2e4e90-e255-11ed-ae6a-a92a470ea4c2",
+  "remainingRunMsAtCheckpoint": 542664,
+  "finishedAt": "2026-09-01T17:33:32.560Z"
 }
