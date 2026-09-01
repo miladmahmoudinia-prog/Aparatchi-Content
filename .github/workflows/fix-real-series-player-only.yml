@@ -1,4 +1,4 @@
-name: Fix real series player only
+name: Fix real series player only # hls-fields-v2
 on:
   workflow_dispatch:
   push:
@@ -94,6 +94,7 @@ jobs:
           UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
           TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN }}
           UPERA_SYNC_MODE: IRANIAN
+          UPERA_OPERATOR_DISCOVERY_ENABLED: 'false'
           UPERA_IRANIAN_SERIES_REQUEST_QUOTA: '180'
           APARATCHI_RUN_TIME_LIMIT_MINUTES: '15'
           APARATCHI_CHECKPOINT_RESERVE_MS: '60000'
