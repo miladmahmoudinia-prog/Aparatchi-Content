@@ -30,7 +30,11 @@ jobs:
           const start = source.indexOf('  // Some panel deployments return traffic_oo and title metadata from show_links');
           const endMarker = '  return uniqueByUrl(verified);\n}';
           const end = source.indexOf(endMarker, start);
-          if (start < 0 || end < 0) throw new Error('synthetic panel fallback block not found');
+          if (start < 0) {
+            if (source.includes('Never manufacture a player URL from traffic_oo alone')) process.exit(0);
+            throw new Error('synthetic panel fallback block not found');
+          }
+          if (end < 0) throw new Error('synthetic panel fallback end marker not found');
           const replacement = `  // Never manufacture a player URL from traffic_oo alone. show_links can\n  // return only paid upera.shop acquisition links with traffic_oo=0/1. A title\n  // is playable only when the authenticated panel response itself contains an\n  // exact player/stream URL. This prevents purchase pages from masquerading as\n  // online playback in Aparatchi.\n  return uniqueByUrl(verified);\n}`;
           source = source.slice(0,start) + replacement + source.slice(end + endMarker.length);
           fs.writeFileSync(file,source);
@@ -40,23 +44,46 @@ jobs:
             echo 'Synthetic player fallback still exists' >&2
             exit 1
           fi
-      - name: Remove false Aftab Parast publication and reset Iranian cursor
+      - name: Purge purchases and unverified legacy episode routes
         run: |
           node - <<'NODE'
           const fs = require('fs');
-          const target='ae3ff430-06a7-11ed-871b-e72cbae03849';
           const catalog=JSON.parse(fs.readFileSync('catalog.json','utf8'));
-          const before=(catalog.items||[]).length;
-          catalog.items=(catalog.items||[]).filter(i=>String(i?.id)!==target);
+          const target='ae3ff430-06a7-11ed-871b-e72cbae03849';
+          let purchases=0;
+          let legacyEpisodeRoutes=0;
+          const cleaned=(catalog.items||[]).flatMap(item=>{
+            if (String(item?.id)===target) return [];
+            const downloads=(item.downloads||[]).flatMap(section=>{
+              const files=(section.files||[]).filter(file=>{
+                if (file?.mode==='purchase' || file?.purchaseRequired===true) {
+                  purchases+=1;
+                  return false;
+                }
+                // These rows may have been manufactured from traffic_oo alone.
+                // Remove them once; the corrected sync below restores only URLs
+                // that show_links actually returned for the exact episode.
+                if (/^https:\/\/aparatchi\.upera\.tv\/stream\/episode\//i.test(String(file?.url||''))) {
+                  legacyEpisodeRoutes+=1;
+                  return false;
+                }
+                return true;
+              });
+              return files.length ? [{...section,files}] : [];
+            });
+            const hasMedia=downloads.some(section=>(section.files||[]).length>0) || /\.(?:mp4|m3u8)(?:$|[?#])/i.test(String(item?.streamUrl||''));
+            if (item?.type==='series' && item?.contentVariant==='operator' && !hasMedia) return [];
+            return [{...item,downloads}];
+          });
+          catalog.items=cleaned;
           fs.writeFileSync('catalog.json',JSON.stringify(catalog,null,2)+'\n');
           const state=JSON.parse(fs.readFileSync('sync-state.json','utf8'));
           if (String(state.iranianSeriesActiveId||'')===target) state.iranianSeriesActiveId='';
           if (state.iranianSeriesNoProgress && typeof state.iranianSeriesNoProgress==='object') delete state.iranianSeriesNoProgress[target];
-          // Restart close to the beginning so the corrected player gate re-evaluates candidates deterministically.
           state.iranianSeriesPage=1;
           state.iranianSeriesOffset=0;
           fs.writeFileSync('sync-state.json',JSON.stringify(state,null,2)+'\n');
-          console.log(`Removed false purchase-only publication: ${before-(catalog.items||[]).length}`);
+          console.log(JSON.stringify({purchasesRemoved:purchases,legacyEpisodeRoutesRemoved:legacyEpisodeRoutes},null,2));
           NODE
           node scripts/rebuild-client-catalog.mjs
       - name: Run Iranian lane with real-player gate
@@ -80,12 +107,15 @@ jobs:
           const index=JSON.parse(fs.readFileSync('catalog-index.json','utf8'));
           const target='ae3ff430-06a7-11ed-871b-e72cbae03849';
           const allFiles=(catalog.items||[]).flatMap(i=>(i.downloads||[]).flatMap(s=>s.files||[]));
-          const synthetic=allFiles.filter(f=>f?.panelVerified===true && /^https:\/\/aparatchi\.upera\.tv\/stream\/(?:episode|movie)\//i.test(String(f?.url||'')));
+          const purchases=allFiles.filter(f=>f?.mode==='purchase'||f?.purchaseRequired===true);
           const iranian=(index.items||[]).filter(i=>i?.type==='series'&&i?.categoryKeys?.includes('iranian-series'));
           const aftab=(index.items||[]).find(i=>String(i?.id)===target);
-          console.log(JSON.stringify({iranianClientCount:iranian.length,aftabVisible:Boolean(aftab),syntheticPanelFiles:synthetic.length,latest:iranian.slice(0,5).map(i=>({id:i.id,nameFa:i.nameFa,episodeCount:i.episodeCount}))},null,2));
+          const source=fs.readFileSync('scripts/sync-upera.mjs','utf8');
+          const manufacturesPlayer=source.includes('link: `https://aparatchi.upera.tv/stream/${type}/${encodeURIComponent(id)}');
+          console.log(JSON.stringify({iranianClientCount:iranian.length,aftabVisible:Boolean(aftab),purchaseFiles:purchases.length,manufacturesPlayer,latest:iranian.slice(0,5).map(i=>({id:i.id,nameFa:i.nameFa,episodeCount:i.episodeCount}))},null,2));
           if (aftab) throw new Error('purchase-only Aftab Parast is still visible');
-          if (synthetic.length) throw new Error('fabricated panel player URLs remain');
+          if (purchases.length) throw new Error('purchase links remain in catalog');
+          if (manufacturesPlayer) throw new Error('synthetic player fallback remains in sync source');
           NODE
       - name: Run regression tests
         run: node --test scripts/tests/*.test.mjs
