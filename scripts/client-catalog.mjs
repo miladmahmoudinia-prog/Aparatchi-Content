@@ -104,15 +104,11 @@ const verifiedPublicPanelFile = (file) => Boolean(
   Number(file?.trafficOo) === 0 && String(file?.url || '').trim().toLowerCase().startsWith('https://')
 );
 
-const publicPanelPlayFile = (file) => verifiedPublicPanelFile(file)
-  ? { ...file, mode: 'public-play', operatorOnly: false }
-  : null;
-
 const clientSeriesFileIsUsable = (file) => {
   const url = typeof file?.url === 'string' ? file.url.trim() : '';
   if (!/^https?:\/\//i.test(url)) return false;
   const mode = String(file?.mode || 'download');
-  if (mode === 'operator-download' || mode === 'operator-play' || mode === 'public-play') return true;
+  if (mode === 'operator-download' || mode === 'operator-play') return true;
   if (mode === 'play') return /\.(?:m3u8|mp4)(?:$|[?#])/i.test(url);
   return /\.(?:mp4|m4v|mov|webm|mkv)(?:$|[?#])/i.test(url);
 };
@@ -165,8 +161,7 @@ const sanitizeClientMediaItem = (item) => {
       if (!file || typeof file !== 'object') return [];
       if (String(file.mode || '').startsWith('operator-')) {
         if (operatorVariant) return verifiedOperatorOnlyFile(file) ? [{ ...file }] : [];
-        const publicPlay = publicPanelPlayFile(file);
-        return publicPlay ? [publicPlay] : [];
+        return verifiedPublicPanelFile(file) ? [{ ...file }] : [];
       }
       if (operatorVariant) return [];
       const language = clientFileLanguage(file, section);
@@ -207,7 +202,7 @@ const sanitizeClientMediaItem = (item) => {
     : prepared.map((section) => ({
         ...section,
         files: (section.files || []).filter((file) =>
-          file?.language === 'dubbed' || file?.language === 'subtitled' || file?.mode === 'public-play'
+          file?.language === 'dubbed' || file?.language === 'subtitled'
         ),
       }));
 
@@ -296,10 +291,7 @@ const sanitizeClientMediaItem = (item) => {
       .filter((value) => value === 'dubbed' || value === 'subtitled')
   ))];
   // Foreign titles without proven Persian dub/sub are not part of the app catalog.
-  const hasVerifiedPublicPlay = downloads.some((section) =>
-    (section.files || []).some((file) => file?.mode === 'public-play' && file?.operatorOnly === false)
-  );
-  if (!iranian && !operatorVariant && !availableLanguages.length && conflicts.size === 0 && !hasVerifiedPublicPlay) return null;
+  if (!iranian && !operatorVariant && !availableLanguages.length && conflicts.size === 0) return null;
   const languageCategoryKeys = [...new Set([
     ...(Array.isArray(item.categoryKeys) ? item.categoryKeys : [])
       .map((key) => String(key || '').trim())
@@ -448,7 +440,7 @@ const isStructurallyUsableMediaFile = (file) => {
   const url = typeof file?.url === 'string' ? file.url.trim() : '';
   if (!/^https?:\/\//i.test(url)) return false;
   const mode = String(file?.mode || 'download');
-  if (mode === 'operator-download' || mode === 'operator-play' || mode === 'public-play') return true;
+  if (mode === 'operator-download' || mode === 'operator-play') return true;
   if (mode === 'play') return /\.(?:m3u8|mp4)(?:$|[?#])/i.test(url);
   return /\.(?:mp4|m4v|mov|webm|mkv)(?:$|[?#])/i.test(url);
 };
