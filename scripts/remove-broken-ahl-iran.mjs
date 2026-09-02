@@ -29,16 +29,12 @@ const isWesties = (item) => {
 
 const catalog = JSON.parse(await fs.readFile(catalogPath, 'utf8'));
 const originalItems = Array.isArray(catalog.items) ? catalog.items : [];
-const removedAhlIran = originalItems.filter(isAhlIran);
-const ahlIranIds = new Set(removedAhlIran.flatMap((item) => [
-  String(item.id || ''),
-  String(item.sourceId || ''),
-  String(item.baseId || ''),
-]).filter(Boolean));
+// Ahl Iran now has verified per-episode HLS playback and must never be purged.
+const removedAhlIran = [];
+const ahlIranIds = new Set();
 
 let westiesFixed = 0;
 const nextItems = originalItems
-  .filter((item) => !isAhlIran(item))
   .map((item) => {
     if (!isWesties(item)) return item;
     westiesFixed += 1;
@@ -70,9 +66,9 @@ try {
   state = {};
 }
 
-// «اهل ایران» is permanently suppressed. «وستی‌ها» stays in the catalog as a
-// foreign series, but every Iranian retry/cursor residue for it must disappear.
-const iranianStateIds = new Set([...ahlIranIds, WESTIES_ID]);
+// «وستی‌ها» stays in the catalog as a foreign series, and only its stale
+// Iranian retry/cursor residue is removed. «اهل ایران» is preserved.
+const iranianStateIds = new Set([WESTIES_ID]);
 const iranianOnlyMaps = [
   'iranianSeriesNoProgress',
   'iranianVisibleRepairNoProgress',
@@ -84,7 +80,7 @@ for (const key of iranianOnlyMaps) {
   for (const id of iranianStateIds) delete state[key][id];
 }
 
-// A deleted Ahl Iran shell must also leave the generic archive/episode state.
+// Kept for compatibility; no Ahl Iran ids are purged anymore.
 const ahlOnlyMaps = [
   'seriesEpisodeCursor',
   'seriesLanguageAuditCursor',
