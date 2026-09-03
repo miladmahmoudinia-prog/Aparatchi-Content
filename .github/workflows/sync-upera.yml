@@ -28,8 +28,11 @@ permissions:
   contents: write
 
 concurrency:
-  group: ${{ github.event_name == 'push' && 'aparatchi-content-hotfix-sync' || 'aparatchi-content-write-lock' }}
-  cancel-in-progress: ${{ github.event_name == 'push' }}
+  # Every workflow that writes catalog files must share this lock. Keeping push
+  # runs in a separate group allowed TMDB enrichment and sync to rebase the
+  # same generated catalog simultaneously, producing hundreds of conflicts.
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
 
 jobs:
   sync:
