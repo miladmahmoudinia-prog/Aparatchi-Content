@@ -164,14 +164,19 @@ jobs:
           UPERA_OPERATOR_DISCOVERY_ENABLED: 'false'
           APARATCHI_RUN_TIME_LIMIT_MINUTES: '10'
           APARATCHI_CHECKPOINT_RESERVE_MS: '45000'
-          APARATCHI_REQUEST_TIMEOUT_MS: '12000'
-          APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
+          # The Iranian archive contains many dead affiliate ids. A dead title
+          # must not starve every publishable title behind it in this run.
+          APARATCHI_REQUEST_TIMEOUT_MS: '7000'
+          APARATCHI_REQUEST_MAX_ATTEMPTS: '1'
           UPERA_MAX_REQUESTS_PER_RUN: '220'
           UPERA_REQUEST_DELAY_MS: '520'
           UPERA_IRANIAN_SERIES_REQUEST_QUOTA: '180'
           UPERA_IRANIAN_SERIES_PAGES_PER_RUN: '5'
           UPERA_IRANIAN_SERIES_TITLES_PER_RUN: '1'
-          UPERA_PRIORITY_EPISODES_PER_SERIES: '120'
+          # Probe a representative recent window first. Viable partial
+          # archives stay selected and continue next pass; dead titles are
+          # rejected quickly so the cursor can reach a publishable series.
+          UPERA_PRIORITY_EPISODES_PER_SERIES: '24'
           UPERA_MAX_EPISODE_PAGES: '80'
           APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
         shell: bash
