@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+const catalog=JSON.parse(fs.readFileSync('catalog.json','utf8'));
+const report=JSON.parse(fs.readFileSync('sync-report-iranian.json','utf8'));
+const ids=[...new Set([...(report.iranianSeriesDiagnostics||[]).slice(-2).map(x=>x.id),...catalog.items.filter(x=>x.type==='series'&&x.categoryKeys?.includes('iranian-series')&&x.publicationStatus==='published').slice(0,1).map(x=>x.id)])];
+const panelToken=(process.env.UPERA_PANEL_TOKEN||'').trim();
+const token=(process.env.UPERA_TOKEN||'').trim();
+const ref=process.env.UPERA_REF||'';
+async function req(url,options={}){try{const r=await fetch(url,{...options,signal:AbortSignal.timeout(20000)});const j=await r.json();return {status:r.status,json:j};}catch(e){return {status:0,error:e.name}}}
+function episodes(v,out=[]){if(!v||typeof v!=='object')return out;if(v.id&&(v.episode!=null||v.episode_number!=null||v.episodeNumber!=null))out.push(v);for(const c of Object.values(v))if(c&&typeof c==='object')episodes(c,out);return out;}
+function shape(v,depth=0){if(depth>5)return '...';if(Array.isArray(v))return v.slice(0,2).map(x=>shape(x,depth+1));if(v&&typeof v==='object')return Object.fromEntries(Object.entries(v).filter(([k])=>!/token|secret|authorization/i.test(k)).map(([k,x])=>[k,shape(x,depth+1)]));if(typeof v==='string'&&/^https?:/.test(v)){const u=new URL(v);return u.origin+u.pathname;}return v;}
+console.log('authConfigured',{panel:Boolean(panelToken),affiliate:Boolean(token)});
+for(const id of ids){const detail=await req('https://seeko.film/api/v1/ghost/get/series/'+id+'?affiliate=1');const ep=[...new Map(episodes(detail.json).map(x=>[x.id,x])).values()];console.log('series',{id,status:detail.status,episodes:ep.length,keys:Object.keys(detail.json?.data||{})});for(const e of ep.slice(-1)){console.log('episode',{id:e.id,number:e.episode_number||e.episode});const p=await req('https://panel-api.upera.tv/api/v1/owner/show_links/episode/'+e.id,{headers:{Authorization:/^Bearer /i.test(panelToken)?panelToken:'Bearer '+panelToken}});console.log('panel',JSON.stringify({status:p.status,data:shape(p.json)}));for(const traffic of [0,1]){const u=new URL('https://seeko.film/api/v1/ghost/get/getaffiliatelinks');for(const [k,v]of Object.entries({id:e.id,type:'episode',traffic,token,ref}))u.searchParams.set(k,v);const a=await req(u,{method:'POST'});console.log('affiliate',JSON.stringify({traffic,status:a.status,data:shape(a.json)}));}}}
