@@ -4140,17 +4140,21 @@ function extractAffiliateLinkRecords(value, hints = [], output = []) {
   }
   if (!value || typeof value !== 'object') return output;
 
-  const directUrl = affiliateUrlFromRecord(value);
-  if (directUrl) {
+  // A grouped record can include separate download, HLS and player URLs.
+  // Preserve every URL and its evidence instead of silently keeping the first.
+  const seenUrls = new Set();
+  for (const key of AFFILIATE_URL_KEYS) {
+    const directUrl = typeof value[key] === 'string' ? cleanText(value[key]) : '';
+    if (!isHttp(directUrl) || seenUrls.has(directUrl)) continue;
+    seenUrls.add(directUrl);
     output.push({
       ...value,
       link: directUrl,
-      _group_hint: uniqueStrings([cleanText(value._group_hint), ...hints]).join(' '),
+      _group_hint: uniqueStrings([cleanText(value._group_hint), ...hints, key]).join(' '),
     });
   }
 
   for (const [key, child] of Object.entries(value)) {
-    if (AFFILIATE_URL_KEYS.includes(key)) continue;
     if (!child || typeof child !== 'object') continue;
     extractAffiliateLinkRecords(child, [...hints, key], output);
   }
@@ -7171,11 +7175,9 @@ function collectEpisodes(value) {
           entry &&
           typeof entry === 'object' &&
           (
-            entry.episode_number != null ||
-            entry.episodeNumber != null ||
-            entry.episode != null ||
-            entry.series_id ||
-            entry.type === 'episode'
+            entry.type !== 'series' && entry.type !== 'movie' &&
+            (Number(entry.episode_number ?? entry.episodeNumber ?? entry.episode) > 0 ||
+             entry.type === 'episode')
           )
         ) {
           result.push(entry);
@@ -7196,7 +7198,9 @@ function collectEpisodes(value) {
     }
 
     for (const [key, entry] of Object.entries(node)) {
-      if (key === 'episodes') continue;
+      // Recommendations and cast records carry episode-like fields too, but
+      // their ids are not episodes of the requested series.
+      if (/^(episodes|similar|offer|recommendations|related|casts|directors|producers|writers|investors|characters|narrators|dub_managers|sound_engineers|sound_designers|dubbing_coordinators)$/.test(key)) continue;
       walk(entry, depth + 1);
     }
   }
