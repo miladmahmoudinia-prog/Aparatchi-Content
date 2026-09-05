@@ -1,0 +1,22 @@
+name: Diagnose series admission
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/diagnose-series-admission.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: node scripts/diagnose-series-admission.mjs
+        env:
+          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
+          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
+          UPERA_REF: ${{ secrets.UPERA_REF_ID }}
