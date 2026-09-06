@@ -2631,7 +2631,7 @@ async function syncIranianSeriesArchive() {
 
       const progressed = Boolean(
         belongsToIranianSeries &&
-        (Number(result?.addedEpisodes || 0) > 0 || (result?.added && refreshed?.publicationStatus === 'building-archive'))
+        Number(result?.addedEpisodes || 0) > 0
       );
       if (progressed || result?.retryLater) {
         state.iranianSeriesNoProgress[progressKey] = 0;
