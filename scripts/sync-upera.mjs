@@ -232,7 +232,13 @@ const requestMaxAttempts = Math.min(
   3,
   positiveInt(process.env.APARATCHI_REQUEST_MAX_ATTEMPTS, 2),
 );
-const runDeadlineAtMs = runStartedAtMs + runTimeLimitMinutes * 60 * 1000;
+// Subprocess passes share the workflow's deadline; a fresh request quota must
+// never reset the total wall-clock budget.
+const localRunDeadlineAtMs = runStartedAtMs + runTimeLimitMinutes * 60 * 1000;
+const sharedRunDeadlineAtMs = Number(process.env.APARATCHI_RUN_DEADLINE_AT_MS);
+const runDeadlineAtMs = Number.isFinite(sharedRunDeadlineAtMs) && sharedRunDeadlineAtMs > 0
+  ? Math.min(localRunDeadlineAtMs, sharedRunDeadlineAtMs)
+  : localRunDeadlineAtMs;
 
 const maxBackfillNoProgressRuns = Math.min(
   10,
@@ -2491,6 +2497,7 @@ async function syncIranianSeriesArchive() {
   const maxNoProgress = 2;
   let pagesVisited = 0;
   const seenPages = new Set();
+  const seenTitles = new Set();
 
   const suppressed = (candidate, sourceId) => {
     const identity = normalizeIdentityName(String(candidate?.name_fa || candidate?.nameFa || '') + ' ' + String(candidate?.name || ''));
@@ -2561,7 +2568,7 @@ async function syncIranianSeriesArchive() {
       const sourceId = String(baseCatalogId(candidate) || candidate?.t_id || candidate?.series_id || '');
       const progressKey = sourceId || ('p' + page + '-o' + offset);
 
-      if (suppressed(candidate, sourceId) || !inferIranian(candidate)) {
+      if (seenTitles.has(progressKey) || suppressed(candidate, sourceId) || !inferIranian(candidate)) {
         delete state.iranianSeriesNoProgress[progressKey];
         advanceCursor(page, payload, candidates, offset + 1);
         offset = nonNegativeInt(state.iranianSeriesOffset, 0);
@@ -2580,12 +2587,17 @@ async function syncIranianSeriesArchive() {
       }
 
       if (!state.iranianSeriesActiveId && sourceId) state.iranianSeriesActiveId = sourceId;
+      seenTitles.add(progressKey);
       stats.iranianSeriesCandidates += 1;
 
       let result;
       try {
         result = await processSeries(candidate, 'iranian-priority', {
           requireIranian: true,
+          // New titles need samples across the archive: the first eight
+          // episodes can all be dead while recent episodes are playable.
+          // Once media exists, return to filling every missing episode.
+          operatorProbe: !existing,
           episodeStrategy: 'latest',
           episodeLimit: Math.min(120, Math.max(1, priorityEpisodesPerSeries)),
           onlyMissing: true,
@@ -8876,3 +8888,4 @@ async function writeCatalogAndManifest(value) {
   await fs.writeFile(catalogPath, serialized, 'utf8');
   await writeJson(catalogManifestPath, manifest);
 }
+

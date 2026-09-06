@@ -1,5 +1,5 @@
 name: Sync Upera Catalog
-# Verify bounded archive progress after metadata-only retries.
+# Continue scoped retries within a shared deadline and probe the full archive.
 # bounded Iranian lane contract v7 - exclude unlabelled foreign original-language media
 
 on:
@@ -222,8 +222,13 @@ jobs:
 
           node --check "$RUNTIME_SYNC"
           export APARATCHI_SKIP_IRANIAN_RECENT='true'
+          export APARATCHI_RUN_DEADLINE_AT_MS="$(( $(date +%s) * 1000 + 24 * 60 * 1000 ))"
 
           for pass in $(seq 1 24); do
+            if [ "$(( $(date +%s) * 1000 + 90000 ))" -ge "$APARATCHI_RUN_DEADLINE_AT_MS" ]; then
+              echo "Shared Iranian deadline reached; keep the saved cursor for the next run."
+              break
+            fi
             echo "Iranian archive-only pass ${pass}/24"
             node "$RUNTIME_SYNC"
 
@@ -239,9 +244,9 @@ jobs:
               break
             fi
 
-            SHOULD_STOP="$(node -e 'const fs=require("fs"); const r=JSON.parse(fs.readFileSync("sync-report-iranian.json","utf8")); const d=Array.isArray(r.iranianSeriesDiagnostics)?r.iranianSeriesDiagnostics:[]; const last=d[d.length-1]||{}; process.stdout.write((r.stoppedByTimeBudget||last.retryLater)?"yes":"no");')"
+            SHOULD_STOP="$(node -e 'const fs=require("fs"); const r=JSON.parse(fs.readFileSync("sync-report-iranian.json","utf8")); const d=Array.isArray(r.iranianSeriesDiagnostics)?r.iranianSeriesDiagnostics:[]; const last=d[d.length-1]||{}; process.stdout.write((last.retryLater && last.reason!=="request-budget" && !r.stoppedByTimeBudget)?"yes":"no");')"
             if [ "$SHOULD_STOP" = "yes" ]; then
-              echo "Current Iranian title needs the next hourly budget."
+              echo "Transient Iranian failure; preserve this title for the next run."
               break
             fi
           done
@@ -314,3 +319,4 @@ jobs:
           NODE
 
 # Revalidate series publication after episode identity and URL extraction fixes.
+
