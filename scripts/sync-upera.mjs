@@ -4212,7 +4212,16 @@ async function fetchPanelShowLinks(id, type) {
       _panel_verified: true,
       ...(traffic === 0 || traffic === 1 ? { _traffic_oo: traffic } : {}),
     };
-  }).filter((link) => Number(link._traffic_oo) === 0 || Number(link._traffic_oo) === 1);
+  }).filter((link) => {
+    const traffic = Number(link._traffic_oo);
+    // `traffic_oo` is an access-class flag for portal links, not a validity
+    // flag for direct media. Ordinary free Iranian episodes currently return
+    // exact aparatchi.upera.tv MP4/HLS files with traffic_oo=2. Dropping those
+    // files made every valid episode look unavailable whenever the public
+    // affiliate token was absent. Keep authenticated direct media regardless
+    // of that portal flag; paid shop/ref links still fail this filter.
+    return traffic === 0 || traffic === 1 || isDirectMediaUrl(link.link);
+  });
 
   // Never manufacture a player URL from traffic_oo alone. show_links can
   // return only paid upera.shop acquisition links with traffic_oo=0/1. A title
@@ -8888,4 +8897,3 @@ async function writeCatalogAndManifest(value) {
   await fs.writeFile(catalogPath, serialized, 'utf8');
   await writeJson(catalogManifestPath, manifest);
 }
-
