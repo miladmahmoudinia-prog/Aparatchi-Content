@@ -16,7 +16,7 @@ import {
 const API_BASE = 'https://seeko.film/api/v1';
 const PANEL_API_BASE = 'https://panel-api.upera.tv/api/v1';
 const FILIMO_OWNER_ID = 9194919;
-const IRANIAN_SERIES_SCAN_VERSION = 5;
+const IRANIAN_SERIES_SCAN_VERSION = 6;
 const SERIES_COMPLETENESS_AUDIT_VERSION = 2;
 const MEDIA_LANGUAGE_AUDIT_VERSION = 8;
 const IRANIAN_SERIES_REBUILD_VERSION = 1;
@@ -4282,7 +4282,10 @@ async function fetchAffiliateLinks(
     id,
     type,
     ref: refId,
-    traffic: 1,
+    // Ordinary Iranian episode files are exposed by Upera under
+    // traffic=0. traffic=1 is the mobile-operator lane and caused valid Iranian
+    // series to be rejected as no-usable-links. Keep traffic=1 everywhere else.
+    traffic: type === 'episode' && affiliateScopeName === 'iranian-series' ? 0 : 1,
     token,
   });
 
