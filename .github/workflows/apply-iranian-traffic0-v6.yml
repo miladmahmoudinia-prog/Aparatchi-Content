@@ -1,0 +1,87 @@
+name: Apply Iranian series traffic=0 v6
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-iranian-traffic0-v6.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 5
+
+      - name: Patch Iranian episode affiliate traffic
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          source_path = Path('scripts/sync-upera.mjs')
+          source = source_path.read_text(encoding='utf-8')
+
+          old_version = 'const IRANIAN_SERIES_SCAN_VERSION = 5;'
+          new_version = 'const IRANIAN_SERIES_SCAN_VERSION = 6;'
+          if old_version in source:
+              source = source.replace(old_version, new_version, 1)
+          elif new_version not in source:
+              raise SystemExit('Iranian scan version marker not found')
+
+          function_start = source.find('async function fetchAffiliateLinks(')
+          function_end = source.find('\nasync function throttleAffiliateRequest()', function_start)
+          if function_start < 0 or function_end < 0:
+              raise SystemExit('fetchAffiliateLinks function not found')
+
+          block = source[function_start:function_end]
+          old = """    traffic: 1,\n    token,\n"""
+          new = """    // Ordinary Iranian episode files are exposed by Upera under\n    // traffic=0. traffic=1 is the mobile-operator lane and caused valid Iranian\n    // series to be rejected as no-usable-links. Keep traffic=1 everywhere else.\n    traffic: type === 'episode' && affiliateScopeName === 'iranian-series' ? 0 : 1,\n    token,\n"""
+          if old in block:
+              if block.count(old) != 1:
+                  raise SystemExit('Unexpected number of affiliate traffic markers')
+              block = block.replace(old, new, 1)
+              source = source[:function_start] + block + source[function_end:]
+          elif new not in block:
+              raise SystemExit('Affiliate traffic marker not found')
+
+          source_path.write_text(source, encoding='utf-8')
+
+          workflow_path = Path('.github/workflows/sync-upera.yml')
+          workflow = workflow_path.read_text(encoding='utf-8')
+          marker = '# Iranian public affiliate traffic fix v6'
+          if marker not in workflow:
+              lines = workflow.splitlines()
+              insert_at = 1 if lines else 0
+              lines.insert(insert_at, marker)
+              workflow_path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+
+          node --check scripts/sync-upera.mjs
+
+      - name: Commit permanent fix and trigger sync
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/sync-upera.mjs .github/workflows/sync-upera.yml
+          if git diff --cached --quiet; then
+            echo "Iranian traffic fix already applied."
+            exit 0
+          fi
+          git commit -m "fix: restore Iranian series public affiliate links"
+          git pull --rebase origin main
+          git push origin HEAD:main
