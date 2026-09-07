@@ -58,26 +58,17 @@ jobs:
               raise SystemExit('Affiliate traffic marker not found')
 
           source_path.write_text(source, encoding='utf-8')
-
-          workflow_path = Path('.github/workflows/sync-upera.yml')
-          workflow = workflow_path.read_text(encoding='utf-8')
-          marker = '# Iranian public affiliate traffic fix v6'
-          if marker not in workflow:
-              lines = workflow.splitlines()
-              insert_at = 1 if lines else 0
-              lines.insert(insert_at, marker)
-              workflow_path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
           PY
 
           node --check scripts/sync-upera.mjs
 
-      - name: Commit permanent fix and trigger sync
+      - name: Commit permanent source fix
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/sync-upera.mjs .github/workflows/sync-upera.yml
+          git add scripts/sync-upera.mjs
           if git diff --cached --quiet; then
             echo "Iranian traffic fix already applied."
             exit 0
