@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-09-08T05:32:21.174Z",
+  "startedAt": "2026-09-08T10:32:37.679Z",
   "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-09-08T05:33:57.000Z",
+  "runDeadlineAt": "2026-09-08T10:34:35.000Z",
   "stoppedByTimeBudget": true,
-  "timeBudgetStopContext": "iranian-series-discovery",
-  "remainingRunMsAtFinish": 55769,
+  "timeBudgetStopContext": "iranian-series-candidate",
+  "remainingRunMsAtFinish": 52461,
   "imageMirroringSkipped": true,
-  "originalCount": 8300,
-  "finalCount": 8300,
+  "originalCount": 8316,
+  "finalCount": 8316,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
-  "backfillQueueTotal": 230,
-  "backfillBacklogRemaining": 230,
+  "backfillQueueTotal": 238,
+  "backfillBacklogRemaining": 238,
   "backfillBlockedTotal": 11,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
@@ -19,7 +19,7 @@
   "backfillEpisodesAdded": 0,
   "backfillSeriesVisited": 0,
   "backfillCheckpoints": 0,
-  "episodesMarkedUnavailable": 16,
+  "episodesMarkedUnavailable": 24,
   "backfillNoProgressRuns": 0,
   "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 180,
-      "used": 16,
+      "used": 24,
       "exhausted": false
     }
   },
@@ -58,17 +58,17 @@
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 3,
+  "seriesHiddenUntilComplete": 2,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 3,
-  "episodesProcessed": 16,
-  "iranianSeriesPagesProcessed": 1,
-  "iranianSeriesCandidates": 2,
+  "iranianSeriesProcessed": 2,
+  "episodesProcessed": 24,
+  "iranianSeriesPagesProcessed": 3,
+  "iranianSeriesCandidates": 3,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
-  "iranianSeriesRejectedNoLinks": 2,
+  "iranianSeriesRejectedNoLinks": 3,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
   "operatorSeriesAddedOrUpdated": 0,
@@ -104,19 +104,8 @@
       "discovery": "existing-incomplete-first"
     },
     {
-      "id": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "title": "سایه باز",
-      "result": "no-progress-existing",
-      "reason": "added-or-updated",
-      "addedEpisodes": 0,
-      "remainingEpisodeCount": 12,
-      "retryLater": false,
-      "newlyPublished": false,
-      "discovery": "existing-incomplete-first"
-    },
-    {
-      "id": "58d25560-631c-11ec-85ba-eb7e79d04887",
-      "title": "یازده",
+      "id": "06049fd0-c045-11eb-8bac-f7b08dbce945",
+      "title": "شب‌آهنگی",
       "result": "rejected",
       "reason": "no-usable-links",
       "addedEpisodes": 0,
@@ -126,8 +115,19 @@
       "discovery": "new-only-country-IR"
     },
     {
-      "id": "b9d819d0-e70d-11ee-8dbe-b5e6ab332e86",
-      "title": "همزاد من",
+      "id": "3c240b70-0310-11f0-bf17-a54679145d7c",
+      "title": "الکلاسیکو",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "3c852370-60ca-11f0-a5d3-7d0f33f0fc77",
+      "title": "از یاد رفته",
       "result": "rejected",
       "reason": "no-usable-links",
       "addedEpisodes": 0,
@@ -169,85 +169,30 @@
       "seriesId": "1cb2a690-d57f-11ef-a1f9-91af443a73a4",
       "title": "مزرعه شادی",
       "source": "fast-backfill",
-      "discoveredEpisodeCount": 54,
+      "discoveredEpisodeCount": 57,
       "catalogEpisodeCount": 53,
       "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 11
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 32
+        },
         {
           "seasonNumber": 1,
           "episodeNumber": 55
         }
       ],
       "rejectedEpisodes": []
-    },
-    {
-      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "title": "سایه باز",
-      "source": "fast-backfill",
-      "discoveredEpisodeCount": 20,
-      "catalogEpisodeCount": 8,
-      "missing": [
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 1
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 2
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 3
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 4
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 5
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 6
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 7
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 8
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 9
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 10
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 11
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 12
-        }
-      ],
-      "rejectedEpisodes": []
     }
   ],
   "catalogEpisodeGapDiagnostics": [
-    {
-      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "title": "سایه باز",
-      "missing": [],
-      "pendingEpisodeCount": 12,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
     {
       "seriesId": "1cb2a690-d57f-11ef-a1f9-91af443a73a4",
       "title": "مزرعه شادی",
@@ -281,7 +226,7 @@
           "episodeNumber": 55
         }
       ],
-      "pendingEpisodeCount": 1,
+      "pendingEpisodeCount": 4,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
@@ -301,64 +246,72 @@
       "isAiring": false
     },
     {
-      "seriesId": "88c59200-895d-11f0-8c7b-8d0be9327ffe",
-      "title": "سرنوشت/عجیب و غریب جعلی",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 9
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
+      "seriesId": "d5e71eb0-244d-11ec-aed6-b3da75b9ff36",
+      "title": "خانه کاغذی (سرقت پول)",
+      "missing": [],
+      "pendingEpisodeCount": 37,
+      "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
-      "isAiring": true
+      "isAiring": false
     },
     {
-      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
-      "title": "قهرمان درون",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 4
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 7
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
+      "seriesId": "a22d0950-49d9-11ee-a57e-c5bf05609bec",
+      "title": "ری: زیرو، شروع زندگی در جهانی دیگر",
+      "missing": [],
+      "pendingEpisodeCount": 14,
+      "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
-      "isAiring": true
+      "isAiring": false
     },
     {
-      "seriesId": "5a181d30-602d-11ed-91cf-e3497a0eb443",
-      "title": "کهکشان بوبوی بوی",
+      "seriesId": "abfcc9f0-3c61-11ef-913d-fd55e0299ed6",
+      "title": "اسکندر : خلق یک پادشاهی",
       "missing": [
         {
           "seasonNumber": 1,
           "episodeNumber": 1
         }
       ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
+      "pendingEpisodeCount": 1,
+      "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
-      "isAiring": true
+      "isAiring": false
     },
     {
-      "seriesId": "d37fbe40-6009-11ed-b713-8d57f0175080",
-      "title": "بلیز و ماشین های هیولایی",
+      "seriesId": "dfe7c980-eea1-11ef-863e-55d2bbce1006",
+      "title": "داستان انرژی",
       "missing": [
         {
-          "seasonNumber": 3,
-          "episodeNumber": 16
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 3
         }
       ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
+      "pendingEpisodeCount": 3,
+      "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
-      "isAiring": true
+      "isAiring": false
+    },
+    {
+      "seriesId": "b945d6b0-94a5-11ef-bbfa-29dd09b5038e",
+      "title": "چرخ‌های هیولایی قدرتمند",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 20
+        }
+      ],
+      "pendingEpisodeCount": 1,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
     },
     {
       "seriesId": "6ee7a320-90c0-11f1-936c-e7983f454a7b",
@@ -411,22 +364,106 @@
         {
           "seasonNumber": 1,
           "episodeNumber": 19
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 20
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 21
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 23
         }
       ],
-      "pendingEpisodeCount": 15,
+      "pendingEpisodeCount": 12,
       "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "d37fbe40-6009-11ed-b713-8d57f0175080",
+      "title": "بلیز و ماشین های هیولایی",
+      "missing": [
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 16
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "5a181d30-602d-11ed-91cf-e3497a0eb443",
+      "title": "کهکشان بوبوی بوی",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        }
+      ],
+      "pendingEpisodeCount": 1,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "e58b5da0-7693-11f0-9e60-7fd49df91adc",
+      "title": "لانا، دختر دریانورد",
+      "missing": [],
+      "pendingEpisodeCount": 3,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "d8c42b30-1c68-11f1-9d98-b36ecfe4cc67",
+      "title": "روستر",
+      "missing": [],
+      "pendingEpisodeCount": 2,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "e72663e0-781b-11f0-a774-4f030c7cb9ab",
+      "title": "دوستان آتشی",
+      "missing": [],
+      "pendingEpisodeCount": 24,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
+      "title": "قهرمان درون",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 7
+        }
+      ],
+      "pendingEpisodeCount": 2,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "88c59200-895d-11f0-8c7b-8d0be9327ffe",
+      "title": "سرنوشت/عجیب و غریب جعلی",
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 9
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "title": "سایه باز",
+      "missing": [],
+      "pendingEpisodeCount": 12,
+      "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": true
     },
@@ -1494,150 +1531,18 @@
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
-    },
-    {
-      "seriesId": "32f81f50-0102-11f1-aa9c-f53479da8bb9",
-      "title": "فروشگاه لوازم روشنایی",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 2
-        }
-      ],
-      "pendingEpisodeCount": 1,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "7ba90a60-0102-11f1-bba1-5f1b3250c8e7",
-      "title": "آصاف",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 1
-        }
-      ],
-      "pendingEpisodeCount": 1,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "3ed00c40-00ff-11f1-928e-19b69b77f242",
-      "title": "بابا",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 6
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 13
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 26
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 9
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 22
-        }
-      ],
-      "pendingEpisodeCount": 4,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "efaf6a80-0101-11f1-8ede-bff2239b6b2c",
-      "title": "آمریکای نخستین",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 4
-        }
-      ],
-      "pendingEpisodeCount": 1,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "ff801d40-0101-11f1-b67b-534cc8314655",
-      "title": "دنیای ژوراسیک لگویی: افسانه جزیره نوبلار",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 3
-        }
-      ],
-      "pendingEpisodeCount": 1,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "d29f4e00-0101-11f1-b0da-9fbed0aada14",
-      "title": "جنگ ستارگان: خدمه اسکلت",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 7
-        }
-      ],
-      "pendingEpisodeCount": 1,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "c9a40e90-0100-11f1-8c2e-31c188042ee1",
-      "title": "مرد عنکبوتی محله باصفای شما",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 5
-        }
-      ],
-      "pendingEpisodeCount": 1,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "58cb4d70-ff91-11f0-b443-f180f5af1bb4",
-      "title": "بازی‌های مستر بیست",
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 2
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 1
-        }
-      ],
-      "pendingEpisodeCount": 1,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
     }
   ],
-  "episodesDiscovered": 107,
+  "episodesDiscovered": 191,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 16,
+  "episodesRejectedNoLinks": 24,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 3,
-  "affiliateRequests": 16,
+  "seriesAddedOrUpdated": 2,
+  "affiliateRequests": 24,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -1672,8 +1577,13 @@
   "mediaHealthUnknown": 0,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [],
+  "errors": [
+    {
+      "scope": "iranian-incomplete-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?affiliate=1"
+    }
+  ],
   "errorsTruncated": 0,
-  "apiRequests": 39,
-  "finishedAt": "2026-09-08T05:33:01.231Z"
+  "apiRequests": 62,
+  "finishedAt": "2026-09-08T10:33:42.539Z"
 }
