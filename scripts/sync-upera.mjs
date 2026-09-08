@@ -2653,7 +2653,7 @@ async function syncIranianSeriesArchive() {
 
       const attempts = nonNegativeInt(state.iranianSeriesNoProgress[progressKey], 0) + 1;
       state.iranianSeriesNoProgress[progressKey] = attempts;
-      const terminal = !belongsToIranianSeries || ['not-iranian', 'no-usable-links', 'missing-detail'].includes(String(result?.reason || ''));
+      const terminal = !belongsToIranianSeries || ['not-iranian', 'no-usable-links', 'paid-only-source', 'missing-detail'].includes(String(result?.reason || ''));
       if (terminal || attempts >= maxNoProgress) {
         if (refreshed && belongsToIranianSeries && refreshed.publicationStatus !== 'published') {
           replaceItem({
@@ -3424,6 +3424,23 @@ async function processSeries(
   const existing = options.panelCandidate === true
     ? findExistingPanelTitle(series, 'series')
     : findExistingItem(series, 'series');
+  if (
+    options.requireIranian &&
+    !existing &&
+    episodesByCoordinate.length > 0 &&
+    episodesByCoordinate.every(sourceEpisodeIsExplicitlyPaid)
+  ) {
+    // The Iranian country feed also contains TVOD titles. Their detail rows
+    // already prove every episode is paid, so show_links cannot publish them.
+    // Advance immediately until the next genuinely free archive is reached.
+    stats.iranianSeriesRejectedNoLinks += 1;
+    return {
+      retryLater: false,
+      completeBackfill: true,
+      added: false,
+      reason: 'paid-only-source',
+    };
+  }
   const unavailableEpisodeMap = existingUnavailableEpisodeMap(id, existing);
   let unavailableMarked = 0;
   const previousGroups = Array.isArray(existing?.downloads)
@@ -4521,6 +4538,27 @@ function providerPrimaryMediaLanguage(source) {
   if (!source || typeof source !== 'object') return '';
   const dubbed = source.dubbed === true || Number(source.dubbed) === 1 || /^(?:1|true|yes)$/i.test(cleanText(source.dubbed));
   return dubbed ? 'dubbed' : '';
+}
+
+function sourceEpisodeIsExplicitlyPaid(episode) {
+  if (!episode || typeof episode !== 'object') return false;
+  const freeFlag = episode.free ?? episode.is_free ?? episode.isFree;
+  const explicitlyNotFree =
+    freeFlag === false ||
+    Number(freeFlag) === 0 ||
+    /^(?:0|false|no)$/i.test(cleanText(freeFlag));
+  if (!explicitlyNotFree) return false;
+
+  return [
+    episode.price,
+    episode.tvod_price,
+    episode.tvodPrice,
+    episode.amount,
+    episode.cost,
+  ].some((value) => {
+    const amount = normalizedMediaAmount(value);
+    return Number.isFinite(amount) && amount > 0;
+  });
 }
 
 function isUperaPrimaryMediaVariant(value) {
