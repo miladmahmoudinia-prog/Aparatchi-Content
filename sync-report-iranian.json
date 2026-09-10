@@ -1,10 +1,10 @@
 {
-  "startedAt": "2026-09-10T10:44:56.302Z",
+  "startedAt": "2026-09-10T11:14:13.904Z",
   "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-09-10T10:54:54.328Z",
-  "stoppedByTimeBudget": false,
-  "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 438117,
+  "runDeadlineAt": "2026-09-10T11:15:59.000Z",
+  "stoppedByTimeBudget": true,
+  "timeBudgetStopContext": "before-operator-classification",
+  "remainingRunMsAtFinish": 30469,
   "imageMirroringSkipped": true,
   "originalCount": 8338,
   "finalCount": 8338,
@@ -18,8 +18,8 @@
   "backfillSeriesBlockedThisRun": [],
   "backfillEpisodesAdded": 0,
   "backfillSeriesVisited": 0,
-  "backfillCheckpoints": 0,
-  "episodesMarkedUnavailable": 56,
+  "backfillCheckpoints": 1,
+  "episodesMarkedUnavailable": 13,
   "backfillNoProgressRuns": 0,
   "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 180,
-      "used": 112,
+      "used": 55,
       "exhausted": false
     }
   },
@@ -63,12 +63,12 @@
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 2,
-  "episodesProcessed": 56,
-  "iranianSeriesPagesProcessed": 5,
-  "iranianSeriesCandidates": 7,
+  "episodesProcessed": 14,
+  "iranianSeriesPagesProcessed": 3,
+  "iranianSeriesCandidates": 2,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
-  "iranianSeriesRejectedNoLinks": 7,
+  "iranianSeriesRejectedNoLinks": 2,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
   "operatorSeriesAddedOrUpdated": 0,
@@ -104,8 +104,8 @@
       "discovery": "existing-incomplete-first"
     },
     {
-      "id": "e3c81da0-1945-11f0-bb04-737bb8091404",
-      "title": "وحشی",
+      "id": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "title": "قهوه ترک",
       "result": "rejected",
       "reason": "no-usable-links",
       "addedEpisodes": 0,
@@ -115,749 +115,22 @@
       "discovery": "new-only-country-IR"
     },
     {
-      "id": "d813be20-6006-11f0-bb97-e196e04a0275",
-      "title": "کارناوال‌تر",
+      "id": "23990c80-6261-11ee-9487-c7db916a0358",
+      "title": "مرداب",
       "result": "rejected",
-      "reason": "no-usable-links",
+      "reason": "request-budget",
       "addedEpisodes": 0,
       "remainingEpisodeCount": 0,
-      "retryLater": false,
-      "newlyPublished": false,
-      "discovery": "new-only-country-IR"
-    },
-    {
-      "id": "e966af20-378f-11f0-a4cc-edc64bcb0a1f",
-      "title": "اجل معلق",
-      "result": "rejected",
-      "reason": "no-usable-links",
-      "addedEpisodes": 0,
-      "remainingEpisodeCount": 0,
-      "retryLater": false,
-      "newlyPublished": false,
-      "discovery": "new-only-country-IR"
-    },
-    {
-      "id": "f2ac03f0-5dac-11f0-96fc-252d71d15ed9",
-      "title": "کارناوال (نتایج)",
-      "result": "rejected",
-      "reason": "no-usable-links",
-      "addedEpisodes": 0,
-      "remainingEpisodeCount": 0,
-      "retryLater": false,
-      "newlyPublished": false,
-      "discovery": "new-only-country-IR"
-    },
-    {
-      "id": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
-      "title": "رینگو",
-      "result": "rejected",
-      "reason": "no-usable-links",
-      "addedEpisodes": 0,
-      "remainingEpisodeCount": 0,
-      "retryLater": false,
-      "newlyPublished": false,
-      "discovery": "new-only-country-IR"
-    },
-    {
-      "id": "b2e62ec0-1d38-11ef-92c5-e16b4f4a153b",
-      "title": "کنسرتینو",
-      "result": "rejected",
-      "reason": "no-usable-links",
-      "addedEpisodes": 0,
-      "remainingEpisodeCount": 0,
-      "retryLater": false,
-      "newlyPublished": false,
-      "discovery": "new-only-country-IR"
-    },
-    {
-      "id": "c4fa4b10-d4c8-11ef-9160-f39b970f9094",
-      "title": "ازازیل",
-      "result": "rejected",
-      "reason": "no-usable-links",
-      "addedEpisodes": 0,
-      "remainingEpisodeCount": 0,
-      "retryLater": false,
+      "retryLater": true,
       "newlyPublished": false,
       "discovery": "new-only-country-IR"
     }
   ],
   "iranianLinkProbeDiagnostics": [
     {
-      "seriesId": "e3c81da0-1945-11f0-bb04-737bb8091404",
-      "seriesTitle": "وحشی",
-      "episodeId": "bda6b3c0-64c9-11f1-bb54-473de62025af",
-      "seasonNumber": 2,
-      "episodeNumber": 12,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "e3c81da0-1945-11f0-bb04-737bb8091404",
-      "seriesTitle": "وحشی",
-      "episodeId": "dd013e10-1946-11f0-96ec-59a6a588b8f9",
-      "seasonNumber": 1,
-      "episodeNumber": 1,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "e3c81da0-1945-11f0-bb04-737bb8091404",
-      "seriesTitle": "وحشی",
-      "episodeId": "44f32ef0-df4f-11f0-9bf6-e195851c6304",
-      "seasonNumber": 2,
-      "episodeNumber": 2,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "e3c81da0-1945-11f0-bb04-737bb8091404",
-      "seriesTitle": "وحشی",
-      "episodeId": "dd43e740-29c8-11f0-9c3c-db85d935dc3b",
-      "seasonNumber": 1,
-      "episodeNumber": 4,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "e3c81da0-1945-11f0-bb04-737bb8091404",
-      "seriesTitle": "وحشی",
-      "episodeId": "f3149850-34c6-11f0-9d34-91655f30004f",
-      "seasonNumber": 1,
-      "episodeNumber": 6,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "e3c81da0-1945-11f0-bb04-737bb8091404",
-      "seriesTitle": "وحشی",
-      "episodeId": "72cd1200-d9c4-11f0-b27d-ab7dc87d77c4",
-      "seasonNumber": 2,
-      "episodeNumber": 1,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "e3c81da0-1945-11f0-bb04-737bb8091404",
-      "seriesTitle": "وحشی",
-      "episodeId": "c942f880-ea50-11f0-923d-270e25d91bb4",
-      "seasonNumber": 2,
-      "episodeNumber": 4,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "e3c81da0-1945-11f0-bb04-737bb8091404",
-      "seriesTitle": "وحشی",
-      "episodeId": "f153c8d0-64c4-11f1-99b1-53b5e22bc122",
-      "seasonNumber": 2,
-      "episodeNumber": 7,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "d813be20-6006-11f0-bb97-e196e04a0275",
-      "seriesTitle": "کارناوال‌تر",
-      "episodeId": "132053f0-d387-11f0-9b0a-65d68e4f69fd",
-      "seasonNumber": 1,
-      "episodeNumber": 20,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "d813be20-6006-11f0-bb97-e196e04a0275",
-      "seriesTitle": "کارناوال‌تر",
-      "episodeId": "959f2b20-6585-11f0-ae11-518eedb21677",
-      "seasonNumber": 1,
-      "episodeNumber": 1,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "d813be20-6006-11f0-bb97-e196e04a0275",
-      "seriesTitle": "کارناوال‌تر",
-      "episodeId": "48979830-9c88-11f0-8bc1-773717e5a073",
-      "seasonNumber": 1,
-      "episodeNumber": 10,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "d813be20-6006-11f0-bb97-e196e04a0275",
-      "seriesTitle": "کارناوال‌تر",
-      "episodeId": "f717b640-7b76-11f0-8b9b-93d7406d4276",
-      "seasonNumber": 1,
-      "episodeNumber": 4,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "d813be20-6006-11f0-bb97-e196e04a0275",
-      "seriesTitle": "کارناوال‌تر",
-      "episodeId": "13de4630-8670-11f0-a62d-938e1c394fba",
-      "seasonNumber": 1,
-      "episodeNumber": 6,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "d813be20-6006-11f0-bb97-e196e04a0275",
-      "seriesTitle": "کارناوال‌تر",
-      "episodeId": "625545f0-9707-11f0-a5f1-7f89ac2bdea5",
-      "seasonNumber": 1,
-      "episodeNumber": 9,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "d813be20-6006-11f0-bb97-e196e04a0275",
-      "seriesTitle": "کارناوال‌تر",
-      "episodeId": "64f7fce0-a785-11f0-91fe-e39ff02bbd92",
-      "seasonNumber": 1,
-      "episodeNumber": 12,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "d813be20-6006-11f0-bb97-e196e04a0275",
-      "seriesTitle": "کارناوال‌تر",
-      "episodeId": "eb0a21c0-b806-11f0-b0d2-03a714a27fe7",
-      "seasonNumber": 1,
-      "episodeNumber": 15,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "e966af20-378f-11f0-a4cc-edc64bcb0a1f",
-      "seriesTitle": "اجل معلق",
-      "episodeId": "a74ad510-ab0f-11f0-9ad0-0f49e7b62786",
-      "seasonNumber": 1,
-      "episodeNumber": 20,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "e966af20-378f-11f0-a4cc-edc64bcb0a1f",
-      "seriesTitle": "اجل معلق",
-      "episodeId": "1e38ce40-3792-11f0-9485-e515ce8512a8",
-      "seasonNumber": 1,
-      "episodeNumber": 1,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "e966af20-378f-11f0-a4cc-edc64bcb0a1f",
-      "seriesTitle": "اجل معلق",
-      "episodeId": "1ef6df40-6ead-11f0-b8f2-09217f34d2e9",
-      "seasonNumber": 1,
-      "episodeNumber": 10,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "e966af20-378f-11f0-a4cc-edc64bcb0a1f",
-      "seriesTitle": "اجل معلق",
-      "episodeId": "0841b750-532c-11f0-8e7c-6bdf0df77988",
-      "seasonNumber": 1,
-      "episodeNumber": 4,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "e966af20-378f-11f0-a4cc-edc64bcb0a1f",
-      "seriesTitle": "اجل معلق",
-      "episodeId": "bb2e71b0-57eb-11f0-8104-0995a29a0fa0",
-      "seasonNumber": 1,
-      "episodeNumber": 6,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "e966af20-378f-11f0-a4cc-edc64bcb0a1f",
-      "seriesTitle": "اجل معلق",
-      "episodeId": "4de3bab0-6914-11f0-97f7-f937fc42edc1",
-      "seasonNumber": 1,
-      "episodeNumber": 9,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "e966af20-378f-11f0-a4cc-edc64bcb0a1f",
-      "seriesTitle": "اجل معلق",
-      "episodeId": "42409b60-7964-11f0-a765-576f28653137",
-      "seasonNumber": 1,
-      "episodeNumber": 12,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "e966af20-378f-11f0-a4cc-edc64bcb0a1f",
-      "seriesTitle": "اجل معلق",
-      "episodeId": "2d8068e0-8f97-11f0-8034-ab2d8b7c974c",
-      "seasonNumber": 1,
-      "episodeNumber": 15,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "f2ac03f0-5dac-11f0-96fc-252d71d15ed9",
-      "seriesTitle": "کارناوال (نتایج)",
-      "episodeId": "da7bbe30-c629-11f0-a062-ed284b0e9fd8",
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "6f65fc70-576a-11ee-bbc4-d37f4d257ed1",
       "seasonNumber": 1,
       "episodeNumber": 18,
       "recordCount": 6,
@@ -883,9 +156,9 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "f2ac03f0-5dac-11f0-96fc-252d71d15ed9",
-      "seriesTitle": "کارناوال (نتایج)",
-      "episodeId": "3dcf1cc0-5dad-11f0-8a9d-13873dfdf0f5",
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "4bc8e660-f9e4-11ed-91dd-8b172bfb96c7",
       "seasonNumber": 1,
       "episodeNumber": 1,
       "recordCount": 6,
@@ -911,9 +184,9 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "f2ac03f0-5dac-11f0-96fc-252d71d15ed9",
-      "seriesTitle": "کارناوال (نتایج)",
-      "episodeId": "457f4520-94a8-11f0-9d19-b5a8bf1db37d",
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "8ba64d10-25e6-11ee-a486-9ff382a217ae",
       "seasonNumber": 1,
       "episodeNumber": 9,
       "recordCount": 6,
@@ -939,9 +212,9 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "f2ac03f0-5dac-11f0-96fc-252d71d15ed9",
-      "seriesTitle": "کارناوال (نتایج)",
-      "episodeId": "4032e9b0-68a8-11f0-b4bf-cdb73745f50b",
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "1133d6c0-04e5-11ee-9494-c774f1b7f789",
       "seasonNumber": 1,
       "episodeNumber": 3,
       "recordCount": 6,
@@ -967,9 +240,9 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "f2ac03f0-5dac-11f0-96fc-252d71d15ed9",
-      "seriesTitle": "کارناوال (نتایج)",
-      "episodeId": "48263a80-8422-11f0-b11b-27182223629a",
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "141fafb0-156b-11ee-9ea9-9fc8a57a596b",
       "seasonNumber": 1,
       "episodeNumber": 6,
       "recordCount": 6,
@@ -995,9 +268,9 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "f2ac03f0-5dac-11f0-96fc-252d71d15ed9",
-      "seriesTitle": "کارناوال (نتایج)",
-      "episodeId": "94dcd070-8f22-11f0-b48a-6b1b6a65fd99",
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "466c4b80-203b-11ee-b21e-f55e068d09b4",
       "seasonNumber": 1,
       "episodeNumber": 8,
       "recordCount": 6,
@@ -1023,9 +296,9 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "f2ac03f0-5dac-11f0-96fc-252d71d15ed9",
-      "seriesTitle": "کارناوال (نتایج)",
-      "episodeId": "ea4d1a00-9faa-11f0-b07d-b74d3e660686",
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "64fd1480-30dd-11ee-8d57-732d8aef7de3",
       "seasonNumber": 1,
       "episodeNumber": 11,
       "recordCount": 6,
@@ -1051,9 +324,9 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "f2ac03f0-5dac-11f0-96fc-252d71d15ed9",
-      "seriesTitle": "کارناوال (نتایج)",
-      "episodeId": "2dc80e50-aaa5-11f0-bdbe-c7ad7de85b23",
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "ff2eae40-3be2-11ee-8987-29c7f4f4ffad",
       "seasonNumber": 1,
       "episodeNumber": 13,
       "recordCount": 6,
@@ -1079,11 +352,11 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
-      "seriesTitle": "رینگو",
-      "episodeId": "de2ad0a0-6507-11f0-9909-7177d39dfa38",
+      "seriesId": "23990c80-6261-11ee-9487-c7db916a0358",
+      "seriesTitle": "مرداب",
+      "episodeId": "88cda940-cabf-11ee-8d82-193540121838",
       "seasonNumber": 1,
-      "episodeNumber": 24,
+      "episodeNumber": 20,
       "recordCount": 6,
       "directCount": 0,
       "portalCount": 0,
@@ -1107,9 +380,9 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
-      "seriesTitle": "رینگو",
-      "episodeId": "07661770-e119-11ef-8b4a-41aae6033d0d",
+      "seriesId": "23990c80-6261-11ee-9487-c7db916a0358",
+      "seriesTitle": "مرداب",
+      "episodeId": "0f6e3970-6262-11ee-aab1-a9ba8cf2a889",
       "seasonNumber": 1,
       "episodeNumber": 1,
       "recordCount": 6,
@@ -1135,11 +408,11 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
-      "seriesTitle": "رینگو",
-      "episodeId": "47edded0-01e2-11f0-a072-5d1b36ea1617",
+      "seriesId": "23990c80-6261-11ee-9487-c7db916a0358",
+      "seriesTitle": "مرداب",
+      "episodeId": "849bfeb0-93ab-11ee-801c-1fc167ad1c3e",
       "seasonNumber": 1,
-      "episodeNumber": 12,
+      "episodeNumber": 10,
       "recordCount": 6,
       "directCount": 0,
       "portalCount": 0,
@@ -1163,9 +436,9 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
-      "seriesTitle": "رینگو",
-      "episodeId": "adf2fcd0-e982-11ef-ade6-2f8f9bace705",
+      "seriesId": "23990c80-6261-11ee-9487-c7db916a0358",
+      "seriesTitle": "مرداب",
+      "episodeId": "07a33800-72a8-11ee-9248-1b8a2d48d6a1",
       "seasonNumber": 1,
       "episodeNumber": 4,
       "recordCount": 6,
@@ -1191,95 +464,11 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
-      "seriesTitle": "رینگو",
-      "episodeId": "f9513690-f489-11ef-8969-177f3ceefbc0",
+      "seriesId": "23990c80-6261-11ee-9487-c7db916a0358",
+      "seriesTitle": "مرداب",
+      "episodeId": "a036fad0-7de5-11ee-b321-0963829733fe",
       "seasonNumber": 1,
-      "episodeNumber": 8,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
-      "seriesTitle": "رینگو",
-      "episodeId": "0d7c70e0-fc85-11ef-989b-9d6a2fe20d8f",
-      "seasonNumber": 1,
-      "episodeNumber": 11,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
-      "seriesTitle": "رینگو",
-      "episodeId": "837d4480-129d-11f0-893a-5fc246a2dff7",
-      "seasonNumber": 1,
-      "episodeNumber": 14,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
-      "seriesTitle": "رینگو",
-      "episodeId": "aab2ecf0-22d5-11f0-9e70-8b26d06cfb32",
-      "seasonNumber": 1,
-      "episodeNumber": 17,
+      "episodeNumber": 6,
       "recordCount": 6,
       "directCount": 0,
       "portalCount": 0,
@@ -2338,18 +1527,18 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 188,
+  "episodesDiscovered": 100,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 56,
+  "episodesRejectedNoLinks": 13,
   "moviesAddedOrUpdated": 0,
   "seriesAddedOrUpdated": 2,
-  "affiliateRequests": 112,
+  "affiliateRequests": 55,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 56,
+  "affiliateNotFound": 27,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -2393,6 +1582,9 @@
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 189,
-  "finishedAt": "2026-09-10T10:47:36.211Z"
+  "apiRequests": 83,
+  "lastCheckpointAt": "2026-09-10T11:15:14.218Z",
+  "lastCheckpointReason": "iranian-progress-new-23990c80-6261-11ee-9487-c7db916a0358",
+  "remainingRunMsAtCheckpoint": 40665,
+  "finishedAt": "2026-09-10T11:15:28.531Z"
 }
