@@ -16,7 +16,7 @@ import {
 const API_BASE = 'https://seeko.film/api/v1';
 const PANEL_API_BASE = 'https://panel-api.upera.tv/api/v1';
 const FILIMO_OWNER_ID = 9194919;
-const IRANIAN_SERIES_SCAN_VERSION = 7;
+const IRANIAN_SERIES_SCAN_VERSION = 8;
 const SERIES_COMPLETENESS_AUDIT_VERSION = 2;
 const MEDIA_LANGUAGE_AUDIT_VERSION = 8;
 const IRANIAN_SERIES_REBUILD_VERSION = 1;
