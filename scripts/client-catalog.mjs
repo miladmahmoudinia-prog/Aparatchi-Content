@@ -471,20 +471,23 @@ const isClientVisibleItem = (item) => {
   const actualEpisodeCount = Number(item.episodeCount || 0);
   if (!(actualEpisodeCount > 0) || !item.latestEpisode || !(Number(item.latestEpisode.episodeNumber || 0) > 0)) return false;
   const expectedEpisodeCount = Number(item.sourceEpisodeCount || 0);
-  // Old/completed archives must not be published partially. Ongoing series may
-  // expose the currently available episodes, but their badge still comes from
-  // the actual sanitized episode list above.
-  if (item.isAiring !== true && expectedEpisodeCount > actualEpisodeCount) return false;
-  // Iranian narrative archives are intentionally hidden while their clean
-  // sequential rebuild is incomplete. Keep the legacy visibility lock only for
-  // other series so a foreign title does not disappear during a background audit.
-  if (!seriesHasUsableClientMedia(item)) return false;
   const keys = Array.isArray(item.categoryKeys) ? item.categoryKeys : [];
   const strictIranianArchive = Boolean(
     !item.isDocumentary &&
     item.contentKind !== 'documentary' &&
     (keys.includes('iranian-series') || (item.ir === true && !keys.includes('foreign-series')))
   );
+  // Some Iranian archives legitimately mix free and purchase-only episodes.
+  // Aparatchi must expose the verified free episodes instead of hiding the whole
+  // series until every source episode becomes free. Missing/purchase-only rows
+  // never reach the client downloads, so this does not admit a purchase link.
+  // Keep the stricter completeness gate for other completed archives.
+  if (
+    item.isAiring !== true &&
+    expectedEpisodeCount > actualEpisodeCount &&
+    !strictIranianArchive
+  ) return false;
+  if (!seriesHasUsableClientMedia(item)) return false;
   return item.publicationStatus === 'published' ||
     item.archiveComplete === true ||
     (!strictIranianArchive && item.visibilityLocked === true);
