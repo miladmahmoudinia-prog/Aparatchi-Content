@@ -1,5 +1,5 @@
 name: Sync Upera Catalog
-# Diagnose the authenticated route that returns verified free Iranian episode media.
+# Probe first, middle and latest episodes; publish only verified free Iranian media.
 # bounded Iranian lane contract v7 - exclude unlabelled foreign original-language media
 
 on:
@@ -50,85 +50,6 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: '22'
-
-      - name: Diagnose free-link panel route
-        env:
-          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
-        shell: bash
-        run: |
-          node - <<'NODE'
-          const token = String(process.env.UPERA_PANEL_TOKEN || '').trim();
-          if (!token) {
-            console.log(JSON.stringify({ skipped: 'missing-panel-token' }));
-            process.exit(0);
-          }
-          const endpoint = 'https://panel-api.upera.tv/api/v1/owner/show_links/episode/3189fd00-55c7-11f1-830e-797d79cf02d2';
-          const variants = [
-            ['GET', 'base', '', null],
-            ['GET', 'traffic_oo=0', '?traffic_oo=0', null],
-            ['GET', 'traffic_oo=1', '?traffic_oo=1', null],
-            ['GET', 'traffic_oo=2', '?traffic_oo=2', null],
-            ['GET', 'free=1', '?free=1', null],
-            ['POST', 'empty', '', {}],
-            ['POST', 'traffic_oo=0', '', { traffic_oo: 0 }],
-            ['POST', 'traffic_oo=1', '', { traffic_oo: 1 }],
-            ['POST', 'traffic_oo=2', '', { traffic_oo: 2 }],
-            ['POST', 'free=1', '', { free: 1 }],
-          ];
-          const urlKeys = new Set(['link','url','href','download_url','downloadUrl','download_link','downloadLink','stream_url','streamUrl','stream_link','streamLink','file_url','fileUrl','file','hls','hls_url','hlsUrl','player','player_url','playerUrl','iframe','iframe_url','iframeUrl','embed','embed_url','embedUrl']);
-          const summarize = (value) => {
-            const urls = [];
-            const traffic = new Set();
-            const amounts = new Set();
-            const keys = new Set();
-            const walk = (node) => {
-              if (Array.isArray(node)) return node.forEach(walk);
-              if (!node || typeof node !== 'object') return;
-              for (const [key, child] of Object.entries(node)) {
-                keys.add(key);
-                if (/traffic_?oo/i.test(key)) traffic.add(String(child));
-                if (/amount|price|cost/i.test(key) && typeof child !== 'object') amounts.add(String(child));
-                if (urlKeys.has(key) && typeof child === 'string' && /^https?:\/\//i.test(child)) {
-                  let host = '';
-                  let path = '';
-                  try { const u = new URL(child); host = u.hostname; path = u.pathname; } catch {}
-                  urls.push({ key, host, direct: /\.(?:m3u8|mp4)(?:$|[?#])/i.test(child) || /aparatchi\.upera\.tv/i.test(child), pathKind: /hls/i.test(path) ? 'hls' : /player|play/i.test(path) ? 'player' : 'other' });
-                }
-                if (child && typeof child === 'object') walk(child);
-              }
-            };
-            walk(value);
-            return {
-              records: urls.length,
-              direct: urls.filter(x => x.direct).length,
-              hosts: [...new Set(urls.map(x => x.host).filter(Boolean))],
-              urlFields: [...new Set(urls.map(x => x.key))],
-              pathKinds: [...new Set(urls.map(x => x.pathKind))],
-              traffic: [...traffic],
-              amounts: [...amounts].slice(0, 12),
-              rootKeys: value && typeof value === 'object' ? Object.keys(value).slice(0, 30) : [],
-            };
-          };
-          const output = [];
-          for (const [method, label, suffix, body] of variants) {
-            try {
-              const response = await fetch(endpoint + suffix, {
-                method,
-                headers: {
-                  Authorization: /^Bearer\s/i.test(token) ? token : 'Bearer ' + token,
-                  'Content-Type': 'application/json',
-                },
-                ...(body === null ? {} : { body: JSON.stringify(body) }),
-              });
-              let data = null;
-              try { data = await response.json(); } catch {}
-              output.push({ method, label, status: response.status, ...summarize(data) });
-            } catch (error) {
-              output.push({ method, label, error: String(error?.message || error).slice(0, 160) });
-            }
-          }
-          console.log(JSON.stringify({ canary: 'ahl-iran-episode-14', variants: output }, null, 2));
-          NODE
 
       - name: Rebuild compact client catalog before regression tests
         run: node scripts/rebuild-client-catalog.mjs
@@ -253,16 +174,16 @@ jobs:
           # must not starve every publishable title behind it in this run.
           APARATCHI_REQUEST_TIMEOUT_MS: '6000'
           APARATCHI_REQUEST_MAX_ATTEMPTS: '1'
-          UPERA_MAX_REQUESTS_PER_RUN: '220'
+          UPERA_MAX_REQUESTS_PER_RUN: '300'
           UPERA_REQUEST_DELAY_MS: '520'
-          UPERA_IRANIAN_SERIES_REQUEST_QUOTA: '180'
+          UPERA_IRANIAN_SERIES_REQUEST_QUOTA: '240'
           APARATCHI_IRANIAN_ARCHIVE_PASSES: ${{ github.event_name == 'push' && '1' || '24' }}
           UPERA_IRANIAN_SERIES_PAGES_PER_RUN: ${{ github.event_name == 'push' && '40' || '5' }}
           UPERA_IRANIAN_SERIES_TITLES_PER_RUN: '1'
           # Probe a representative recent window first. Viable partial
           # archives stay selected and continue next pass; dead titles are
           # rejected quickly so the cursor can reach a publishable series.
-          UPERA_PRIORITY_EPISODES_PER_SERIES: ${{ github.event_name == 'push' && '1' || '8' }}
+          UPERA_PRIORITY_EPISODES_PER_SERIES: ${{ github.event_name == 'push' && '3' || '8' }}
           UPERA_MAX_EPISODE_PAGES: '80'
           APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
         shell: bash
