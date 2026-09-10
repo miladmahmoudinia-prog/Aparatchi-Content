@@ -1,5 +1,5 @@
 name: Sync Upera Catalog
-# Diagnose Iranian player/free record types with a short push-only pass.
+# Probe one episode across many Iranian titles until a genuinely free series is found.
 # bounded Iranian lane contract v7 - exclude unlabelled foreign original-language media
 
 on:
@@ -175,14 +175,14 @@ jobs:
           APARATCHI_REQUEST_MAX_ATTEMPTS: '1'
           UPERA_MAX_REQUESTS_PER_RUN: '220'
           UPERA_REQUEST_DELAY_MS: '520'
-          UPERA_IRANIAN_SERIES_REQUEST_QUOTA: ${{ github.event_name == 'push' && '32' || '180' }}
+          UPERA_IRANIAN_SERIES_REQUEST_QUOTA: '180'
           APARATCHI_IRANIAN_ARCHIVE_PASSES: ${{ github.event_name == 'push' && '1' || '24' }}
           UPERA_IRANIAN_SERIES_PAGES_PER_RUN: '5'
           UPERA_IRANIAN_SERIES_TITLES_PER_RUN: '1'
           # Probe a representative recent window first. Viable partial
           # archives stay selected and continue next pass; dead titles are
           # rejected quickly so the cursor can reach a publishable series.
-          UPERA_PRIORITY_EPISODES_PER_SERIES: ${{ github.event_name == 'push' && '2' || '8' }}
+          UPERA_PRIORITY_EPISODES_PER_SERIES: ${{ github.event_name == 'push' && '1' || '8' }}
           UPERA_MAX_EPISODE_PAGES: '80'
           APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
         shell: bash
