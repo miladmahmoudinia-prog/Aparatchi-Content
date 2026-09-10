@@ -4398,7 +4398,14 @@ async function fetchAffiliateLinks(
   }
 
   const publicLinks = [];
-  for (let index = 0; index < publicRequestVariants.length; index += 1) {
+  // The authenticated panel is authoritative. When it already returns a real
+  // free stream/player, do not spend four companion public requests on the same
+  // episode; preserve that budget for first/middle/latest probes in other titles.
+  const panelAlreadyPlayable = iranianEpisodeProbe && panelLinks.some((link) =>
+    isDirectMediaUrl(link?.link) || operatorPortalDetails(link?.link)
+  );
+  const variantsToFetch = panelAlreadyPlayable ? [] : publicRequestVariants;
+  for (let index = 0; index < variantsToFetch.length; index += 1) {
     if (index > 0) {
       if (
         runTimeBudgetReached('affiliate-companion-request', 30000) ||
@@ -4409,7 +4416,7 @@ async function fetchAffiliateLinks(
       affiliateRequestsUsed += 1;
     }
 
-    const variant = publicRequestVariants[index];
+    const variant = variantsToFetch[index];
     const url = new URL(API_BASE + '/ghost/get/getaffiliatelinks');
     setQuery(url, {
       id,
