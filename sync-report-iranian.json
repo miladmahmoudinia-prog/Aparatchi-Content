@@ -1,13 +1,13 @@
 {
-  "startedAt": "2026-09-10T11:14:13.904Z",
+  "startedAt": "2026-09-10T15:04:26.181Z",
   "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-09-10T11:15:59.000Z",
-  "stoppedByTimeBudget": true,
-  "timeBudgetStopContext": "before-operator-classification",
-  "remainingRunMsAtFinish": 30469,
+  "runDeadlineAt": "2026-09-10T15:08:45.000Z",
+  "stoppedByTimeBudget": false,
+  "timeBudgetStopContext": "",
+  "remainingRunMsAtFinish": 72876,
   "imageMirroringSkipped": true,
-  "originalCount": 8338,
-  "finalCount": 8338,
+  "originalCount": 8339,
+  "finalCount": 8339,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
   "backfillQueueTotal": 259,
@@ -19,7 +19,7 @@
   "backfillEpisodesAdded": 0,
   "backfillSeriesVisited": 0,
   "backfillCheckpoints": 1,
-  "episodesMarkedUnavailable": 13,
+  "episodesMarkedUnavailable": 45,
   "backfillNoProgressRuns": 0,
   "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
@@ -43,11 +43,11 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 180,
-      "used": 55,
-      "exhausted": false
+      "used": 180,
+      "exhausted": true
     }
   },
-  "skippedByScopedBudget": 0,
+  "skippedByScopedBudget": 1,
   "moviePagesProcessed": 0,
   "movieTitlesProcessed": 0,
   "seriesPagesProcessed": 0,
@@ -63,12 +63,12 @@
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 2,
-  "episodesProcessed": 14,
-  "iranianSeriesPagesProcessed": 3,
-  "iranianSeriesCandidates": 2,
+  "episodesProcessed": 46,
+  "iranianSeriesPagesProcessed": 1,
+  "iranianSeriesCandidates": 6,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
-  "iranianSeriesRejectedNoLinks": 2,
+  "iranianSeriesRejectedNoLinks": 6,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
   "operatorSeriesAddedOrUpdated": 0,
@@ -104,8 +104,8 @@
       "discovery": "existing-incomplete-first"
     },
     {
-      "id": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
-      "title": "قهوه ترک",
+      "id": "9b2e4cc0-3ccd-11f0-9af8-f7fabfe73c25",
+      "title": "سووشون",
       "result": "rejected",
       "reason": "no-usable-links",
       "addedEpisodes": 0,
@@ -115,8 +115,52 @@
       "discovery": "new-only-country-IR"
     },
     {
-      "id": "23990c80-6261-11ee-9487-c7db916a0358",
-      "title": "مرداب",
+      "id": "3c240b70-0310-11f0-bf17-a54679145d7c",
+      "title": "الکلاسیکو",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "title": "نیمه شب با امیرحسین قیاسی",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
+      "title": "رینگو",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "b2e62ec0-1d38-11ef-92c5-e16b4f4a153b",
+      "title": "کنسرتینو",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "dbe52ae0-df4a-11ef-b684-5b57f0983c39",
+      "title": "آبان ( ناشنوایان )",
       "result": "rejected",
       "reason": "request-budget",
       "addedEpisodes": 0,
@@ -128,11 +172,11 @@
   ],
   "iranianLinkProbeDiagnostics": [
     {
-      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
-      "seriesTitle": "قهوه ترک",
-      "episodeId": "6f65fc70-576a-11ee-bbc4-d37f4d257ed1",
+      "seriesId": "9b2e4cc0-3ccd-11f0-9af8-f7fabfe73c25",
+      "seriesTitle": "سووشون",
+      "episodeId": "fb7e9dc0-abd8-11f0-99ee-fb44d6ca0dd2",
       "seasonNumber": 1,
-      "episodeNumber": 18,
+      "episodeNumber": 14,
       "recordCount": 6,
       "directCount": 0,
       "portalCount": 0,
@@ -156,9 +200,9 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
-      "seriesTitle": "قهوه ترک",
-      "episodeId": "4bc8e660-f9e4-11ed-91dd-8b172bfb96c7",
+      "seriesId": "9b2e4cc0-3ccd-11f0-9af8-f7fabfe73c25",
+      "seriesTitle": "سووشون",
+      "episodeId": "b0a49420-3d02-11f0-b323-15fa1747a27d",
       "seasonNumber": 1,
       "episodeNumber": 1,
       "recordCount": 6,
@@ -184,11 +228,11 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
-      "seriesTitle": "قهوه ترک",
-      "episodeId": "8ba64d10-25e6-11ee-a486-9ff382a217ae",
+      "seriesId": "9b2e4cc0-3ccd-11f0-9af8-f7fabfe73c25",
+      "seriesTitle": "سووشون",
+      "episodeId": "0d773520-8489-11f0-9c15-a7af9b57eff6",
       "seasonNumber": 1,
-      "episodeNumber": 9,
+      "episodeNumber": 7,
       "recordCount": 6,
       "directCount": 0,
       "portalCount": 0,
@@ -212,9 +256,9 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
-      "seriesTitle": "قهوه ترک",
-      "episodeId": "1133d6c0-04e5-11ee-9494-c774f1b7f789",
+      "seriesId": "9b2e4cc0-3ccd-11f0-9af8-f7fabfe73c25",
+      "seriesTitle": "سووشون",
+      "episodeId": "5a473780-6e8a-11f0-bc8b-fd7df0909e12",
       "seasonNumber": 1,
       "episodeNumber": 3,
       "recordCount": 6,
@@ -240,11 +284,11 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
-      "seriesTitle": "قهوه ترک",
-      "episodeId": "141fafb0-156b-11ee-9ea9-9fc8a57a596b",
+      "seriesId": "9b2e4cc0-3ccd-11f0-9af8-f7fabfe73c25",
+      "seriesTitle": "سووشون",
+      "episodeId": "ff13f140-7967-11f0-a888-b1a576e98612",
       "seasonNumber": 1,
-      "episodeNumber": 6,
+      "episodeNumber": 5,
       "recordCount": 6,
       "directCount": 0,
       "portalCount": 0,
@@ -268,9 +312,9 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
-      "seriesTitle": "قهوه ترک",
-      "episodeId": "466c4b80-203b-11ee-b21e-f55e068d09b4",
+      "seriesId": "9b2e4cc0-3ccd-11f0-9af8-f7fabfe73c25",
+      "seriesTitle": "سووشون",
+      "episodeId": "b78d7ea0-8a05-11f0-af10-93e6b8f3d5c6",
       "seasonNumber": 1,
       "episodeNumber": 8,
       "recordCount": 6,
@@ -296,121 +340,9 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
-      "seriesTitle": "قهوه ترک",
-      "episodeId": "64fd1480-30dd-11ee-8d57-732d8aef7de3",
-      "seasonNumber": 1,
-      "episodeNumber": 11,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
-      "seriesTitle": "قهوه ترک",
-      "episodeId": "ff2eae40-3be2-11ee-8987-29c7f4f4ffad",
-      "seasonNumber": 1,
-      "episodeNumber": 13,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "23990c80-6261-11ee-9487-c7db916a0358",
-      "seriesTitle": "مرداب",
-      "episodeId": "88cda940-cabf-11ee-8d82-193540121838",
-      "seasonNumber": 1,
-      "episodeNumber": 20,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "23990c80-6261-11ee-9487-c7db916a0358",
-      "seriesTitle": "مرداب",
-      "episodeId": "0f6e3970-6262-11ee-aab1-a9ba8cf2a889",
-      "seasonNumber": 1,
-      "episodeNumber": 1,
-      "recordCount": 6,
-      "directCount": 0,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop"
-      ],
-      "tiers": {
-        "paid": 6
-      },
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint"
-      ],
-      "mediaGroupCount": 0,
-      "mediaFileCount": 0,
-      "hasStreamUrl": false
-    },
-    {
-      "seriesId": "23990c80-6261-11ee-9487-c7db916a0358",
-      "seriesTitle": "مرداب",
-      "episodeId": "849bfeb0-93ab-11ee-801c-1fc167ad1c3e",
+      "seriesId": "9b2e4cc0-3ccd-11f0-9af8-f7fabfe73c25",
+      "seriesTitle": "سووشون",
+      "episodeId": "663288e0-950c-11f0-858e-1d0e793a1185",
       "seasonNumber": 1,
       "episodeNumber": 10,
       "recordCount": 6,
@@ -436,9 +368,121 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "23990c80-6261-11ee-9487-c7db916a0358",
-      "seriesTitle": "مرداب",
-      "episodeId": "07a33800-72a8-11ee-9248-1b8a2d48d6a1",
+      "seriesId": "9b2e4cc0-3ccd-11f0-9af8-f7fabfe73c25",
+      "seriesTitle": "سووشون",
+      "episodeId": "e4a98920-a009-11f0-ab10-6ddac5f074a1",
+      "seasonNumber": 1,
+      "episodeNumber": 12,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "3c240b70-0310-11f0-bf17-a54679145d7c",
+      "seriesTitle": "الکلاسیکو",
+      "episodeId": "c8c7bfe0-8dee-11f0-a322-05750ae92848",
+      "seasonNumber": 1,
+      "episodeNumber": 22,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "3c240b70-0310-11f0-bf17-a54679145d7c",
+      "seriesTitle": "الکلاسیکو",
+      "episodeId": "1073d1c0-09f4-11f0-89db-53bc8ad47d6b",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "3c240b70-0310-11f0-bf17-a54679145d7c",
+      "seriesTitle": "الکلاسیکو",
+      "episodeId": "ef3dca60-5641-11f0-906e-ebcd52c10d76",
+      "seasonNumber": 1,
+      "episodeNumber": 11,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "3c240b70-0310-11f0-bf17-a54679145d7c",
+      "seriesTitle": "الکلاسیکو",
+      "episodeId": "223273a0-1a8e-11f0-aaa5-15e8db9ba795",
       "seasonNumber": 1,
       "episodeNumber": 4,
       "recordCount": 6,
@@ -464,11 +508,767 @@
       "hasStreamUrl": false
     },
     {
-      "seriesId": "23990c80-6261-11ee-9487-c7db916a0358",
-      "seriesTitle": "مرداب",
-      "episodeId": "a036fad0-7de5-11ee-b321-0963829733fe",
+      "seriesId": "3c240b70-0310-11f0-bf17-a54679145d7c",
+      "seriesTitle": "الکلاسیکو",
+      "episodeId": "5ec1d650-2af2-11f0-a9eb-7de17f4764a0",
+      "seasonNumber": 1,
+      "episodeNumber": 7,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "3c240b70-0310-11f0-bf17-a54679145d7c",
+      "seriesTitle": "الکلاسیکو",
+      "episodeId": "9ae2c610-3b7b-11f0-a6d5-25149e07f3f5",
+      "seasonNumber": 1,
+      "episodeNumber": 10,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "3c240b70-0310-11f0-bf17-a54679145d7c",
+      "seriesTitle": "الکلاسیکو",
+      "episodeId": "82ab4ac0-5c7a-11f0-81e3-b73604366201",
+      "seasonNumber": 1,
+      "episodeNumber": 13,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "3c240b70-0310-11f0-bf17-a54679145d7c",
+      "seriesTitle": "الکلاسیکو",
+      "episodeId": "984f51c0-6cc3-11f0-9c53-999298982f17",
+      "seasonNumber": 1,
+      "episodeNumber": 16,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "49943c40-6bc1-11f0-a10f-6767b6177c8d",
+      "seasonNumber": 1,
+      "episodeNumber": 26,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "ec511180-d670-11ef-8f61-3b6eae31f378",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "28df0a60-10aa-11f0-8717-772f76a59866",
+      "seasonNumber": 1,
+      "episodeNumber": 13,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "51479ab0-ec6d-11ef-93db-1910a6ed31c3",
+      "seasonNumber": 1,
+      "episodeNumber": 5,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "f2bf6730-fd22-11ef-85b2-23ead703ba8f",
+      "seasonNumber": 1,
+      "episodeNumber": 8,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "abf27b70-0d72-11f0-88ec-bd16304e9eb5",
+      "seasonNumber": 1,
+      "episodeNumber": 12,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "d31321b0-187d-11f0-be06-7593ebafd6ef",
+      "seasonNumber": 1,
+      "episodeNumber": 15,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "37f86270-2fff-11f0-95ea-f3f5db582cd2",
+      "seasonNumber": 1,
+      "episodeNumber": 19,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
+      "seriesTitle": "رینگو",
+      "episodeId": "de2ad0a0-6507-11f0-9909-7177d39dfa38",
+      "seasonNumber": 1,
+      "episodeNumber": 24,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
+      "seriesTitle": "رینگو",
+      "episodeId": "07661770-e119-11ef-8b4a-41aae6033d0d",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
+      "seriesTitle": "رینگو",
+      "episodeId": "47edded0-01e2-11f0-a072-5d1b36ea1617",
+      "seasonNumber": 1,
+      "episodeNumber": 12,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
+      "seriesTitle": "رینگو",
+      "episodeId": "adf2fcd0-e982-11ef-ade6-2f8f9bace705",
+      "seasonNumber": 1,
+      "episodeNumber": 4,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
+      "seriesTitle": "رینگو",
+      "episodeId": "f9513690-f489-11ef-8969-177f3ceefbc0",
+      "seasonNumber": 1,
+      "episodeNumber": 8,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
+      "seriesTitle": "رینگو",
+      "episodeId": "0d7c70e0-fc85-11ef-989b-9d6a2fe20d8f",
+      "seasonNumber": 1,
+      "episodeNumber": 11,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
+      "seriesTitle": "رینگو",
+      "episodeId": "837d4480-129d-11f0-893a-5fc246a2dff7",
+      "seasonNumber": 1,
+      "episodeNumber": 14,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "dfdbe270-e118-11ef-a2bc-b14d69e0f633",
+      "seriesTitle": "رینگو",
+      "episodeId": "aab2ecf0-22d5-11f0-9e70-8b26d06cfb32",
+      "seasonNumber": 1,
+      "episodeNumber": 17,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b2e62ec0-1d38-11ef-92c5-e16b4f4a153b",
+      "seriesTitle": "کنسرتینو",
+      "episodeId": "a56404f0-3bd8-11f0-87f8-3346195a1e85",
+      "seasonNumber": 1,
+      "episodeNumber": 11,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b2e62ec0-1d38-11ef-92c5-e16b4f4a153b",
+      "seriesTitle": "کنسرتینو",
+      "episodeId": "6aafe410-1d39-11ef-b172-d11f48f6c2a0",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b2e62ec0-1d38-11ef-92c5-e16b4f4a153b",
+      "seriesTitle": "کنسرتینو",
+      "episodeId": "a7ec3740-38c0-11ef-9993-3d90de115dfc",
       "seasonNumber": 1,
       "episodeNumber": 6,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b2e62ec0-1d38-11ef-92c5-e16b4f4a153b",
+      "seriesTitle": "کنسرتینو",
+      "episodeId": "5ce82bf0-22eb-11ef-a0f6-53adba85f55c",
+      "seasonNumber": 1,
+      "episodeNumber": 2,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b2e62ec0-1d38-11ef-92c5-e16b4f4a153b",
+      "seriesTitle": "کنسرتینو",
+      "episodeId": "3f7acef0-2deb-11ef-bf8d-dbe12026a60b",
+      "seasonNumber": 1,
+      "episodeNumber": 4,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b2e62ec0-1d38-11ef-92c5-e16b4f4a153b",
+      "seriesTitle": "کنسرتینو",
+      "episodeId": "bd402c20-3368-11ef-9676-31eb3907bef1",
+      "seasonNumber": 1,
+      "episodeNumber": 5,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b2e62ec0-1d38-11ef-92c5-e16b4f4a153b",
+      "seriesTitle": "کنسرتینو",
+      "episodeId": "cf1f0360-0de2-11f0-9a65-a95fe4db1789",
+      "seasonNumber": 1,
+      "episodeNumber": 7,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b2e62ec0-1d38-11ef-92c5-e16b4f4a153b",
+      "seriesTitle": "کنسرتینو",
+      "episodeId": "10c97820-1b0b-11f0-8555-cd5a13382ebe",
+      "seasonNumber": 1,
+      "episodeNumber": 8,
       "recordCount": 6,
       "directCount": 0,
       "portalCount": 0,
@@ -576,8 +1376,31 @@
       "isAiring": true
     },
     {
-      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
-      "title": "قهرمان درون",
+      "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
+      "title": "باب اسفنجی شلوار مکعبی",
+      "missing": [
+        {
+          "seasonNumber": 13,
+          "episodeNumber": 9
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
+      "seriesId": "5a181d30-602d-11ed-91cf-e3497a0eb443",
+      "title": "کهکشان بوبوی بوی",
+      "missing": [],
+      "pendingEpisodeCount": 1,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "d8c42b30-1c68-11f1-9d98-b36ecfe4cc67",
+      "title": "روستر",
       "missing": [],
       "pendingEpisodeCount": 2,
       "publicationStatus": "published",
@@ -585,19 +1408,10 @@
       "isAiring": true
     },
     {
-      "seriesId": "e72663e0-781b-11f0-a774-4f030c7cb9ab",
-      "title": "دوستان آتشی",
+      "seriesId": "6ee7a320-90c0-11f1-936c-e7983f454a7b",
+      "title": "قهرمانان کوانتومی داینوستر",
       "missing": [],
-      "pendingEpisodeCount": 24,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "e58b5da0-7693-11f0-9e60-7fd49df91adc",
-      "title": "لانا، دختر دریانورد",
-      "missing": [],
-      "pendingEpisodeCount": 3,
+      "pendingEpisodeCount": 12,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
@@ -617,45 +1431,31 @@
       "isAiring": true
     },
     {
-      "seriesId": "6ee7a320-90c0-11f1-936c-e7983f454a7b",
-      "title": "قهرمانان کوانتومی داینوستر",
+      "seriesId": "e58b5da0-7693-11f0-9e60-7fd49df91adc",
+      "title": "لانا، دختر دریانورد",
       "missing": [],
-      "pendingEpisodeCount": 12,
+      "pendingEpisodeCount": 3,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
     },
     {
-      "seriesId": "d8c42b30-1c68-11f1-9d98-b36ecfe4cc67",
-      "title": "روستر",
+      "seriesId": "e72663e0-781b-11f0-a774-4f030c7cb9ab",
+      "title": "دوستان آتشی",
+      "missing": [],
+      "pendingEpisodeCount": 24,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
+      "title": "قهرمان درون",
       "missing": [],
       "pendingEpisodeCount": 2,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
-    },
-    {
-      "seriesId": "5a181d30-602d-11ed-91cf-e3497a0eb443",
-      "title": "کهکشان بوبوی بوی",
-      "missing": [],
-      "pendingEpisodeCount": 1,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
-      "title": "باب اسفنجی شلوار مکعبی",
-      "missing": [
-        {
-          "seasonNumber": 13,
-          "episodeNumber": 9
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
     },
     {
       "seriesId": "2112ad80-5b3f-11ef-a711-53655837aea6",
@@ -1527,18 +2327,18 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 100,
+  "episodesDiscovered": 176,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 13,
+  "episodesRejectedNoLinks": 45,
   "moviesAddedOrUpdated": 0,
   "seriesAddedOrUpdated": 2,
-  "affiliateRequests": 55,
+  "affiliateRequests": 180,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 27,
+  "affiliateNotFound": 90,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1582,9 +2382,9 @@
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 83,
-  "lastCheckpointAt": "2026-09-10T11:15:14.218Z",
-  "lastCheckpointReason": "iranian-progress-new-23990c80-6261-11ee-9487-c7db916a0358",
-  "remainingRunMsAtCheckpoint": 40665,
-  "finishedAt": "2026-09-10T11:15:28.531Z"
+  "apiRequests": 239,
+  "lastCheckpointAt": "2026-09-10T15:07:17.800Z",
+  "lastCheckpointReason": "iranian-progress-new-dbe52ae0-df4a-11ef-b684-5b57f0983c39",
+  "remainingRunMsAtCheckpoint": 83167,
+  "finishedAt": "2026-09-10T15:07:32.124Z"
 }
