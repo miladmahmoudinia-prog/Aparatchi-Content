@@ -2504,7 +2504,9 @@ async function syncIranianSeriesArchive() {
   if (!state.iranianSeriesDeferredAt || typeof state.iranianSeriesDeferredAt !== 'object') {
     state.iranianSeriesDeferredAt = {};
   }
-  const IRANIAN_DISCOVERY_RETRY_MS = 6 * 60 * 60 * 1000;
+  // A failed lookup is skipped only for the rest of the current hourly cycle.
+  // Every title becomes eligible again before the next scheduled sync.
+  const IRANIAN_DISCOVERY_RETRY_MS = 45 * 60 * 1000;
   const iranianDiscoveryDeferred = (progressKey, nowMs = Date.now()) => {
     const deferredAt = Date.parse(cleanText(state.iranianSeriesDeferredAt?.[progressKey] || ''));
     if (!Number.isFinite(deferredAt)) return false;
@@ -4570,27 +4572,6 @@ function providerPrimaryMediaLanguage(source) {
   if (!source || typeof source !== 'object') return '';
   const dubbed = source.dubbed === true || Number(source.dubbed) === 1 || /^(?:1|true|yes)$/i.test(cleanText(source.dubbed));
   return dubbed ? 'dubbed' : '';
-}
-
-function sourceEpisodeIsExplicitlyPaid(episode) {
-  if (!episode || typeof episode !== 'object') return false;
-  const freeFlag = episode.free ?? episode.is_free ?? episode.isFree;
-  const explicitlyNotFree =
-    freeFlag === false ||
-    Number(freeFlag) === 0 ||
-    /^(?:0|false|no)$/i.test(cleanText(freeFlag));
-  if (!explicitlyNotFree) return false;
-
-  return [
-    episode.price,
-    episode.tvod_price,
-    episode.tvodPrice,
-    episode.amount,
-    episode.cost,
-  ].some((value) => {
-    const amount = normalizedMediaAmount(value);
-    return Number.isFinite(amount) && amount > 0;
-  });
 }
 
 function isUperaPrimaryMediaVariant(value) {

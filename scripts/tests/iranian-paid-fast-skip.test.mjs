@@ -27,8 +27,8 @@ test('dead candidates are deferred so later pages can be reached in following pa
   };
   vm.createContext(context);
   vm.runInContext(source.slice(laneStart, laneEnd).replace('  const iranianDiscoveryDeferred', '  this.iranianDiscoveryDeferred'), context);
-  assert.equal(context.iranianDiscoveryDeferred('dead', Date.parse('2026-09-10T05:59:59.000Z')), true);
-  assert.equal(context.iranianDiscoveryDeferred('dead', Date.parse('2026-09-10T06:00:01.000Z')), false);
+  assert.equal(context.iranianDiscoveryDeferred('dead', Date.parse('2026-09-10T00:44:59.000Z')), true);
+  assert.equal(context.iranianDiscoveryDeferred('dead', Date.parse('2026-09-10T00:45:01.000Z')), false);
   assert.equal(context.state.iranianSeriesDeferredAt.dead, undefined);
 });
 
