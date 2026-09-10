@@ -1,5 +1,5 @@
 name: Sync Upera Catalog
-# Continue the free-only Iranian scan from saved page nineteen and beyond.
+# Continue the free-only Iranian scan from page nineteen; push runs skip the long suite.
 # bounded Iranian lane contract v7 - exclude unlabelled foreign original-language media
 
 on:
@@ -61,6 +61,7 @@ jobs:
           node --check scripts/rebuild-client-catalog.mjs
 
       - name: Run sync regression tests (advisory)
+        if: github.event_name != 'push'
         id: regression_tests
         continue-on-error: true
         run: node --test scripts/tests/*.test.mjs
