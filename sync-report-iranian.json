@@ -1,10 +1,10 @@
 {
-  "startedAt": "2026-09-10T16:00:14.689Z",
+  "startedAt": "2026-09-10T16:02:55.860Z",
   "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-09-10T16:10:12.781Z",
+  "runDeadlineAt": "2026-09-10T16:12:54.497Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 582090,
+  "remainingRunMsAtFinish": 577504,
   "imageMirroringSkipped": true,
   "originalCount": 8339,
   "finalCount": 8339,
@@ -19,7 +19,7 @@
   "backfillEpisodesAdded": 0,
   "backfillSeriesVisited": 0,
   "backfillCheckpoints": 0,
-  "episodesMarkedUnavailable": 1,
+  "episodesMarkedUnavailable": 2,
   "backfillNoProgressRuns": 0,
   "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 180,
-      "used": 4,
+      "used": 8,
       "exhausted": false
     }
   },
@@ -63,12 +63,12 @@
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 2,
-  "episodesProcessed": 1,
+  "episodesProcessed": 2,
   "iranianSeriesPagesProcessed": 5,
-  "iranianSeriesCandidates": 1,
+  "iranianSeriesCandidates": 2,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
-  "iranianSeriesRejectedNoLinks": 1,
+  "iranianSeriesRejectedNoLinks": 2,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
   "operatorSeriesAddedOrUpdated": 0,
@@ -104,8 +104,19 @@
       "discovery": "existing-incomplete-first"
     },
     {
-      "id": "b2e62ec0-1d38-11ef-92c5-e16b4f4a153b",
-      "title": "کنسرتینو",
+      "id": "b7e8d4a0-ddd2-11f0-9b22-3d5ea62dd822",
+      "title": "ابوطالب",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "bcb446f0-6a30-11f1-afa4-3998b7c71390",
+      "title": "کوری",
       "result": "rejected",
       "reason": "no-usable-links",
       "addedEpisodes": 0,
@@ -117,11 +128,11 @@
   ],
   "iranianLinkProbeDiagnostics": [
     {
-      "seriesId": "b2e62ec0-1d38-11ef-92c5-e16b4f4a153b",
-      "seriesTitle": "کنسرتینو",
-      "episodeId": "a56404f0-3bd8-11f0-87f8-3346195a1e85",
+      "seriesId": "b7e8d4a0-ddd2-11f0-9b22-3d5ea62dd822",
+      "seriesTitle": "ابوطالب",
+      "episodeId": "7ca0c280-f3ad-11f0-abd9-83ac7de5a2d2",
       "seasonNumber": 1,
-      "episodeNumber": 11,
+      "episodeNumber": 5,
       "recordCount": 6,
       "directCount": 0,
       "portalCount": 0,
@@ -141,6 +152,54 @@
         "20,000",
         "25,000",
         "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "bcb446f0-6a30-11f1-afa4-3998b7c71390",
+      "seriesTitle": "کوری",
+      "episodeId": "44882a70-a829-11f1-989e-653485ad0bd7",
+      "seasonNumber": 1,
+      "episodeNumber": 9,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "25,000",
+        "27,000",
+        "30,000",
+        "35,000",
+        "40,000",
+        "150,000"
       ],
       "titleSamples": [
         "کیفیت 480",
@@ -1200,18 +1259,18 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 73,
+  "episodesDiscovered": 76,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 1,
+  "episodesRejectedNoLinks": 2,
   "moviesAddedOrUpdated": 0,
   "seriesAddedOrUpdated": 2,
-  "affiliateRequests": 4,
+  "affiliateRequests": 8,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 2,
+  "affiliateNotFound": 4,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1255,6 +1314,6 @@
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 20,
-  "finishedAt": "2026-09-10T16:00:30.691Z"
+  "apiRequests": 26,
+  "finishedAt": "2026-09-10T16:03:16.993Z"
 }
