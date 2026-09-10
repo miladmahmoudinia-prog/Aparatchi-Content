@@ -4401,10 +4401,14 @@ async function fetchAffiliateLinks(
   // The authenticated panel is authoritative. When it already returns a real
   // free stream/player, do not spend four companion public requests on the same
   // episode; preserve that budget for first/middle/latest probes in other titles.
-  const panelAlreadyPlayable = iranianEpisodeProbe && panelLinks.some((link) =>
-    isDirectMediaUrl(link?.link) || operatorPortalDetails(link?.link)
+  const panelAnsweredIranianEpisode = Boolean(
+    iranianEpisodeProbe && panelToken && panelLinks.length > 0
   );
-  const variantsToFetch = panelAlreadyPlayable ? [] : publicRequestVariants;
+  // show_links is the authenticated owner source and returns purchase plus free
+  // rows together (verified against a known free episode). A non-empty panel
+  // answer is therefore complete: direct media is accepted below and shop rows
+  // are rejected below. Use the public endpoint only when the panel has no row.
+  const variantsToFetch = panelAnsweredIranianEpisode ? [] : publicRequestVariants;
   for (let index = 0; index < variantsToFetch.length; index += 1) {
     if (index > 0) {
       if (
