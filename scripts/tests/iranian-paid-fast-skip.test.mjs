@@ -17,6 +17,21 @@ test('Iranian source price never bypasses verified show_links discovery', () => 
   assert.match(processBody, /await fetchAffiliateLinks\(episode\.id, 'episode'\)/);
 });
 
+test('direct episode media stays free when a sale price is repeated on its row', () => {
+  const start = source.indexOf('function mediaPriceTier(');
+  const end = source.indexOf('\nfunction mediaLinkDescriptor(', start);
+  const context = {
+    cleanText: (value) => String(value ?? '').trim(),
+    isDirectMediaUrl: (value) => /\.(?:mp4|mkv|m3u8)(?:$|[?#])/i.test(String(value ?? '')),
+    mediaLinkDescriptor: () => '',
+    normalizedMediaAmount: (value) => Number(value),
+  };
+  vm.createContext(context);
+  vm.runInContext(`${source.slice(start, end)}\nthis.mediaPriceTier = mediaPriceTier;`, context);
+  assert.equal(context.mediaPriceTier({ link: 'https://cdn.upera.tv/e1.mp4', amount: 25000 }), 'free');
+  assert.equal(context.mediaPriceTier({ link: 'https://upera.tv/buy/episode-1', amount: 25000 }), 'paid');
+});
+
 test('dead candidates are deferred so later pages can be reached in following passes', () => {
   const lane = source.indexOf('async function syncIranianSeriesArchive()');
   const laneStart = source.indexOf('  const IRANIAN_DISCOVERY_RETRY_MS', lane);

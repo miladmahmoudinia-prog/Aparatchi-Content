@@ -4439,6 +4439,12 @@ function mediaPriceTier(link) {
   );
   if (freeFlag) return 'free';
 
+  // A direct media URL is already the usable free-delivery record. Upera may
+  // repeat the title/episode sale price on every show_links row, including the
+  // separate direct link. Do not let that inherited catalogue price hide the
+  // free file; purchase/checkout URLs are not direct media and remain filtered.
+  if (isDirectMediaUrl(link.link)) return 'free';
+
   const paidFlag = [
     link.paid, link.is_paid, link.isPaid, link.purchase_required, link.purchaseRequired,
   ].some((value) =>
