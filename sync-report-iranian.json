@@ -1,13 +1,13 @@
 {
-  "startedAt": "2026-09-10T16:46:06.228Z",
+  "startedAt": "2026-09-10T18:52:01.040Z",
   "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-09-10T16:56:04.344Z",
+  "runDeadlineAt": "2026-09-10T19:01:59.181Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 544271,
+  "remainingRunMsAtFinish": 537337,
   "imageMirroringSkipped": true,
-  "originalCount": 8339,
-  "finalCount": 8339,
+  "originalCount": 8342,
+  "finalCount": 8342,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
   "backfillQueueTotal": 259,
@@ -19,7 +19,7 @@
   "backfillEpisodesAdded": 0,
   "backfillSeriesVisited": 0,
   "backfillCheckpoints": 0,
-  "episodesMarkedUnavailable": 0,
+  "episodesMarkedUnavailable": 40,
   "backfillNoProgressRuns": 0,
   "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 240,
-      "used": 0,
+      "used": 40,
       "exhausted": false
     }
   },
@@ -63,12 +63,12 @@
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 2,
-  "episodesProcessed": 0,
-  "iranianSeriesPagesProcessed": 40,
-  "iranianSeriesCandidates": 0,
+  "episodesProcessed": 40,
+  "iranianSeriesPagesProcessed": 5,
+  "iranianSeriesCandidates": 5,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
-  "iranianSeriesRejectedNoLinks": 0,
+  "iranianSeriesRejectedNoLinks": 5,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
   "operatorSeriesAddedOrUpdated": 0,
@@ -102,9 +102,2065 @@
       "retryLater": false,
       "newlyPublished": false,
       "discovery": "existing-incomplete-first"
+    },
+    {
+      "id": "0ae7dad0-de39-11ef-ad4b-11a0fbda06ac",
+      "title": "آبان",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "title": "قهوه ترک",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "title": "نیمه شب با امیرحسین قیاسی",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "542e96b0-d9a0-11ef-a32f-d19bc71d6eee",
+      "title": "مسابقه مافیا دُن",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "544b44e0-1a1c-11ee-9dec-477387de8294",
+      "title": "فوفو مسافری از کامادو",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
     }
   ],
-  "iranianLinkProbeDiagnostics": [],
+  "iranianLinkProbeDiagnostics": [
+    {
+      "seriesId": "0ae7dad0-de39-11ef-ad4b-11a0fbda06ac",
+      "seriesTitle": "آبان",
+      "episodeId": "31acd090-30d9-11f0-bb75-4bcf9ab4f697",
+      "seasonNumber": 1,
+      "episodeNumber": 17,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "0ae7dad0-de39-11ef-ad4b-11a0fbda06ac",
+      "seriesTitle": "آبان",
+      "episodeId": "72dfaa30-de61-11ef-9458-05f4a17db0a4",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "0ae7dad0-de39-11ef-ad4b-11a0fbda06ac",
+      "seriesTitle": "آبان",
+      "episodeId": "5c33b200-058b-11f0-ac68-47166edc6180",
+      "seasonNumber": 1,
+      "episodeNumber": 9,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "0ae7dad0-de39-11ef-ad4b-11a0fbda06ac",
+      "seriesTitle": "آبان",
+      "episodeId": "63045640-e3ca-11ef-9c05-b11df291f833",
+      "seasonNumber": 1,
+      "episodeNumber": 3,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "0ae7dad0-de39-11ef-ad4b-11a0fbda06ac",
+      "seriesTitle": "آبان",
+      "episodeId": "11c5d930-f456-11ef-a1ee-a77a95c84075",
+      "seasonNumber": 1,
+      "episodeNumber": 6,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "0ae7dad0-de39-11ef-ad4b-11a0fbda06ac",
+      "seriesTitle": "آبان",
+      "episodeId": "b9780280-ff22-11ef-a662-d72eacce8bd2",
+      "seasonNumber": 1,
+      "episodeNumber": 8,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "0ae7dad0-de39-11ef-ad4b-11a0fbda06ac",
+      "seriesTitle": "آبان",
+      "episodeId": "7bf55340-0a61-11f0-9a8f-4362c0cb1cd3",
+      "seasonNumber": 1,
+      "episodeNumber": 10,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "0ae7dad0-de39-11ef-ad4b-11a0fbda06ac",
+      "seriesTitle": "آبان",
+      "episodeId": "80b11670-154e-11f0-9408-dfc8f96fc368",
+      "seasonNumber": 1,
+      "episodeNumber": 12,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "6f65fc70-576a-11ee-bbc4-d37f4d257ed1",
+      "seasonNumber": 1,
+      "episodeNumber": 18,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "4bc8e660-f9e4-11ed-91dd-8b172bfb96c7",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "8ba64d10-25e6-11ee-a486-9ff382a217ae",
+      "seasonNumber": 1,
+      "episodeNumber": 9,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "1133d6c0-04e5-11ee-9494-c774f1b7f789",
+      "seasonNumber": 1,
+      "episodeNumber": 3,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "141fafb0-156b-11ee-9ea9-9fc8a57a596b",
+      "seasonNumber": 1,
+      "episodeNumber": 6,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "466c4b80-203b-11ee-b21e-f55e068d09b4",
+      "seasonNumber": 1,
+      "episodeNumber": 8,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "64fd1480-30dd-11ee-8d57-732d8aef7de3",
+      "seasonNumber": 1,
+      "episodeNumber": 11,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4697ff70-f99f-11ed-abfa-e501f24b4b37",
+      "seriesTitle": "قهوه ترک",
+      "episodeId": "ff2eae40-3be2-11ee-8987-29c7f4f4ffad",
+      "seasonNumber": 1,
+      "episodeNumber": 13,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "49943c40-6bc1-11f0-a10f-6767b6177c8d",
+      "seasonNumber": 1,
+      "episodeNumber": 26,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "ec511180-d670-11ef-8f61-3b6eae31f378",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "28df0a60-10aa-11f0-8717-772f76a59866",
+      "seasonNumber": 1,
+      "episodeNumber": 13,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "51479ab0-ec6d-11ef-93db-1910a6ed31c3",
+      "seasonNumber": 1,
+      "episodeNumber": 5,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "f2bf6730-fd22-11ef-85b2-23ead703ba8f",
+      "seasonNumber": 1,
+      "episodeNumber": 8,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "abf27b70-0d72-11f0-88ec-bd16304e9eb5",
+      "seasonNumber": 1,
+      "episodeNumber": 12,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "d31321b0-187d-11f0-be06-7593ebafd6ef",
+      "seasonNumber": 1,
+      "episodeNumber": 15,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "4f542ee0-d65f-11ef-b279-9be3157546c7",
+      "seriesTitle": "نیمه شب با امیرحسین قیاسی",
+      "episodeId": "37f86270-2fff-11f0-95ea-f3f5db582cd2",
+      "seasonNumber": 1,
+      "episodeNumber": 19,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "542e96b0-d9a0-11ef-a32f-d19bc71d6eee",
+      "seriesTitle": "مسابقه مافیا دُن",
+      "episodeId": "8a843070-3138-11f0-9e00-314dd2f3618b",
+      "seasonNumber": 1,
+      "episodeNumber": 16,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "542e96b0-d9a0-11ef-a32f-d19bc71d6eee",
+      "seriesTitle": "مسابقه مافیا دُن",
+      "episodeId": "d30c8d20-d9a0-11ef-a288-119ee9cc11c9",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "542e96b0-d9a0-11ef-a32f-d19bc71d6eee",
+      "seriesTitle": "مسابقه مافیا دُن",
+      "episodeId": "fe559400-053b-11f0-9edb-5f3995bafd36",
+      "seasonNumber": 1,
+      "episodeNumber": 8,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "542e96b0-d9a0-11ef-a32f-d19bc71d6eee",
+      "seriesTitle": "مسابقه مافیا دُن",
+      "episodeId": "743b63e0-e446-11ef-96d7-a3c1f008566b",
+      "seasonNumber": 1,
+      "episodeNumber": 3,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "542e96b0-d9a0-11ef-a32f-d19bc71d6eee",
+      "seriesTitle": "مسابقه مافیا دُن",
+      "episodeId": "4d9acd70-ef0c-11ef-9b3f-23d850354ca2",
+      "seasonNumber": 1,
+      "episodeNumber": 5,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "542e96b0-d9a0-11ef-a32f-d19bc71d6eee",
+      "seriesTitle": "مسابقه مافیا دُن",
+      "episodeId": "53aaf620-ffbc-11ef-94c4-d7ba8ee7267d",
+      "seasonNumber": 1,
+      "episodeNumber": 7,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "542e96b0-d9a0-11ef-a32f-d19bc71d6eee",
+      "seriesTitle": "مسابقه مافیا دُن",
+      "episodeId": "57f871a0-103d-11f0-ac16-e9732ca8311d",
+      "seasonNumber": 1,
+      "episodeNumber": 10,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "542e96b0-d9a0-11ef-a32f-d19bc71d6eee",
+      "seriesTitle": "مسابقه مافیا دُن",
+      "episodeId": "cf925500-1b3b-11f0-afda-c514e0e7f2c3",
+      "seasonNumber": 1,
+      "episodeNumber": 12,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "544b44e0-1a1c-11ee-9dec-477387de8294",
+      "seriesTitle": "فوفو مسافری از کامادو",
+      "episodeId": "befa1150-6c6d-11ee-9529-e9ab2b906c47",
+      "seasonNumber": 1,
+      "episodeNumber": 15,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "544b44e0-1a1c-11ee-9dec-477387de8294",
+      "seriesTitle": "فوفو مسافری از کامادو",
+      "episodeId": "8bac3a30-1a1d-11ee-b0a7-013d590100dd",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "544b44e0-1a1c-11ee-9dec-477387de8294",
+      "seriesTitle": "فوفو مسافری از کامادو",
+      "episodeId": "c00cd9e0-4617-11ee-9bb8-eb08136440e7",
+      "seasonNumber": 1,
+      "episodeNumber": 8,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "544b44e0-1a1c-11ee-9dec-477387de8294",
+      "seriesTitle": "فوفو مسافری از کامادو",
+      "episodeId": "5041b040-24c5-11ee-b05a-45b266211eb6",
+      "seasonNumber": 1,
+      "episodeNumber": 3,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "544b44e0-1a1c-11ee-9dec-477387de8294",
+      "seriesTitle": "فوفو مسافری از کامادو",
+      "episodeId": "ede72e60-356f-11ee-a041-f5c4183f2d66",
+      "seasonNumber": 1,
+      "episodeNumber": 5,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "544b44e0-1a1c-11ee-9dec-477387de8294",
+      "seriesTitle": "فوفو مسافری از کامادو",
+      "episodeId": "c4dc30a0-409b-11ee-8254-417abb98f1fe",
+      "seasonNumber": 1,
+      "episodeNumber": 7,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "544b44e0-1a1c-11ee-9dec-477387de8294",
+      "seriesTitle": "فوفو مسافری از کامادو",
+      "episodeId": "06a63a80-4b9b-11ee-846b-338bd4c37b7b",
+      "seasonNumber": 1,
+      "episodeNumber": 9,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "544b44e0-1a1c-11ee-9dec-477387de8294",
+      "seriesTitle": "فوفو مسافری از کامادو",
+      "episodeId": "9f4c3b10-563c-11ee-b1a8-0763efccc4bd",
+      "seasonNumber": 1,
+      "episodeNumber": 11,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    }
+  ],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
@@ -189,31 +2245,8 @@
       "isAiring": true
     },
     {
-      "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
-      "title": "باب اسفنجی شلوار مکعبی",
-      "missing": [
-        {
-          "seasonNumber": 13,
-          "episodeNumber": 9
-        }
-      ],
-      "pendingEpisodeCount": 0,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "5a181d30-602d-11ed-91cf-e3497a0eb443",
-      "title": "کهکشان بوبوی بوی",
-      "missing": [],
-      "pendingEpisodeCount": 1,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "d8c42b30-1c68-11f1-9d98-b36ecfe4cc67",
-      "title": "روستر",
+      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
+      "title": "قهرمان درون",
       "missing": [],
       "pendingEpisodeCount": 2,
       "publicationStatus": "published",
@@ -221,10 +2254,19 @@
       "isAiring": true
     },
     {
-      "seriesId": "6ee7a320-90c0-11f1-936c-e7983f454a7b",
-      "title": "قهرمانان کوانتومی داینوستر",
+      "seriesId": "e72663e0-781b-11f0-a774-4f030c7cb9ab",
+      "title": "دوستان آتشی",
       "missing": [],
-      "pendingEpisodeCount": 12,
+      "pendingEpisodeCount": 24,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "e58b5da0-7693-11f0-9e60-7fd49df91adc",
+      "title": "لانا، دختر دریانورد",
+      "missing": [],
+      "pendingEpisodeCount": 3,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
@@ -244,31 +2286,45 @@
       "isAiring": true
     },
     {
-      "seriesId": "e58b5da0-7693-11f0-9e60-7fd49df91adc",
-      "title": "لانا، دختر دریانورد",
+      "seriesId": "6ee7a320-90c0-11f1-936c-e7983f454a7b",
+      "title": "قهرمانان کوانتومی داینوستر",
       "missing": [],
-      "pendingEpisodeCount": 3,
+      "pendingEpisodeCount": 12,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
     },
     {
-      "seriesId": "e72663e0-781b-11f0-a774-4f030c7cb9ab",
-      "title": "دوستان آتشی",
-      "missing": [],
-      "pendingEpisodeCount": 24,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
-      "title": "قهرمان درون",
+      "seriesId": "d8c42b30-1c68-11f1-9d98-b36ecfe4cc67",
+      "title": "روستر",
       "missing": [],
       "pendingEpisodeCount": 2,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
+    },
+    {
+      "seriesId": "5a181d30-602d-11ed-91cf-e3497a0eb443",
+      "title": "کهکشان بوبوی بوی",
+      "missing": [],
+      "pendingEpisodeCount": 1,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
+      "title": "باب اسفنجی شلوار مکعبی",
+      "missing": [
+        {
+          "seasonNumber": 13,
+          "episodeNumber": 9
+        }
+      ],
+      "pendingEpisodeCount": 0,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
     },
     {
       "seriesId": "2112ad80-5b3f-11ef-a711-53655837aea6",
@@ -1140,16 +3196,16 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 62,
+  "episodesDiscovered": 154,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 0,
+  "episodesRejectedNoLinks": 40,
   "moviesAddedOrUpdated": 0,
   "seriesAddedOrUpdated": 2,
-  "affiliateRequests": 0,
+  "affiliateRequests": 40,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -1195,6 +3251,6 @@
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 84,
-  "finishedAt": "2026-09-10T16:47:00.073Z"
+  "apiRequests": 59,
+  "finishedAt": "2026-09-10T18:53:01.844Z"
 }
