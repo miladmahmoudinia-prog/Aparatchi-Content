@@ -1,5 +1,5 @@
 name: Sync Upera Catalog
-# Continue the free-only Iranian scan from page nineteen; push runs skip the long suite.
+# Scan forty saved Iranian pages per push while accepting only verified free links.
 # bounded Iranian lane contract v7 - exclude unlabelled foreign original-language media
 
 on:
@@ -178,7 +178,7 @@ jobs:
           UPERA_REQUEST_DELAY_MS: '520'
           UPERA_IRANIAN_SERIES_REQUEST_QUOTA: '180'
           APARATCHI_IRANIAN_ARCHIVE_PASSES: ${{ github.event_name == 'push' && '1' || '24' }}
-          UPERA_IRANIAN_SERIES_PAGES_PER_RUN: '5'
+          UPERA_IRANIAN_SERIES_PAGES_PER_RUN: ${{ github.event_name == 'push' && '40' || '5' }}
           UPERA_IRANIAN_SERIES_TITLES_PER_RUN: '1'
           # Probe a representative recent window first. Viable partial
           # archives stay selected and continue next pass; dead titles are
