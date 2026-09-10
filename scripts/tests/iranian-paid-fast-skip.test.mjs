@@ -4,40 +4,47 @@ import vm from 'node:vm';
 import test from 'node:test';
 
 const source = fs.readFileSync('scripts/sync-upera.mjs', 'utf8');
-const start = source.indexOf('function sourceEpisodeIsExplicitlyPaid(');
-const end = source.indexOf('function isUperaPrimaryMediaVariant(', start);
-const context = {
-  cleanText: (value) => String(value ?? '').trim(),
-  normalizedMediaAmount: (value) => {
-    if (value === undefined || value === null || value === '') return 0;
-    const normalized = String(value).replace(/[^\d.+-]+/g, '');
-    const number = Number(normalized);
-    return Number.isFinite(number) ? number : null;
-  },
-};
-vm.createContext(context);
-vm.runInContext(source.slice(start, end), context);
-
-test('explicit TVOD episode rows are recognized without link requests', () => {
-  assert.equal(context.sourceEpisodeIsExplicitlyPaid({ free: 0, price: 15000, tvod_price: 15000 }), true);
-  assert.equal(context.sourceEpisodeIsExplicitlyPaid({ free: false, amount: '6500' }), true);
-});
-
-test('free or ambiguous episode rows still reach verified link discovery', () => {
-  assert.equal(context.sourceEpisodeIsExplicitlyPaid({ free: 1, price: 15000 }), false);
-  assert.equal(context.sourceEpisodeIsExplicitlyPaid({ free: 0, price: 0 }), false);
-  assert.equal(context.sourceEpisodeIsExplicitlyPaid({ price: 15000 }), false);
-  assert.equal(context.sourceEpisodeIsExplicitlyPaid({ free: 0 }), false);
-});
-
-test('Iranian discovery advances immediately past paid-only source titles', () => {
+test('Iranian source price never bypasses verified show_links discovery', () => {
   const processStart = source.indexOf('async function processSeries(');
   const processEnd = source.indexOf('async function fetchMoviePage(', processStart);
   const processBody = source.slice(processStart, processEnd);
   const laneStart = source.indexOf('async function syncIranianSeriesArchive()');
   const laneEnd = source.indexOf('async function syncOperatorPriorityDiscovery()', laneStart);
   const laneBody = source.slice(laneStart, laneEnd);
-  assert.match(processBody, /episodesByCoordinate\.every\(sourceEpisodeIsExplicitlyPaid\)/);
-  assert.match(processBody, /reason: 'paid-only-source'/);
-  assert.match(laneBody, /'paid-only-source'/);
+  assert.doesNotMatch(processBody, /episodesByCoordinate\.every\(sourceEpisodeIsExplicitlyPaid\)/);
+  assert.doesNotMatch(processBody, /reason: 'paid-only-source'/);
+  assert.doesNotMatch(laneBody, /'paid-only-source'/);
+  assert.match(processBody, /await fetchAffiliateLinks\(episode\.id, 'episode'\)/);
+});
+
+test('dead candidates are deferred so later pages can be reached in following passes', () => {
+  const lane = source.indexOf('async function syncIranianSeriesArchive()');
+  const laneStart = source.indexOf('  const IRANIAN_DISCOVERY_RETRY_MS', lane);
+  const laneEnd = source.indexOf('  const suppressed', laneStart);
+  const context = {
+    state: { iranianSeriesDeferredAt: { dead: '2026-09-10T00:00:00.000Z' } },
+    cleanText: (value) => String(value ?? '').trim(),
+  };
+  vm.createContext(context);
+  vm.runInContext(source.slice(laneStart, laneEnd).replace('  const iranianDiscoveryDeferred', '  this.iranianDiscoveryDeferred'), context);
+  assert.equal(context.iranianDiscoveryDeferred('dead', Date.parse('2026-09-10T05:59:59.000Z')), true);
+  assert.equal(context.iranianDiscoveryDeferred('dead', Date.parse('2026-09-10T06:00:01.000Z')), false);
+  assert.equal(context.state.iranianSeriesDeferredAt.dead, undefined);
+});
+
+test('legacy Iranian detail HTTP 400 can recover from panel episodes', () => {
+  const processStart = source.indexOf('async function processSeries(');
+  const processEnd = source.indexOf('async function fetchMoviePage(', processStart);
+  const processBody = source.slice(processStart, processEnd);
+  assert.match(processBody, /options\.requireIranian === true && existingBeforeDetail && panelToken/);
+  assert.match(processBody, /const panelEpisodes = await fetchPanelSeriesEpisodes\(id\)/);
+  assert.match(processBody, /episodes: panelEpisodes/);
+});
+
+test('audited provider coordinates override invented numeric gaps', () => {
+  const deficitStart = source.indexOf('function seriesArchiveDeficit(');
+  const deficitEnd = source.indexOf('function archiveEpisodeCoordinateKey(', deficitStart);
+  const deficitBody = source.slice(deficitStart, deficitEnd);
+  assert.match(deficitBody, /const rawMissing = episodeGapsForGroups\(groups\)/);
+  assert.match(deficitBody, /const missing = auditedDiscoveryComplete \? \[\] : rawMissing/);
 });

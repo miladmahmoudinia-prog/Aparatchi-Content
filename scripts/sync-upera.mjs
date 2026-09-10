@@ -16,7 +16,7 @@ import {
 const API_BASE = 'https://seeko.film/api/v1';
 const PANEL_API_BASE = 'https://panel-api.upera.tv/api/v1';
 const FILIMO_OWNER_ID = 9194919;
-const IRANIAN_SERIES_SCAN_VERSION = 6;
+const IRANIAN_SERIES_SCAN_VERSION = 7;
 const SERIES_COMPLETENESS_AUDIT_VERSION = 2;
 const MEDIA_LANGUAGE_AUDIT_VERSION = 8;
 const IRANIAN_SERIES_REBUILD_VERSION = 1;
@@ -399,6 +399,7 @@ const defaultState = {
   iranianSeriesScanVersion: IRANIAN_SERIES_SCAN_VERSION,
   iranianSeriesRebuildVersion: 0,
   iranianSeriesNoProgress: {},
+  iranianSeriesDeferredAt: {},
   iranianSeriesActiveId: '',
   operatorSeriesPage: 1,
   operatorSeriesOffset: 0,
@@ -455,11 +456,13 @@ state.iranianSeriesPage = positiveInt(state.iranianSeriesPage, 1);
 state.iranianSeriesOffset = nonNegativeInt(state.iranianSeriesOffset, 0);
 state.iranianSeriesActiveId = cleanText(state.iranianSeriesActiveId || '');
 if (!state.iranianSeriesNoProgress || typeof state.iranianSeriesNoProgress !== 'object' || Array.isArray(state.iranianSeriesNoProgress)) state.iranianSeriesNoProgress = {};
+if (!state.iranianSeriesDeferredAt || typeof state.iranianSeriesDeferredAt !== 'object' || Array.isArray(state.iranianSeriesDeferredAt)) state.iranianSeriesDeferredAt = {};
 if (Number(state.iranianSeriesScanVersion || 0) !== IRANIAN_SERIES_SCAN_VERSION) {
   state.iranianSeriesPage = 1;
   state.iranianSeriesOffset = 0;
   state.iranianSeriesActiveId = '';
   state.iranianSeriesNoProgress = {};
+  state.iranianSeriesDeferredAt = {};
   state.iranianSeriesScanVersion = IRANIAN_SERIES_SCAN_VERSION;
 }
 state.operatorSeriesPage = positiveInt(state.operatorSeriesPage, 1);
@@ -2498,6 +2501,17 @@ async function syncIranianSeriesArchive() {
   let pagesVisited = 0;
   const seenPages = new Set();
   const seenTitles = new Set();
+  if (!state.iranianSeriesDeferredAt || typeof state.iranianSeriesDeferredAt !== 'object') {
+    state.iranianSeriesDeferredAt = {};
+  }
+  const IRANIAN_DISCOVERY_RETRY_MS = 6 * 60 * 60 * 1000;
+  const iranianDiscoveryDeferred = (progressKey, nowMs = Date.now()) => {
+    const deferredAt = Date.parse(cleanText(state.iranianSeriesDeferredAt?.[progressKey] || ''));
+    if (!Number.isFinite(deferredAt)) return false;
+    if (nowMs - deferredAt < IRANIAN_DISCOVERY_RETRY_MS) return true;
+    delete state.iranianSeriesDeferredAt[progressKey];
+    return false;
+  };
 
   const suppressed = (candidate, sourceId) => {
     const identity = normalizeIdentityName(String(candidate?.name_fa || candidate?.nameFa || '') + ' ' + String(candidate?.name || ''));
@@ -2568,7 +2582,12 @@ async function syncIranianSeriesArchive() {
       const sourceId = String(baseCatalogId(candidate) || candidate?.t_id || candidate?.series_id || '');
       const progressKey = sourceId || ('p' + page + '-o' + offset);
 
-      if (seenTitles.has(progressKey) || suppressed(candidate, sourceId) || !inferIranian(candidate)) {
+      if (
+        seenTitles.has(progressKey) ||
+        suppressed(candidate, sourceId) ||
+        !inferIranian(candidate) ||
+        iranianDiscoveryDeferred(progressKey)
+      ) {
         delete state.iranianSeriesNoProgress[progressKey];
         advanceCursor(page, payload, candidates, offset + 1);
         offset = nonNegativeInt(state.iranianSeriesOffset, 0);
@@ -2636,6 +2655,7 @@ async function syncIranianSeriesArchive() {
 
       if (publishedNow) {
         delete state.iranianSeriesNoProgress[progressKey];
+        delete state.iranianSeriesDeferredAt[progressKey];
         advanceCursor(page, payload, candidates, offset + 1);
         await persistSyncCheckpoint('iranian-published-new-' + progressKey);
         return true;
@@ -2647,14 +2667,19 @@ async function syncIranianSeriesArchive() {
       );
       if (progressed || result?.retryLater) {
         state.iranianSeriesNoProgress[progressKey] = 0;
+        delete state.iranianSeriesDeferredAt[progressKey];
         await persistSyncCheckpoint('iranian-progress-new-' + progressKey);
         return false;
       }
 
       const attempts = nonNegativeInt(state.iranianSeriesNoProgress[progressKey], 0) + 1;
       state.iranianSeriesNoProgress[progressKey] = attempts;
-      const terminal = !belongsToIranianSeries || ['not-iranian', 'no-usable-links', 'paid-only-source', 'missing-detail'].includes(String(result?.reason || ''));
+      const terminalReason = String(result?.reason || '');
+      const terminal = !belongsToIranianSeries || ['not-iranian', 'no-usable-links', 'missing-detail'].includes(terminalReason);
       if (terminal || attempts >= maxNoProgress) {
+        if (sourceId && ['no-usable-links', 'missing-detail', 'request-error'].includes(terminalReason)) {
+          state.iranianSeriesDeferredAt[progressKey] = new Date().toISOString();
+        }
         if (refreshed && belongsToIranianSeries && refreshed.publicationStatus !== 'published') {
           replaceItem({
             ...refreshed,
@@ -3324,11 +3349,34 @@ async function processSeries(
     return { retryLater: false, completeBackfill: true, added: false, reason: 'missing-id' };
   }
 
+  const existingBeforeDetail = options.panelCandidate === true
+    ? findExistingPanelTitle(candidate, 'series')
+    : findExistingItem(candidate, 'series');
   let detail;
   try {
     detail = await fetchSeriesDetail(id);
   } catch (error) {
-    if (options.panelCandidate !== true) throw error;
+    if (options.requireIranian === true && existingBeforeDetail && panelToken) {
+      // Some legacy Iranian ids disappear from the public detail route while
+      // their owner-panel episode rows and show_links stay valid. Use that
+      // authoritative episode list so titles such as «سایه‌باز» do not remain
+      // permanently hidden after one public HTTP 400.
+      try {
+        const panelEpisodes = await fetchPanelSeriesEpisodes(id);
+        detail = {
+          series: existingBeforeDetail,
+          episodes: panelEpisodes,
+          episodeDiscoveryComplete: true,
+          episodePaginationPagesFetched: 0,
+          episodePaginationErrors: 0,
+        };
+      } catch (panelError) {
+        rememberError(`iranian-panel-series-${id}`, panelError);
+        throw error;
+      }
+    } else if (options.panelCandidate !== true) {
+      throw error;
+    } else {
     // Owner-panel series IDs can be absent from Seeko. Fall back to the
     // authenticated panel row instead of rejecting a valid operator title.
     rememberError(`panel-series-detail-${id}`, error);
@@ -3339,6 +3387,7 @@ async function processSeries(
       episodePaginationPagesFetched: 0,
       episodePaginationErrors: 0,
     };
+    }
   }
   if (options.panelCandidate === true) {
     try {
@@ -3421,26 +3470,9 @@ async function processSeries(
     episodesByCoordinate.push(episode);
   }
 
-  const existing = options.panelCandidate === true
+  const existing = existingBeforeDetail || (options.panelCandidate === true
     ? findExistingPanelTitle(series, 'series')
-    : findExistingItem(series, 'series');
-  if (
-    options.requireIranian &&
-    !existing &&
-    episodesByCoordinate.length > 0 &&
-    episodesByCoordinate.every(sourceEpisodeIsExplicitlyPaid)
-  ) {
-    // The Iranian country feed also contains TVOD titles. Their detail rows
-    // already prove every episode is paid, so show_links cannot publish them.
-    // Advance immediately until the next genuinely free archive is reached.
-    stats.iranianSeriesRejectedNoLinks += 1;
-    return {
-      retryLater: false,
-      completeBackfill: true,
-      added: false,
-      reason: 'paid-only-source',
-    };
-  }
+    : findExistingItem(series, 'series'));
   const unavailableEpisodeMap = existingUnavailableEpisodeMap(id, existing);
   let unavailableMarked = 0;
   const previousGroups = Array.isArray(existing?.downloads)
@@ -7023,7 +7055,7 @@ function seriesArchiveDeficit(item) {
   // `archiveUnavailableEpisodes` is diagnostic/retry metadata only. It must
   // never erase a real source episode from the completeness deficit; otherwise
   // a 404 can turn a visibly gapped archive into `archiveComplete: true`.
-  const missing = episodeGapsForGroups(groups);
+  const rawMissing = episodeGapsForGroups(groups);
   const sourceEpisodeCount = nonNegativeInt(item.sourceEpisodeCount, 0);
   const pendingFromCount = Math.max(
     0,
@@ -7037,6 +7069,11 @@ function seriesArchiveDeficit(item) {
     cleanText(item.archiveDiscoveryCheckedAt) &&
     hasExplicitPendingList,
   );
+  // Once the provider's full episode list was audited, only its explicit
+  // pending coordinates are authoritative. Numeric gaps can be intentional
+  // omissions in Upera (for example 11, 13, 32, 55) and used to keep otherwise
+  // complete Iranian archives hidden forever.
+  const missing = auditedDiscoveryComplete ? [] : rawMissing;
   const explicitPendingCount = hasExplicitPendingList
     ? item.archivePendingEpisodes.length
     : 0;
