@@ -4364,7 +4364,14 @@ async function fetchAffiliateLinks(
     type === 'episode' && affiliateScopeName === 'iranian-series';
   // Sale and free delivery coexist for Iranian episodes, but Upera separates
   // the rows by traffic mode. Query both modes and merge their records.
-  const publicTrafficModes = iranianEpisodeProbe ? [0, 1] : [1];
+  const publicRequestVariants = iranianEpisodeProbe
+    ? [
+        { traffic: 0, free: 1 },
+        { traffic: 1, free: 1 },
+        { traffic: 0 },
+        { traffic: 1 },
+      ]
+    : [{ traffic: 1 }];
 
   let panelLinks = [];
   try {
@@ -4374,7 +4381,7 @@ async function fetchAffiliateLinks(
   }
 
   const publicLinks = [];
-  for (let index = 0; index < publicTrafficModes.length; index += 1) {
+  for (let index = 0; index < publicRequestVariants.length; index += 1) {
     if (index > 0) {
       if (
         runTimeBudgetReached('affiliate-companion-request', 30000) ||
@@ -4385,12 +4392,14 @@ async function fetchAffiliateLinks(
       affiliateRequestsUsed += 1;
     }
 
+    const variant = publicRequestVariants[index];
     const url = new URL(API_BASE + '/ghost/get/getaffiliatelinks');
     setQuery(url, {
       id,
       type,
       ref: refId,
-      traffic: publicTrafficModes[index],
+      traffic: variant.traffic,
+      ...(variant.free === 1 ? { free: 1 } : {}),
       token,
     });
 
@@ -4401,7 +4410,14 @@ async function fetchAffiliateLinks(
         json?.links ??
         json?.data ??
         [];
-      publicLinks.push(...extractAffiliateLinkRecords(rawLinks));
+      const extracted = extractAffiliateLinkRecords(rawLinks);
+      publicLinks.push(...extracted);
+      if (
+        iranianEpisodeProbe &&
+        extracted.some((link) =>
+          isDirectMediaUrl(link?.link) || operatorPortalDetails(link?.link),
+        )
+      ) break;
     } catch (error) {
       if (Number(error?.status) === 404) {
         stats.affiliateNotFound += 1;
@@ -4409,7 +4425,7 @@ async function fetchAffiliateLinks(
       }
       if (publicLinks.length > 0 || panelLinks.length > 0) {
         rememberError(
-          'affiliate-links-' + type + '-' + id + '-traffic-' + publicTrafficModes[index],
+          'affiliate-links-' + type + '-' + id + '-traffic-' + variant.traffic + '-free-' + (variant.free || 0),
           error,
         );
         continue;
