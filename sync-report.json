@@ -1,10 +1,10 @@
 {
-  "startedAt": "2026-09-10T16:17:09.891Z",
+  "startedAt": "2026-09-10T16:22:46.456Z",
   "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-09-10T16:27:08.030Z",
+  "runDeadlineAt": "2026-09-10T16:32:44.678Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 552579,
+  "remainingRunMsAtFinish": 532619,
   "imageMirroringSkipped": true,
   "originalCount": 8339,
   "finalCount": 8339,
@@ -19,7 +19,7 @@
   "backfillEpisodesAdded": 0,
   "backfillSeriesVisited": 0,
   "backfillCheckpoints": 0,
-  "episodesMarkedUnavailable": 0,
+  "episodesMarkedUnavailable": 4,
   "backfillNoProgressRuns": 0,
   "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 180,
-      "used": 0,
+      "used": 16,
       "exhausted": false
     }
   },
@@ -63,12 +63,12 @@
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 2,
-  "episodesProcessed": 0,
+  "episodesProcessed": 4,
   "iranianSeriesPagesProcessed": 40,
-  "iranianSeriesCandidates": 0,
+  "iranianSeriesCandidates": 4,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
-  "iranianSeriesRejectedNoLinks": 0,
+  "iranianSeriesRejectedNoLinks": 4,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
   "operatorSeriesAddedOrUpdated": 0,
@@ -102,9 +102,246 @@
       "retryLater": false,
       "newlyPublished": false,
       "discovery": "existing-incomplete-first"
+    },
+    {
+      "id": "0ae7dad0-de39-11ef-ad4b-11a0fbda06ac",
+      "title": "آبان",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "542e96b0-d9a0-11ef-a32f-d19bc71d6eee",
+      "title": "مسابقه مافیا دُن",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "dbe52ae0-df4a-11ef-b684-5b57f0983c39",
+      "title": "آبان ( ناشنوایان )",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "ca51e520-c3e8-11ef-9439-479f5020da6d",
+      "title": "جان سخت",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
     }
   ],
-  "iranianLinkProbeDiagnostics": [],
+  "iranianLinkProbeDiagnostics": [
+    {
+      "seriesId": "0ae7dad0-de39-11ef-ad4b-11a0fbda06ac",
+      "seriesTitle": "آبان",
+      "episodeId": "31acd090-30d9-11f0-bb75-4bcf9ab4f697",
+      "seasonNumber": 1,
+      "episodeNumber": 17,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "542e96b0-d9a0-11ef-a32f-d19bc71d6eee",
+      "seriesTitle": "مسابقه مافیا دُن",
+      "episodeId": "8a843070-3138-11f0-9e00-314dd2f3618b",
+      "seasonNumber": 1,
+      "episodeNumber": 16,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "dbe52ae0-df4a-11ef-b684-5b57f0983c39",
+      "seriesTitle": "آبان ( ناشنوایان )",
+      "episodeId": "844cbe80-3887-11f0-b021-cbffdd33d8ef",
+      "seasonNumber": 1,
+      "episodeNumber": 17,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "ca51e520-c3e8-11ef-9439-479f5020da6d",
+      "seriesTitle": "جان سخت",
+      "episodeId": "b59d4000-2724-11f0-b2a6-95f2482a4b6e",
+      "seasonNumber": 1,
+      "episodeNumber": 19,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "15,000",
+        "16,000",
+        "18,000",
+        "20,000",
+        "25,000",
+        "100,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    }
+  ],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
@@ -1140,18 +1377,18 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 62,
+  "episodesDiscovered": 131,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 0,
+  "episodesRejectedNoLinks": 4,
   "moviesAddedOrUpdated": 0,
   "seriesAddedOrUpdated": 2,
-  "affiliateRequests": 0,
+  "affiliateRequests": 16,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 0,
+  "affiliateNotFound": 8,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
@@ -1195,6 +1432,6 @@
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 84,
-  "finishedAt": "2026-09-10T16:17:55.451Z"
+  "apiRequests": 108,
+  "finishedAt": "2026-09-10T16:23:52.059Z"
 }
