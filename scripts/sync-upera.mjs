@@ -3594,6 +3594,23 @@ async function processSeries(
           portalCount: probeLinks.filter((link) => operatorPortalDetails(link?.link)).length,
           hosts,
           tiers,
+          typeCounts: probeLinks.reduce((counts, link) => {
+            const value = cleanText(link?.type || 'missing');
+            counts[value] = Number(counts[value] || 0) + 1;
+            return counts;
+          }, {}),
+          amounts: uniqueStrings(
+            probeLinks.map((link) => cleanText(link?.amount)).filter(Boolean),
+          ).slice(0, 12),
+          titleSamples: uniqueStrings(
+            probeLinks.map((link) => cleanText(link?.title)).filter(Boolean),
+          ).slice(0, 12),
+          ussdKinds: uniqueStrings(probeLinks.map((link) => {
+            const value = cleanText(link?.ussd_link);
+            if (!value) return '';
+            try { return 'http:' + new URL(value).hostname; } catch {}
+            return (value.match(/^([a-z][a-z0-9+.-]*):/i)?.[1] || 'non-http').toLowerCase();
+          }).filter(Boolean)),
           recordKeys: uniqueStrings(probeLinks.flatMap((link) => Object.keys(link || {})))
             .filter((key) => !/token|secret|authorization|cookie/i.test(key))
             .slice(0, 40),
