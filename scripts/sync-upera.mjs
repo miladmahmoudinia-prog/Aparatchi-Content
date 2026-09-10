@@ -313,7 +313,7 @@ const incompleteSeriesTitlesPerRun = Math.min(
 // Priority passes fill the two sections that used to stay empty:
 // Iranian series and content that is free only on mobile operators.
 const iranianSeriesPagesPerRun = Math.min(
-  5,
+  50,
   positiveInt(process.env.UPERA_IRANIAN_SERIES_PAGES_PER_RUN, 2),
 );
 
