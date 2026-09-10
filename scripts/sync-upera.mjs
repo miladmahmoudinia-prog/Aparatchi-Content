@@ -4360,20 +4360,11 @@ async function fetchAffiliateLinks(
 
   affiliateRequestsUsed += 1;
 
-  const url = new URL(
-    `${API_BASE}/ghost/get/getaffiliatelinks`,
-  );
-
-  setQuery(url, {
-    id,
-    type,
-    ref: refId,
-    // Ordinary Iranian episode files are exposed by Upera under
-    // traffic=0. traffic=1 is the mobile-operator lane and caused valid Iranian
-    // series to be rejected as no-usable-links. Keep traffic=1 everywhere else.
-    traffic: type === 'episode' && affiliateScopeName === 'iranian-series' ? 0 : 1,
-    token,
-  });
+  const iranianEpisodeProbe =
+    type === 'episode' && affiliateScopeName === 'iranian-series';
+  // Sale and free delivery coexist for Iranian episodes, but Upera separates
+  // the rows by traffic mode. Query both modes and merge their records.
+  const publicTrafficModes = iranianEpisodeProbe ? [0, 1] : [1];
 
   let panelLinks = [];
   try {
@@ -4382,46 +4373,62 @@ async function fetchAffiliateLinks(
     rememberError(`panel-show-links-${type}-${id}`, error);
   }
 
-  try {
-    const json = await fetchJson(
-      url,
-      { method: 'POST' },
-    );
-
-    const rawLinks =
-      json?.data?.links ??
-      json?.links ??
-      json?.data ??
-      [];
-    const publicLinks = extractAffiliateLinkRecords(rawLinks);
-    const result = {
-      // Upera has returned both flat arrays and grouped objects (for example
-      // dubbed/subtitle buckets) across deployments. Flatten every link-like
-      // record while preserving the parent group names as language hints.
-      links: uniqueByUrl([
-        ...publicLinks.filter((link) => !operatorPortalDetails(link?.link)),
-        ...panelLinks,
-        ...publicLinks.filter((link) => operatorPortalDetails(link?.link)),
-      ]),
-      skipped: false,
-    };
-    affiliateLinkCache.set(cacheKey, result);
-    return result;
-  } catch (error) {
-    // The affiliate endpoint uses 404 for an existing title/episode that has
-    // no affiliate files. It is a normal empty result, not a retryable outage.
-    if (Number(error?.status) === 404) {
-      stats.affiliateNotFound += 1;
-      const result = {
-        links: uniqueByUrl(panelLinks),
-        skipped: false,
-        notFound: true,
-      };
-      affiliateLinkCache.set(cacheKey, result);
-      return result;
+  const publicLinks = [];
+  for (let index = 0; index < publicTrafficModes.length; index += 1) {
+    if (index > 0) {
+      if (
+        runTimeBudgetReached('affiliate-companion-request', 30000) ||
+        affiliateScopeLimitReached() ||
+        affiliateRequestsUsed >= maxAffiliateRequests
+      ) break;
+      await throttleAffiliateRequest();
+      affiliateRequestsUsed += 1;
     }
-    throw error;
+
+    const url = new URL(API_BASE + '/ghost/get/getaffiliatelinks');
+    setQuery(url, {
+      id,
+      type,
+      ref: refId,
+      traffic: publicTrafficModes[index],
+      token,
+    });
+
+    try {
+      const json = await fetchJson(url, { method: 'POST' });
+      const rawLinks =
+        json?.data?.links ??
+        json?.links ??
+        json?.data ??
+        [];
+      publicLinks.push(...extractAffiliateLinkRecords(rawLinks));
+    } catch (error) {
+      if (Number(error?.status) === 404) {
+        stats.affiliateNotFound += 1;
+        continue;
+      }
+      if (publicLinks.length > 0 || panelLinks.length > 0) {
+        rememberError(
+          'affiliate-links-' + type + '-' + id + '-traffic-' + publicTrafficModes[index],
+          error,
+        );
+        continue;
+      }
+      throw error;
+    }
   }
+
+  const result = {
+    links: uniqueByUrl([
+      ...publicLinks.filter((link) => !operatorPortalDetails(link?.link)),
+      ...panelLinks,
+      ...publicLinks.filter((link) => operatorPortalDetails(link?.link)),
+    ]),
+    skipped: false,
+    ...(publicLinks.length === 0 && panelLinks.length === 0 ? { notFound: true } : {}),
+  };
+  affiliateLinkCache.set(cacheKey, result);
+  return result;
 }
 
 async function throttleAffiliateRequest() {

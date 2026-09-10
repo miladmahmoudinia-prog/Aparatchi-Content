@@ -72,3 +72,11 @@ test('audited provider coordinates override invented numeric gaps', () => {
   assert.match(deficitBody, /const rawMissing = episodeGapsForGroups\(groups\)/);
   assert.match(deficitBody, /const missing = auditedDiscoveryComplete \? \[\] : rawMissing/);
 });
+
+test('Iranian episode discovery queries and merges both traffic modes', () => {
+  const start = source.indexOf('async function fetchAffiliateLinks(');
+  const end = source.indexOf('async function throttleAffiliateRequest()', start);
+  const block = source.slice(start, end);
+  assert.match(block, /publicTrafficModes = iranianEpisodeProbe \? \[0, 1\] : \[1\]/);
+  assert.match(block, /publicLinks\.push\(\.\.\.extractAffiliateLinkRecords\(rawLinks\)\)/);
+});
