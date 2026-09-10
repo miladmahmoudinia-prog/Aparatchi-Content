@@ -1,5 +1,5 @@
 name: Sync Upera Catalog
-# Preserve free direct episode links even when sale metadata is repeated on the row.
+# Extract every free show_links delivery field and record safe link-shape diagnostics.
 # bounded Iranian lane contract v7 - exclude unlabelled foreign original-language media
 
 on:
@@ -80,6 +80,7 @@ jobs:
           echo "NEW_TITLES_HOURS=${NEW_HOURS:-24}" >> "$GITHUB_ENV"
 
       - name: Discover new movies and series first
+        if: github.event_name != 'push'
         id: normal_sync
         continue-on-error: true
         timeout-minutes: 15

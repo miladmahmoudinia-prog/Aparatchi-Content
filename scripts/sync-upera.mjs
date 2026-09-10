@@ -25,6 +25,8 @@ const CATALOG_VERSION = '0.25.0-language-operator-artwork-truth';
 const AFFILIATE_URL_KEYS = [
   'link', 'url', 'href', 'download_url', 'downloadUrl', 'download_link', 'downloadLink',
   'stream_url', 'streamUrl', 'stream_link', 'streamLink', 'file_url', 'fileUrl', 'file',
+  'download', 'stream', 'play', 'src',
+  'free_link', 'freeLink', 'free_url', 'freeUrl',
   // The owner panel exposes free extensionless playback under these keys.
   // iframe/embed URLs are extracted too, then deliberately rejected by the
   // HLS validator so only the actual player redirect survives.
@@ -869,6 +871,7 @@ const stats = {
   operatorClassificationsRemoved: operatorCleanup.removed,
   duplicateCatalogItemsMerged: operatorCleanup.duplicatesMerged,
   iranianSeriesDiagnostics: [],
+  iranianLinkProbeDiagnostics: [],
   operatorDiagnostics: [],
   seriesEpisodeDiagnostics: [],
   catalogEpisodeGapDiagnostics: [],
@@ -3570,6 +3573,38 @@ async function processSeries(
       }
 
       const media = parseMediaLinks(linkResult.links, providerPrimaryMediaLanguage(series));
+      if (options.requireIranian === true && stats.iranianLinkProbeDiagnostics.length < 40) {
+        const probeLinks = Array.isArray(linkResult.links) ? linkResult.links : [];
+        const hosts = uniqueStrings(probeLinks.map((link) => {
+          try { return new URL(link?.link).hostname; } catch { return ''; }
+        }).filter(Boolean));
+        const tiers = probeLinks.reduce((counts, link) => {
+          const tier = mediaPriceTier(link);
+          counts[tier] = Number(counts[tier] || 0) + 1;
+          return counts;
+        }, {});
+        stats.iranianLinkProbeDiagnostics.push({
+          seriesId: id,
+          seriesTitle: cleanText(series?.name_fa || series?.nameFa || series?.name),
+          episodeId: String(episode.id),
+          seasonNumber: episodeSeasonNumber(episode),
+          episodeNumber: episodeNumberValue(episode),
+          recordCount: probeLinks.length,
+          directCount: probeLinks.filter((link) => isDirectMediaUrl(link?.link)).length,
+          portalCount: probeLinks.filter((link) => operatorPortalDetails(link?.link)).length,
+          hosts,
+          tiers,
+          recordKeys: uniqueStrings(probeLinks.flatMap((link) => Object.keys(link || {})))
+            .filter((key) => !/token|secret|authorization|cookie/i.test(key))
+            .slice(0, 40),
+          mediaGroupCount: media.downloads.length,
+          mediaFileCount: media.downloads.reduce(
+            (count, group) => count + (Array.isArray(group?.files) ? group.files.length : 0),
+            0,
+          ),
+          hasStreamUrl: Boolean(media.streamUrl),
+        });
+      }
       operatorLinksInThisTitle += media.operatorFiles.length;
 
       if (options.requireOperator && !media.operatorFiles.length) {

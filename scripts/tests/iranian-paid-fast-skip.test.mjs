@@ -32,6 +32,15 @@ test('direct episode media stays free when a sale price is repeated on its row',
   assert.equal(context.mediaPriceTier({ link: 'https://upera.tv/buy/episode-1', amount: 25000 }), 'paid');
 });
 
+test('show_links recognizes free delivery URL field variants', () => {
+  const keysStart = source.indexOf('const AFFILIATE_URL_KEYS = [');
+  const keysEnd = source.indexOf('\n];', keysStart);
+  const block = source.slice(keysStart, keysEnd);
+  for (const key of ['download', 'stream', 'play', 'src', 'free_link', 'freeLink', 'free_url', 'freeUrl']) {
+    assert.match(block, new RegExp(`['"]${key}['"]`));
+  }
+});
+
 test('dead candidates are deferred so later pages can be reached in following passes', () => {
   const lane = source.indexOf('async function syncIranianSeriesArchive()');
   const laneStart = source.indexOf('  const IRANIAN_DISCOVERY_RETRY_MS', lane);
