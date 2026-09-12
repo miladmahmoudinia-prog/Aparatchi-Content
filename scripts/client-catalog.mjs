@@ -28,8 +28,10 @@ const truncateOverview = (value) => {
 };
 
 const compactPersonReferences = (people) => {
-  const seen = new Set();
   const result = [];
+  const aliasesFor = (person) => [person?.name, person?.nameFa]
+    .map((value) => String(value || '').toLowerCase().normalize('NFKC').replace(/[^a-z0-9؀-ۿ]+/g, ' ').trim())
+    .filter(Boolean);
   for (const person of Array.isArray(people) ? people : []) {
     if (!person || !['actor', 'director'].includes(String(person.role || ''))) continue;
     const id = typeof person.id === 'string' ? person.id.trim() : '';
@@ -38,15 +40,12 @@ const compactPersonReferences = (people) => {
     const name = typeof person.name === 'string' ? person.name.trim() : '';
     if (!id && !(tmdbId > 0) && !nameFa && !name) continue;
 
-    const identity = tmdbId > 0
-      ? `tmdb:${tmdbId}:${person.role}`
-      : id
-        ? `id:${id}:${person.role}`
-        : `name:${String(name || nameFa).toLowerCase()}:${person.role}`;
-    if (seen.has(identity)) continue;
-    seen.add(identity);
-
-    result.push({
+    const aliases = aliasesFor({ name, nameFa });
+    const existingIndex = result.findIndex((candidate) =>
+      (tmdbId > 0 && Number(candidate.tmdbId || 0) === tmdbId) ||
+      aliases.some((alias) => aliasesFor(candidate).includes(alias)),
+    );
+    const compact = {
       ...(id ? { id } : {}),
       ...(nameFa ? { nameFa } : {}),
       ...(name ? { name } : {}),
@@ -56,7 +55,26 @@ const compactPersonReferences = (people) => {
       ...(person.image ? { image: person.image } : {}),
       ...(Number.isFinite(Number(person.order)) ? { order: Number(person.order) } : {}),
       ...(tmdbId > 0 ? { tmdbId } : {}),
-    });
+    };
+    if (existingIndex < 0) {
+      result.push(compact);
+      continue;
+    }
+    const current = result[existingIndex];
+    const rolesDiffer = current.role !== compact.role;
+    result[existingIndex] = {
+      ...current,
+      ...compact,
+      id: compact.id || current.id,
+      name: compact.name || current.name,
+      nameFa: compact.nameFa || current.nameFa,
+      image: compact.image || current.image,
+      tmdbId: compact.tmdbId || current.tmdbId,
+      character: compact.character || current.character,
+      role: rolesDiffer && (current.role === 'director' || compact.role === 'director') ? 'director' : compact.role,
+      roleLabel: rolesDiffer ? 'کارگردان و بازیگر' : compact.roleLabel || current.roleLabel,
+      order: Math.min(Number(current.order || 0), Number(compact.order || 0)),
+    };
   }
   return result;
 };
@@ -687,7 +705,7 @@ const compactBootstrapNavigationItem = (item) => {
   } else if (item?.type === 'series') {
     // One latest actionable episode is sufficient for the immediate controls;
     // the complete archive remains in the immutable detail shard.
-    const downloads = compactBootstrapLatestSeriesEpisodePreview(item.downloads);
+    const downloads = compactBootstrapSeriesEpisodePreviews(item.downloads);
     if (downloads.length) compact.downloads = downloads;
   }
   return compact;
