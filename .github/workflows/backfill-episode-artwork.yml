@@ -1,0 +1,58 @@
+name: Backfill episode artwork
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/sync-upera.mjs'
+      - 'scripts/client-catalog.mjs'
+      - '.github/workflows/backfill-episode-artwork.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+
+jobs:
+  artwork:
+    runs-on: ubuntu-latest
+    timeout-minutes: 52
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Validate scripts
+        run: |
+          node --check scripts/sync-upera.mjs
+          node --check scripts/client-catalog.mjs
+      - name: Generate episode artwork
+        env:
+          UPERA_SYNC_MODE: ARTWORK
+          APARATCHI_RUN_TIME_LIMIT_MINUTES: '44'
+          APARATCHI_CHECKPOINT_RESERVE_MS: '60000'
+          APARATCHI_REQUEST_TIMEOUT_MS: '12000'
+          APARATCHI_REQUEST_MAX_ATTEMPTS: '1'
+          APARATCHI_EPISODE_ARTWORK_SERIES_PER_RUN: '40'
+          APARATCHI_EPISODE_FRAME_CAPTURES_PER_RUN: '120'
+          APARATCHI_EPISODE_ARTWORK_MIRROR_PER_RUN: '0'
+          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
+        run: node scripts/sync-upera.mjs
+      - name: Commit generated artwork and catalogs
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add catalog.json catalog-bootstrap.json catalog-index.json catalog-detail catalog-state.json assets/media/episodes sync-report-artwork.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "content: backfill episode artwork"
+          git pull --rebase origin main
+          git push origin HEAD:main
