@@ -206,7 +206,7 @@ const requestedSyncMode = String(
   process.env.UPERA_SYNC_MODE || 'AUTO',
 ).trim().toUpperCase();
 
-const syncModeSetting = ['AUTO', 'BACKFILL', 'NORMAL', 'IRANIAN', 'PEOPLE'].includes(requestedSyncMode)
+const syncModeSetting = ['AUTO', 'BACKFILL', 'NORMAL', 'IRANIAN', 'PEOPLE', 'ARTWORK'].includes(requestedSyncMode)
   ? requestedSyncMode
   : 'AUTO';
 
@@ -219,7 +219,7 @@ const runTimeLimitMinutes = Math.min(
   30,
   positiveInt(
     process.env.APARATCHI_RUN_TIME_LIMIT_MINUTES,
-    syncModeSetting === 'BACKFILL' ? 18 : syncModeSetting === 'IRANIAN' ? 15 : syncModeSetting === 'PEOPLE' ? 4 : 8,
+    syncModeSetting === 'BACKFILL' ? 18 : syncModeSetting === 'IRANIAN' ? 15 : syncModeSetting === 'PEOPLE' ? 4 : syncModeSetting === 'ARTWORK' ? 28 : 8,
   ),
 );
 const runCheckpointReserveMs = Math.min(
