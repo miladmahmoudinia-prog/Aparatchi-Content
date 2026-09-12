@@ -5552,9 +5552,53 @@ async function generateMissingEpisodeFrames(item) {
     // Prioritize the episode users are about to watch next. Older missing
     // frames remain in the rotating queue after the newest episodes are ready.
     .sort((a, b) => compareEpisodeGroups(b, a));
+  await generateTmdbEpisodeStills(item, groups);
   for (const group of groups) {
     if (episodeFrameCapturesUsed >= episodeFrameCapturesPerRun) break;
+    if (isTrustedGeneratedEpisodeArtwork(group.artwork)) continue;
     await generateEpisodeFrameArtwork(item, group, { force: Boolean(cleanText(group?.artwork)) });
+  }
+}
+
+async function generateTmdbEpisodeStills(item, groups) {
+  if (!tmdbBearerToken || !Array.isArray(groups) || !groups.length) return;
+  let tmdbId = Number(item?.tmdbId || 0);
+  if (!(tmdbId > 0)) {
+    const resolved = await resolveTmdbTitle(item);
+    tmdbId = Number(resolved?.id || 0);
+    if (tmdbId > 0) item.tmdbId = tmdbId;
+  }
+  if (!(tmdbId > 0)) return;
+
+  for (const group of groups) {
+    if (episodeFrameCapturesUsed >= episodeFrameCapturesPerRun) break;
+    if (isTrustedGeneratedEpisodeArtwork(group.artwork)) continue;
+    const season = Math.max(1, Number(group?.seasonNumber || 1));
+    const episode = Number(group?.episodeNumber || 0);
+    if (!(episode > 0)) continue;
+    try {
+      episodeFrameCapturesUsed += 1;
+      const detail = await fetchTmdbJson(`tv/${tmdbId}/season/${season}/episode/${episode}`, { language: 'en-US' });
+      const stillPath = cleanText(detail?.still_path);
+      if (!stillPath) continue;
+      const sourceUrl = `https://image.tmdb.org/t/p/w780${stillPath.startsWith('/') ? stillPath : `/${stillPath}`}`;
+      const fingerprint = createHash('sha1')
+        .update(`tmdb:${tmdbId}:${season}:${episode}:${stillPath}`)
+        .digest('hex')
+        .slice(0, 24);
+      const relative = relativeMediaPath('episodes', `${fingerprint}.jpg`);
+      const absolute = path.join(root, ...relative.split('/'));
+      const response = await fetch(sourceUrl, { headers: { 'User-Agent': 'Aparatchi-Episode-Artwork/1.0' } });
+      if (!response.ok) throw new Error(`TMDB still HTTP ${response.status}`);
+      const buffer = Buffer.from(await response.arrayBuffer());
+      if (buffer.length < 512 || buffer.length > 10 * 1024 * 1024) throw new Error(`Invalid TMDB still size ${buffer.length}`);
+      await fs.mkdir(path.dirname(absolute), { recursive: true });
+      await fs.writeFile(absolute, buffer);
+      group.artwork = relative;
+      stats.episodeFramesGenerated += 1;
+    } catch (error) {
+      rememberError(`tmdb-episode-still-${item?.id || 'series'}-${season}-${episode}`, error);
+    }
   }
 }
 
