@@ -5553,6 +5553,10 @@ async function generateMissingEpisodeFrames(item) {
     // frames remain in the rotating queue after the newest episodes are ready.
     .sort((a, b) => compareEpisodeGroups(b, a));
   await generateTmdbEpisodeStills(item, groups);
+  // Upera blocks server-side ffmpeg reads with HTTP 403. Keep that legacy
+  // fallback for other modes, but never waste the dedicated artwork lane on
+  // links that cannot be read from GitHub Actions.
+  if (effectiveSyncMode === 'ARTWORK' && tmdbBearerToken) return;
   for (const group of groups) {
     if (episodeFrameCapturesUsed >= episodeFrameCapturesPerRun) break;
     if (isTrustedGeneratedEpisodeArtwork(group.artwork)) continue;
