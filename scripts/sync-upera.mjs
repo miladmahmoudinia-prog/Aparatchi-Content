@@ -936,6 +936,8 @@ stats.backfillQueueTotal = initialBackfillQueue.length;
 const effectiveSyncMode =
   syncModeSetting === 'PEOPLE'
     ? 'PEOPLE'
+    : syncModeSetting === 'ARTWORK'
+      ? 'ARTWORK'
     : syncModeSetting === 'IRANIAN'
       ? 'IRANIAN'
       : syncModeSetting === 'BACKFILL' ||
@@ -952,11 +954,16 @@ console.log(`حالت اجرا: ${effectiveSyncMode}`);
 // BACKFILL mode for weeks, that starved this section indefinitely. Run the
 // bounded operator probes before either NORMAL or BACKFILL work so old-archive
 // completion can never block discovery of new operator-only movies/series.
-if (effectiveSyncMode !== 'PEOPLE' && operatorDiscoveryEnabled) {
+if (effectiveSyncMode !== 'PEOPLE' && effectiveSyncMode !== 'ARTWORK' && operatorDiscoveryEnabled) {
   await syncOperatorPriorityDiscovery();
 }
 
-if (effectiveSyncMode === 'PEOPLE') {
+if (effectiveSyncMode === 'ARTWORK') {
+  // A dedicated bounded lane keeps expensive ffmpeg frame extraction away
+  // from discovery. It can steadily fill every episode card without slowing
+  // the hourly title sync or the mobile client.
+  await syncEpisodeArtworkMetadata();
+} else if (effectiveSyncMode === 'PEOPLE') {
   // PEOPLE mode exists primarily to repair cast/director metadata. Do that first
   // so a large episode-artwork queue cannot consume the entire run budget.
   await syncPeopleMetadata();
@@ -1219,6 +1226,7 @@ stats.catalogEpisodeGapDiagnostics = buildCatalogEpisodeGapDiagnostics(items);
 
 const imageMirroringReserveMs = effectiveSyncMode === 'PEOPLE' ? 30000 : 90000;
 if (
+  effectiveSyncMode !== 'ARTWORK' &&
   effectiveSyncMode !== 'BACKFILL' &&
   maxMirroredImagesPerRun > 0 &&
   !runTimeBudgetReached('image-mirroring', imageMirroringReserveMs)
