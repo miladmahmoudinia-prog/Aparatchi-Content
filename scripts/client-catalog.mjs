@@ -775,6 +775,12 @@ export function buildClientCatalogArtifacts(catalog) {
   // downloading/parsing it after the app is already visible.
   const clientRevision = createHash('sha256').update(indexSerialized).digest('hex');
   const bootstrapItems = completeBootstrapNavigation(items).map(compactBootstrapNavigationItem);
+  // Person profiles must work on the first frame too. TMDB keys are stable and
+  // considerably smaller than repeating both Persian and English name aliases;
+  // numeric refs point at the identical, complete bootstrap item order.
+  const bootstrapPeopleWorks = Object.fromEntries(
+    Object.entries(peopleWorks).filter(([key, refs]) => key.startsWith('tmdb:') && refs.length > 1)
+  );
   const bootstrap = {
     version: index.version,
     updatedAt: index.updatedAt,
@@ -783,6 +789,7 @@ export function buildClientCatalogArtifacts(catalog) {
     iranianSchedule: index.iranianSchedule,
     weeklySchedule: index.weeklySchedule,
     featuredPeople: index.featuredPeople,
+    peopleWorks: bootstrapPeopleWorks,
     ...(index.imdbTop100 ? { imdbTop100: index.imdbTop100 } : {}),
   };
   const bootstrapSerialized = `${JSON.stringify(bootstrap)}\n`;
@@ -844,6 +851,9 @@ export function buildLiveCatalogDelta(bootstrap, baseline, previousLive = null) 
     iranianSchedule: Array.isArray(bootstrap?.iranianSchedule) ? bootstrap.iranianSchedule : [],
     weeklySchedule: Array.isArray(bootstrap?.weeklySchedule) ? bootstrap.weeklySchedule : [],
     featuredPeople: Array.isArray(bootstrap?.featuredPeople) ? bootstrap.featuredPeople : [],
+    peopleWorks: bootstrap?.peopleWorks && typeof bootstrap.peopleWorks === 'object'
+      ? bootstrap.peopleWorks
+      : {},
     ...(bootstrap?.imdbTop100 ? { imdbTop100: bootstrap.imdbTop100 } : {}),
   };
   const revision = digest(JSON.stringify(body), 64);
