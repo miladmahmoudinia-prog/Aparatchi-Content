@@ -1,0 +1,33 @@
+name: Prepare responsive catalog delta
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/client-catalog.mjs'
+      - '.github/workflows/prepare-live-v2.yml'
+permissions:
+  contents: write
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Materialize compatible v2 delta without changing the catalog
+        run: |
+          node --test scripts/responsive-live.test.mjs
+          node --input-type=module -e "import fs from 'node:fs/promises'; import {writeResponsiveLiveCatalog} from './scripts/client-catalog.mjs'; console.log(await writeResponsiveLiveCatalog(process.cwd(),JSON.parse(await fs.readFile('catalog-bootstrap.json','utf8'))));"
+      - name: Save generated delta
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add catalog-live-v2-baseline.json catalog-live-v2.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish responsive v2 catalog baseline and delta'
+            git push
+          fi

@@ -878,6 +878,34 @@ async function writeIfChanged(file, serialized) {
   return true;
 }
 
+// v1's immutable baseline predates the archive import: its cumulative delta
+// now contains the whole archive. Keep v1 intact for installed older clients.
+// v2 establishes its own immutable baseline, never silently rotating it.
+export async function writeResponsiveLiveCatalog(root, bootstrap) {
+  const baselinePath = path.join(root, 'catalog-live-v2-baseline.json');
+  let baseline;
+  try {
+    baseline = JSON.parse(await fs.readFile(baselinePath, 'utf8'));
+    if (!baseline.clientRevision || !baseline.updatedAt || !baseline.itemDigests) {
+      throw new Error('Invalid v2 baseline; refusing to rotate it');
+    }
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+    baseline = { ...buildLiveCatalogBaseline(bootstrap), updatedAt: bootstrap.updatedAt };
+    await writeIfChanged(baselinePath, JSON.stringify(baseline));
+  }
+  // Comparing directly with the fixed baseline also permits a reverted item to
+  // revert to its baseline value. Include all previously touched keys for that.
+  let previous = null;
+  try { previous = JSON.parse(await fs.readFile(path.join(root, 'catalog-live-v2.json'), 'utf8')); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
+  const next = buildLiveCatalogDelta(bootstrap, baseline, previous).live;
+  next.baseUpdatedAt = baseline.updatedAt;
+  next.revision = digest(JSON.stringify({ ...next, revision: undefined }), 64);
+  await writeIfChanged(path.join(root, 'catalog-live-v2.json'), JSON.stringify(next));
+  return { itemCount: next.itemCount, upsertCount: next.upserts.length, bytes: Buffer.byteLength(JSON.stringify(next)) };
+}
+
 export async function writeClientCatalogArtifacts(root, catalog) {
   const artifacts = buildClientCatalogArtifacts(catalog);
   const indexPath = path.join(root, 'catalog-index.json');
@@ -928,6 +956,7 @@ export async function writeClientCatalogArtifacts(root, catalog) {
 
   const indexChanged = await writeIfChanged(indexPath, artifacts.indexSerialized);
   const bootstrapChanged = await writeIfChanged(bootstrapPath, artifacts.bootstrapSerialized);
+  await writeResponsiveLiveCatalog(root, artifacts.bootstrap);
   let liveArtifacts = {};
   let liveChanged = false;
   try {
