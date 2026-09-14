@@ -1,13 +1,13 @@
 {
-  "startedAt": "2026-09-14T14:55:53.079Z",
+  "startedAt": "2026-09-14T20:03:45.207Z",
   "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-09-14T14:58:15.000Z",
+  "runDeadlineAt": "2026-09-14T20:07:14.000Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 92043,
+  "remainingRunMsAtFinish": 197507,
   "imageMirroringSkipped": true,
-  "originalCount": 8350,
-  "finalCount": 8350,
+  "originalCount": 8356,
+  "finalCount": 8356,
   "requestedSyncMode": "IRANIAN",
   "effectiveSyncMode": "IRANIAN",
   "backfillQueueTotal": 258,
@@ -64,7 +64,7 @@
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 2,
   "episodesProcessed": 0,
-  "iranianSeriesPagesProcessed": 1,
+  "iranianSeriesPagesProcessed": 5,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
@@ -109,7 +109,7 @@
   "seriesEpisodeDiagnostics": [
     {
       "seriesId": "1cb2a690-d57f-11ef-a1f9-91af443a73a4",
-      "title": "Happy Farm",
+      "title": "مزرعه شادی",
       "source": "fast-backfill",
       "discoveredEpisodeCount": 57,
       "catalogEpisodeCount": 54,
@@ -131,7 +131,7 @@
     },
     {
       "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "title": "Big Heads",
+      "title": "كله گنده ها",
       "source": "fast-backfill",
       "discoveredEpisodeCount": 5,
       "catalogEpisodeCount": 1,
@@ -194,8 +194,17 @@
       "isAiring": true
     },
     {
-      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
-      "title": "قهرمان درون",
+      "seriesId": "e58b5da0-7693-11f0-9e60-7fd49df91adc",
+      "title": "لانا، دختر دریانورد",
+      "missing": [],
+      "pendingEpisodeCount": 3,
+      "publicationStatus": "published",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
+    },
+    {
+      "seriesId": "d8c42b30-1c68-11f1-9d98-b36ecfe4cc67",
+      "title": "روستر",
       "missing": [],
       "pendingEpisodeCount": 2,
       "publicationStatus": "published",
@@ -203,10 +212,10 @@
       "isAiring": true
     },
     {
-      "seriesId": "e72663e0-781b-11f0-a774-4f030c7cb9ab",
-      "title": "دوستان آتشی",
+      "seriesId": "6ee7a320-90c0-11f1-936c-e7983f454a7b",
+      "title": "قهرمانان کوانتومی داینوستر",
       "missing": [],
-      "pendingEpisodeCount": 24,
+      "pendingEpisodeCount": 12,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
@@ -226,28 +235,19 @@
       "isAiring": true
     },
     {
-      "seriesId": "6ee7a320-90c0-11f1-936c-e7983f454a7b",
-      "title": "قهرمانان کوانتومی داینوستر",
+      "seriesId": "e72663e0-781b-11f0-a774-4f030c7cb9ab",
+      "title": "دوستان آتشی",
       "missing": [],
-      "pendingEpisodeCount": 12,
+      "pendingEpisodeCount": 24,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
     },
     {
-      "seriesId": "d8c42b30-1c68-11f1-9d98-b36ecfe4cc67",
-      "title": "روستر",
+      "seriesId": "ff243c00-782c-11f0-b562-077105b697a3",
+      "title": "قهرمان درون",
       "missing": [],
       "pendingEpisodeCount": 2,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
-    {
-      "seriesId": "e58b5da0-7693-11f0-9e60-7fd49df91adc",
-      "title": "لانا، دختر دریانورد",
-      "missing": [],
-      "pendingEpisodeCount": 3,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
       "isAiring": true
@@ -1136,7 +1136,7 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 0,
+  "episodesDiscovered": 62,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
@@ -1187,18 +1187,10 @@
     },
     {
       "scope": "iranian-incomplete-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "message": "This operation was aborted"
-    },
-    {
-      "scope": "iranian-series-filter-1-{\"free\":1,\"persian\":\"\",\"country\":\"IR\",\"traffic\":1,\"noFreeFallback\":true}",
-      "message": "This operation was aborted"
-    },
-    {
-      "scope": "iranian-series-filter-1-{\"free\":\"\",\"persian\":\"\",\"country\":\"IR\",\"traffic\":1,\"noFreeFallback\":true}",
-      "message": "This operation was aborted"
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?affiliate=1"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 11,
-  "finishedAt": "2026-09-14T14:56:42.957Z"
+  "apiRequests": 14,
+  "finishedAt": "2026-09-14T20:03:56.493Z"
 }
