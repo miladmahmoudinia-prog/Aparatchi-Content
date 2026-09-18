@@ -1,10 +1,10 @@
 {
-  "startedAt": "2026-09-18T20:25:09.975Z",
+  "startedAt": "2026-09-18T23:13:23.670Z",
   "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-09-18T20:27:13.000Z",
+  "runDeadlineAt": "2026-09-18T23:18:41.000Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 95711,
+  "remainingRunMsAtFinish": 306541,
   "imageMirroringSkipped": true,
   "originalCount": 8362,
   "finalCount": 8362,
@@ -58,11 +58,11 @@
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 0,
+  "seriesHiddenUntilComplete": 1,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
+  "iranianSeriesProcessed": 1,
   "episodesProcessed": 0,
   "iranianSeriesPagesProcessed": 5,
   "iranianSeriesCandidates": 0,
@@ -80,10 +80,49 @@
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
-  "iranianSeriesDiagnostics": [],
+  "iranianSeriesDiagnostics": [
+    {
+      "id": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
+      "title": "كله گنده ها",
+      "result": "no-progress-existing",
+      "reason": "added-or-updated",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 4,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "existing-incomplete-first"
+    }
+  ],
   "iranianLinkProbeDiagnostics": [],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
+      "title": "كله گنده ها",
+      "source": "fast-backfill",
+      "discoveredEpisodeCount": 5,
+      "catalogEpisodeCount": 1,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 5
+        }
+      ],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
@@ -1064,7 +1103,7 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 0,
+  "episodesDiscovered": 5,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
@@ -1072,7 +1111,7 @@
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
+  "seriesAddedOrUpdated": 1,
   "affiliateRequests": 0,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
@@ -1110,16 +1149,8 @@
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
-      "scope": "iranian-panel-series-0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "message": "This operation was aborted"
-    },
-    {
-      "scope": "iranian-incomplete-0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "message": "This operation was aborted"
-    },
-    {
       "scope": "iranian-panel-series-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "message": "This operation was aborted"
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/get/series/season/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?page=1"
     },
     {
       "scope": "iranian-incomplete-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
@@ -1127,6 +1158,6 @@
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 14,
-  "finishedAt": "2026-09-18T20:25:37.289Z"
+  "apiRequests": 13,
+  "finishedAt": "2026-09-18T23:13:34.459Z"
 }
