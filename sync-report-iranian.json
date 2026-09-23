@@ -1,10 +1,10 @@
 {
-  "startedAt": "2026-09-23T12:26:10.093Z",
+  "startedAt": "2026-09-23T17:50:18.833Z",
   "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-09-23T12:32:05.000Z",
+  "runDeadlineAt": "2026-09-23T17:53:45.000Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 343336,
+  "remainingRunMsAtFinish": 179701,
   "imageMirroringSkipped": true,
   "originalCount": 8364,
   "finalCount": 8364,
@@ -1115,8 +1115,8 @@
   "affiliateRequests": 0,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
-  "rateLimitHits": 0,
-  "rateLimitWaitMs": 0,
+  "rateLimitHits": 3,
+  "rateLimitWaitMs": 15000,
   "skippedByBudget": 0,
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
@@ -1155,9 +1155,21 @@
     {
       "scope": "iranian-incomplete-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
       "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?affiliate=1"
+    },
+    {
+      "scope": "iranian-series-filter-5-{\"free\":1,\"persian\":\"\",\"country\":\"IR\",\"traffic\":1,\"noFreeFallback\":true}",
+      "message": "HTTP 429 برای https://seeko.film/api/v1/ghost/get/series/sort?trending=1&genre=all&free=1&country=IR&persian=&query=&affiliate=1&traffic=1&page=5"
+    },
+    {
+      "scope": "iranian-series-filter-6-{\"free\":\"\",\"persian\":\"\",\"country\":\"IR\",\"traffic\":1,\"noFreeFallback\":true}",
+      "message": "HTTP 429 برای https://seeko.film/api/v1/ghost/get/series/sort?trending=1&genre=all&free=&country=IR&persian=&query=&affiliate=1&traffic=1&page=6"
+    },
+    {
+      "scope": "iranian-series-filter-7-{\"free\":\"\",\"persian\":\"\",\"country\":\"IR\",\"traffic\":1,\"noFreeFallback\":true}",
+      "message": "HTTP 429 برای https://seeko.film/api/v1/ghost/get/series/sort?trending=1&genre=all&free=&country=IR&persian=&query=&affiliate=1&traffic=1&page=7"
     }
   ],
   "errorsTruncated": 0,
   "apiRequests": 13,
-  "finishedAt": "2026-09-23T12:26:21.664Z"
+  "finishedAt": "2026-09-23T17:50:45.299Z"
 }
