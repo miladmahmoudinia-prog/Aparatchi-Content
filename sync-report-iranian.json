@@ -1,10 +1,10 @@
 {
-  "startedAt": "2026-10-01T02:42:52.421Z",
+  "startedAt": "2026-10-01T09:45:14.151Z",
   "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-10-01T02:49:13.000Z",
-  "stoppedByTimeBudget": false,
-  "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 363115,
+  "runDeadlineAt": "2026-10-01T09:47:26.000Z",
+  "stoppedByTimeBudget": true,
+  "timeBudgetStopContext": "iranian-series-discovery",
+  "remainingRunMsAtFinish": 41240,
   "imageMirroringSkipped": true,
   "originalCount": 8386,
   "finalCount": 8386,
@@ -19,7 +19,7 @@
   "backfillEpisodesAdded": 0,
   "backfillSeriesVisited": 0,
   "backfillCheckpoints": 0,
-  "episodesMarkedUnavailable": 0,
+  "episodesMarkedUnavailable": 32,
   "backfillNoProgressRuns": 0,
   "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
@@ -43,7 +43,7 @@
   "affiliateRequestScopes": {
     "iranian-series": {
       "limit": 240,
-      "used": 0,
+      "used": 128,
       "exhausted": false
     }
   },
@@ -63,12 +63,12 @@
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 1,
-  "episodesProcessed": 0,
+  "episodesProcessed": 32,
   "iranianSeriesPagesProcessed": 1,
-  "iranianSeriesCandidates": 0,
+  "iranianSeriesCandidates": 4,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
-  "iranianSeriesRejectedNoLinks": 0,
+  "iranianSeriesRejectedNoLinks": 4,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
   "operatorSeriesAddedOrUpdated": 0,
@@ -91,9 +91,1590 @@
       "retryLater": false,
       "newlyPublished": false,
       "discovery": "existing-incomplete-first"
+    },
+    {
+      "id": "81459f80-e3af-11ee-9d58-27e9906d3dc1",
+      "title": "آمرلی",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "ae3ff430-06a7-11ed-871b-e72cbae03849",
+      "title": "آفتاب پرست",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "b9d819d0-e70d-11ee-8dbe-b5e6ab332e86",
+      "title": "همزاد من",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "58d25560-631c-11ec-85ba-eb7e79d04887",
+      "title": "یازده",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
     }
   ],
-  "iranianLinkProbeDiagnostics": [],
+  "iranianLinkProbeDiagnostics": [
+    {
+      "seriesId": "81459f80-e3af-11ee-9d58-27e9906d3dc1",
+      "seriesTitle": "آمرلی",
+      "episodeId": "ff649480-1556-11ef-9387-a1beb88e485f",
+      "seasonNumber": 1,
+      "episodeNumber": 20,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "81459f80-e3af-11ee-9d58-27e9906d3dc1",
+      "seriesTitle": "آمرلی",
+      "episodeId": "d576d240-e3af-11ee-9ee5-89d5639aecae",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "81459f80-e3af-11ee-9d58-27e9906d3dc1",
+      "seriesTitle": "آمرلی",
+      "episodeId": "beca1c30-fdfd-11ee-b1cc-e9cd726b95e2",
+      "seasonNumber": 1,
+      "episodeNumber": 10,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "81459f80-e3af-11ee-9d58-27e9906d3dc1",
+      "seriesTitle": "آمرلی",
+      "episodeId": "95401360-ed6f-11ee-a43a-f7b052ebfbab",
+      "seasonNumber": 1,
+      "episodeNumber": 4,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "81459f80-e3af-11ee-9d58-27e9906d3dc1",
+      "seriesTitle": "آمرلی",
+      "episodeId": "924ab920-f2fa-11ee-b991-05473c3d9eed",
+      "seasonNumber": 1,
+      "episodeNumber": 6,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "81459f80-e3af-11ee-9d58-27e9906d3dc1",
+      "seriesTitle": "آمرلی",
+      "episodeId": "4d5db960-f947-11ee-af91-d1be5ee9946d",
+      "seasonNumber": 1,
+      "episodeNumber": 9,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "81459f80-e3af-11ee-9d58-27e9906d3dc1",
+      "seriesTitle": "آمرلی",
+      "episodeId": "e9f40ba0-034c-11ef-be18-3d9a92089b04",
+      "seasonNumber": 1,
+      "episodeNumber": 12,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "81459f80-e3af-11ee-9d58-27e9906d3dc1",
+      "seriesTitle": "آمرلی",
+      "episodeId": "a567dca0-09c8-11ef-ba2b-c535b6e6c4f0",
+      "seasonNumber": 1,
+      "episodeNumber": 15,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "ae3ff430-06a7-11ed-871b-e72cbae03849",
+      "seriesTitle": "آفتاب پرست",
+      "episodeId": "fbbd3ee0-5ec4-11ed-a0af-d50ef23a265b",
+      "seasonNumber": 1,
+      "episodeNumber": 15,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "10,000",
+        "10,500",
+        "12,000",
+        "13,000",
+        "15,000",
+        "30,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "ae3ff430-06a7-11ed-871b-e72cbae03849",
+      "seriesTitle": "آفتاب پرست",
+      "episodeId": "c91b76e0-06c9-11ed-8ce1-19c7ed2f064e",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "8,000",
+        "8,500",
+        "9,500",
+        "10,000",
+        "12,000",
+        "20,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "ae3ff430-06a7-11ed-871b-e72cbae03849",
+      "seriesTitle": "آفتاب پرست",
+      "episodeId": "22b632f0-32ac-11ed-b111-81173f33ce21",
+      "seasonNumber": 1,
+      "episodeNumber": 8,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "10,000",
+        "10,500",
+        "12,000",
+        "13,000",
+        "15,000",
+        "30,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "ae3ff430-06a7-11ed-871b-e72cbae03849",
+      "seriesTitle": "آفتاب پرست",
+      "episodeId": "1f2795e0-1a17-11ed-8933-6d6d22eaf7f2",
+      "seasonNumber": 1,
+      "episodeNumber": 3,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "8,000",
+        "8,500",
+        "9,500",
+        "10,000",
+        "12,000",
+        "20,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "ae3ff430-06a7-11ed-871b-e72cbae03849",
+      "seriesTitle": "آفتاب پرست",
+      "episodeId": "c1127390-222f-11ed-b3eb-f71f3472f1dd",
+      "seasonNumber": 1,
+      "episodeNumber": 5,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "8,000",
+        "8,500",
+        "9,500",
+        "10,000",
+        "12,000",
+        "20,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "ae3ff430-06a7-11ed-871b-e72cbae03849",
+      "seriesTitle": "آفتاب پرست",
+      "episodeId": "d653c980-2d2d-11ed-9570-af10bf0c446b",
+      "seasonNumber": 1,
+      "episodeNumber": 7,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "8,000",
+        "8,500",
+        "9,500",
+        "10,000",
+        "12,000",
+        "20,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "ae3ff430-06a7-11ed-871b-e72cbae03849",
+      "seriesTitle": "آفتاب پرست",
+      "episodeId": "998644d0-382d-11ed-9ea2-d3fd3d2647e0",
+      "seasonNumber": 1,
+      "episodeNumber": 9,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "10,000",
+        "10,500",
+        "12,000",
+        "13,000",
+        "15,000",
+        "30,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "ae3ff430-06a7-11ed-871b-e72cbae03849",
+      "seriesTitle": "آفتاب پرست",
+      "episodeId": "db7666a0-48ac-11ed-8019-5d55f89cd26e",
+      "seasonNumber": 1,
+      "episodeNumber": 11,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "10,000",
+        "10,500",
+        "12,000",
+        "13,000",
+        "15,000",
+        "30,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b9d819d0-e70d-11ee-8dbe-b5e6ab332e86",
+      "seriesTitle": "همزاد من",
+      "episodeId": "d9abdf00-2c0c-11ef-a056-49aeeb8c8ea9",
+      "seasonNumber": 1,
+      "episodeNumber": 17,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b9d819d0-e70d-11ee-8dbe-b5e6ab332e86",
+      "seriesTitle": "همزاد من",
+      "episodeId": "8eab48b0-e70f-11ee-88c9-092b4b649d63",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b9d819d0-e70d-11ee-8dbe-b5e6ab332e86",
+      "seriesTitle": "همزاد من",
+      "episodeId": "72e2e270-109d-11ef-955c-bfde1cceefcc",
+      "seasonNumber": 1,
+      "episodeNumber": 9,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b9d819d0-e70d-11ee-8dbe-b5e6ab332e86",
+      "seriesTitle": "همزاد من",
+      "episodeId": "008114f0-ec5a-11ee-80ad-23ca59c0c036",
+      "seasonNumber": 1,
+      "episodeNumber": 3,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b9d819d0-e70d-11ee-8dbe-b5e6ab332e86",
+      "seriesTitle": "همزاد من",
+      "episodeId": "aaefbac0-fab1-11ee-92f8-9147b540d0a3",
+      "seasonNumber": 1,
+      "episodeNumber": 6,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b9d819d0-e70d-11ee-8dbe-b5e6ab332e86",
+      "seriesTitle": "همزاد من",
+      "episodeId": "d7ea3440-0d6e-11ef-8149-9d29b82e429c",
+      "seasonNumber": 1,
+      "episodeNumber": 8,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b9d819d0-e70d-11ee-8dbe-b5e6ab332e86",
+      "seriesTitle": "همزاد من",
+      "episodeId": "55c78b60-1329-11ef-8a54-1b0db9264aee",
+      "seasonNumber": 1,
+      "episodeNumber": 10,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "b9d819d0-e70d-11ee-8dbe-b5e6ab332e86",
+      "seriesTitle": "همزاد من",
+      "episodeId": "4fea8d60-1be4-11ef-8d25-bb34a8e0495d",
+      "seasonNumber": 1,
+      "episodeNumber": 12,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "12,000",
+        "13,000",
+        "15,000",
+        "18,000",
+        "20,000",
+        "35,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "58d25560-631c-11ec-85ba-eb7e79d04887",
+      "seriesTitle": "یازده",
+      "episodeId": "d9b284a0-8534-11ec-bbc0-9d3ea62b64a7",
+      "seasonNumber": 1,
+      "episodeNumber": 11,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "5,100",
+        "5,200",
+        "5,500",
+        "6,000",
+        "7,000",
+        "10,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "58d25560-631c-11ec-85ba-eb7e79d04887",
+      "seriesTitle": "یازده",
+      "episodeId": "5597cf80-6368-11ec-ba37-7ff07f146f81",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "5,100",
+        "5,200",
+        "5,500",
+        "6,000",
+        "7,000",
+        "10,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "58d25560-631c-11ec-85ba-eb7e79d04887",
+      "seriesTitle": "یازده",
+      "episodeId": "4d7f1870-6a5c-11ec-953d-b9fb8c27c40b",
+      "seasonNumber": 1,
+      "episodeNumber": 6,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "5,100",
+        "5,200",
+        "5,500",
+        "6,000",
+        "7,000",
+        "10,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "58d25560-631c-11ec-85ba-eb7e79d04887",
+      "seriesTitle": "یازده",
+      "episodeId": "dc46e6a0-6368-11ec-a6b9-6bc97e0680dd",
+      "seasonNumber": 1,
+      "episodeNumber": 2,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "5,100",
+        "5,200",
+        "5,500",
+        "6,000",
+        "7,000",
+        "10,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "58d25560-631c-11ec-85ba-eb7e79d04887",
+      "seriesTitle": "یازده",
+      "episodeId": "75d29390-6369-11ec-a395-b5889b118619",
+      "seasonNumber": 1,
+      "episodeNumber": 4,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "5,100",
+        "5,200",
+        "5,500",
+        "6,000",
+        "7,000",
+        "10,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "58d25560-631c-11ec-85ba-eb7e79d04887",
+      "seriesTitle": "یازده",
+      "episodeId": "339719d0-649d-11ec-8b6a-17433be60e7e",
+      "seasonNumber": 1,
+      "episodeNumber": 5,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "5,100",
+        "5,200",
+        "5,500",
+        "6,000",
+        "7,000",
+        "10,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "58d25560-631c-11ec-85ba-eb7e79d04887",
+      "seriesTitle": "یازده",
+      "episodeId": "a40b5610-6fe2-11ec-8ecf-c5ecc9443c34",
+      "seasonNumber": 1,
+      "episodeNumber": 7,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "5,100",
+        "5,200",
+        "5,500",
+        "6,000",
+        "7,000",
+        "10,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "58d25560-631c-11ec-85ba-eb7e79d04887",
+      "seriesTitle": "یازده",
+      "episodeId": "90151bb0-7539-11ec-8624-d1dff74119e8",
+      "seasonNumber": 1,
+      "episodeNumber": 8,
+      "recordCount": 6,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 6
+      },
+      "typeCounts": {
+        "link": 6
+      },
+      "amounts": [
+        "5,100",
+        "5,200",
+        "5,500",
+        "6,000",
+        "7,000",
+        "10,000"
+      ],
+      "titleSamples": [
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "کیفیت BLURAY",
+        "همه کیفیت ها(پیشنهادی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    }
+  ],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
@@ -1103,20 +2684,20 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 5,
+  "episodesDiscovered": 68,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 0,
+  "episodesRejectedNoLinks": 32,
   "moviesAddedOrUpdated": 0,
   "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 0,
+  "affiliateRequests": 128,
   "affiliateCacheHits": 0,
-  "affiliateNotFound": 0,
-  "rateLimitHits": 2,
-  "rateLimitWaitMs": 10000,
+  "affiliateNotFound": 64,
+  "rateLimitHits": 0,
+  "rateLimitWaitMs": 0,
   "skippedByBudget": 0,
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
@@ -1150,22 +2731,142 @@
   "errors": [
     {
       "scope": "iranian-panel-series-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/get/series/season/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?page=1"
+      "message": "fetch failed"
     },
     {
       "scope": "iranian-incomplete-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
       "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?affiliate=1"
     },
     {
-      "scope": "iranian-series-filter-1-{\"free\":1,\"persian\":\"\",\"country\":\"IR\",\"traffic\":1,\"noFreeFallback\":true}",
-      "message": "HTTP 429 برای https://seeko.film/api/v1/ghost/get/series/sort?trending=1&genre=all&free=1&country=IR&persian=&query=&affiliate=1&traffic=1&page=1"
+      "scope": "panel-show-links-episode-ff649480-1556-11ef-9387-a1beb88e485f",
+      "message": "fetch failed"
     },
     {
-      "scope": "iranian-series-filter-1-{\"free\":\"\",\"persian\":\"\",\"country\":\"IR\",\"traffic\":1,\"noFreeFallback\":true}",
-      "message": "HTTP 429 برای https://seeko.film/api/v1/ghost/get/series/sort?trending=1&genre=all&free=&country=IR&persian=&query=&affiliate=1&traffic=1&page=1"
+      "scope": "panel-show-links-episode-d576d240-e3af-11ee-9ee5-89d5639aecae",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-beca1c30-fdfd-11ee-b1cc-e9cd726b95e2",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-95401360-ed6f-11ee-a43a-f7b052ebfbab",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-924ab920-f2fa-11ee-b991-05473c3d9eed",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-4d5db960-f947-11ee-af91-d1be5ee9946d",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-e9f40ba0-034c-11ef-be18-3d9a92089b04",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-a567dca0-09c8-11ef-ba2b-c535b6e6c4f0",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-fbbd3ee0-5ec4-11ed-a0af-d50ef23a265b",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-c91b76e0-06c9-11ed-8ce1-19c7ed2f064e",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-22b632f0-32ac-11ed-b111-81173f33ce21",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-1f2795e0-1a17-11ed-8933-6d6d22eaf7f2",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-c1127390-222f-11ed-b3eb-f71f3472f1dd",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-d653c980-2d2d-11ed-9570-af10bf0c446b",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-998644d0-382d-11ed-9ea2-d3fd3d2647e0",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-db7666a0-48ac-11ed-8019-5d55f89cd26e",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-d9abdf00-2c0c-11ef-a056-49aeeb8c8ea9",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-8eab48b0-e70f-11ee-88c9-092b4b649d63",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-72e2e270-109d-11ef-955c-bfde1cceefcc",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-008114f0-ec5a-11ee-80ad-23ca59c0c036",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-aaefbac0-fab1-11ee-92f8-9147b540d0a3",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-d7ea3440-0d6e-11ef-8149-9d29b82e429c",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-55c78b60-1329-11ef-8a54-1b0db9264aee",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-4fea8d60-1be4-11ef-8d25-bb34a8e0495d",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-d9b284a0-8534-11ec-bbc0-9d3ea62b64a7",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-5597cf80-6368-11ec-ba37-7ff07f146f81",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-4d7f1870-6a5c-11ec-953d-b9fb8c27c40b",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-dc46e6a0-6368-11ec-a6b9-6bc97e0680dd",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-75d29390-6369-11ec-a395-b5889b118619",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-339719d0-649d-11ec-8b6a-17433be60e7e",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-a40b5610-6fe2-11ec-8ecf-c5ecc9443c34",
+      "message": "fetch failed"
+    },
+    {
+      "scope": "panel-show-links-episode-90151bb0-7539-11ec-8624-d1dff74119e8",
+      "message": "fetch failed"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 5,
-  "finishedAt": "2026-10-01T02:43:09.885Z"
+  "apiRequests": 169,
+  "finishedAt": "2026-10-01T09:46:44.760Z"
 }
