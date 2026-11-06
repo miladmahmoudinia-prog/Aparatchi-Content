@@ -79,6 +79,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           rm -f .git/index.lock
           git add catalog.json catalog-index.json catalog-items catalog-stable catalog-manifest.json catalog-bootstrap.json catalog-live.json catalog-live-baseline.json tmdb-cache.json tmdb-enrichment-report.json persian-title-cache.json imdb-top-cache.json
+          git add -A -- catalog-live-v2.json catalog-live-v2-baseline.json
           if [ -d assets/media ]; then
             git add assets/media
           fi
