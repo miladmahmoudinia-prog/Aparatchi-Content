@@ -765,6 +765,13 @@ function hasCompleteTmdbMetadata(item) {
 }
 
 function isIranianCatalogItem(item) {
+  if (String(item?.id || '') === '2fa8a430-d3de-11f1-b3f6-d5747067b29a') return false;
+  const countryCodes = Array.isArray(item?.countryCodes)
+    ? item.countryCodes.map(normalizeCountryCode).filter(Boolean)
+    : [];
+  const originalLanguage = cleanText(item?.originalLanguage).toLowerCase();
+  if (countryCodes.length) return countryCodes.includes('IR');
+  if (originalLanguage) return originalLanguage === 'fa';
   const labels = [
     ...(Array.isArray(item?.countryLabels) ? item.countryLabels : []),
     ...(Array.isArray(item?.countryNames) ? item.countryNames : []),
@@ -773,8 +780,6 @@ function isIranianCatalogItem(item) {
   ].join(' ');
   return Boolean(
     item?.ir === true ||
-    cleanText(item?.originalLanguage).toLowerCase() === 'fa' ||
-    (Array.isArray(item?.countryCodes) && item.countryCodes.map(normalizeCountryCode).includes('IR')) ||
     /(?:^|\s)(?:ایران|iran)(?:\s|$)/i.test(labels),
   );
 }
@@ -792,10 +797,12 @@ function localTitleText(item) {
 }
 
 function applyLocalClassification(item) {
+  const forcedForeign = String(item?.id || '') === '2fa8a430-d3de-11f1-b3f6-d5747067b29a';
   const codes = Array.isArray(item?.countryCodes)
-    ? item.countryCodes.map(normalizeCountryCode).filter(Boolean)
+    ? item.countryCodes.map(normalizeCountryCode).filter((code) => !forcedForeign || code !== 'IR')
     : [];
   const originalLanguage = cleanText(item?.originalLanguage).toLowerCase();
+  if (forcedForeign) item.ir = false;
   if (isIranianCatalogItem(item) && !codes.includes('IR')) codes.push('IR');
   if (originalLanguage === 'ko' && !codes.includes('KR')) codes.push('KR');
   if (originalLanguage === 'hi' && !codes.includes('IN')) codes.push('IN');

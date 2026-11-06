@@ -232,7 +232,9 @@ export function isWildlifeDocumentaryText({ title = '', genres = [], overview = 
 
 export function classifyCatalogItem(input = {}) {
   const type = input.type === 'series' ? 'series' : 'movie';
-  const forcedForeignTitle = includesAny(`${input.nameFa || ''} ${input.name || ''}`, ['the westies', 'وستی ها', 'وستی‌ها']);
+  const forcedForeignTitle =
+    String(input.id || '') === '2fa8a430-d3de-11f1-b3f6-d5747067b29a' ||
+    includesAny(`${input.nameFa || ''} ${input.name || ''}`, ['the westies', 'وستی ها', 'وستی‌ها']);
   const genres = Array.isArray(input.genres) ? input.genres.map(clean).filter(Boolean) : [];
   const genreText = normalize(genres.join(' '));
   const titleText = normalize(`${input.nameFa || ''} ${input.name || ''}`);
@@ -365,7 +367,9 @@ export function classifyCatalogItem(input = {}) {
   // strongest identity signal for Korean/Indian shelves; primary country is
   // only a fallback when language metadata is missing.
   const hasCountryIdentity = countryCodes.length > 0;
-  const iranianIdentity = hasCountryIdentity
+  const iranianIdentity = forcedForeignTitle
+    ? false
+    : hasCountryIdentity
     ? countryCodes.includes('IR')
     : (originalLanguage === 'fa' || input.ir === true);
   const primaryCountry = countryCodes[0] || '';

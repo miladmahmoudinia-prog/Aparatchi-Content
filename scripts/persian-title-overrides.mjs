@@ -474,9 +474,9 @@ function currentPersianCollectionIsSafe(value, members, collectionName) {
   return true;
 }
 function safeFallbackCollectionLabel(collectionName) {
-  const base = originalCollectionBase(collectionName);
-  const generated = generatedPersianDisplayTitle(base);
-  return generated && hasPersianScript(generated) ? 'کالکشن ' + generated : '';
+  // Never manufacture a Persian collection name by transliterating English.
+  // A missing verified translation is safer than showing a phonetic label.
+  return '';
 }
 function deriveMissingPersianCollectionNames(items) {
   const groups = new Map();
