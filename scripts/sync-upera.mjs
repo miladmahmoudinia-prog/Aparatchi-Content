@@ -5647,9 +5647,13 @@ async function syncEpisodeArtworkMetadata(options = {}) {
     try {
       const episodes = await fetchSeriesEpisodeArtworkMetadata(baseCatalogId(item));
       stats.episodeArtworkAdded += hydrateEpisodeGroupArtwork(item.downloads, episodes);
-      await generateMissingEpisodeFrames(item);
     } catch (error) {
       rememberError(`episode-artwork-${item.id}`, error);
+    }
+    try {
+      await generateMissingEpisodeFrames(item);
+    } catch (error) {
+      rememberError(`episode-frame-generation-${item.id}`, error);
     }
   }
   state.episodeArtworkOffset = candidates.length
