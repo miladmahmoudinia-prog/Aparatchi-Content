@@ -321,4 +321,16 @@ jobs:
           }, null, 2));
           NODE
 
+      - name: Report failed validation or sync
+        if: always()
+        env:
+          REGRESSION_OUTCOME: ${{ steps.regression_tests.outcome }}
+          NORMAL_OUTCOME: ${{ steps.normal_sync.outcome }}
+          IRANIAN_OUTCOME: ${{ steps.iranian_sync.outcome }}
+        run: |
+          if [ "$REGRESSION_OUTCOME" = failure ] || [ "$NORMAL_OUTCOME" = failure ] || [ "$IRANIAN_OUTCOME" = failure ]; then
+            echo "::error::A sync or regression step failed; inspect the job log and sync reports."
+            exit 1
+          fi
+
 # Revalidate series publication after episode identity and URL extraction fixes.
