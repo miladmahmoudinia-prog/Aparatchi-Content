@@ -18,5 +18,7 @@ test('sync reports failed checks after attempting to save progress', () => {
   assert.match(workflow, /REGRESSION_OUTCOME: \$\{\{ steps\.regression_tests\.outcome \}\}/);
   assert.match(workflow, /NORMAL_OUTCOME: \$\{\{ steps\.normal_sync\.outcome \}\}/);
   assert.match(workflow, /IRANIAN_OUTCOME: \$\{\{ steps\.iranian_sync\.outcome \}\}/);
+  assert.match(workflow, /FFMPEG_OUTCOME: \$\{\{ steps\.install_ffmpeg\.outcome \}\}/);
+  assert.ok(workflow.indexOf('name: Install ffmpeg for episode artwork') < workflow.indexOf('name: Discover new movies and series first'));
   assert.match(workflow.slice(status), /exit 1/);
 });
