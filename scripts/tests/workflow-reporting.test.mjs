@@ -11,6 +11,7 @@ test('TMDB publication stages both generated live v2 files before rebasing', () 
 
 test('sync reports failed checks after attempting to save progress', () => {
   const workflow = fs.readFileSync('.github/workflows/sync-upera.yml', 'utf8');
+  assert.match(workflow, /group: aparatchi-content-write-lock\s+cancel-in-progress: false/);
   const commit = workflow.indexOf('name: Commit Iranian-series progress');
   const status = workflow.indexOf('name: Report failed validation or sync');
   assert.ok(commit >= 0 && status > commit);
