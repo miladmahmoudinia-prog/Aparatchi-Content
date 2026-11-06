@@ -80,6 +80,15 @@ jobs:
           echo "SERIES_PAGES_PER_RUN=${SERIES_PAGES:-12}" >> "$GITHUB_ENV"
           echo "NEW_TITLES_HOURS=${NEW_HOURS:-24}" >> "$GITHUB_ENV"
 
+      - name: Install ffmpeg for episode artwork
+        id: install_ffmpeg
+        continue-on-error: true
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+
       - name: Discover new movies and series first
         if: github.event_name != 'push'
         id: normal_sync
@@ -327,8 +336,9 @@ jobs:
           REGRESSION_OUTCOME: ${{ steps.regression_tests.outcome }}
           NORMAL_OUTCOME: ${{ steps.normal_sync.outcome }}
           IRANIAN_OUTCOME: ${{ steps.iranian_sync.outcome }}
+          FFMPEG_OUTCOME: ${{ steps.install_ffmpeg.outcome }}
         run: |
-          if [ "$REGRESSION_OUTCOME" = failure ] || [ "$NORMAL_OUTCOME" = failure ] || [ "$IRANIAN_OUTCOME" = failure ]; then
+          if [ "$REGRESSION_OUTCOME" = failure ] || [ "$NORMAL_OUTCOME" = failure ] || [ "$IRANIAN_OUTCOME" = failure ] || [ "$FFMPEG_OUTCOME" = failure ]; then
             echo "::error::A sync or regression step failed; inspect the job log and sync reports."
             exit 1
           fi
