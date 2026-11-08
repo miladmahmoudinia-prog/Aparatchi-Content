@@ -1,13 +1,13 @@
 {
-  "startedAt": "2026-11-08T02:28:23.062Z",
+  "startedAt": "2026-11-08T10:17:36.844Z",
   "runTimeLimitMinutes": 30,
-  "runDeadlineAt": "2026-11-08T02:58:21.254Z",
+  "runDeadlineAt": "2026-11-08T10:47:34.731Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 1748921,
+  "remainingRunMsAtFinish": 1753351,
   "imageMirroringSkipped": true,
-  "originalCount": 8474,
-  "finalCount": 8474,
+  "originalCount": 8473,
+  "finalCount": 8473,
   "requestedSyncMode": "ARTWORK",
   "effectiveSyncMode": "ARTWORK",
   "backfillQueueTotal": 252,
@@ -73,7 +73,7 @@
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 0,
+  "duplicateCatalogItemsMerged": 1,
   "iranianSeriesDiagnostics": [],
   "iranianLinkProbeDiagnostics": [],
   "operatorDiagnostics": [],
@@ -100,7 +100,7 @@
       "pendingEpisodeCount": 0,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
-      "isAiring": false
+      "isAiring": true
     },
     {
       "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
@@ -1075,7 +1075,7 @@
   "skippedByBudget": 0,
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
-  "episodeFramesGenerated": 0,
+  "episodeFramesGenerated": 15,
   "episodeFrameErrors": 0,
   "seriesKeptVisibleDuringBackfill": 0,
   "seriesRestoredByMonotonicGuard": 3,
@@ -1088,7 +1088,7 @@
   "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
   "peopleAdded": 0,
-  "tmdbRequests": 119,
+  "tmdbRequests": 156,
   "imdbRequests": 0,
   "mediaRepairCandidates": 0,
   "mediaRepairChecked": 0,
@@ -1103,10 +1103,6 @@
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
   "errors": [
-    {
-      "scope": "episode-artwork-d8807150-0101-11f1-9ccd-8b90cbfd1039",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d8807150-0101-11f1-9ccd-8b90cbfd1039?affiliate=1"
-    },
     {
       "scope": "episode-artwork-99ec1bf0-4afa-11ee-87f8-9f43ad598dd2",
       "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/99ec1bf0-4afa-11ee-87f8-9f43ad598dd2?affiliate=1"
@@ -1124,23 +1120,67 @@
       "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/067ceea0-0103-11f1-9674-21875c688606?affiliate=1"
     },
     {
-      "scope": "operator-classification-1b7cae60-e539-11ee-aa4b-539ffdd44ab7--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/389275?language=fa-IR"
+      "scope": "tmdb-episode-still-b8dca690-ff19-11ee-a60e-358b3a27dc1a-2-12",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/207468/season/2/episode/12?language=en-US"
     },
     {
-      "scope": "operator-classification-40d1bc50-e544-11ee-9105-1bfd2d257e19--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/66609?language=fa-IR"
+      "scope": "tmdb-episode-still-b8dca690-ff19-11ee-a60e-358b3a27dc1a-2-11",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/207468/season/2/episode/11?language=en-US"
     },
     {
-      "scope": "operator-classification-78c375f0-074e-11f1-b8a0-a3e4c86d2c5c--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/1339613?language=en-US"
+      "scope": "tmdb-episode-still-b8dca690-ff19-11ee-a60e-358b3a27dc1a-2-10",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/207468/season/2/episode/10?language=en-US"
     },
     {
-      "scope": "operator-classification-3c79acf0-f337-11e9-9052-2b6fef19924d--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/642165?language=en-US"
+      "scope": "tmdb-episode-still-b8dca690-ff19-11ee-a60e-358b3a27dc1a-2-9",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/207468/season/2/episode/9?language=en-US"
+    },
+    {
+      "scope": "tmdb-episode-still-b8dca690-ff19-11ee-a60e-358b3a27dc1a-2-8",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/207468/season/2/episode/8?language=en-US"
+    },
+    {
+      "scope": "tmdb-episode-still-b8dca690-ff19-11ee-a60e-358b3a27dc1a-2-7",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/207468/season/2/episode/7?language=en-US"
+    },
+    {
+      "scope": "tmdb-episode-still-b8dca690-ff19-11ee-a60e-358b3a27dc1a-2-6",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/207468/season/2/episode/6?language=en-US"
+    },
+    {
+      "scope": "tmdb-episode-still-b8dca690-ff19-11ee-a60e-358b3a27dc1a-2-5",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/207468/season/2/episode/5?language=en-US"
+    },
+    {
+      "scope": "tmdb-episode-still-b8dca690-ff19-11ee-a60e-358b3a27dc1a-2-4",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/207468/season/2/episode/4?language=en-US"
+    },
+    {
+      "scope": "tmdb-episode-still-b8dca690-ff19-11ee-a60e-358b3a27dc1a-2-3",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/207468/season/2/episode/3?language=en-US"
+    },
+    {
+      "scope": "tmdb-episode-still-b8dca690-ff19-11ee-a60e-358b3a27dc1a-2-2",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/207468/season/2/episode/2?language=en-US"
+    },
+    {
+      "scope": "tmdb-episode-still-b8dca690-ff19-11ee-a60e-358b3a27dc1a-2-1",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/207468/season/2/episode/1?language=en-US"
+    },
+    {
+      "scope": "episode-artwork-86289f40-0103-11f1-81c9-af52d5814131",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/86289f40-0103-11f1-81c9-af52d5814131?affiliate=1"
+    },
+    {
+      "scope": "operator-classification-08106360-ff92-11f0-ba06-cf9e4d6e12a6--operator",
+      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/1369757?language=en-US"
+    },
+    {
+      "scope": "operator-classification-c8a7e1f0-ff92-11f0-9730-7d78121c3fce--operator",
+      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/1609403?language=en-US"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 159,
-  "finishedAt": "2026-11-08T02:29:12.333Z"
+  "apiRequests": 196,
+  "finishedAt": "2026-11-08T10:18:21.380Z"
 }
