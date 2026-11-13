@@ -1,13 +1,13 @@
 {
-  "startedAt": "2026-11-13T16:20:20.428Z",
+  "startedAt": "2026-11-13T22:36:26.387Z",
   "runTimeLimitMinutes": 30,
-  "runDeadlineAt": "2026-11-13T16:50:18.884Z",
+  "runDeadlineAt": "2026-11-13T23:06:24.406Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 1748188,
+  "remainingRunMsAtFinish": 1745701,
   "imageMirroringSkipped": true,
-  "originalCount": 8483,
-  "finalCount": 8483,
+  "originalCount": 8484,
+  "finalCount": 8484,
   "requestedSyncMode": "ARTWORK",
   "effectiveSyncMode": "ARTWORK",
   "backfillQueueTotal": 252,
@@ -100,7 +100,7 @@
       "pendingEpisodeCount": 0,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
-      "isAiring": false
+      "isAiring": true
     },
     {
       "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
@@ -1075,7 +1075,7 @@
   "skippedByBudget": 0,
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
-  "episodeFramesGenerated": 0,
+  "episodeFramesGenerated": 45,
   "episodeFrameErrors": 0,
   "seriesKeptVisibleDuringBackfill": 0,
   "seriesRestoredByMonotonicGuard": 3,
@@ -1088,7 +1088,7 @@
   "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
   "peopleAdded": 0,
-  "tmdbRequests": 140,
+  "tmdbRequests": 198,
   "imdbRequests": 0,
   "mediaRepairCandidates": 0,
   "mediaRepairChecked": 0,
@@ -1103,14 +1103,6 @@
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
   "errors": [
-    {
-      "scope": "episode-artwork-08447d70-9b7e-11eb-8510-7d24d94903ac",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/08447d70-9b7e-11eb-8510-7d24d94903ac?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-db5eb5c0-5aa9-11ed-81c4-bb6203c8c14f",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/db5eb5c0-5aa9-11ed-81c4-bb6203c8c14f?affiliate=1"
-    },
     {
       "scope": "tmdb-episode-still-5199c000-1ef1-11ee-8d3d-455ac34cfadc-4-4",
       "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/335660/season/4/episode/4?language=en-US"
@@ -1242,9 +1234,25 @@
     {
       "scope": "tmdb-episode-still-0449b6c0-ad0f-11ef-9aac-c5e79a75a52b-3-13",
       "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/63926/season/3/episode/13?language=en-US"
+    },
+    {
+      "scope": "episode-artwork-d29f4e00-0101-11f1-b0da-9fbed0aada14",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d29f4e00-0101-11f1-b0da-9fbed0aada14?affiliate=1"
+    },
+    {
+      "scope": "episode-artwork-ae40c7a0-ff95-11f0-a7d5-dd2bf12f141d",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/ae40c7a0-ff95-11f0-a7d5-dd2bf12f141d?affiliate=1"
+    },
+    {
+      "scope": "episode-artwork-7b7b0c30-0101-11f1-935c-c74ce5145c6c",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/7b7b0c30-0101-11f1-935c-c74ce5145c6c?affiliate=1"
+    },
+    {
+      "scope": "operator-classification-ccf41cc0-57dd-11ea-9664-5df180075e7f--operator",
+      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/266236?language=en-US"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 180,
-  "finishedAt": "2026-11-13T16:21:10.696Z"
+  "apiRequests": 238,
+  "finishedAt": "2026-11-13T22:37:18.705Z"
 }
