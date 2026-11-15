@@ -878,16 +878,18 @@ async function writeIfChanged(file, serialized) {
   return true;
 }
 
+const LIVE_DELTA_ROTATE_BYTES = 1.5 * 1024 * 1024;
+
 // v1's immutable baseline predates the archive import: its cumulative delta
 // now contains the whole archive. Keep v1 intact for installed older clients.
-// v2 establishes its own immutable baseline, never silently rotating it.
+// v2 keeps its baseline until the delta outgrows LIVE_DELTA_ROTATE_BYTES.
 export async function writeResponsiveLiveCatalog(root, bootstrap) {
   const baselinePath = path.join(root, 'catalog-live-v2-baseline.json');
   let baseline;
   try {
     baseline = JSON.parse(await fs.readFile(baselinePath, 'utf8'));
     if (!baseline.clientRevision || !baseline.updatedAt || !baseline.itemDigests) {
-      throw new Error('Invalid v2 baseline; refusing to rotate it');
+      throw new Error('Invalid v2 baseline; refusing to use it');
     }
   } catch (error) {
     if (error.code !== 'ENOENT') throw error;
@@ -899,9 +901,22 @@ export async function writeResponsiveLiveCatalog(root, bootstrap) {
   let previous = null;
   try { previous = JSON.parse(await fs.readFile(path.join(root, 'catalog-live-v2.json'), 'utf8')); }
   catch (error) { if (error.code !== 'ENOENT') throw error; }
-  const next = buildLiveCatalogDelta(bootstrap, baseline, previous).live;
-  next.baseUpdatedAt = baseline.updatedAt;
-  next.revision = digest(JSON.stringify({ ...next, revision: undefined }), 64);
+  const build = (base, prior) => {
+    const live = buildLiveCatalogDelta(bootstrap, base, prior).live;
+    live.baseUpdatedAt = base.updatedAt;
+    live.revision = digest(JSON.stringify({ ...live, revision: undefined }), 64);
+    return live;
+  };
+  let next = build(baseline, previous);
+  // The delta is cumulative, so it only ever grows. Once it approaches the size
+  // of the complete bootstrap, phones time out downloading it and keep a stale
+  // catalog. Re-baseline: clients older than the new baseUpdatedAt already fall
+  // back to the complete bootstrap, so rotating never strands them.
+  if (Buffer.byteLength(JSON.stringify(next)) > LIVE_DELTA_ROTATE_BYTES) {
+    baseline = { ...buildLiveCatalogBaseline(bootstrap), updatedAt: bootstrap.updatedAt };
+    await writeIfChanged(baselinePath, JSON.stringify(baseline));
+    next = build(baseline, null);
+  }
   await writeIfChanged(path.join(root, 'catalog-live-v2.json'), JSON.stringify(next));
   return { itemCount: next.itemCount, upsertCount: next.upserts.length, bytes: Buffer.byteLength(JSON.stringify(next)) };
 }
