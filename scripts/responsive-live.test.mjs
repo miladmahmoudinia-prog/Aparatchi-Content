@@ -26,3 +26,15 @@ test('v2 sends only cumulative changes and preserves old clients and all identit
   assert.equal(delta.baseUpdatedAt,original.updatedAt);
   assert.equal(await fs.readFile(path.join(root,'catalog-live.json'),'utf8'),'legacy untouched');
 });
+
+test('v2 re-baselines once the cumulative delta outgrows the size limit', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'aparatchi-live-rotate-'));
+  const pad = 'x'.repeat(2000);
+  const items = (n, tag) => Array.from({length: n}, (_, i) => ({id: `i${i}`, type: 'movie', name: tag + pad}));
+  await writeResponsiveLiveCatalog(root, {clientRevision: 'a', updatedAt: '2026-09-13T00:00:00Z', items: items(10, 'old')});
+  const rotated = await writeResponsiveLiveCatalog(root, {clientRevision: 'b', updatedAt: '2026-11-01T00:00:00Z', items: items(1000, 'new')});
+  assert.equal(rotated.upsertCount, 0);
+  const delta = JSON.parse(await fs.readFile(path.join(root, 'catalog-live-v2.json'), 'utf8'));
+  assert.equal(delta.baseClientRevision, 'b');
+  assert.equal(delta.baseUpdatedAt, '2026-11-01T00:00:00Z');
+});
