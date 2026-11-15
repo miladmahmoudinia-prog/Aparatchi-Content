@@ -568,6 +568,7 @@ const BOOTSTRAP_NAVIGATION_FIELDS = [
 const compactBootstrapMovieFile = (file) => ({
   url: file.url,
   mode: file.mode,
+  ...(file?.size ? { size: file.size } : {}),
   ...(file?.language ? { language: file.language } : {}),
   ...(file?.operatorOnly ? { operatorOnly: true } : {}),
   ...(file?.panelVerified ? { panelVerified: true } : {}),
@@ -621,6 +622,7 @@ const compactBootstrapSeriesEpisodePreviews = (downloads) =>
       if (!/^https?:\/\//i.test(url)) return [];
       return [{
         url,
+        ...(file?.size ? { size: file.size } : {}),
         ...(file?.mode ? { mode: file.mode } : {}),
         ...(file?.language ? { language: file.language } : {}),
         ...(Array.isArray(file?.supportedOperators) && file.supportedOperators.length

@@ -3535,12 +3535,25 @@ async function processSeries(
     selectedEpisodes = episodes.slice(cursor, cursor + limit);
   } else if (options.episodeStrategy === 'latest') {
     const limit = positiveInt(options.episodeLimit, priorityEpisodesPerSeries);
-    // Completeness comes first: fill missing old/gap episodes before refreshing
-    // already-known recent episodes. This prevents lists such as 5,6,7,10.
-    selectedEpisodes = [
-      ...missingEpisodes,
-      ...(options.onlyMissing ? [] : changedExistingEpisodes),
-    ].slice(0, limit);
+    // Latest sync must also revalidate existing media (including size/quality
+    // changes without an upstream timestamp). Historical backfill keeps its
+    // separate cursor. Reserve one slot for refresh when the budget permits.
+    const newestMissing = [...missingEpisodes].sort((a, b) => compareEpisodes(b, a));
+    const playableExisting = episodes
+      .filter((episode) => episodeGroupHasUsableMedia(findEpisodeGroup(previousGroups, episode)))
+      .sort((a, b) => compareEpisodes(b, a));
+    const refresh = [
+      ...changedExistingEpisodes.filter((episode) => playableExisting.includes(episode)),
+      ...playableExisting,
+    ];
+    const missingSlots = refresh.length && limit > 1 ? limit - 1 : limit;
+    // In latest mode onlyMissing no longer suppresses this bounded refresh.
+    selectedEpisodes = [...new Set([
+      ...newestMissing.slice(0, missingSlots),
+      ...refresh.slice(0, 1),
+      ...newestMissing.slice(missingSlots),
+      ...refresh,
+    ])].slice(0, limit);
   } else if (source === 'incremental') {
     selectedEpisodes = [
       ...missingEpisodes,
