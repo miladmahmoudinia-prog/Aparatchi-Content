@@ -1,10 +1,10 @@
 {
-  "startedAt": "2026-11-15T21:47:45.907Z",
+  "startedAt": "2026-11-16T02:03:19.431Z",
   "runTimeLimitMinutes": 30,
-  "runDeadlineAt": "2026-11-15T22:17:44.455Z",
+  "runDeadlineAt": "2026-11-16T02:33:17.435Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 1745340,
+  "remainingRunMsAtFinish": 1736439,
   "imageMirroringSkipped": true,
   "originalCount": 8484,
   "finalCount": 8484,
@@ -100,7 +100,7 @@
       "pendingEpisodeCount": 0,
       "publicationStatus": "published",
       "archiveAuditStatus": "checked",
-      "isAiring": true
+      "isAiring": false
     },
     {
       "seriesId": "e03c4c00-0558-11eb-a37b-85e99d1ea2cc",
@@ -1075,7 +1075,7 @@
   "skippedByBudget": 0,
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
-  "episodeFramesGenerated": 0,
+  "episodeFramesGenerated": 18,
   "episodeFrameErrors": 0,
   "seriesKeptVisibleDuringBackfill": 0,
   "seriesRestoredByMonotonicGuard": 3,
@@ -1088,7 +1088,7 @@
   "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
   "peopleAdded": 0,
-  "tmdbRequests": 172,
+  "tmdbRequests": 218,
   "imdbRequests": 0,
   "mediaRepairCandidates": 0,
   "mediaRepairChecked": 0,
@@ -1104,10 +1104,6 @@
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
-      "scope": "episode-artwork-9572f670-ff9d-11f0-a247-0b500cc29ec0",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/9572f670-ff9d-11f0-a247-0b500cc29ec0?affiliate=1"
-    },
-    {
       "scope": "episode-artwork-30b7f910-3d92-11ed-8d25-eb5c1d7d225b",
       "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/30b7f910-3d92-11ed-8d25-eb5c1d7d225b?affiliate=1"
     },
@@ -1116,15 +1112,67 @@
       "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/e9bddc80-0571-11f0-b295-09ad878b3c23?affiliate=1"
     },
     {
-      "scope": "operator-classification-08106360-ff92-11f0-ba06-cf9e4d6e12a6--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/1369757?language=fa-IR"
+      "scope": "episode-artwork-04b8b6b0-0102-11f1-b17a-73f9679603d6",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/04b8b6b0-0102-11f1-b17a-73f9679603d6?affiliate=1"
     },
     {
-      "scope": "operator-classification-c8a7e1f0-ff92-11f0-9730-7d78121c3fce--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/1609403?language=en-US"
+      "scope": "episode-artwork-68cf2f80-0102-11f1-9489-6778333b1c2e",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/68cf2f80-0102-11f1-9489-6778333b1c2e?affiliate=1"
+    },
+    {
+      "scope": "episode-artwork-80eb4110-0102-11f1-bf2c-9bdb7daf7e84",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/80eb4110-0102-11f1-bf2c-9bdb7daf7e84?affiliate=1"
+    },
+    {
+      "scope": "episode-artwork-7ba90a60-0102-11f1-bba1-5f1b3250c8e7",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/7ba90a60-0102-11f1-bba1-5f1b3250c8e7?affiliate=1"
+    },
+    {
+      "scope": "episode-artwork-e482d8f0-00fe-11f1-9e71-39d1fd58a783",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/e482d8f0-00fe-11f1-9e71-39d1fd58a783?affiliate=1"
+    },
+    {
+      "scope": "tmdb-episode-still-e482d8f0-00fe-11f1-9e71-39d1fd58a783-2-7",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/223500/season/2/episode/7?language=en-US"
+    },
+    {
+      "scope": "tmdb-episode-still-e482d8f0-00fe-11f1-9e71-39d1fd58a783-2-6",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/223500/season/2/episode/6?language=en-US"
+    },
+    {
+      "scope": "tmdb-episode-still-e482d8f0-00fe-11f1-9e71-39d1fd58a783-2-5",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/223500/season/2/episode/5?language=en-US"
+    },
+    {
+      "scope": "tmdb-episode-still-e482d8f0-00fe-11f1-9e71-39d1fd58a783-2-4",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/223500/season/2/episode/4?language=en-US"
+    },
+    {
+      "scope": "tmdb-episode-still-e482d8f0-00fe-11f1-9e71-39d1fd58a783-2-3",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/223500/season/2/episode/3?language=en-US"
+    },
+    {
+      "scope": "tmdb-episode-still-e482d8f0-00fe-11f1-9e71-39d1fd58a783-2-2",
+      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/223500/season/2/episode/2?language=en-US"
+    },
+    {
+      "scope": "episode-artwork-6c71ffe0-3ef0-11e8-a14c-137f453c2a5d",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/6c71ffe0-3ef0-11e8-a14c-137f453c2a5d?affiliate=1"
+    },
+    {
+      "scope": "episode-artwork-1ed80b20-340e-11ed-94e4-396df7bf5a21",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/1ed80b20-340e-11ed-94e4-396df7bf5a21?affiliate=1"
+    },
+    {
+      "scope": "episode-artwork-6b1804a0-0103-11f1-b4a6-87870a86a892",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/6b1804a0-0103-11f1-b4a6-87870a86a892?affiliate=1"
+    },
+    {
+      "scope": "operator-classification-ccf41cc0-57dd-11ea-9664-5df180075e7f--operator",
+      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/266236?language=en-US"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 212,
-  "finishedAt": "2026-11-15T21:48:39.115Z"
+  "apiRequests": 258,
+  "finishedAt": "2026-11-16T02:04:20.996Z"
 }
