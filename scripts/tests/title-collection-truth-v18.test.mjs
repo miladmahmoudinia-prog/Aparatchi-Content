@@ -48,7 +48,9 @@ test('unknown collection falls back to its own source name instead of a member t
     ],
   };
   await repairCatalogTitleCollectionTruth(catalog, { maxApiRepairs: 0 });
-  assert.deepEqual(catalog.items.map((item) => item.collectionNameFa), ['کالکشن سامپله', 'کالکشن سامپله']);
+  // Localize only the generic label; never invent a transliteration of the source name.
+  assert.deepEqual(catalog.items.map((item) => item.collectionNameFa), ['کالکشن Sample', 'کالکشن Sample']);
+  assert.deepEqual(catalog.items.map((item) => item.collectionName), ['Sample Collection', 'Sample Collection']);
   assert.deepEqual(catalog.items.map((item) => item.nameFa), ['نمونه: بخش اول', 'نمونه: بخش دوم']);
 });
 
