@@ -1,15 +1,15 @@
 {
-  "startedAt": "2026-11-16T09:38:50.020Z",
-  "runTimeLimitMinutes": 30,
-  "runDeadlineAt": "2026-11-16T10:08:47.998Z",
+  "startedAt": "2026-11-16T10:05:09.164Z",
+  "runTimeLimitMinutes": 12,
+  "runDeadlineAt": "2026-11-16T10:17:07.119Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 1753413,
+  "remainingRunMsAtFinish": 416227,
   "imageMirroringSkipped": true,
   "originalCount": 8484,
-  "finalCount": 8484,
-  "requestedSyncMode": "ARTWORK",
-  "effectiveSyncMode": "ARTWORK",
+  "finalCount": 8504,
+  "requestedSyncMode": "NORMAL",
+  "effectiveSyncMode": "NORMAL",
   "backfillQueueTotal": 252,
   "backfillBacklogRemaining": 252,
   "backfillBlockedTotal": 11,
@@ -31,43 +31,89 @@
   "incrementalCandidates": 0,
   "incrementalSeriesDeferred": 0,
   "incrementalProcessed": 0,
-  "recentMoviePagesScanned": 0,
-  "recentMovieCandidates": 0,
-  "recentMovieNewCandidates": 0,
-  "recentMoviesProcessed": 0,
-  "recentSeriesPagesScanned": 0,
-  "recentSeriesCandidates": 0,
-  "recentSeriesNewCandidates": 0,
-  "recentSeriesProcessed": 0,
+  "recentMoviePagesScanned": 12,
+  "recentMovieCandidates": 432,
+  "recentMovieNewCandidates": 14,
+  "recentMoviesProcessed": 14,
+  "recentSeriesPagesScanned": 12,
+  "recentSeriesCandidates": 432,
+  "recentSeriesNewCandidates": 6,
+  "recentSeriesProcessed": 6,
   "recentSeriesDeferredByArchiveQueue": 0,
-  "affiliateRequestScopes": {},
-  "skippedByScopedBudget": 0,
-  "moviePagesProcessed": 0,
-  "movieTitlesProcessed": 0,
+  "affiliateRequestScopes": {
+    "operator-movies": {
+      "limit": 24,
+      "used": 0,
+      "exhausted": false
+    },
+    "operator-series": {
+      "limit": 12,
+      "used": 0,
+      "exhausted": false
+    },
+    "airing-series": {
+      "limit": 48,
+      "used": 48,
+      "exhausted": true
+    },
+    "recent-movies": {
+      "limit": 110,
+      "used": 14,
+      "exhausted": false
+    },
+    "recent-series": {
+      "limit": 96,
+      "used": 75,
+      "exhausted": false
+    },
+    "media-repair": {
+      "limit": 100,
+      "used": 0,
+      "exhausted": false
+    },
+    "media-health-audit": {
+      "limit": 12,
+      "used": 0,
+      "exhausted": false
+    },
+    "incremental": {
+      "limit": 40,
+      "used": 0,
+      "exhausted": false
+    },
+    "archive-movies": {
+      "limit": 32,
+      "used": 32,
+      "exhausted": true
+    }
+  },
+  "skippedByScopedBudget": 2,
+  "moviePagesProcessed": 1,
+  "movieTitlesProcessed": 35,
   "seriesPagesProcessed": 0,
   "seriesTitlesProcessed": 0,
-  "airingSeriesCandidates": 0,
-  "airingSeriesChecked": 0,
+  "airingSeriesCandidates": 126,
+  "airingSeriesChecked": 6,
   "airingSeriesUpdated": 0,
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
   "seriesHiddenUntilComplete": 0,
-  "seriesPublishedAfterCompletion": 0,
+  "seriesPublishedAfterCompletion": 6,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 0,
-  "episodesProcessed": 0,
+  "episodesProcessed": 124,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
   "iranianSeriesRejectedNoLinks": 0,
-  "operatorSeriesPagesProcessed": 0,
+  "operatorSeriesPagesProcessed": 1,
   "operatorSeriesCandidates": 0,
   "operatorSeriesAddedOrUpdated": 0,
   "operatorSeriesRejectedNoOperatorLink": 0,
-  "operatorMoviePagesProcessed": 0,
+  "operatorMoviePagesProcessed": 1,
   "operatorMovieCandidates": 0,
   "operatorMoviesAddedOrUpdated": 0,
   "operatorMoviesRejectedNoOperatorLink": 0,
@@ -77,7 +123,116 @@
   "iranianSeriesDiagnostics": [],
   "iranianLinkProbeDiagnostics": [],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "bd4c7cc0-ad0f-11ef-836b-41cdbb728001",
+      "title": "سگ‌های نگهبان",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 5,
+      "catalogEpisodeCount": 31,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "2872bfe0-c562-11f1-bb99-ff62273e6e40",
+      "title": "بت ویلز",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 3,
+      "catalogEpisodeCount": 10,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "efe01f50-c774-11f0-b4f8-318324211d15",
+      "title": "خانواده بتمن",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 10,
+      "catalogEpisodeCount": 10,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "63d6d760-92c9-11f0-8035-7bf623ed6d93",
+      "title": "خرس های لگویی",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 13,
+      "catalogEpisodeCount": 13,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "f3b69e60-f96e-11ee-853e-2526cad15a02",
+      "title": "فال آوت",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 16,
+      "catalogEpisodeCount": 16,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "a4460b80-5f22-11f0-953d-a1d425b68cf4",
+      "title": "دکستر: رستاخیز",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 12,
+      "catalogEpisodeCount": 12,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "01ba9f80-d6a4-11f1-8a64-2953dce8a98d",
+      "title": "مرد عنکبوتی نامحدود",
+      "source": "recent-discovery",
+      "discoveredEpisodeCount": 10,
+      "catalogEpisodeCount": 10,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "63430ad0-e014-11f1-801c-7bd53c183245",
+      "title": "۱۲ ۱۲ ۱۲",
+      "source": "recent-discovery",
+      "discoveredEpisodeCount": 2,
+      "catalogEpisodeCount": 2,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "58b97de0-d699-11f1-9108-b7a6d46b7158",
+      "title": "بت ویلز",
+      "source": "recent-discovery",
+      "discoveredEpisodeCount": 10,
+      "catalogEpisodeCount": 10,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "8ada4a80-b53b-11ef-9922-2341601c5a89",
+      "title": "سگ‌های نگهبان",
+      "source": "recent-discovery",
+      "discoveredEpisodeCount": 26,
+      "catalogEpisodeCount": 26,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "156f81c0-5f9b-11f1-94bc-81c6b8fb4b53",
+      "title": "عنکبوت نوآر",
+      "source": "recent-discovery",
+      "discoveredEpisodeCount": 8,
+      "catalogEpisodeCount": 8,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "592c7270-be7f-11f0-b01a-8b3e56e408a8",
+      "title": "دختر کفشدوزکی و پسر گربه‌ ای",
+      "source": "recent-discovery",
+      "discoveredEpisodeCount": 19,
+      "catalogEpisodeCount": 19,
+      "missing": [],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
@@ -1058,17 +1213,17 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 0,
-  "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 372,
-  "episodeArtworkSeriesChecked": 40,
+  "episodesDiscovered": 134,
+  "episodeGroupsAdded": 75,
+  "episodeArtworkCandidates": 0,
+  "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
-  "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
-  "affiliateRequests": 0,
-  "affiliateCacheHits": 0,
+  "moviesAddedOrUpdated": 49,
+  "seriesAddedOrUpdated": 12,
+  "affiliateRequests": 169,
+  "affiliateCacheHits": 3,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
   "rateLimitWaitMs": 0,
@@ -1076,8 +1231,8 @@
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
-  "episodeFrameErrors": 0,
-  "seriesKeptVisibleDuringBackfill": 0,
+  "episodeFrameErrors": 6,
+  "seriesKeptVisibleDuringBackfill": 1,
   "seriesRestoredByMonotonicGuard": 3,
   "peopleEnrichmentCandidates": 0,
   "peopleEnrichmentProcessed": 0,
@@ -1088,159 +1243,143 @@
   "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
   "peopleAdded": 0,
-  "tmdbRequests": 158,
+  "tmdbRequests": 0,
   "imdbRequests": 0,
-  "mediaRepairCandidates": 0,
-  "mediaRepairChecked": 0,
+  "mediaRepairCandidates": 24,
+  "mediaRepairChecked": 24,
   "mediaRepairRecovered": 0,
-  "mediaRepairStillMissing": 0,
+  "mediaRepairStillMissing": 24,
   "mediaRepairHiddenConfirmed": 0,
-  "mediaHealthCandidates": 0,
-  "mediaHealthChecked": 0,
+  "mediaHealthCandidates": 4629,
+  "mediaHealthChecked": 24,
   "mediaHealthHealthy": 0,
   "mediaHealthDead": 0,
-  "mediaHealthUnknown": 0,
+  "mediaHealthUnknown": 24,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
-      "scope": "episode-artwork-dc3a0d60-0101-11f1-b9a6-6f04946d7a2d",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/dc3a0d60-0101-11f1-b9a6-6f04946d7a2d?affiliate=1"
+      "scope": "episode-frame-01ba9f80-d6a4-11f1-8a64-2953dce8a98d-1",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 107 -i https://aparatchi.upera.tv/3086423-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/4d4e66355bafed3fed22d3bd.jpg\n[in#0 @ 0x573728643c40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3086423-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
     },
     {
-      "scope": "episode-artwork-ff801d40-0101-11f1-b67b-534cc8314655",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/ff801d40-0101-11f1-b67b-534cc8314655?affiliate=1"
+      "scope": "episode-frame-63430ad0-e014-11f1-801c-7bd53c183245-1",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 107 -i https://aparatchi.upera.tv/3087126-11-1080.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/8dbc42f500cabdc3821fb352.jpg\n[in#0 @ 0x5568361a3c40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3087126-11-1080.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
     },
     {
-      "scope": "episode-artwork-c5851b90-0100-11f1-866a-599f955d4de4",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/c5851b90-0100-11f1-866a-599f955d4de4?affiliate=1"
+      "scope": "episode-frame-58b97de0-d699-11f1-9108-b7a6d46b7158-1",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 107 -i https://aparatchi.upera.tv/3086374-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/d32096732cfdada76d316346.jpg\n[in#0 @ 0x62159c6ecc40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3086374-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
     },
     {
-      "scope": "tmdb-episode-still-c5851b90-0100-11f1-866a-599f955d4de4-1-16",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/277856/season/1/episode/16?language=en-US"
+      "scope": "episode-frame-8ada4a80-b53b-11ef-9922-2341601c5a89-1",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 107 -i https://aparatchi.upera.tv/3010210-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/f662cb440888c94a7dd252aa.jpg\n[in#0 @ 0x64cf9f690c40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3010210-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
     },
     {
-      "scope": "tmdb-episode-still-c5851b90-0100-11f1-866a-599f955d4de4-1-15",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/277856/season/1/episode/15?language=en-US"
+      "scope": "episode-frame-156f81c0-5f9b-11f1-94bc-81c6b8fb4b53-1",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 107 -i https://aparatchi.upera.tv/3077782-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/0b7fdfa773b6a6a0b63ea971.jpg\n[in#0 @ 0x5606d87b3c40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3077782-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
     },
     {
-      "scope": "tmdb-episode-still-c5851b90-0100-11f1-866a-599f955d4de4-1-14",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/277856/season/1/episode/14?language=en-US"
+      "scope": "episode-frame-592c7270-be7f-11f0-b01a-8b3e56e408a8-1",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 107 -i https://aparatchi.upera.tv/3060046-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/1e87eb01548b8eaa893ff6d6.jpg\n[in#0 @ 0x563271078c40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3060046-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
     },
     {
-      "scope": "tmdb-episode-still-c5851b90-0100-11f1-866a-599f955d4de4-1-13",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/277856/season/1/episode/13?language=en-US"
+      "scope": "media-repair-7599b920-0104-11f1-b76b-37287ce3e768--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/7599b920-0104-11f1-b76b-37287ce3e768"
     },
     {
-      "scope": "tmdb-episode-still-c5851b90-0100-11f1-866a-599f955d4de4-1-12",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/277856/season/1/episode/12?language=en-US"
+      "scope": "media-repair-6d2ca4a0-0104-11f1-8462-e9a6e095ea34--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/6d2ca4a0-0104-11f1-8462-e9a6e095ea34"
     },
     {
-      "scope": "tmdb-episode-still-c5851b90-0100-11f1-866a-599f955d4de4-1-11",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/277856/season/1/episode/11?language=en-US"
+      "scope": "media-repair-70521c20-0104-11f1-9547-6d4603154f64--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/70521c20-0104-11f1-9547-6d4603154f64"
     },
     {
-      "scope": "tmdb-episode-still-c5851b90-0100-11f1-866a-599f955d4de4-1-10",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/277856/season/1/episode/10?language=en-US"
+      "scope": "media-repair-71cf69f0-0104-11f1-92d5-db4e00ddb386--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/71cf69f0-0104-11f1-92d5-db4e00ddb386"
     },
     {
-      "scope": "tmdb-episode-still-c5851b90-0100-11f1-866a-599f955d4de4-1-9",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/277856/season/1/episode/9?language=en-US"
+      "scope": "media-repair-6e845480-0104-11f1-a224-2f52a8ccaacc--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/6e845480-0104-11f1-a224-2f52a8ccaacc"
     },
     {
-      "scope": "episode-artwork-ed9adf90-604b-11ee-96bc-7d63603bcf1a",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/ed9adf90-604b-11ee-96bc-7d63603bcf1a?affiliate=1"
+      "scope": "media-repair-719e90b0-0104-11f1-a048-fd39311da3ed--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/719e90b0-0104-11f1-a048-fd39311da3ed"
     },
     {
-      "scope": "episode-artwork-d6f1cb70-dfc6-11ef-88a1-bb0157cb8d50",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d6f1cb70-dfc6-11ef-88a1-bb0157cb8d50?affiliate=1"
+      "scope": "media-repair-7237a810-0104-11f1-b586-e9c8eb43aed1--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/7237a810-0104-11f1-b586-e9c8eb43aed1"
     },
     {
-      "scope": "episode-artwork-97cc4190-0102-11f1-896a-11f346c6a64e",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/97cc4190-0102-11f1-896a-11f346c6a64e?affiliate=1"
+      "scope": "media-repair-73d0c1c0-0104-11f1-beef-ebe0ba7af7be--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/73d0c1c0-0104-11f1-beef-ebe0ba7af7be"
     },
     {
-      "scope": "episode-artwork-96809160-e437-11ed-af52-8bf0a6ae3bf8",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/96809160-e437-11ed-af52-8bf0a6ae3bf8?affiliate=1"
+      "scope": "media-repair-1b3603d0-0104-11f1-85fa-d7cde169373f--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/1b3603d0-0104-11f1-85fa-d7cde169373f"
     },
     {
-      "scope": "episode-artwork-abfcc9f0-3c61-11ef-913d-fd55e0299ed6",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/abfcc9f0-3c61-11ef-913d-fd55e0299ed6?affiliate=1"
+      "scope": "media-repair-0db76ae0-0104-11f1-89d1-1762458bccb9--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/0db76ae0-0104-11f1-89d1-1762458bccb9"
     },
     {
-      "scope": "episode-artwork-c63e6810-386d-11ef-863c-091635ebc05e",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/c63e6810-386d-11ef-863c-091635ebc05e?affiliate=1"
+      "scope": "media-repair-21337e00-0104-11f1-b3e5-3baef31a9f41",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/21337e00-0104-11f1-b3e5-3baef31a9f41"
     },
     {
-      "scope": "episode-artwork-09070160-3a34-11e8-976b-cbc7d564706f",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/09070160-3a34-11e8-976b-cbc7d564706f?affiliate=1"
+      "scope": "media-repair-1d25a850-0104-11f1-9214-79df0ff35f74",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/1d25a850-0104-11f1-9214-79df0ff35f74"
     },
     {
-      "scope": "tmdb-episode-still-572a94f0-8a69-11eb-a75e-ad0fee08416c-4-10",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/73021/season/4/episode/10?language=en-US"
+      "scope": "media-repair-0613dbc0-0104-11f1-88f7-7f9284b4d012",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/0613dbc0-0104-11f1-88f7-7f9284b4d012"
     },
     {
-      "scope": "tmdb-episode-still-572a94f0-8a69-11eb-a75e-ad0fee08416c-4-9",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/73021/season/4/episode/9?language=en-US"
+      "scope": "media-repair-544e49b0-96f8-11ef-9f57-b543c5e11287",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/544e49b0-96f8-11ef-9f57-b543c5e11287"
     },
     {
-      "scope": "tmdb-episode-still-572a94f0-8a69-11eb-a75e-ad0fee08416c-4-8",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/73021/season/4/episode/8?language=en-US"
+      "scope": "media-repair-8e86f160-f6ca-11f0-b3df-491cc5cebe6d",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/8e86f160-f6ca-11f0-b3df-491cc5cebe6d"
     },
     {
-      "scope": "tmdb-episode-still-572a94f0-8a69-11eb-a75e-ad0fee08416c-4-7",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/73021/season/4/episode/7?language=en-US"
+      "scope": "media-repair-7449dde0-f6ca-11f0-9bb4-df04825c463a",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/7449dde0-f6ca-11f0-9bb4-df04825c463a"
     },
     {
-      "scope": "tmdb-episode-still-572a94f0-8a69-11eb-a75e-ad0fee08416c-4-6",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/73021/season/4/episode/6?language=en-US"
+      "scope": "media-repair-c13f6400-db25-11f0-b5eb-792a7e5d5bd0",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/c13f6400-db25-11f0-b5eb-792a7e5d5bd0"
     },
     {
-      "scope": "tmdb-episode-still-572a94f0-8a69-11eb-a75e-ad0fee08416c-4-5",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/73021/season/4/episode/5?language=en-US"
+      "scope": "media-repair-8f404bf0-c2b8-11f0-9a18-c5f58b3d5a20",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/8f404bf0-c2b8-11f0-9a18-c5f58b3d5a20"
     },
     {
-      "scope": "tmdb-episode-still-572a94f0-8a69-11eb-a75e-ad0fee08416c-4-4",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/73021/season/4/episode/4?language=en-US"
+      "scope": "media-repair-f2bc6c70-c780-11f0-9495-0b38c1028438",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/f2bc6c70-c780-11f0-9495-0b38c1028438"
     },
     {
-      "scope": "tmdb-episode-still-572a94f0-8a69-11eb-a75e-ad0fee08416c-4-3",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/73021/season/4/episode/3?language=en-US"
+      "scope": "media-repair-18011000-2ef5-11f1-aeaf-f1ffd9abf341",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/18011000-2ef5-11f1-aeaf-f1ffd9abf341"
     },
     {
-      "scope": "tmdb-episode-still-572a94f0-8a69-11eb-a75e-ad0fee08416c-4-2",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/73021/season/4/episode/2?language=en-US"
+      "scope": "media-repair-c0461e30-2471-11f1-a2cd-7346d7d674ed",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/c0461e30-2471-11f1-a2cd-7346d7d674ed"
     },
     {
-      "scope": "tmdb-episode-still-572a94f0-8a69-11eb-a75e-ad0fee08416c-4-1",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/73021/season/4/episode/1?language=en-US"
+      "scope": "media-repair-6e4defa0-0104-11f1-8224-0f5332f213a2--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/6e4defa0-0104-11f1-8224-0f5332f213a2"
     },
     {
-      "scope": "tmdb-episode-still-7385b840-f150-11ec-b8bf-3508dbd224d1-3-13",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/2723/season/3/episode/13?language=en-US"
+      "scope": "media-repair-6eceacd0-0104-11f1-83e8-61ddcbd8935a--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/6eceacd0-0104-11f1-83e8-61ddcbd8935a"
     },
     {
-      "scope": "tmdb-episode-still-7385b840-f150-11ec-b8bf-3508dbd224d1-3-12",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/2723/season/3/episode/12?language=en-US"
-    },
-    {
-      "scope": "operator-classification-1b7cae60-e539-11ee-aa4b-539ffdd44ab7--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/389275?language=en-US"
-    },
-    {
-      "scope": "operator-classification-40d1bc50-e544-11ee-9105-1bfd2d257e19--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/66609?language=en-US"
-    },
-    {
-      "scope": "operator-classification-78c375f0-074e-11f1-b8a0-a3e4c86d2c5c--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/1339613?language=en-US"
-    },
-    {
-      "scope": "operator-classification-3c79acf0-f337-11e9-9052-2b6fef19924d--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/642165?language=en-US"
+      "scope": "media-repair-72f632c0-0104-11f1-b8f1-7d0df751c976--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/72f632c0-0104-11f1-b8f1-7d0df751c976"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 198,
-  "finishedAt": "2026-11-16T09:39:34.585Z"
+  "apiRequests": 403,
+  "finishedAt": "2026-11-16T10:10:10.892Z"
 }
