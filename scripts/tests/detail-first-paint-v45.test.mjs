@@ -29,7 +29,7 @@ test('first-paint people and movie actions are not limited to the first 36 title
   assert.ok(bootstrap.items.every((item) => item.downloads?.[0]?.files?.length === 1));
 });
 
-test('series first paint carries only the newest actionable episode', () => {
+test('series first paint carries every actionable episode across seasons', () => {
   const downloads = Array.from({ length: 20 }, (_, index) => ({
     seasonNumber: index < 10 ? 1 : 2,
     episodeNumber: (index % 10) + 1,
@@ -45,7 +45,8 @@ test('series first paint carries only the newest actionable episode', () => {
   });
 
   assert.equal(bootstrap.items[0].people.length, 4);
-  assert.equal(bootstrap.items[0].downloads.length, 1);
-  assert.equal(bootstrap.items[0].downloads[0].seasonNumber, 2);
-  assert.equal(bootstrap.items[0].downloads[0].episodeNumber, 10);
+  assert.equal(bootstrap.items[0].downloads.length, 20);
+  assert.deepEqual(bootstrap.items[0].downloads.map(section => [section.seasonNumber || 1, section.episodeNumber]),
+    downloads.map(section => [section.seasonNumber, section.episodeNumber]));
+  assert.ok(bootstrap.items[0].downloads.every(section => section.files.length === 1));
 });

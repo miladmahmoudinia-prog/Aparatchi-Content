@@ -19,8 +19,9 @@ test('new Iranian archive probes find playable tail beyond eight dead initial ep
   assert.ok(ctx.selectedEpisodes.some(e => e.episodeNumber === 1));
   assert.equal(ctx.selectedEpisodes.length, 8);
   assert.equal(new Set(ctx.selectedEpisodes.map(e => e.id)).size, 8);
-  // As soon as a title exists, missing episodes are filled in sequence.
+  // Historical backfill fills missing episodes in sequence, without latest refresh.
   ctx.options.operatorProbe = false;
+  ctx.options.episodeStrategy = 'missing';
   ctx.missingEpisodes = episodes.slice(0, 29);
   ctx.priorityEpisodesPerSeries = 8;
   ctx.changedExistingEpisodes = [];
