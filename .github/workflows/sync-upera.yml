@@ -35,6 +35,9 @@ concurrency:
   group: aparatchi-content-write-lock
   cancel-in-progress: false
 
+env:
+  VALIDATION_BRANCH: ${{ github.ref_name }}
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -43,7 +46,7 @@ jobs:
       - name: Checkout content repository
         uses: actions/checkout@v6
         with:
-          ref: main
+          ref: ${{ github.ref_name }}
           fetch-depth: 60
 
       - name: Setup Node.js
@@ -148,7 +151,7 @@ jobs:
             git commit -m "chore: discover new movies and series"
             PUSHED=0
             for attempt in 1 2 3 4 5; do
-              if git pull --rebase origin main && git push origin HEAD:main; then
+              if git pull --rebase origin "$VALIDATION_BRANCH" && git push origin "HEAD:$VALIDATION_BRANCH"; then
                 PUSHED=1
                 break
               fi
@@ -292,7 +295,7 @@ jobs:
               if ! git diff --cached --quiet; then
                 git commit --amend --no-edit
               fi
-              if git pull --rebase origin main && git push origin HEAD:main; then
+              if git pull --rebase origin "$VALIDATION_BRANCH" && git push origin "HEAD:$VALIDATION_BRANCH"; then
                 PUSHED=1
                 break
               fi

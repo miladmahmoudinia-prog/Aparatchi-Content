@@ -211,7 +211,7 @@ test('client index accepts MKV direct downloads but rejects purchase-only links'
   assert.deepEqual(artifacts.index.items.map((item) => item.id), ['mkv']);
 });
 
-test('series summary keeps every episode while bootstrap carries the latest actionable episode', () => {
+test('series summary and bootstrap keep every actionable episode', () => {
   const downloads = Array.from({ length: 5 }, (_, index) => ({
     id: `e${index + 1}`, seasonNumber: 1, episodeNumber: index + 1,
     files: [
@@ -229,8 +229,8 @@ test('series summary keeps every episode while bootstrap carries the latest acti
   assert.equal(summary.downloads.length, 5);
   assert.ok(summary.downloads.every((section) => section.files.length <= 2));
   const artifacts = buildClientCatalogArtifacts({ version: '1', updatedAt: 'now', items: [item] });
-  assert.equal(artifacts.bootstrap.items[0].downloads.length, 1);
-  assert.equal(artifacts.bootstrap.items[0].downloads[0].episodeNumber, 5);
+  assert.deepEqual(artifacts.bootstrap.items[0].downloads.map(section => section.episodeNumber), [1, 2, 3, 4, 5]);
+  assert.ok(artifacts.bootstrap.items[0].downloads.every(section => section.files.length <= 2));
 });
 
 test('missing ir flag never makes a foreign title Iranian and unproven-language media stays out of the app', () => {

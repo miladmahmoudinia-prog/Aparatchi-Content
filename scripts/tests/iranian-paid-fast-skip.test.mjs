@@ -77,6 +77,10 @@ test('Iranian episode discovery queries and merges both traffic modes', () => {
   const start = source.indexOf('async function fetchAffiliateLinks(');
   const end = source.indexOf('async function throttleAffiliateRequest()', start);
   const block = source.slice(start, end);
-  assert.match(block, /publicTrafficModes = iranianEpisodeProbe \? \[0, 1\] : \[1\]/);
-  assert.match(block, /publicLinks\.push\(\.\.\.extractAffiliateLinkRecords\(rawLinks\)\)/);
+  const variants = block.match(/const publicRequestVariants = iranianEpisodeProbe\s*\?\s*(\[[\s\S]*?\])\s*:/)?.[1];
+  assert.ok(variants, 'Iranian traffic variants must be explicit');
+  assert.deepEqual(vm.runInNewContext(`JSON.stringify(${variants})`),
+    JSON.stringify([{ traffic: 0, free: 1 }, { traffic: 1, free: 1 }, { traffic: 0 }, { traffic: 1 }]));
+  assert.match(block, /publicLinks\.push\(\.\.\.extracted\)/);
+  assert.match(block, /const extracted = extractAffiliateLinkRecords\(rawLinks\)/);
 });

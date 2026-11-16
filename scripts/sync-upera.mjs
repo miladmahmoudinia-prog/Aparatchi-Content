@@ -2180,7 +2180,7 @@ async function syncSequentialSeriesBackfill() {
         { id, type: 'series' },
         'fast-backfill',
         {
-          episodeStrategy: 'latest',
+          episodeStrategy: 'missing',
           episodeLimit: Math.max(1, Math.min(
             backfillEpisodesPerSeries,
             backfillEpisodeLimit,
@@ -3533,6 +3533,10 @@ async function processSeries(
     const savedCursor = nonNegativeInt(state.seriesLanguageAuditCursor[id], 0);
     cursor = savedCursor < episodes.length ? savedCursor : 0;
     selectedEpisodes = episodes.slice(cursor, cursor + limit);
+  } else if (options.onlyMissing === true && options.episodeStrategy !== 'latest') {
+    // Historical backfill must not re-request already playable episodes.
+    // Latest refresh deliberately has its own bounded revalidation below.
+    selectedEpisodes = missingEpisodes.slice(0, positiveInt(options.episodeLimit, priorityEpisodesPerSeries));
   } else if (options.episodeStrategy === 'latest') {
     const limit = positiveInt(options.episodeLimit, priorityEpisodesPerSeries);
     // Latest sync must also revalidate existing media (including size/quality

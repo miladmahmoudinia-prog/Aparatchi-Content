@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { buildClientCatalogArtifacts } from '../client-catalog.mjs';
 
-// The catalog is intentionally uncapped; keep a bounded startup payload without blocking hourly growth at the old 10 MiB line.
-const MAX_BOOTSTRAP_BYTES = 12 * 1024 * 1024;
+// Full episode previews and the compact people index now ship at startup.
+// Retain a hard 16 MiB ceiling and the relative-to-detail size guard below.
+const MAX_BOOTSTRAP_BYTES = 16 * 1024 * 1024;
 
 const playableMovie = (id, categoryKeys, firstSeenAt = '2026-08-15T00:00:00.000Z') => ({
   id,
@@ -79,7 +80,7 @@ test('bootstrap contains the complete navigation catalog, IMDb and bounded first
   assert.ok(count(artifacts.bootstrap, 'foreign-series') >= 10);
   assert.ok(artifacts.bootstrap.items.some((item) => item.id === 'operator-1'));
   assert.ok(artifacts.bootstrap.items.some((item) => item.id === 'animation-1'));
-  assert.equal('peopleWorks' in artifacts.bootstrap, false);
+  assert.deepEqual(artifacts.bootstrap.peopleWorks, {});
   assert.equal(artifacts.bootstrap.imdbTop100.movies.length, 1);
   assert.equal(artifacts.bootstrap.imdbTop100.series.length, 1);
   for (const item of artifacts.bootstrap.items) {
@@ -121,7 +122,7 @@ test('real generated bootstrap stays compact while preserving every current titl
   const bootstrapBytes = Buffer.byteLength(bootstrapRaw);
   const indexBytes = Buffer.byteLength(indexRaw);
   assert.ok(bootstrapBytes < indexBytes * 0.5, 'complete startup navigation is no longer materially smaller than the detail-rich index');
-  assert.ok(bootstrapBytes < MAX_BOOTSTRAP_BYTES, 'complete startup navigation exceeded the 12 MiB safety bound');
+  assert.ok(bootstrapBytes < MAX_BOOTSTRAP_BYTES, 'complete startup navigation exceeded the 16 MiB safety bound');
   assert.ok(Array.isArray(bootstrap.imdbTop100?.movies) && bootstrap.imdbTop100.movies.length > 0);
   assert.ok(Array.isArray(bootstrap.imdbTop100?.series) && bootstrap.imdbTop100.series.length > 0);
 });

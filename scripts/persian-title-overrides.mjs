@@ -82,6 +82,52 @@ const VERIFIED_PERSIAN_TITLE_ENTRIES = [
 ];
 
 const VERIFIED_PERSIAN_COLLECTION_ENTRIES = [
+  ['One Shot Collection', 'کالکشن یک شلیک'],
+  ['HIT Verse', 'کالکشن هیت'],
+  ['My Spy Collection', 'کالکشن جاسوس من'],
+  ['New Gods Collection', 'کالکشن خدایان جدید'],
+  ['Ne Zha Collection', 'کالکشن نژا'],
+  ['Mortal Kombat Legends Collection', 'کالکشن افسانه‌های مورتال کامبت'],
+  ['Horror in the High Desert Collection', 'کالکشن وحشت در بیابان مرتفع'],
+  ['Ip Man (Dennis To Yu-Hang) Collection', 'کالکشن ایپ من (دنیس تو یو هانگ)'],
+  ['Space Jam Collection', 'کالکشن هرج‌ومرج فضایی'],
+  ['I Am Vengeance Collection', 'کالکشن من انتقام هستم'],
+  ['I Am What I Am Collection', 'کالکشن من همانم که هستم'],
+  ['The Ring Collection', 'کالکشن حلقه'],
+  ['The Equalizer Collection', 'کالکشن محافظ'],
+  ['The Expendables Collection', 'کالکشن بی‌مصرف‌ها'],
+  ['Inside Out Collection', 'کالکشن درون و بیرون'],
+  ['Predator Collection', 'کالکشن غارتگر'],
+  ['Final Destination Collection', 'کالکشن مقصد نهایی'],
+  ['The Descent Collection', 'کالکشن نزول'],
+  ['The Hannibal Lecter Collection', 'کالکشن هانیبال لکتر'],
+  ['A Simple Favor Collection', 'کالکشن یک لطف ساده'],
+  ['Death Bell Collection', 'کالکشن زنگ مرگ'],
+  ['Death Whisperer Collection', 'کالکشن نجواگر مرگ'],
+  ['The Priests Collection', 'کالکشن کشیش‌ها'],
+  ['Under Paris Collection', 'کالکشن زیر پاریس'],
+  ['The Animal Collection', 'کالکشن حیوان'],
+  ['Warning Collection', 'کالکشن هشدار'],
+  ['The Jungle Bunch Collection', 'کالکشن دار و دسته جنگلی‌ها'],
+  ['Maya the Bee Collection', 'کالکشن زنبور عسل مایا'],
+  ['The Return of the Living Dead Collection', 'کالکشن بازگشت مردگان زنده'],
+  ['Return of the Living Dead Collection', 'کالکشن بازگشت مردگان زنده'],
+  ['Faces of Death Collection', 'کالکشن چهره‌های مرگ'],
+  ['Border Collection', 'کالکشن مرز'],
+  ['Welcome Collection', 'کالکشن خوش آمدید'],
+  ['Deadpool Collection', 'کالکشن ددپول'],
+  ['Minecraft Movie Collection', 'کالکشن فیلم ماینکرفت'],
+  ['Silent Hill Collection', 'کالکشن سایلنت هیل'],
+  ['The Dry Collection', 'کالکشن خشکسالی'],
+  ['Detective in the Bar Collection', 'کالکشن کارآگاه در بار'],
+  ['Cattle Hill Collection', 'کالکشن تپه گاوها'],
+  ['The Miranda Green Mysteries', 'کالکشن معماهای میراندا گرین'],
+  ['LEGO Marvel Super Heroes Collection', 'کالکشن لگو ابرقهرمانان مارول'],
+  ['The Big 4 Collection', 'کالکشن چهار بزرگ'],
+  ['Unit 731', 'کالکشن واحد ۷۳۱'],
+  ['How to Train Your Dragon (Live-Action) Collection', 'کالکشن چگونه اژدهای خود را تربیت کنیم (لایو اکشن)'],
+  ['Detective Chinatown Collection', 'کالکشن کارآگاه محله چینی‌ها'],
+  ['Red / Black Silk Collection', 'کالکشن ابریشم سرخ و سیاه'],
   ['dance with the jackals collection', 'مجموعه رقص با شغال‌ها'],
   ['28 Days/Weeks/Years Later Collection', 'مجموعه ۲۸ روز بعد'],
   ['Terrifier Collection', 'مجموعه ترساننده'],
@@ -474,9 +520,10 @@ function currentPersianCollectionIsSafe(value, members, collectionName) {
   return true;
 }
 function safeFallbackCollectionLabel(collectionName) {
-  // Never manufacture a Persian collection name by transliterating English.
-  // A missing verified translation is safer than showing a phonetic label.
-  return '';
+  // Preserve the source identity until a verified Persian translation exists;
+  // never invent phonetic Persian or keep an invalid installment title.
+  const base = originalCollectionBase(collectionName);
+  return base ? normalizeCollectionLabel(base) : '';
 }
 function deriveMissingPersianCollectionNames(items) {
   const groups = new Map();
