@@ -9,7 +9,7 @@ on:
     paths:
       - '.github/workflows/sync-upera.yml'
   schedule:
-    - cron: '34 * * * *'
+    - cron: '34 */2 * * *'
   workflow_dispatch:
     inputs:
       movie_pages:
@@ -68,7 +68,7 @@ jobs:
 
       - name: Report regression warning
         if: steps.regression_tests.outcome == 'failure'
-        run: echo "::warning::Regression suite has failures; hourly sync will continue. Syntax, rebuild and push failures are still fatal."
+        run: echo "::warning::Regression suite has failures; scheduled sync will continue. Syntax, rebuild and push failures are still fatal."
 
       - name: Resolve sync settings
         shell: bash
@@ -248,7 +248,7 @@ jobs:
             CURRENT_PUBLISHED="$(count_published)"
             echo "Published Iranian series now: ${CURRENT_PUBLISHED} (started ${START_PUBLISHED})"
             if [ "$CURRENT_PUBLISHED" -ge "$TARGET_PUBLISHED" ]; then
-              echo "Published two Iranian archive series in this hourly run."
+              echo "Published two Iranian archive series in this sync run."
               break
             fi
 

@@ -42,6 +42,8 @@ test('repair workflow is manual fallback only, so it cannot replace pending hour
   assert.match(repairPatch, /processSeries\(\{ id, type: "series" \}, "iranian-visible-repair"/);
 });
 
-test('catalog discovery runs hourly', () => {
-  assert.match(syncWorkflow, /cron: '34 \* \* \* \*'/);
+test('fresh and archive schedules alternate hourly without reducing the gap at midnight', () => {
+  assert.ok(syncWorkflow.includes("cron: '34 */2 * * *'"));
+  const archiveWorkflow = fs.readFileSync('.github/workflows/backfill-missing-content.yml', 'utf8');
+  assert.ok(archiveWorkflow.includes("cron: '34 1-23/2 * * *'"));
 });
