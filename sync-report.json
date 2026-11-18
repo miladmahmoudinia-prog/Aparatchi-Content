@@ -1,15 +1,15 @@
 {
-  "startedAt": "2026-11-18T17:53:36.139Z",
-  "runTimeLimitMinutes": 30,
-  "runDeadlineAt": "2026-11-18T18:23:34.464Z",
+  "startedAt": "2026-11-18T18:04:50.710Z",
+  "runTimeLimitMinutes": 10,
+  "runDeadlineAt": "2026-11-18T18:14:49.114Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 1755953,
+  "remainingRunMsAtFinish": 511709,
   "imageMirroringSkipped": true,
   "originalCount": 8517,
   "finalCount": 8517,
-  "requestedSyncMode": "ARTWORK",
-  "effectiveSyncMode": "ARTWORK",
+  "requestedSyncMode": "IRANIAN",
+  "effectiveSyncMode": "IRANIAN",
   "backfillQueueTotal": 254,
   "backfillBacklogRemaining": 254,
   "backfillBlockedTotal": 11,
@@ -19,7 +19,7 @@
   "backfillEpisodesAdded": 0,
   "backfillSeriesVisited": 0,
   "backfillCheckpoints": 0,
-  "episodesMarkedUnavailable": 0,
+  "episodesMarkedUnavailable": 45,
   "backfillNoProgressRuns": 0,
   "normalSyncSkippedForBackfill": false,
   "backfillOrdering": "oldest-production-year-then-one-active-title",
@@ -40,7 +40,13 @@
   "recentSeriesNewCandidates": 0,
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
-  "affiliateRequestScopes": {},
+  "affiliateRequestScopes": {
+    "iranian-series": {
+      "limit": 240,
+      "used": 46,
+      "exhausted": false
+    }
+  },
   "skippedByScopedBudget": 0,
   "moviePagesProcessed": 0,
   "movieTitlesProcessed": 0,
@@ -52,17 +58,17 @@
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 0,
+  "seriesHiddenUntilComplete": 1,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
-  "episodesProcessed": 0,
-  "iranianSeriesPagesProcessed": 0,
-  "iranianSeriesCandidates": 0,
+  "iranianSeriesProcessed": 1,
+  "episodesProcessed": 46,
+  "iranianSeriesPagesProcessed": 19,
+  "iranianSeriesCandidates": 6,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
-  "iranianSeriesRejectedNoLinks": 0,
+  "iranianSeriesRejectedNoLinks": 6,
   "operatorSeriesPagesProcessed": 0,
   "operatorSeriesCandidates": 0,
   "operatorSeriesAddedOrUpdated": 0,
@@ -74,10 +80,1730 @@
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
-  "iranianSeriesDiagnostics": [],
-  "iranianLinkProbeDiagnostics": [],
+  "iranianSeriesDiagnostics": [
+    {
+      "id": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
+      "title": "كله گنده ها",
+      "result": "no-progress-existing",
+      "reason": "added-or-updated",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 4,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "existing-incomplete-first"
+    },
+    {
+      "id": "10f2b680-d945-11ee-a8e1-392b876b94ff",
+      "title": "اکازیون",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "36ac8b20-19ad-11ee-8c91-8161615f5ef7",
+      "title": "عقرب عاشق",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "0999cd60-0f0a-11ed-8ff0-67aad99184f3",
+      "title": "شبکه مخفی زنان",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "025f74f0-2c29-11ec-9a03-7f604e10ffa0",
+      "title": "حرفه ای",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "015263f0-3a26-11eb-801a-294ffd309937",
+      "title": "همرفیق",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    },
+    {
+      "id": "03e96cf0-f474-11e8-9f50-b553381a2cbd",
+      "title": "آشوب",
+      "result": "rejected",
+      "reason": "no-usable-links",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 0,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "new-only-country-IR"
+    }
+  ],
+  "iranianLinkProbeDiagnostics": [
+    {
+      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
+      "seriesTitle": "كله گنده ها",
+      "episodeId": "b49ef880-74a5-11e9-822d-97cb65c65181",
+      "seasonNumber": 1,
+      "episodeNumber": 2,
+      "recordCount": 8,
+      "directCount": 5,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop",
+        "aparatchi.upera.tv",
+        "plus.upera.tv"
+      ],
+      "tiers": {
+        "paid": 1,
+        "free": 7
+      },
+      "typeCounts": {
+        "link": 1,
+        "traffic": 5,
+        "player": 1,
+        "vod": 1
+      },
+      "amounts": [
+        "2,000",
+        "0"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها",
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "HLS",
+        "لینک پلیر (لینک پخش آنلاین و یا جهت IFRAME)",
+        "لینک آپرا پلاس (فروش اشتراکی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 1,
+      "mediaFileCount": 5,
+      "hasStreamUrl": true
+    },
+    {
+      "seriesId": "10f2b680-d945-11ee-a8e1-392b876b94ff",
+      "seriesTitle": "اکازیون",
+      "episodeId": "24067030-e63c-11ee-b445-fb21f6477670",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "10f2b680-d945-11ee-a8e1-392b876b94ff",
+      "seriesTitle": "اکازیون",
+      "episodeId": "0c22c4b0-ebbd-11ee-8188-5f56e1b1ca01",
+      "seasonNumber": 1,
+      "episodeNumber": 2,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "10f2b680-d945-11ee-a8e1-392b876b94ff",
+      "seriesTitle": "اکازیون",
+      "episodeId": "3bd7c260-f6da-11ee-8f6a-99ffe530dc9e",
+      "seasonNumber": 1,
+      "episodeNumber": 3,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "10f2b680-d945-11ee-a8e1-392b876b94ff",
+      "seriesTitle": "اکازیون",
+      "episodeId": "e419e430-fc41-11ee-ac49-9330a7a8f8bd",
+      "seasonNumber": 1,
+      "episodeNumber": 4,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "10f2b680-d945-11ee-a8e1-392b876b94ff",
+      "seriesTitle": "اکازیون",
+      "episodeId": "b98a7b80-01ed-11ef-850a-e55db9d32220",
+      "seasonNumber": 1,
+      "episodeNumber": 5,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "10f2b680-d945-11ee-a8e1-392b876b94ff",
+      "seriesTitle": "اکازیون",
+      "episodeId": "6b75b8a0-0767-11ef-a0a4-29c8e6aba918",
+      "seasonNumber": 1,
+      "episodeNumber": 6,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "10f2b680-d945-11ee-a8e1-392b876b94ff",
+      "seriesTitle": "اکازیون",
+      "episodeId": "5aff2180-0cfa-11ef-9d79-896d7a9ba548",
+      "seasonNumber": 1,
+      "episodeNumber": 7,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "10f2b680-d945-11ee-a8e1-392b876b94ff",
+      "seriesTitle": "اکازیون",
+      "episodeId": "a43ef1d0-126b-11ef-a1f9-31e445774d62",
+      "seasonNumber": 1,
+      "episodeNumber": 8,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "36ac8b20-19ad-11ee-8c91-8161615f5ef7",
+      "seriesTitle": "عقرب عاشق",
+      "episodeId": "4f6852e0-823c-11ee-97db-33b5a04a3351",
+      "seasonNumber": 1,
+      "episodeNumber": 20,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "36ac8b20-19ad-11ee-8c91-8161615f5ef7",
+      "seriesTitle": "عقرب عاشق",
+      "episodeId": "fa7c1ca0-19b0-11ee-94fb-5593e927772a",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "36ac8b20-19ad-11ee-8c91-8161615f5ef7",
+      "seriesTitle": "عقرب عاشق",
+      "episodeId": "2c0aaac0-4b36-11ee-9d3e-dfebed34f239",
+      "seasonNumber": 1,
+      "episodeNumber": 10,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "36ac8b20-19ad-11ee-8c91-8161615f5ef7",
+      "seriesTitle": "عقرب عاشق",
+      "episodeId": "b5c9e760-2a3e-11ee-ae1e-bfb9c22d67f5",
+      "seasonNumber": 1,
+      "episodeNumber": 4,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "36ac8b20-19ad-11ee-8c91-8161615f5ef7",
+      "seriesTitle": "عقرب عاشق",
+      "episodeId": "09546e70-36d0-11ee-8ec3-5b795d5e551f",
+      "seasonNumber": 1,
+      "episodeNumber": 6,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "36ac8b20-19ad-11ee-8c91-8161615f5ef7",
+      "seriesTitle": "عقرب عاشق",
+      "episodeId": "dcda88d0-45a9-11ee-af42-65b428c7c39a",
+      "seasonNumber": 1,
+      "episodeNumber": 9,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "36ac8b20-19ad-11ee-8c91-8161615f5ef7",
+      "seriesTitle": "عقرب عاشق",
+      "episodeId": "7b7999b0-563a-11ee-8cf2-dbc422a5db33",
+      "seasonNumber": 1,
+      "episodeNumber": 12,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "36ac8b20-19ad-11ee-8c91-8161615f5ef7",
+      "seriesTitle": "عقرب عاشق",
+      "episodeId": "719db8b0-66ab-11ee-adac-e385b98f8d09",
+      "seasonNumber": 1,
+      "episodeNumber": 15,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "0999cd60-0f0a-11ed-8ff0-67aad99184f3",
+      "seriesTitle": "شبکه مخفی زنان",
+      "episodeId": "a5bab610-b0c8-11ee-9850-556f4f5a757e",
+      "seasonNumber": 1,
+      "episodeNumber": 30,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "0999cd60-0f0a-11ed-8ff0-67aad99184f3",
+      "seriesTitle": "شبکه مخفی زنان",
+      "episodeId": "314961e0-0f0a-11ed-8f8f-d5089a657108",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "8,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "0999cd60-0f0a-11ed-8ff0-67aad99184f3",
+      "seriesTitle": "شبکه مخفی زنان",
+      "episodeId": "fee65d90-6734-11ed-be9b-95ca63b45ab9",
+      "seasonNumber": 1,
+      "episodeNumber": 15,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "8,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "0999cd60-0f0a-11ed-8ff0-67aad99184f3",
+      "seriesTitle": "شبکه مخفی زنان",
+      "episodeId": "f648ed10-2a8a-11ed-9928-cdd9b4e5b4cd",
+      "seasonNumber": 1,
+      "episodeNumber": 5,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "8,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "0999cd60-0f0a-11ed-8ff0-67aad99184f3",
+      "seriesTitle": "شبکه مخفی زنان",
+      "episodeId": "b41646c0-409a-11ed-934a-837eb08254c8",
+      "seasonNumber": 1,
+      "episodeNumber": 9,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "8,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "0999cd60-0f0a-11ed-8ff0-67aad99184f3",
+      "seriesTitle": "شبکه مخفی زنان",
+      "episodeId": "5b3a33c0-56eb-11ed-bf7b-435dfb40a05c",
+      "seasonNumber": 1,
+      "episodeNumber": 13,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "8,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "0999cd60-0f0a-11ed-8ff0-67aad99184f3",
+      "seriesTitle": "شبکه مخفی زنان",
+      "episodeId": "e2ef0fd0-77cc-11ed-b79e-2b629cc83a81",
+      "seasonNumber": 1,
+      "episodeNumber": 18,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "8,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "0999cd60-0f0a-11ed-8ff0-67aad99184f3",
+      "seriesTitle": "شبکه مخفی زنان",
+      "episodeId": "65163760-82ff-11ee-ab5a-b91b74c61248",
+      "seasonNumber": 1,
+      "episodeNumber": 22,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "12,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "025f74f0-2c29-11ec-9a03-7f604e10ffa0",
+      "seriesTitle": "حرفه ای",
+      "episodeId": "8813b9c0-7eab-11ec-bb0a-2b107b615690",
+      "seasonNumber": 1,
+      "episodeNumber": 16,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "8,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "025f74f0-2c29-11ec-9a03-7f604e10ffa0",
+      "seriesTitle": "حرفه ای",
+      "episodeId": "e4023ad0-2c29-11ec-b8a6-b74edbe5035b",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "8,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "025f74f0-2c29-11ec-9a03-7f604e10ffa0",
+      "seriesTitle": "حرفه ای",
+      "episodeId": "cf73abe0-528d-11ec-a718-3faa4d6d260f",
+      "seasonNumber": 1,
+      "episodeNumber": 8,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "8,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "025f74f0-2c29-11ec-9a03-7f604e10ffa0",
+      "seriesTitle": "حرفه ای",
+      "episodeId": "4f1d1580-371c-11ec-b8f4-b500f574f73b",
+      "seasonNumber": 1,
+      "episodeNumber": 3,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "8,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "025f74f0-2c29-11ec-9a03-7f604e10ffa0",
+      "seriesTitle": "حرفه ای",
+      "episodeId": "b46de440-4223-11ec-899e-4537e19bbba4",
+      "seasonNumber": 1,
+      "episodeNumber": 5,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "8,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "025f74f0-2c29-11ec-9a03-7f604e10ffa0",
+      "seriesTitle": "حرفه ای",
+      "episodeId": "e35ef680-4d46-11ec-8a2e-bf2693f6f009",
+      "seasonNumber": 1,
+      "episodeNumber": 7,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "8,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "025f74f0-2c29-11ec-9a03-7f604e10ffa0",
+      "seriesTitle": "حرفه ای",
+      "episodeId": "40a01580-5db3-11ec-8fd9-272d95f49c02",
+      "seasonNumber": 1,
+      "episodeNumber": 10,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "8,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "025f74f0-2c29-11ec-9a03-7f604e10ffa0",
+      "seriesTitle": "حرفه ای",
+      "episodeId": "792c7420-68b1-11ec-9f1f-d52c114e201a",
+      "seasonNumber": 1,
+      "episodeNumber": 12,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "8,000"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "015263f0-3a26-11eb-801a-294ffd309937",
+      "seriesTitle": "همرفیق",
+      "episodeId": "a1122540-da7b-11eb-8eb9-65aa76dcb5aa",
+      "seasonNumber": 1,
+      "episodeNumber": 31,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "5,100"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "015263f0-3a26-11eb-801a-294ffd309937",
+      "seriesTitle": "همرفیق",
+      "episodeId": "12821fd0-3a42-11eb-b879-07ea514c705a",
+      "seasonNumber": 1,
+      "episodeNumber": 1,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "5,100"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "015263f0-3a26-11eb-801a-294ffd309937",
+      "seriesTitle": "همرفیق",
+      "episodeId": "ded2c1d0-8cd5-11eb-94b0-9f9c871735d1",
+      "seasonNumber": 1,
+      "episodeNumber": 16,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "5,100"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "015263f0-3a26-11eb-801a-294ffd309937",
+      "seriesTitle": "همرفیق",
+      "episodeId": "bb37f640-5108-11eb-aa63-058e332cbd33",
+      "seasonNumber": 1,
+      "episodeNumber": 5,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "5,100"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "015263f0-3a26-11eb-801a-294ffd309937",
+      "seriesTitle": "همرفیق",
+      "episodeId": "f0642780-6c79-11eb-a4db-65aaf4e87a0b",
+      "seasonNumber": 1,
+      "episodeNumber": 10,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "5,100"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "015263f0-3a26-11eb-801a-294ffd309937",
+      "seriesTitle": "همرفیق",
+      "episodeId": "3f474120-8257-11eb-92a0-31c9cbe052f2",
+      "seasonNumber": 1,
+      "episodeNumber": 14,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "5,100"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    },
+    {
+      "seriesId": "015263f0-3a26-11eb-801a-294ffd309937",
+      "seriesTitle": "همرفیق",
+      "episodeId": "e671f820-9869-11eb-9f5e-3f9cafd6bb73",
+      "seasonNumber": 1,
+      "episodeNumber": 18,
+      "recordCount": 1,
+      "directCount": 0,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop"
+      ],
+      "tiers": {
+        "paid": 1
+      },
+      "typeCounts": {
+        "link": 1
+      },
+      "amounts": [
+        "5,100"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 0,
+      "mediaFileCount": 0,
+      "hasStreamUrl": false
+    }
+  ],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
+      "title": "كله گنده ها",
+      "source": "fast-backfill",
+      "discoveredEpisodeCount": 5,
+      "catalogEpisodeCount": 1,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 5
+        }
+      ],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
@@ -1058,20 +2784,20 @@
       "isAiring": true
     }
   ],
-  "episodesDiscovered": 0,
+  "episodesDiscovered": 115,
   "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 391,
-  "episodeArtworkSeriesChecked": 40,
+  "episodeArtworkCandidates": 0,
+  "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
-  "episodesRejectedNoLinks": 0,
+  "episodesRejectedNoLinks": 45,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
-  "affiliateRequests": 0,
+  "seriesAddedOrUpdated": 1,
+  "affiliateRequests": 46,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
-  "rateLimitHits": 0,
-  "rateLimitWaitMs": 0,
+  "rateLimitHits": 1,
+  "rateLimitWaitMs": 5000,
   "skippedByBudget": 0,
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
@@ -1088,7 +2814,7 @@
   "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
   "peopleAdded": 0,
-  "tmdbRequests": 203,
+  "tmdbRequests": 0,
   "imdbRequests": 0,
   "mediaRepairCandidates": 0,
   "mediaRepairChecked": 0,
@@ -1104,59 +2830,19 @@
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
-      "scope": "tmdb-episode-still-41f10cf0-c0ac-11ed-89f6-67eb03123d9b-3-24",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/2660/season/3/episode/24?language=en-US"
+      "scope": "iranian-panel-series-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/get/series/season/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?page=1"
     },
     {
-      "scope": "episode-artwork-1ed80b20-340e-11ed-94e4-396df7bf5a21",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/1ed80b20-340e-11ed-94e4-396df7bf5a21?affiliate=1"
+      "scope": "iranian-incomplete-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?affiliate=1"
     },
     {
-      "scope": "episode-artwork-6b1804a0-0103-11f1-b4a6-87870a86a892",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/6b1804a0-0103-11f1-b4a6-87870a86a892?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-dc3a0d60-0101-11f1-b9a6-6f04946d7a2d",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/dc3a0d60-0101-11f1-b9a6-6f04946d7a2d?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-99ec1bf0-4afa-11ee-87f8-9f43ad598dd2",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/99ec1bf0-4afa-11ee-87f8-9f43ad598dd2?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-32f81f50-0102-11f1-aa9c-f53479da8bb9",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/32f81f50-0102-11f1-aa9c-f53479da8bb9?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-3ad3f3d0-32cc-11f1-a6de-8ddbe07af1e2",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/3ad3f3d0-32cc-11f1-a6de-8ddbe07af1e2?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-3288bc50-5162-11ef-a04d-a1c7a65b1295",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/3288bc50-5162-11ef-a04d-a1c7a65b1295?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-067ceea0-0103-11f1-9674-21875c688606",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/067ceea0-0103-11f1-9674-21875c688606?affiliate=1"
-    },
-    {
-      "scope": "operator-classification-1b7cae60-e539-11ee-aa4b-539ffdd44ab7--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/389275?language=fa-IR"
-    },
-    {
-      "scope": "operator-classification-40d1bc50-e544-11ee-9105-1bfd2d257e19--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/66609?language=en-US"
-    },
-    {
-      "scope": "operator-classification-78c375f0-074e-11f1-b8a0-a3e4c86d2c5c--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/1339613?language=fa-IR"
-    },
-    {
-      "scope": "operator-classification-3c79acf0-f337-11e9-9052-2b6fef19924d--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/642165?language=fa-IR"
+      "scope": "iranian-series-filter-19-{\"free\":\"\",\"persian\":\"\",\"country\":\"IR\",\"traffic\":1,\"noFreeFallback\":true}",
+      "message": "HTTP 429 برای https://seeko.film/api/v1/ghost/get/series/sort?trending=1&genre=all&free=&country=IR&persian=&query=&affiliate=1&traffic=1&page=19"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 243,
-  "finishedAt": "2026-11-18T17:54:18.511Z"
+  "apiRequests": 93,
+  "finishedAt": "2026-11-18T18:06:17.405Z"
 }
