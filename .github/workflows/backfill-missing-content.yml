@@ -1,0 +1,44 @@
+name: Backfill missing movies and series
+on:
+  schedule:
+    - cron: '12 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: aparatchi-content-write-lock
+  cancel-in-progress: false
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Resume movie and series archive cursors
+        env:
+          UPERA_SYNC_MODE: 'ARCHIVE'
+          UPERA_OPERATOR_DISCOVERY_ENABLED: 'false'
+          UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
+          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
+          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
+          UPERA_MAX_REQUESTS_PER_RUN: '160'
+          UPERA_ARCHIVE_MOVIE_REQUEST_QUOTA: '70'
+          UPERA_ARCHIVE_SERIES_REQUEST_QUOTA: '90'
+          APARATCHI_RUN_TIME_LIMIT_MINUTES: '12'
+          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
+        run: node scripts/sync-upera.mjs
+      - name: Publish archive progress
+        run: |
+          set -euo pipefail
+          node -e 'const r=require("./sync-report-archive.json"); if(r.effectiveSyncMode!=="ARCHIVE") process.exit(1); console.log(JSON.stringify({discovered:r.archiveDiscovered, requests:r.affiliateRequests}))'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m 'chore: advance missing movie and series archive'
+          git push origin HEAD:main
