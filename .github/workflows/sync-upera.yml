@@ -38,7 +38,7 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 56
+    timeout-minutes: 67
     steps:
       - name: Checkout content repository
         uses: actions/checkout@v6
@@ -99,6 +99,7 @@ jobs:
           UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
           UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
           UPERA_SYNC_MODE: 'NORMAL'
+          UPERA_SEPARATE_ARCHIVE: 'true'
           APARATCHI_RUN_TIME_LIMIT_MINUTES: '12'
           APARATCHI_CHECKPOINT_RESERVE_MS: '45000'
           APARATCHI_REQUEST_TIMEOUT_MS: '12000'
@@ -158,6 +159,24 @@ jobs:
             done
             [ "$PUSHED" -eq 1 ] || { echo "::error::Could not push new-content progress."; exit 1; }
           fi
+
+      - name: Discover missing archive titles with independent budget
+        id: archive_sync
+        if: github.event_name != 'push'
+        continue-on-error: true
+        timeout-minutes: 10
+        env:
+          UPERA_SYNC_MODE: 'ARCHIVE'
+          UPERA_OPERATOR_DISCOVERY_ENABLED: 'false'
+          UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
+          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
+          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
+          UPERA_MAX_REQUESTS_PER_RUN: '72'
+          UPERA_ARCHIVE_MOVIE_REQUEST_QUOTA: '32'
+          UPERA_ARCHIVE_SERIES_REQUEST_QUOTA: '40'
+          APARATCHI_RUN_TIME_LIMIT_MINUTES: '7'
+          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
+        run: node scripts/sync-upera.mjs
 
       - name: Purge broken Iranian queue residues
         continue-on-error: true
@@ -338,7 +357,7 @@ jobs:
           IRANIAN_OUTCOME: ${{ steps.iranian_sync.outcome }}
           FFMPEG_OUTCOME: ${{ steps.install_ffmpeg.outcome }}
         run: |
-          if [ "$REGRESSION_OUTCOME" = failure ] || [ "$NORMAL_OUTCOME" = failure ] || [ "$IRANIAN_OUTCOME" = failure ] || [ "$FFMPEG_OUTCOME" = failure ]; then
+          if [ '${{ steps.archive_sync.outcome }}' = failure ] || [ "$REGRESSION_OUTCOME" = failure ] || [ "$NORMAL_OUTCOME" = failure ] || [ "$IRANIAN_OUTCOME" = failure ] || [ "$FFMPEG_OUTCOME" = failure ]; then
             echo "::error::A sync or regression step failed; inspect the job log and sync reports."
             exit 1
           fi

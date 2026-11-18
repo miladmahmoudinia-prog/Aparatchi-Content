@@ -66,7 +66,7 @@ function key(value) {
 }
 
 function stripCollectionPrefix(value) {
-  return clean(value).replace(/^(?:مجموعه|کالکشن)\s+/u, '').trim();
+  return clean(value).replace(/^(?:مجموعه(?:ٔ|‌ی)?|کالکشن)\s+/u, '').trim();
 }
 
 function ensureCollectionPrefix(value) {
@@ -203,7 +203,7 @@ async function fetchTmdbPersianTitle(item, token, apiBase) {
 
 async function fetchTmdbPersianCollection(collectionId, members, token, apiBase) {
   if (!token) return '';
-  const id = Number(collectionId || 0);
+  const id = Number(/^(?:tmdb:)?(\d+)$/i.exec(String(collectionId))?.[1] || 0);
   if (!(id > 0)) return '';
   const payload = await tmdbJson(apiBase, token, `/collection/${id}?language=fa-IR`);
   const localized = clean(payload?.name);
@@ -229,6 +229,7 @@ export async function repairCatalogTitleCollectionTruth(catalog, options = {}) {
   titleChanges += verifiedBase.titleChanges;
   collectionChanges += verifiedBase.collectionChanges;
 
+  let collectionLookupChanged = false;
   const groups = new Map();
   for (const item of items) {
     if (!item || !['movie', 'series'].includes(item.type)) continue;
@@ -255,16 +256,28 @@ export async function repairCatalogTitleCollectionTruth(catalog, options = {}) {
     if (suspicious) suspiciousCollections += 1;
 
     let repairedCollection = override || '';
-    if (!repairedCollection && current && !suspicious) repairedCollection = ensureCollectionPrefix(current);
-    if (!repairedCollection && suspicious && token && apiUsed < maxApiRepairs) {
+    const confirmed = members.every(item => item.collectionNameFaSource === `tmdb-fa:${collectionId}` && item.collectionNameFaVerified === current && item.collectionNameFa === current);
+    const recentlyMissing = members.every(item => Date.parse(item.collectionFaRetryAfter || '') > Date.now());
+    if (!repairedCollection && !confirmed && !recentlyMissing && token && /^(?:tmdb:)?\d+$/i.test(collectionId) && apiUsed < maxApiRepairs) {
       try {
         apiUsed += 1;
         repairedCollection = await fetchTmdbPersianCollection(collectionId, members, token, apiBase);
+        for (const item of members) {
+          if (repairedCollection) {
+            item.collectionNameFaSource = `tmdb-fa:${collectionId}`;
+            item.collectionNameFaVerified = repairedCollection;
+            delete item.collectionFaRetryAfter;
+          } else {
+            item.collectionFaRetryAfter = new Date(Date.now() + 30 * 86400000).toISOString();
+          }
+        }
+        collectionLookupChanged = true;
         if (requestDelayMs) await new Promise((resolve) => setTimeout(resolve, requestDelayMs));
       } catch (error) {
         errors.push(`collection ${collectionId}: ${clean(error instanceof Error ? error.message : error)}`);
       }
     }
+    if (!repairedCollection && current && !suspicious) repairedCollection = ensureCollectionPrefix(current);
     if (!repairedCollection && suspicious) {
       const sourceBase = englishCollectionBase(collectionEn) || collectionEn;
       if (sourceBase) repairedCollection = ensureCollectionPrefix(sourceBase);
@@ -311,7 +324,7 @@ export async function repairCatalogTitleCollectionTruth(catalog, options = {}) {
 
   const remainingCollectionLeaks = items.filter(titleMatchesCollectionLeak);
   return {
-    changed: titleChanges > 0 || collectionChanges > 0,
+    changed: collectionLookupChanged || titleChanges > 0 || collectionChanges > 0,
     titleChanges,
     collectionChanges,
     suspiciousTitles,

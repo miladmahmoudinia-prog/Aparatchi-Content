@@ -206,7 +206,7 @@ const requestedSyncMode = String(
   process.env.UPERA_SYNC_MODE || 'AUTO',
 ).trim().toUpperCase();
 
-const syncModeSetting = ['AUTO', 'BACKFILL', 'NORMAL', 'IRANIAN', 'PEOPLE', 'ARTWORK'].includes(requestedSyncMode)
+const syncModeSetting = ['AUTO', 'ARCHIVE', 'BACKFILL', 'NORMAL', 'IRANIAN', 'PEOPLE', 'ARTWORK'].includes(requestedSyncMode)
   ? requestedSyncMode
   : 'AUTO';
 
@@ -933,7 +933,7 @@ console.log(
 const initialBackfillQueue = buildSequentialArchiveQueue();
 stats.backfillQueueTotal = initialBackfillQueue.length;
 
-const effectiveSyncMode =
+const effectiveSyncMode = syncModeSetting === 'ARCHIVE' ? 'ARCHIVE' :
   syncModeSetting === 'PEOPLE'
     ? 'PEOPLE'
     : syncModeSetting === 'ARTWORK'
@@ -958,7 +958,12 @@ if (effectiveSyncMode !== 'PEOPLE' && effectiveSyncMode !== 'ARTWORK' && operato
   await syncOperatorPriorityDiscovery();
 }
 
-if (effectiveSyncMode === 'ARTWORK') {
+if (effectiveSyncMode === 'ARCHIVE') {
+  const archiveIdsBefore = new Set(items.map(item => String(item.id)));
+  await withAffiliateRequestScope('archive-movies', archiveMovieRequestQuota, syncMovieArchive);
+  if (!affiliateBudgetExhausted) await withAffiliateRequestScope('archive-series', archiveSeriesRequestQuota, syncSeriesArchive);
+  stats.archiveDiscovered = items.filter(item => !archiveIdsBefore.has(String(item.id))).map(({id, type, name}) => ({id, type, name}));
+} else if (effectiveSyncMode === 'ARTWORK') {
   // A dedicated bounded lane keeps expensive ffmpeg frame extraction away
   // from discovery. It can steadily fill every episode card without slowing
   // the hourly title sync or the mobile client.
@@ -1067,7 +1072,7 @@ if (effectiveSyncMode === 'ARTWORK') {
   // The remaining passes continue the wider catalog crawl, but each one is
   // fenced by a small quota. None of them can steal the reserved discovery
   // capacity from the next hourly run.
-  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-archive-movies', 60000)) {
+  if (process.env.UPERA_SEPARATE_ARCHIVE !== 'true' && !affiliateBudgetExhausted && !runTimeBudgetReached('before-archive-movies', 60000)) {
     await withAffiliateRequestScope(
       'archive-movies',
       archiveMovieRequestQuota,
@@ -1076,6 +1081,7 @@ if (effectiveSyncMode === 'ARTWORK') {
   }
 
   if (
+    process.env.UPERA_SEPARATE_ARCHIVE !== 'true' &&
     !affiliateBudgetExhausted &&
     buildSequentialBackfillQueue().length === 0 &&
     !runTimeBudgetReached('before-archive-series', 60000)
