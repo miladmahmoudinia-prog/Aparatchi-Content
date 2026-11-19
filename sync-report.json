@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-11-19T18:36:22.682Z",
+  "startedAt": "2026-11-19T20:57:03.430Z",
   "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-11-19T18:48:21.365Z",
+  "runDeadlineAt": "2026-11-19T21:09:02.129Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 429860,
+  "remainingRunMsAtFinish": 373773,
   "imageMirroringSkipped": true,
-  "originalCount": 8553,
-  "finalCount": 8556,
-  "requestedSyncMode": "ARCHIVE",
-  "effectiveSyncMode": "ARCHIVE",
+  "originalCount": 8554,
+  "finalCount": 8616,
+  "requestedSyncMode": "NORMAL",
+  "effectiveSyncMode": "NORMAL",
   "backfillQueueTotal": 260,
-  "backfillBacklogRemaining": 260,
+  "backfillBacklogRemaining": 261,
   "backfillBlockedTotal": 11,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
@@ -31,301 +31,234 @@
   "incrementalCandidates": 0,
   "incrementalSeriesDeferred": 0,
   "incrementalProcessed": 0,
-  "recentMoviePagesScanned": 0,
-  "recentMovieCandidates": 0,
-  "recentMovieNewCandidates": 0,
-  "recentMoviesProcessed": 0,
-  "recentSeriesPagesScanned": 0,
-  "recentSeriesCandidates": 0,
-  "recentSeriesNewCandidates": 0,
-  "recentSeriesProcessed": 0,
+  "recentMoviePagesScanned": 12,
+  "recentMovieCandidates": 432,
+  "recentMovieNewCandidates": 56,
+  "recentMoviesProcessed": 56,
+  "recentSeriesPagesScanned": 12,
+  "recentSeriesCandidates": 430,
+  "recentSeriesNewCandidates": 6,
+  "recentSeriesProcessed": 6,
   "recentSeriesDeferredByArchiveQueue": 0,
   "affiliateRequestScopes": {
-    "archive-movies": {
-      "limit": 70,
-      "used": 70,
+    "operator-movies": {
+      "limit": 24,
+      "used": 0,
+      "exhausted": false
+    },
+    "operator-series": {
+      "limit": 12,
+      "used": 0,
+      "exhausted": false
+    },
+    "airing-series": {
+      "limit": 48,
+      "used": 48,
       "exhausted": true
     },
-    "archive-series": {
-      "limit": 90,
-      "used": 12,
+    "recent-movies": {
+      "limit": 110,
+      "used": 56,
+      "exhausted": false
+    },
+    "recent-series": {
+      "limit": 96,
+      "used": 90,
+      "exhausted": false
+    },
+    "media-repair": {
+      "limit": 100,
+      "used": 0,
+      "exhausted": false
+    },
+    "media-health-audit": {
+      "limit": 12,
+      "used": 0,
+      "exhausted": false
+    },
+    "incremental": {
+      "limit": 40,
+      "used": 0,
       "exhausted": false
     }
   },
   "skippedByScopedBudget": 1,
-  "moviePagesProcessed": 2,
-  "movieTitlesProcessed": 70,
+  "moviePagesProcessed": 0,
+  "movieTitlesProcessed": 0,
   "seriesPagesProcessed": 0,
-  "seriesTitlesProcessed": 2,
-  "airingSeriesCandidates": 0,
-  "airingSeriesChecked": 0,
-  "airingSeriesUpdated": 0,
+  "seriesTitlesProcessed": 0,
+  "airingSeriesCandidates": 132,
+  "airingSeriesChecked": 6,
+  "airingSeriesUpdated": 3,
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
   "seriesHiddenUntilComplete": 1,
-  "seriesPublishedAfterCompletion": 1,
-  "airingSeriesKeptPublished": 0,
+  "seriesPublishedAfterCompletion": 5,
+  "airingSeriesKeptPublished": 1,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 0,
-  "episodesProcessed": 12,
+  "episodesProcessed": 139,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
   "iranianSeriesRejectedNoLinks": 0,
-  "operatorSeriesPagesProcessed": 0,
+  "operatorSeriesPagesProcessed": 1,
   "operatorSeriesCandidates": 0,
   "operatorSeriesAddedOrUpdated": 0,
   "operatorSeriesRejectedNoOperatorLink": 0,
-  "operatorMoviePagesProcessed": 0,
+  "operatorMoviePagesProcessed": 1,
   "operatorMovieCandidates": 0,
   "operatorMoviesAddedOrUpdated": 0,
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 0,
+  "duplicateCatalogItemsMerged": 2,
   "iranianSeriesDiagnostics": [],
   "iranianLinkProbeDiagnostics": [],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "a7517bf0-0e80-11ee-b380-a373b5c58c5a",
-      "title": "امدادگران",
-      "source": "backfill",
+      "seriesId": "58635160-cfb4-11f1-bd41-19731dc11686",
+      "title": "دکتر اکس: عصر مافیای سفید",
+      "source": "airing-refresh",
       "discoveredEpisodeCount": 12,
       "catalogEpisodeCount": 12,
       "missing": [],
       "rejectedEpisodes": []
     },
     {
-      "seriesId": "a67e6bc0-61cf-11ed-a32b-992d72e4910c",
-      "title": "تایتان‌های نوجوان",
-      "source": "backfill",
-      "discoveredEpisodeCount": 64,
-      "catalogEpisodeCount": 10,
+      "seriesId": "63430ad0-e014-11f1-801c-7bd53c183245",
+      "title": "۱۲ ۱۲ ۱۲",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 2,
+      "catalogEpisodeCount": 2,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "0d106700-5dc6-11f1-8eee-25008b011db9",
+      "title": "شهر ستارگان",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 7,
+      "catalogEpisodeCount": 7,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "a1840bb0-1213-11f0-876d-f91a61b0a41a",
+      "title": "سرزمین اوباش",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 19,
+      "catalogEpisodeCount": 19,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "acd6a5b0-86a6-11ec-a555-e9e814b1437c",
+      "title": "ریچر",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 32,
+      "catalogEpisodeCount": 32,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "1ba67b70-bb3c-11f1-8073-c9f996d64bdf",
+      "title": "برادران",
+      "source": "airing-refresh",
+      "discoveredEpisodeCount": 8,
+      "catalogEpisodeCount": 8,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "e762bb60-b076-11ed-be99-4f6ea11f3f95",
+      "title": "کور",
+      "source": "recent-discovery",
+      "discoveredEpisodeCount": 16,
+      "catalogEpisodeCount": 16,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "e6b9c800-521a-11ed-8f22-7dae48bd828b",
+      "title": "به چند داوطلب نیاز است",
+      "source": "recent-discovery",
+      "discoveredEpisodeCount": 41,
+      "catalogEpisodeCount": 34,
       "missing": [
         {
           "seasonNumber": 1,
-          "episodeNumber": 11
+          "episodeNumber": 1
         },
         {
           "seasonNumber": 1,
-          "episodeNumber": 12
+          "episodeNumber": 3
         },
         {
           "seasonNumber": 1,
-          "episodeNumber": 13
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 1
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 2
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 3
-        },
-        {
-          "seasonNumber": 2,
           "episodeNumber": 4
         },
         {
-          "seasonNumber": 2,
+          "seasonNumber": 1,
           "episodeNumber": 5
         },
         {
-          "seasonNumber": 2,
+          "seasonNumber": 1,
           "episodeNumber": 6
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 7
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 8
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 9
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 10
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 11
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 12
-        },
-        {
-          "seasonNumber": 2,
-          "episodeNumber": 13
-        },
-        {
-          "seasonNumber": 3,
-          "episodeNumber": 1
-        },
-        {
-          "seasonNumber": 3,
-          "episodeNumber": 2
-        },
-        {
-          "seasonNumber": 3,
-          "episodeNumber": 3
-        },
-        {
-          "seasonNumber": 3,
-          "episodeNumber": 4
-        },
-        {
-          "seasonNumber": 3,
-          "episodeNumber": 5
-        },
-        {
-          "seasonNumber": 3,
-          "episodeNumber": 6
-        },
-        {
-          "seasonNumber": 3,
-          "episodeNumber": 7
-        },
-        {
-          "seasonNumber": 3,
-          "episodeNumber": 8
-        },
-        {
-          "seasonNumber": 3,
-          "episodeNumber": 9
-        },
-        {
-          "seasonNumber": 3,
-          "episodeNumber": 10
-        },
-        {
-          "seasonNumber": 3,
-          "episodeNumber": 11
-        },
-        {
-          "seasonNumber": 3,
-          "episodeNumber": 12
-        },
-        {
-          "seasonNumber": 4,
-          "episodeNumber": 1
-        },
-        {
-          "seasonNumber": 4,
-          "episodeNumber": 2
-        },
-        {
-          "seasonNumber": 4,
-          "episodeNumber": 3
-        },
-        {
-          "seasonNumber": 4,
-          "episodeNumber": 4
-        },
-        {
-          "seasonNumber": 4,
-          "episodeNumber": 5
-        },
-        {
-          "seasonNumber": 4,
-          "episodeNumber": 6
-        },
-        {
-          "seasonNumber": 4,
-          "episodeNumber": 7
-        },
-        {
-          "seasonNumber": 4,
-          "episodeNumber": 8
-        },
-        {
-          "seasonNumber": 4,
-          "episodeNumber": 9
-        },
-        {
-          "seasonNumber": 4,
-          "episodeNumber": 10
-        },
-        {
-          "seasonNumber": 4,
-          "episodeNumber": 11
-        },
-        {
-          "seasonNumber": 4,
-          "episodeNumber": 12
-        },
-        {
-          "seasonNumber": 4,
-          "episodeNumber": 13
-        },
-        {
-          "seasonNumber": 5,
-          "episodeNumber": 1
-        },
-        {
-          "seasonNumber": 5,
-          "episodeNumber": 2
-        },
-        {
-          "seasonNumber": 5,
-          "episodeNumber": 3
-        },
-        {
-          "seasonNumber": 5,
-          "episodeNumber": 4
-        },
-        {
-          "seasonNumber": 5,
-          "episodeNumber": 5
-        },
-        {
-          "seasonNumber": 5,
-          "episodeNumber": 6
-        },
-        {
-          "seasonNumber": 5,
-          "episodeNumber": 7
-        },
-        {
-          "seasonNumber": 5,
-          "episodeNumber": 8
-        },
-        {
-          "seasonNumber": 5,
-          "episodeNumber": 9
-        },
-        {
-          "seasonNumber": 5,
-          "episodeNumber": 10
-        },
-        {
-          "seasonNumber": 5,
-          "episodeNumber": 11
-        },
-        {
-          "seasonNumber": 5,
-          "episodeNumber": 12
-        },
-        {
-          "seasonNumber": 5,
-          "episodeNumber": 13
         }
       ],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "e6a68180-477c-11ee-8ad5-65475042f7b2",
+      "title": "کولوسئوم",
+      "source": "recent-discovery",
+      "discoveredEpisodeCount": 6,
+      "catalogEpisodeCount": 6,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "e553f090-2054-11ed-aa8c-9bdb2e75a35d",
+      "title": "سر کاری",
+      "source": "recent-discovery",
+      "discoveredEpisodeCount": 8,
+      "catalogEpisodeCount": 8,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "e49a5e60-d87a-11ed-80a0-3deeeff7c73f",
+      "title": "کافه حقوق",
+      "source": "recent-discovery",
+      "discoveredEpisodeCount": 16,
+      "catalogEpisodeCount": 16,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "e4669c40-3c21-11ee-bead-4bfb1ae87d7f",
+      "title": "تئودوزیا",
+      "source": "recent-discovery",
+      "discoveredEpisodeCount": 8,
+      "catalogEpisodeCount": 8,
+      "missing": [],
       "rejectedEpisodes": []
     }
   ],
   "catalogEpisodeGapDiagnostics": [
+    {
+      "seriesId": "e6b9c800-521a-11ed-8f22-7dae48bd828b",
+      "title": "به چند داوطلب نیاز است",
+      "missing": [],
+      "pendingEpisodeCount": 5,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
     {
       "seriesId": "a67e6bc0-61cf-11ed-a32b-992d72e4910c",
       "title": "تایتان‌های نوجوان",
@@ -351,7 +284,7 @@
       "pendingEpisodeCount": 5,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
-      "isAiring": false
+      "isAiring": true
     },
     {
       "seriesId": "e84e90c0-7468-11ec-ad2d-c1299eab3276",
@@ -369,7 +302,7 @@
       "pendingEpisodeCount": 29,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
-      "isAiring": false
+      "isAiring": true
     },
     {
       "seriesId": "eca82a40-d036-11ec-8127-b34e38ffd190",
@@ -1294,27 +1227,18 @@
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
-    },
-    {
-      "seriesId": "07df50f0-46b6-11f1-9868-31bc2bdb9b3b",
-      "title": "زیرزمین",
-      "missing": [],
-      "pendingEpisodeCount": 32,
-      "publicationStatus": "published",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
     }
   ],
-  "episodesDiscovered": 76,
-  "episodeGroupsAdded": 12,
+  "episodesDiscovered": 175,
+  "episodeGroupsAdded": 95,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
-  "moviesAddedOrUpdated": 70,
-  "seriesAddedOrUpdated": 2,
-  "affiliateRequests": 82,
+  "moviesAddedOrUpdated": 56,
+  "seriesAddedOrUpdated": 12,
+  "affiliateRequests": 194,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -1323,8 +1247,8 @@
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
-  "episodeFrameErrors": 2,
-  "seriesKeptVisibleDuringBackfill": 0,
+  "episodeFrameErrors": 9,
+  "seriesKeptVisibleDuringBackfill": 1,
   "seriesRestoredByMonotonicGuard": 3,
   "peopleEnrichmentCandidates": 0,
   "peopleEnrichmentProcessed": 0,
@@ -1337,46 +1261,153 @@
   "peopleAdded": 0,
   "tmdbRequests": 0,
   "imdbRequests": 0,
-  "mediaRepairCandidates": 0,
-  "mediaRepairChecked": 0,
+  "mediaRepairCandidates": 24,
+  "mediaRepairChecked": 24,
   "mediaRepairRecovered": 0,
-  "mediaRepairStillMissing": 0,
+  "mediaRepairStillMissing": 24,
   "mediaRepairHiddenConfirmed": 0,
-  "mediaHealthCandidates": 0,
-  "mediaHealthChecked": 0,
-  "mediaHealthHealthy": 0,
+  "mediaHealthCandidates": 4537,
+  "mediaHealthChecked": 24,
+  "mediaHealthHealthy": 2,
   "mediaHealthDead": 0,
-  "mediaHealthUnknown": 0,
+  "mediaHealthUnknown": 22,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
-      "scope": "episode-frame-a7517bf0-0e80-11ee-b380-a373b5c58c5a-12",
-      "message": "spawn ffmpeg ENOENT"
+      "scope": "episode-frame-58635160-cfb4-11f1-bd41-19731dc11686-11",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 97 -i https://aparatchi.upera.tv/3087219-11-1080.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/cc0b3d45009227d065dbdc33.jpg\n[in#0 @ 0x5b3ccf49ac40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3087219-11-1080.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
     },
     {
-      "scope": "episode-frame-a67e6bc0-61cf-11ed-a32b-992d72e4910c-10",
-      "message": "spawn ffmpeg ENOENT"
+      "scope": "episode-frame-a1840bb0-1213-11f0-876d-f91a61b0a41a-8",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 136 -i https://aparatchi.upera.tv/3086893-11-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/9ca44eadb01f7327200d12fc.jpg\n[in#0 @ 0x5d9c6bb12c40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3086893-11-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
+    },
+    {
+      "scope": "episode-frame-1ba67b70-bb3c-11f1-8073-c9f996d64bdf-6",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 102 -i https://aparatchi.upera.tv/3086889-11-1080.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/f007cc0d2b6274ddfb8296a0.jpg\n[in#0 @ 0x5fdb3e23bc40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/3086889-11-1080.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
+    },
+    {
+      "scope": "episode-frame-e762bb60-b076-11ed-be99-4f6ea11f3f95-1",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 107 -i https://aparatchi.upera.tv/2879961-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/339d13e665019ad2d82b1a01.jpg\n[in#0 @ 0x58da35614c40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/2879961-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
+    },
+    {
+      "scope": "episode-frame-e6b9c800-521a-11ed-8f22-7dae48bd828b-7",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 119 -i https://aparatchi.upera.tv/2830689-11-1080.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/b063893f2b2dc25594a5791c.jpg\n[in#0 @ 0x584166038c40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/2830689-11-1080.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
+    },
+    {
+      "scope": "episode-frame-e6a68180-477c-11ee-8ad5-65475042f7b2-1",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 107 -i https://aparatchi.upera.tv/2926704-11-1080.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/186f75d973a0d8100659f8fc.jpg\n[in#0 @ 0x64ad3824ec40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/2926704-11-1080.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
+    },
+    {
+      "scope": "episode-frame-e553f090-2054-11ed-aa8c-9bdb2e75a35d-1",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 107 -i https://aparatchi.upera.tv/2795147-11-1080.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/2121766a783a63c384e32036.jpg\n[in#0 @ 0x5732857b8c40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/2795147-11-1080.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
+    },
+    {
+      "scope": "episode-frame-e49a5e60-d87a-11ed-80a0-3deeeff7c73f-1",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 107 -i https://aparatchi.upera.tv/2889275-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/9e82a14da8db503acc8c5fa7.jpg\n[in#0 @ 0x61c24fc8dc40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/2889275-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
+    },
+    {
+      "scope": "episode-frame-e4669c40-3c21-11ee-bead-4bfb1ae87d7f-1",
+      "message": "Command failed: ffmpeg -hide_banner -loglevel error -ss 107 -i https://aparatchi.upera.tv/2914078-0-480.mp4?ref=3580590 -frames:v 1 -vf thumbnail=90,scale=640:-2 -q:v 5 -y /home/runner/work/Aparatchi-Content/Aparatchi-Content/assets/media/episodes/f99fe98fb17e38acd718ef04.jpg\n[in#0 @ 0x573e5ec2cc40] Error opening input: Server returned 403 Forbidden (access denied)\nError opening input file https://aparatchi.upera.tv/2914078-0-480.mp4?ref=3580590.\nError opening input files: Server returned 403 Forbidden (access denied)\n"
+    },
+    {
+      "scope": "media-repair-7599b920-0104-11f1-b76b-37287ce3e768--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/7599b920-0104-11f1-b76b-37287ce3e768"
+    },
+    {
+      "scope": "media-repair-6d2ca4a0-0104-11f1-8462-e9a6e095ea34--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/6d2ca4a0-0104-11f1-8462-e9a6e095ea34"
+    },
+    {
+      "scope": "media-repair-70521c20-0104-11f1-9547-6d4603154f64--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/70521c20-0104-11f1-9547-6d4603154f64"
+    },
+    {
+      "scope": "media-repair-71cf69f0-0104-11f1-92d5-db4e00ddb386--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/71cf69f0-0104-11f1-92d5-db4e00ddb386"
+    },
+    {
+      "scope": "media-repair-6e845480-0104-11f1-a224-2f52a8ccaacc--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/6e845480-0104-11f1-a224-2f52a8ccaacc"
+    },
+    {
+      "scope": "media-repair-719e90b0-0104-11f1-a048-fd39311da3ed--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/719e90b0-0104-11f1-a048-fd39311da3ed"
+    },
+    {
+      "scope": "media-repair-7237a810-0104-11f1-b586-e9c8eb43aed1--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/7237a810-0104-11f1-b586-e9c8eb43aed1"
+    },
+    {
+      "scope": "media-repair-73d0c1c0-0104-11f1-beef-ebe0ba7af7be--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/73d0c1c0-0104-11f1-beef-ebe0ba7af7be"
+    },
+    {
+      "scope": "media-repair-1b3603d0-0104-11f1-85fa-d7cde169373f--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/1b3603d0-0104-11f1-85fa-d7cde169373f"
+    },
+    {
+      "scope": "media-repair-0db76ae0-0104-11f1-89d1-1762458bccb9--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/0db76ae0-0104-11f1-89d1-1762458bccb9"
+    },
+    {
+      "scope": "media-repair-21337e00-0104-11f1-b3e5-3baef31a9f41",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/21337e00-0104-11f1-b3e5-3baef31a9f41"
+    },
+    {
+      "scope": "media-repair-1d25a850-0104-11f1-9214-79df0ff35f74",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/1d25a850-0104-11f1-9214-79df0ff35f74"
+    },
+    {
+      "scope": "media-repair-0613dbc0-0104-11f1-88f7-7f9284b4d012",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/0613dbc0-0104-11f1-88f7-7f9284b4d012"
+    },
+    {
+      "scope": "media-repair-544e49b0-96f8-11ef-9f57-b543c5e11287",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/544e49b0-96f8-11ef-9f57-b543c5e11287"
+    },
+    {
+      "scope": "media-repair-8e86f160-f6ca-11f0-b3df-491cc5cebe6d",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/8e86f160-f6ca-11f0-b3df-491cc5cebe6d"
+    },
+    {
+      "scope": "media-repair-7449dde0-f6ca-11f0-9bb4-df04825c463a",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/7449dde0-f6ca-11f0-9bb4-df04825c463a"
+    },
+    {
+      "scope": "media-repair-c13f6400-db25-11f0-b5eb-792a7e5d5bd0",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/c13f6400-db25-11f0-b5eb-792a7e5d5bd0"
+    },
+    {
+      "scope": "media-repair-8f404bf0-c2b8-11f0-9a18-c5f58b3d5a20",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/8f404bf0-c2b8-11f0-9a18-c5f58b3d5a20"
+    },
+    {
+      "scope": "media-repair-f2bc6c70-c780-11f0-9495-0b38c1028438",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/f2bc6c70-c780-11f0-9495-0b38c1028438"
+    },
+    {
+      "scope": "media-repair-18011000-2ef5-11f1-aeaf-f1ffd9abf341",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/18011000-2ef5-11f1-aeaf-f1ffd9abf341"
+    },
+    {
+      "scope": "media-repair-c0461e30-2471-11f1-a2cd-7346d7d674ed",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/c0461e30-2471-11f1-a2cd-7346d7d674ed"
+    },
+    {
+      "scope": "media-repair-6e4defa0-0104-11f1-8224-0f5332f213a2--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/6e4defa0-0104-11f1-8224-0f5332f213a2"
+    },
+    {
+      "scope": "media-repair-6eceacd0-0104-11f1-83e8-61ddcbd8935a--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/6eceacd0-0104-11f1-83e8-61ddcbd8935a"
+    },
+    {
+      "scope": "media-repair-72f632c0-0104-11f1-b8f1-7d0df751c976--operator",
+      "message": "HTTP 404 برای https://seeko.film/api/v1/ghost/get/movie/72f632c0-0104-11f1-b8f1-7d0df751c976"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 171,
-  "archiveDiscovered": [
-    {
-      "id": "47401600-c0b7-11f1-903c-d9c60fbfcb74",
-      "type": "movie",
-      "name": "Blinky Bill the Movie"
-    },
-    {
-      "id": "d44b2d50-c0ac-11f1-bfc1-61c0e2be429f",
-      "type": "movie",
-      "name": "Snow White and the 7 Dwarfs"
-    },
-    {
-      "id": "a67e6bc0-61cf-11ed-a32b-992d72e4910c",
-      "type": "series",
-      "name": "Teen Titans"
-    }
-  ],
-  "finishedAt": "2026-11-19T18:41:11.505Z"
+  "apiRequests": 451,
+  "finishedAt": "2026-11-19T21:02:48.356Z"
 }
