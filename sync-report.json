@@ -1,15 +1,15 @@
 {
-  "startedAt": "2026-11-19T11:01:58.431Z",
-  "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-11-19T11:11:57.034Z",
+  "startedAt": "2026-11-19T18:36:22.682Z",
+  "runTimeLimitMinutes": 12,
+  "runDeadlineAt": "2026-11-19T18:48:21.365Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 586385,
+  "remainingRunMsAtFinish": 429860,
   "imageMirroringSkipped": true,
   "originalCount": 8553,
-  "finalCount": 8553,
-  "requestedSyncMode": "IRANIAN",
-  "effectiveSyncMode": "IRANIAN",
+  "finalCount": 8556,
+  "requestedSyncMode": "ARCHIVE",
+  "effectiveSyncMode": "ARCHIVE",
   "backfillQueueTotal": 260,
   "backfillBacklogRemaining": 260,
   "backfillBlockedTotal": 11,
@@ -41,17 +41,22 @@
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
   "affiliateRequestScopes": {
-    "iranian-series": {
-      "limit": 240,
-      "used": 1,
+    "archive-movies": {
+      "limit": 70,
+      "used": 70,
+      "exhausted": true
+    },
+    "archive-series": {
+      "limit": 90,
+      "used": 12,
       "exhausted": false
     }
   },
-  "skippedByScopedBudget": 0,
-  "moviePagesProcessed": 0,
-  "movieTitlesProcessed": 0,
+  "skippedByScopedBudget": 1,
+  "moviePagesProcessed": 2,
+  "movieTitlesProcessed": 70,
   "seriesPagesProcessed": 0,
-  "seriesTitlesProcessed": 0,
+  "seriesTitlesProcessed": 2,
   "airingSeriesCandidates": 0,
   "airingSeriesChecked": 0,
   "airingSeriesUpdated": 0,
@@ -59,12 +64,12 @@
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
   "seriesHiddenUntilComplete": 1,
-  "seriesPublishedAfterCompletion": 0,
+  "seriesPublishedAfterCompletion": 1,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 1,
-  "episodesProcessed": 1,
-  "iranianSeriesPagesProcessed": 5,
+  "iranianSeriesProcessed": 0,
+  "episodesProcessed": 12,
+  "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
@@ -80,105 +85,256 @@
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
-  "iranianSeriesDiagnostics": [
-    {
-      "id": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "title": "كله گنده ها",
-      "result": "no-progress-existing",
-      "reason": "added-or-updated",
-      "addedEpisodes": 0,
-      "remainingEpisodeCount": 4,
-      "retryLater": false,
-      "newlyPublished": false,
-      "discovery": "existing-incomplete-first"
-    }
-  ],
-  "iranianLinkProbeDiagnostics": [
-    {
-      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "seriesTitle": "كله گنده ها",
-      "episodeId": "b49ef880-74a5-11e9-822d-97cb65c65181",
-      "seasonNumber": 1,
-      "episodeNumber": 2,
-      "recordCount": 8,
-      "directCount": 5,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop",
-        "aparatchi.upera.tv",
-        "plus.upera.tv"
-      ],
-      "tiers": {
-        "paid": 1,
-        "free": 7
-      },
-      "typeCounts": {
-        "link": 1,
-        "traffic": 5,
-        "player": 1,
-        "vod": 1
-      },
-      "amounts": [
-        "2,000",
-        "0"
-      ],
-      "titleSamples": [
-        "همه کیفیت‌ها",
-        "کیفیت 480",
-        "کیفیت 720",
-        "کیفیت 1080",
-        "کیفیت HQ_1080",
-        "HLS",
-        "لینک پلیر (لینک پخش آنلاین و یا جهت IFRAME)",
-        "لینک آپرا پلاس (فروش اشتراکی)"
-      ],
-      "ussdKinds": [],
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint",
-        "_panel_verified",
-        "_traffic_oo"
-      ],
-      "mediaGroupCount": 1,
-      "mediaFileCount": 5,
-      "hasStreamUrl": true
-    }
-  ],
+  "iranianSeriesDiagnostics": [],
+  "iranianLinkProbeDiagnostics": [],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "title": "كله گنده ها",
-      "source": "fast-backfill",
-      "discoveredEpisodeCount": 5,
-      "catalogEpisodeCount": 1,
+      "seriesId": "a7517bf0-0e80-11ee-b380-a373b5c58c5a",
+      "title": "امدادگران",
+      "source": "backfill",
+      "discoveredEpisodeCount": 12,
+      "catalogEpisodeCount": 12,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "a67e6bc0-61cf-11ed-a32b-992d72e4910c",
+      "title": "تایتان‌های نوجوان",
+      "source": "backfill",
+      "discoveredEpisodeCount": 64,
+      "catalogEpisodeCount": 10,
       "missing": [
         {
           "seasonNumber": 1,
+          "episodeNumber": 11
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 2,
           "episodeNumber": 1
         },
         {
-          "seasonNumber": 1,
+          "seasonNumber": 2,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 2,
           "episodeNumber": 3
         },
         {
-          "seasonNumber": 1,
+          "seasonNumber": 2,
           "episodeNumber": 4
         },
         {
-          "seasonNumber": 1,
+          "seasonNumber": 2,
           "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 6
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 7
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 8
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 9
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 11
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 2,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 6
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 7
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 8
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 9
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 11
+        },
+        {
+          "seasonNumber": 3,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 4,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 4,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 4,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 4,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 4,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 4,
+          "episodeNumber": 6
+        },
+        {
+          "seasonNumber": 4,
+          "episodeNumber": 7
+        },
+        {
+          "seasonNumber": 4,
+          "episodeNumber": 8
+        },
+        {
+          "seasonNumber": 4,
+          "episodeNumber": 9
+        },
+        {
+          "seasonNumber": 4,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 4,
+          "episodeNumber": 11
+        },
+        {
+          "seasonNumber": 4,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 4,
+          "episodeNumber": 13
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 2
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 5
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 6
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 7
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 8
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 9
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 10
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 11
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 12
+        },
+        {
+          "seasonNumber": 5,
+          "episodeNumber": 13
         }
       ],
       "rejectedEpisodes": []
     }
   ],
   "catalogEpisodeGapDiagnostics": [
+    {
+      "seriesId": "a67e6bc0-61cf-11ed-a32b-992d72e4910c",
+      "title": "تایتان‌های نوجوان",
+      "missing": [],
+      "pendingEpisodeCount": 54,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
     {
       "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
       "title": "كله گنده ها",
@@ -211,15 +367,6 @@
       "title": "واکفو",
       "missing": [],
       "pendingEpisodeCount": 29,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "a7517bf0-0e80-11ee-b380-a373b5c58c5a",
-      "title": "امدادگران",
-      "missing": [],
-      "pendingEpisodeCount": 2,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
@@ -1158,16 +1305,16 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 5,
-  "episodeGroupsAdded": 0,
+  "episodesDiscovered": 76,
+  "episodeGroupsAdded": 12,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
-  "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 1,
+  "moviesAddedOrUpdated": 70,
+  "seriesAddedOrUpdated": 2,
+  "affiliateRequests": 82,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -1176,7 +1323,7 @@
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
-  "episodeFrameErrors": 0,
+  "episodeFrameErrors": 2,
   "seriesKeptVisibleDuringBackfill": 0,
   "seriesRestoredByMonotonicGuard": 3,
   "peopleEnrichmentCandidates": 0,
@@ -1204,15 +1351,32 @@
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
-      "scope": "iranian-panel-series-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/get/series/season/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?page=1"
+      "scope": "episode-frame-a7517bf0-0e80-11ee-b380-a373b5c58c5a-12",
+      "message": "spawn ffmpeg ENOENT"
     },
     {
-      "scope": "iranian-incomplete-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?affiliate=1"
+      "scope": "episode-frame-a67e6bc0-61cf-11ed-a32b-992d72e4910c-10",
+      "message": "spawn ffmpeg ENOENT"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 14,
-  "finishedAt": "2026-11-19T11:02:10.649Z"
+  "apiRequests": 171,
+  "archiveDiscovered": [
+    {
+      "id": "47401600-c0b7-11f1-903c-d9c60fbfcb74",
+      "type": "movie",
+      "name": "Blinky Bill the Movie"
+    },
+    {
+      "id": "d44b2d50-c0ac-11f1-bfc1-61c0e2be429f",
+      "type": "movie",
+      "name": "Snow White and the 7 Dwarfs"
+    },
+    {
+      "id": "a67e6bc0-61cf-11ed-a32b-992d72e4910c",
+      "type": "series",
+      "name": "Teen Titans"
+    }
+  ],
+  "finishedAt": "2026-11-19T18:41:11.505Z"
 }
