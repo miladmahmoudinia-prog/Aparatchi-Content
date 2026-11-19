@@ -1,15 +1,15 @@
 {
-  "startedAt": "2026-11-19T08:34:06.898Z",
-  "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-11-19T08:44:05.446Z",
+  "startedAt": "2026-11-19T09:25:44.747Z",
+  "runTimeLimitMinutes": 12,
+  "runDeadlineAt": "2026-11-19T09:37:43.202Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 585045,
+  "remainingRunMsAtFinish": 377094,
   "imageMirroringSkipped": true,
   "originalCount": 8544,
-  "finalCount": 8544,
-  "requestedSyncMode": "IRANIAN",
-  "effectiveSyncMode": "IRANIAN",
+  "finalCount": 8550,
+  "requestedSyncMode": "ARCHIVE",
+  "effectiveSyncMode": "ARCHIVE",
   "backfillQueueTotal": 257,
   "backfillBacklogRemaining": 257,
   "backfillBlockedTotal": 11,
@@ -41,17 +41,22 @@
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
   "affiliateRequestScopes": {
-    "iranian-series": {
-      "limit": 240,
-      "used": 1,
+    "archive-movies": {
+      "limit": 70,
+      "used": 70,
+      "exhausted": true
+    },
+    "archive-series": {
+      "limit": 90,
+      "used": 27,
       "exhausted": false
     }
   },
-  "skippedByScopedBudget": 0,
-  "moviePagesProcessed": 0,
-  "movieTitlesProcessed": 0,
+  "skippedByScopedBudget": 1,
+  "moviePagesProcessed": 2,
+  "movieTitlesProcessed": 70,
   "seriesPagesProcessed": 0,
-  "seriesTitlesProcessed": 0,
+  "seriesTitlesProcessed": 4,
   "airingSeriesCandidates": 0,
   "airingSeriesChecked": 0,
   "airingSeriesUpdated": 0,
@@ -59,12 +64,12 @@
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
   "seriesHiddenUntilComplete": 1,
-  "seriesPublishedAfterCompletion": 0,
+  "seriesPublishedAfterCompletion": 3,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 1,
-  "episodesProcessed": 1,
-  "iranianSeriesPagesProcessed": 5,
+  "iranianSeriesProcessed": 0,
+  "episodesProcessed": 27,
+  "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
@@ -80,105 +85,66 @@
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
-  "iranianSeriesDiagnostics": [
-    {
-      "id": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "title": "كله گنده ها",
-      "result": "no-progress-existing",
-      "reason": "added-or-updated",
-      "addedEpisodes": 0,
-      "remainingEpisodeCount": 4,
-      "retryLater": false,
-      "newlyPublished": false,
-      "discovery": "existing-incomplete-first"
-    }
-  ],
-  "iranianLinkProbeDiagnostics": [
-    {
-      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "seriesTitle": "كله گنده ها",
-      "episodeId": "b49ef880-74a5-11e9-822d-97cb65c65181",
-      "seasonNumber": 1,
-      "episodeNumber": 2,
-      "recordCount": 8,
-      "directCount": 5,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop",
-        "aparatchi.upera.tv",
-        "plus.upera.tv"
-      ],
-      "tiers": {
-        "paid": 1,
-        "free": 7
-      },
-      "typeCounts": {
-        "link": 1,
-        "traffic": 5,
-        "player": 1,
-        "vod": 1
-      },
-      "amounts": [
-        "2,000",
-        "0"
-      ],
-      "titleSamples": [
-        "همه کیفیت‌ها",
-        "کیفیت 480",
-        "کیفیت 720",
-        "کیفیت 1080",
-        "کیفیت HQ_1080",
-        "HLS",
-        "لینک پلیر (لینک پخش آنلاین و یا جهت IFRAME)",
-        "لینک آپرا پلاس (فروش اشتراکی)"
-      ],
-      "ussdKinds": [],
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint",
-        "_panel_verified",
-        "_traffic_oo"
-      ],
-      "mediaGroupCount": 1,
-      "mediaFileCount": 5,
-      "hasStreamUrl": true
-    }
-  ],
+  "iranianSeriesDiagnostics": [],
+  "iranianLinkProbeDiagnostics": [],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "title": "كله گنده ها",
-      "source": "fast-backfill",
-      "discoveredEpisodeCount": 5,
-      "catalogEpisodeCount": 1,
+      "seriesId": "a8a2a030-3d7a-11ed-be6c-c906bd7ee959",
+      "title": "ماورا: خواجه احمد یسوی",
+      "source": "backfill",
+      "discoveredEpisodeCount": 25,
+      "catalogEpisodeCount": 25,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "a85b8f80-42d1-11ee-a652-810628c40a4b",
+      "title": "جاسوسی در میان دوستان",
+      "source": "backfill",
+      "discoveredEpisodeCount": 6,
+      "catalogEpisodeCount": 6,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "a855c010-f9ea-11ec-a0ba-e98e6fbd748b",
+      "title": "شروود",
+      "source": "backfill",
+      "discoveredEpisodeCount": 6,
+      "catalogEpisodeCount": 6,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "a7517bf0-0e80-11ee-b380-a373b5c58c5a",
+      "title": "امدادگران",
+      "source": "backfill",
+      "discoveredEpisodeCount": 12,
+      "catalogEpisodeCount": 10,
       "missing": [
         {
           "seasonNumber": 1,
-          "episodeNumber": 1
+          "episodeNumber": 11
         },
         {
           "seasonNumber": 1,
-          "episodeNumber": 3
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 4
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 5
+          "episodeNumber": 12
         }
       ],
       "rejectedEpisodes": []
     }
   ],
   "catalogEpisodeGapDiagnostics": [
+    {
+      "seriesId": "a7517bf0-0e80-11ee-b380-a373b5c58c5a",
+      "title": "امدادگران",
+      "missing": [],
+      "pendingEpisodeCount": 2,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
     {
       "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
       "title": "كله گنده ها",
@@ -193,15 +159,6 @@
       "title": "این ما هستیم",
       "missing": [],
       "pendingEpisodeCount": 63,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "a8a2a030-3d7a-11ed-be6c-c906bd7ee959",
-      "title": "ماورا: خواجه احمد یسوی",
-      "missing": [],
-      "pendingEpisodeCount": 5,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
@@ -1158,16 +1115,16 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 5,
-  "episodeGroupsAdded": 0,
+  "episodesDiscovered": 49,
+  "episodeGroupsAdded": 27,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
-  "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 1,
+  "moviesAddedOrUpdated": 70,
+  "seriesAddedOrUpdated": 4,
+  "affiliateRequests": 97,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -1176,7 +1133,7 @@
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
-  "episodeFrameErrors": 0,
+  "episodeFrameErrors": 4,
   "seriesKeptVisibleDuringBackfill": 0,
   "seriesRestoredByMonotonicGuard": 3,
   "peopleEnrichmentCandidates": 0,
@@ -1204,15 +1161,55 @@
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
-      "scope": "iranian-panel-series-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/get/series/season/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?page=1"
+      "scope": "episode-frame-a8a2a030-3d7a-11ed-be6c-c906bd7ee959-26",
+      "message": "spawn ffmpeg ENOENT"
     },
     {
-      "scope": "iranian-incomplete-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?affiliate=1"
+      "scope": "episode-frame-a85b8f80-42d1-11ee-a652-810628c40a4b-6",
+      "message": "spawn ffmpeg ENOENT"
+    },
+    {
+      "scope": "episode-frame-a855c010-f9ea-11ec-a0ba-e98e6fbd748b-6",
+      "message": "spawn ffmpeg ENOENT"
+    },
+    {
+      "scope": "episode-frame-a7517bf0-0e80-11ee-b380-a373b5c58c5a-10",
+      "message": "spawn ffmpeg ENOENT"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 14,
-  "finishedAt": "2026-11-19T08:34:20.401Z"
+  "apiRequests": 205,
+  "archiveDiscovered": [
+    {
+      "id": "e44546c0-bcbc-11f1-a514-0fba3b15f951",
+      "type": "movie",
+      "name": "Runner"
+    },
+    {
+      "id": "8b28b710-c614-11f1-8031-cd7db04683d4",
+      "type": "movie",
+      "name": "Alpha"
+    },
+    {
+      "id": "016c8e40-af67-11f1-807f-21931bd31eea",
+      "type": "movie",
+      "name": "Borderline"
+    },
+    {
+      "id": "a85b8f80-42d1-11ee-a652-810628c40a4b",
+      "type": "series",
+      "name": "A Spy Among Friends"
+    },
+    {
+      "id": "a855c010-f9ea-11ec-a0ba-e98e6fbd748b",
+      "type": "series",
+      "name": "Sherwood"
+    },
+    {
+      "id": "a7517bf0-0e80-11ee-b380-a373b5c58c5a",
+      "type": "series",
+      "name": "The First Responders"
+    }
+  ],
+  "finishedAt": "2026-11-19T09:31:26.108Z"
 }

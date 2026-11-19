@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-11-19T01:26:24.451Z",
+  "startedAt": "2026-11-19T09:25:44.747Z",
   "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-11-19T01:38:22.908Z",
+  "runDeadlineAt": "2026-11-19T09:37:43.202Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 436019,
+  "remainingRunMsAtFinish": 377094,
   "imageMirroringSkipped": true,
-  "originalCount": 8533,
-  "finalCount": 8542,
+  "originalCount": 8544,
+  "finalCount": 8550,
   "requestedSyncMode": "ARCHIVE",
   "effectiveSyncMode": "ARCHIVE",
-  "backfillQueueTotal": 256,
-  "backfillBacklogRemaining": 256,
+  "backfillQueueTotal": 257,
+  "backfillBacklogRemaining": 257,
   "backfillBlockedTotal": 11,
   "backfillActiveSeries": null,
   "backfillSeriesCompletedThisRun": [],
@@ -48,7 +48,7 @@
     },
     "archive-series": {
       "limit": 90,
-      "used": 10,
+      "used": 27,
       "exhausted": false
     }
   },
@@ -56,7 +56,7 @@
   "moviePagesProcessed": 2,
   "movieTitlesProcessed": 70,
   "seriesPagesProcessed": 0,
-  "seriesTitlesProcessed": 1,
+  "seriesTitlesProcessed": 4,
   "airingSeriesCandidates": 0,
   "airingSeriesChecked": 0,
   "airingSeriesUpdated": 0,
@@ -64,11 +64,11 @@
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
   "seriesHiddenUntilComplete": 1,
-  "seriesPublishedAfterCompletion": 0,
+  "seriesPublishedAfterCompletion": 3,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 0,
-  "episodesProcessed": 10,
+  "episodesProcessed": 27,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
@@ -94,27 +94,42 @@
       "title": "ماورا: خواجه احمد یسوی",
       "source": "backfill",
       "discoveredEpisodeCount": 25,
-      "catalogEpisodeCount": 20,
+      "catalogEpisodeCount": 25,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "a85b8f80-42d1-11ee-a652-810628c40a4b",
+      "title": "جاسوسی در میان دوستان",
+      "source": "backfill",
+      "discoveredEpisodeCount": 6,
+      "catalogEpisodeCount": 6,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "a855c010-f9ea-11ec-a0ba-e98e6fbd748b",
+      "title": "شروود",
+      "source": "backfill",
+      "discoveredEpisodeCount": 6,
+      "catalogEpisodeCount": 6,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "a7517bf0-0e80-11ee-b380-a373b5c58c5a",
+      "title": "امدادگران",
+      "source": "backfill",
+      "discoveredEpisodeCount": 12,
+      "catalogEpisodeCount": 10,
       "missing": [
         {
           "seasonNumber": 1,
-          "episodeNumber": 22
+          "episodeNumber": 11
         },
         {
           "seasonNumber": 1,
-          "episodeNumber": 23
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 24
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 25
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 26
+          "episodeNumber": 12
         }
       ],
       "rejectedEpisodes": []
@@ -122,10 +137,10 @@
   ],
   "catalogEpisodeGapDiagnostics": [
     {
-      "seriesId": "a8a2a030-3d7a-11ed-be6c-c906bd7ee959",
-      "title": "ماورا: خواجه احمد یسوی",
+      "seriesId": "a7517bf0-0e80-11ee-b380-a373b5c58c5a",
+      "title": "امدادگران",
       "missing": [],
-      "pendingEpisodeCount": 5,
+      "pendingEpisodeCount": 2,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
@@ -135,6 +150,15 @@
       "title": "كله گنده ها",
       "missing": [],
       "pendingEpisodeCount": 4,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
+    {
+      "seriesId": "eca82a40-d036-11ec-8127-b34e38ffd190",
+      "title": "این ما هستیم",
+      "missing": [],
+      "pendingEpisodeCount": 63,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
@@ -1089,27 +1113,18 @@
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
-    },
-    {
-      "seriesId": "97cc4190-0102-11f1-896a-11f346c6a64e",
-      "title": "کارآگاه کراس",
-      "missing": [],
-      "pendingEpisodeCount": 1,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
     }
   ],
-  "episodesDiscovered": 25,
-  "episodeGroupsAdded": 10,
+  "episodesDiscovered": 49,
+  "episodeGroupsAdded": 27,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 70,
-  "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 80,
+  "seriesAddedOrUpdated": 4,
+  "affiliateRequests": 97,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -1118,7 +1133,7 @@
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
-  "episodeFrameErrors": 1,
+  "episodeFrameErrors": 4,
   "seriesKeptVisibleDuringBackfill": 0,
   "seriesRestoredByMonotonicGuard": 3,
   "peopleEnrichmentCandidates": 0,
@@ -1146,58 +1161,55 @@
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
-      "scope": "episode-frame-a8a2a030-3d7a-11ed-be6c-c906bd7ee959-21",
+      "scope": "episode-frame-a8a2a030-3d7a-11ed-be6c-c906bd7ee959-26",
+      "message": "spawn ffmpeg ENOENT"
+    },
+    {
+      "scope": "episode-frame-a85b8f80-42d1-11ee-a652-810628c40a4b-6",
+      "message": "spawn ffmpeg ENOENT"
+    },
+    {
+      "scope": "episode-frame-a855c010-f9ea-11ec-a0ba-e98e6fbd748b-6",
+      "message": "spawn ffmpeg ENOENT"
+    },
+    {
+      "scope": "episode-frame-a7517bf0-0e80-11ee-b380-a373b5c58c5a-10",
       "message": "spawn ffmpeg ENOENT"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 165,
+  "apiRequests": 205,
   "archiveDiscovered": [
     {
-      "id": "020a91a0-b5be-11ed-a4b3-6fe54134d0a8",
+      "id": "e44546c0-bcbc-11f1-a514-0fba3b15f951",
       "type": "movie",
-      "name": "Pups Alone"
+      "name": "Runner"
     },
     {
-      "id": "00948a30-40d0-11ee-a21d-458d2187b2ac",
+      "id": "8b28b710-c614-11f1-8031-cd7db04683d4",
       "type": "movie",
-      "name": "Peter Pan & Wendy"
+      "name": "Alpha"
     },
     {
-      "id": "a93b7870-0281-11f0-bc40-8d3b856daa02",
+      "id": "016c8e40-af67-11f1-807f-21931bd31eea",
       "type": "movie",
-      "name": "El Clasico"
+      "name": "Borderline"
     },
     {
-      "id": "bb6c0fa0-a740-11ed-8cda-abc4b9508537",
-      "type": "movie",
-      "name": "13"
+      "id": "a85b8f80-42d1-11ee-a652-810628c40a4b",
+      "type": "series",
+      "name": "A Spy Among Friends"
     },
     {
-      "id": "69e1be80-a79e-11ed-a38e-e7e18a05b53c",
-      "type": "movie",
-      "name": "Hard Makeup"
+      "id": "a855c010-f9ea-11ec-a0ba-e98e6fbd748b",
+      "type": "series",
+      "name": "Sherwood"
     },
     {
-      "id": "528381c0-a65b-11ed-b717-85b337c8302b",
-      "type": "movie",
-      "name": "Everything is Calm"
-    },
-    {
-      "id": "076779c0-a58a-11ed-b297-039f4d6c30a0",
-      "type": "movie",
-      "name": "Inadaptable"
-    },
-    {
-      "id": "acccb9e0-3cb5-11e8-8e2e-5da03382b79e",
-      "type": "movie",
-      "name": "Everything for Sale"
-    },
-    {
-      "id": "3b755050-3e78-11e8-ab7c-abb68ee910e4",
-      "type": "movie",
-      "name": "Breath"
+      "id": "a7517bf0-0e80-11ee-b380-a373b5c58c5a",
+      "type": "series",
+      "name": "The First Responders"
     }
   ],
-  "finishedAt": "2026-11-19T01:31:06.889Z"
+  "finishedAt": "2026-11-19T09:31:26.108Z"
 }
