@@ -1,15 +1,15 @@
 {
-  "startedAt": "2026-11-19T01:01:11.510Z",
-  "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-11-19T01:11:09.916Z",
+  "startedAt": "2026-11-19T01:26:24.451Z",
+  "runTimeLimitMinutes": 12,
+  "runDeadlineAt": "2026-11-19T01:38:22.908Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 585824,
+  "remainingRunMsAtFinish": 436019,
   "imageMirroringSkipped": true,
   "originalCount": 8533,
-  "finalCount": 8533,
-  "requestedSyncMode": "IRANIAN",
-  "effectiveSyncMode": "IRANIAN",
+  "finalCount": 8542,
+  "requestedSyncMode": "ARCHIVE",
+  "effectiveSyncMode": "ARCHIVE",
   "backfillQueueTotal": 256,
   "backfillBacklogRemaining": 256,
   "backfillBlockedTotal": 11,
@@ -41,17 +41,22 @@
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
   "affiliateRequestScopes": {
-    "iranian-series": {
-      "limit": 240,
-      "used": 1,
+    "archive-movies": {
+      "limit": 70,
+      "used": 70,
+      "exhausted": true
+    },
+    "archive-series": {
+      "limit": 90,
+      "used": 10,
       "exhausted": false
     }
   },
-  "skippedByScopedBudget": 0,
-  "moviePagesProcessed": 0,
-  "movieTitlesProcessed": 0,
+  "skippedByScopedBudget": 1,
+  "moviePagesProcessed": 2,
+  "movieTitlesProcessed": 70,
   "seriesPagesProcessed": 0,
-  "seriesTitlesProcessed": 0,
+  "seriesTitlesProcessed": 1,
   "airingSeriesCandidates": 0,
   "airingSeriesChecked": 0,
   "airingSeriesUpdated": 0,
@@ -62,9 +67,9 @@
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 1,
-  "episodesProcessed": 1,
-  "iranianSeriesPagesProcessed": 5,
+  "iranianSeriesProcessed": 0,
+  "episodesProcessed": 10,
+  "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
@@ -80,105 +85,51 @@
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
-  "iranianSeriesDiagnostics": [
-    {
-      "id": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "title": "كله گنده ها",
-      "result": "no-progress-existing",
-      "reason": "added-or-updated",
-      "addedEpisodes": 0,
-      "remainingEpisodeCount": 4,
-      "retryLater": false,
-      "newlyPublished": false,
-      "discovery": "existing-incomplete-first"
-    }
-  ],
-  "iranianLinkProbeDiagnostics": [
-    {
-      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "seriesTitle": "كله گنده ها",
-      "episodeId": "b49ef880-74a5-11e9-822d-97cb65c65181",
-      "seasonNumber": 1,
-      "episodeNumber": 2,
-      "recordCount": 8,
-      "directCount": 5,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop",
-        "aparatchi.upera.tv",
-        "plus.upera.tv"
-      ],
-      "tiers": {
-        "paid": 1,
-        "free": 7
-      },
-      "typeCounts": {
-        "link": 1,
-        "traffic": 5,
-        "player": 1,
-        "vod": 1
-      },
-      "amounts": [
-        "2,000",
-        "0"
-      ],
-      "titleSamples": [
-        "همه کیفیت‌ها",
-        "کیفیت 480",
-        "کیفیت 720",
-        "کیفیت 1080",
-        "کیفیت HQ_1080",
-        "HLS",
-        "لینک پلیر (لینک پخش آنلاین و یا جهت IFRAME)",
-        "لینک آپرا پلاس (فروش اشتراکی)"
-      ],
-      "ussdKinds": [],
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint",
-        "_panel_verified",
-        "_traffic_oo"
-      ],
-      "mediaGroupCount": 1,
-      "mediaFileCount": 5,
-      "hasStreamUrl": true
-    }
-  ],
+  "iranianSeriesDiagnostics": [],
+  "iranianLinkProbeDiagnostics": [],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "title": "كله گنده ها",
-      "source": "fast-backfill",
-      "discoveredEpisodeCount": 5,
-      "catalogEpisodeCount": 1,
+      "seriesId": "a8a2a030-3d7a-11ed-be6c-c906bd7ee959",
+      "title": "ماورا: خواجه احمد یسوی",
+      "source": "backfill",
+      "discoveredEpisodeCount": 25,
+      "catalogEpisodeCount": 20,
       "missing": [
         {
           "seasonNumber": 1,
-          "episodeNumber": 1
+          "episodeNumber": 22
         },
         {
           "seasonNumber": 1,
-          "episodeNumber": 3
+          "episodeNumber": 23
         },
         {
           "seasonNumber": 1,
-          "episodeNumber": 4
+          "episodeNumber": 24
         },
         {
           "seasonNumber": 1,
-          "episodeNumber": 5
+          "episodeNumber": 25
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 26
         }
       ],
       "rejectedEpisodes": []
     }
   ],
   "catalogEpisodeGapDiagnostics": [
+    {
+      "seriesId": "a8a2a030-3d7a-11ed-be6c-c906bd7ee959",
+      "title": "ماورا: خواجه احمد یسوی",
+      "missing": [],
+      "pendingEpisodeCount": 5,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": false
+    },
     {
       "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
       "title": "كله گنده ها",
@@ -193,15 +144,6 @@
       "title": "آنکه بر جهان حکم می‌راند",
       "missing": [],
       "pendingEpisodeCount": 5,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": false
-    },
-    {
-      "seriesId": "a8a2a030-3d7a-11ed-be6c-c906bd7ee959",
-      "title": "ماورا: خواجه احمد یسوی",
-      "missing": [],
-      "pendingEpisodeCount": 15,
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
@@ -1158,16 +1100,16 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 5,
-  "episodeGroupsAdded": 0,
+  "episodesDiscovered": 25,
+  "episodeGroupsAdded": 10,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
-  "moviesAddedOrUpdated": 0,
+  "moviesAddedOrUpdated": 70,
   "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 1,
+  "affiliateRequests": 80,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -1176,7 +1118,7 @@
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
   "episodeFramesGenerated": 0,
-  "episodeFrameErrors": 0,
+  "episodeFrameErrors": 1,
   "seriesKeptVisibleDuringBackfill": 0,
   "seriesRestoredByMonotonicGuard": 3,
   "peopleEnrichmentCandidates": 0,
@@ -1204,15 +1146,58 @@
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
-      "scope": "iranian-panel-series-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/get/series/season/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?page=1"
-    },
-    {
-      "scope": "iranian-incomplete-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?affiliate=1"
+      "scope": "episode-frame-a8a2a030-3d7a-11ed-be6c-c906bd7ee959-21",
+      "message": "spawn ffmpeg ENOENT"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 14,
-  "finishedAt": "2026-11-19T01:01:24.092Z"
+  "apiRequests": 165,
+  "archiveDiscovered": [
+    {
+      "id": "020a91a0-b5be-11ed-a4b3-6fe54134d0a8",
+      "type": "movie",
+      "name": "Pups Alone"
+    },
+    {
+      "id": "00948a30-40d0-11ee-a21d-458d2187b2ac",
+      "type": "movie",
+      "name": "Peter Pan & Wendy"
+    },
+    {
+      "id": "a93b7870-0281-11f0-bc40-8d3b856daa02",
+      "type": "movie",
+      "name": "El Clasico"
+    },
+    {
+      "id": "bb6c0fa0-a740-11ed-8cda-abc4b9508537",
+      "type": "movie",
+      "name": "13"
+    },
+    {
+      "id": "69e1be80-a79e-11ed-a38e-e7e18a05b53c",
+      "type": "movie",
+      "name": "Hard Makeup"
+    },
+    {
+      "id": "528381c0-a65b-11ed-b717-85b337c8302b",
+      "type": "movie",
+      "name": "Everything is Calm"
+    },
+    {
+      "id": "076779c0-a58a-11ed-b297-039f4d6c30a0",
+      "type": "movie",
+      "name": "Inadaptable"
+    },
+    {
+      "id": "acccb9e0-3cb5-11e8-8e2e-5da03382b79e",
+      "type": "movie",
+      "name": "Everything for Sale"
+    },
+    {
+      "id": "3b755050-3e78-11e8-ab7c-abb68ee910e4",
+      "type": "movie",
+      "name": "Breath"
+    }
+  ],
+  "finishedAt": "2026-11-19T01:31:06.889Z"
 }
