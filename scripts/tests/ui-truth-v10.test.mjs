@@ -49,10 +49,10 @@ test('episode frame generation seeks to the actual episode midpoint', async () =
   assert.doesNotMatch(source, /String\(45 \+ \(\(Number\(group\?\.episodeNumber/);
 });
 
-test('hourly sync keeps immediate artwork for newly published episodes without a heavy PEOPLE lane', async () => {
+test('two-hour sync keeps immediate artwork for newly published episodes without a heavy PEOPLE lane', async () => {
   const workflow = await fs.readFile('.github/workflows/sync-upera.yml', 'utf8');
   const source = await fs.readFile('scripts/sync-upera.mjs', 'utf8');
-  assert.match(workflow, /cron: '34 \* \* \* \*'/);
+  assert.match(workflow, /cron: '34 \*\/2 \* \* \*'/);
   assert.match(source, /if \(latestForwardEpisode\)[\s\S]*generateEpisodeFrameArtwork/);
   assert.doesNotMatch(workflow, /UPERA_SYNC_MODE: 'PEOPLE'/);
   assert.doesNotMatch(workflow, /timeout 90s sudo apt-get/);

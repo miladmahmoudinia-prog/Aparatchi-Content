@@ -230,6 +230,7 @@ export function isWildlifeDocumentaryText({ title = '', genres = [], overview = 
     (genericAnimalContext && ecologyContext);
 }
 
+export const reviewedGeneralDocs = new Set(['e2591a20-ac76-11ed-8ece-ed01c158460c', 'fa868d70-d7c4-11ef-b79a-418e40569a9b', '5a6fdd80-cdb1-11ef-bbda-676e6c164e3e', '6b9d4f20-f9fd-11f0-a855-33a208b8c793']);
 export function classifyCatalogItem(input = {}) {
   const type = input.type === 'series' ? 'series' : 'movie';
   const forcedForeignTitle =
@@ -295,7 +296,7 @@ export function classifyCatalogItem(input = {}) {
     !documentaryGenre &&
     (narrativeGenre || isAnimation)
   );
-  const isDocumentary = knownNarrativeMovie || trustedNonDocumentary
+  const isDocumentary = reviewedGeneralDocs.has(input.id) ? true : knownNarrativeMovie || trustedNonDocumentary
     ? false
     : Boolean(knownDocumentary || explicitDocumentary || documentaryGenre || documentaryOverviewSignal);
 
@@ -380,7 +381,7 @@ export function classifyCatalogItem(input = {}) {
     ? indianLanguages.has(originalLanguage)
     : primaryCountry === 'IN';
 
-  const isWildlife = Boolean(isDocumentary && isWildlifeDocumentaryText({
+  const isWildlife = Boolean(!reviewedGeneralDocs.has(input.id) && isDocumentary && isWildlifeDocumentaryText({
     title: titleText,
     genres,
     overview,
