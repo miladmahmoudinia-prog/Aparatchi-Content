@@ -1,15 +1,15 @@
 {
-  "startedAt": "2026-11-21T16:55:38.244Z",
-  "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-11-21T17:07:36.939Z",
+  "startedAt": "2026-11-21T19:50:18.311Z",
+  "runTimeLimitMinutes": 30,
+  "runDeadlineAt": "2026-11-21T20:20:16.204Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 435509,
+  "remainingRunMsAtFinish": 1759462,
   "imageMirroringSkipped": true,
   "originalCount": 8591,
-  "finalCount": 8599,
-  "requestedSyncMode": "ARCHIVE",
-  "effectiveSyncMode": "ARCHIVE",
+  "finalCount": 8591,
+  "requestedSyncMode": "ARTWORK",
+  "effectiveSyncMode": "ARTWORK",
   "backfillQueueTotal": 264,
   "backfillBacklogRemaining": 264,
   "backfillBlockedTotal": 11,
@@ -40,23 +40,12 @@
   "recentSeriesNewCandidates": 0,
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
-  "affiliateRequestScopes": {
-    "archive-movies": {
-      "limit": 70,
-      "used": 70,
-      "exhausted": true
-    },
-    "archive-series": {
-      "limit": 90,
-      "used": 10,
-      "exhausted": false
-    }
-  },
-  "skippedByScopedBudget": 1,
-  "moviePagesProcessed": 2,
-  "movieTitlesProcessed": 70,
+  "affiliateRequestScopes": {},
+  "skippedByScopedBudget": 0,
+  "moviePagesProcessed": 0,
+  "movieTitlesProcessed": 0,
   "seriesPagesProcessed": 0,
-  "seriesTitlesProcessed": 1,
+  "seriesTitlesProcessed": 0,
   "airingSeriesCandidates": 0,
   "airingSeriesChecked": 0,
   "airingSeriesUpdated": 0,
@@ -68,7 +57,7 @@
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 0,
-  "episodesProcessed": 10,
+  "episodesProcessed": 0,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
@@ -84,21 +73,11 @@
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 0,
+  "duplicateCatalogItemsMerged": 8,
   "iranianSeriesDiagnostics": [],
   "iranianLinkProbeDiagnostics": [],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [
-    {
-      "seriesId": "a7517bf0-0e80-11ee-b380-a373b5c58c5a",
-      "title": "امدادگران",
-      "source": "backfill",
-      "discoveredEpisodeCount": 12,
-      "catalogEpisodeCount": 12,
-      "missing": [],
-      "rejectedEpisodes": []
-    }
-  ],
+  "seriesEpisodeDiagnostics": [],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
@@ -1079,16 +1058,16 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 12,
+  "episodesDiscovered": 0,
   "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 0,
-  "episodeArtworkSeriesChecked": 0,
+  "episodeArtworkCandidates": 449,
+  "episodeArtworkSeriesChecked": 40,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
-  "moviesAddedOrUpdated": 70,
-  "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 80,
+  "moviesAddedOrUpdated": 0,
+  "seriesAddedOrUpdated": 0,
+  "affiliateRequests": 0,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -1096,7 +1075,7 @@
   "skippedByBudget": 0,
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
-  "episodeFramesGenerated": 0,
+  "episodeFramesGenerated": 1,
   "episodeFrameErrors": 0,
   "seriesKeptVisibleDuringBackfill": 0,
   "seriesRestoredByMonotonicGuard": 3,
@@ -1109,7 +1088,7 @@
   "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
   "peopleAdded": 0,
-  "tmdbRequests": 0,
+  "tmdbRequests": 111,
   "imdbRequests": 0,
   "mediaRepairCandidates": 0,
   "mediaRepairChecked": 0,
@@ -1123,50 +1102,33 @@
   "mediaHealthUnknown": 0,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [],
-  "errorsTruncated": 0,
-  "apiRequests": 165,
-  "archiveDiscovered": [
+  "errors": [
     {
-      "id": "114ee270-d6c7-11f0-ba70-77987db452d1",
-      "type": "movie",
-      "name": "A Paw Patrol Christmas"
+      "scope": "episode-artwork-1cb2a690-d57f-11ef-a1f9-91af443a73a4",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/1cb2a690-d57f-11ef-a1f9-91af443a73a4?affiliate=1"
     },
     {
-      "id": "3dec6ba0-d8f2-11f0-bf46-bd86fc61eecd",
-      "type": "movie",
-      "name": "Sorry, Baby"
+      "scope": "episode-artwork-70875350-0103-11f1-b7c5-fb6a29590cc4",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/70875350-0103-11f1-b7c5-fb6a29590cc4?affiliate=1"
     },
     {
-      "id": "9d997220-cfcc-11f0-9951-d95e0ab024b0",
-      "type": "movie",
-      "name": "Wake Up Dead Man: A Knives Out Mystery"
+      "scope": "episode-artwork-61277fa0-0102-11f1-b6c0-3b038909247e",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/61277fa0-0102-11f1-b6c0-3b038909247e?affiliate=1"
     },
     {
-      "id": "918e2fb0-af2f-11f0-8b67-4d441ec10116",
-      "type": "movie",
-      "name": "The Roses"
+      "scope": "episode-artwork-04f6a830-fa1b-11ed-9de1-ff982e0ca2bd",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/04f6a830-fa1b-11ed-9de1-ff982e0ca2bd?affiliate=1"
     },
     {
-      "id": "b9e3f3c0-d5ce-11f0-b523-17579c463d75",
-      "type": "movie",
-      "name": "I Swear"
+      "scope": "episode-artwork-85d855e0-340e-11ed-8ac9-f1be46586898",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/85d855e0-340e-11ed-8ac9-f1be46586898?affiliate=1"
     },
     {
-      "id": "8ccff040-d40f-11f0-b899-cb4a59aab931",
-      "type": "movie",
-      "name": "Diary of a Wimpy Kid: The Last Straw"
-    },
-    {
-      "id": "59f2d3e0-cec4-11f0-ba2f-b7994d38a577",
-      "type": "movie",
-      "name": "LEGO Frozen: Operation Puffins"
-    },
-    {
-      "id": "e9b08720-b62d-11ef-aa52-63bb3ffc1013",
-      "type": "movie",
-      "name": "That Christmas"
+      "scope": "episode-artwork-b945d6b0-94a5-11ef-bbfa-29dd09b5038e",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/b945d6b0-94a5-11ef-bbfa-29dd09b5038e?affiliate=1"
     }
   ],
-  "finishedAt": "2026-11-21T17:00:21.430Z"
+  "errorsTruncated": 0,
+  "apiRequests": 151,
+  "finishedAt": "2026-11-21T19:50:56.742Z"
 }
