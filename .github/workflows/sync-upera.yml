@@ -4,6 +4,9 @@ permissions:
   contents: read
 jobs:
   preview:
+    strategy:
+      matrix:
+        mode: [IRANIAN, ARCHIVE]
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -19,7 +22,9 @@ jobs:
           UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
           UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
           UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
-          UPERA_SYNC_MODE: IRANIAN
+          UPERA_SYNC_MODE: ${{ matrix.mode }}
+          MOVIE_PAGES_PER_RUN: '1'
+          SERIES_PAGES_PER_RUN: '1'
           UPERA_OPERATOR_DISCOVERY_ENABLED: 'false'
           UPERA_APPLY_REVIEWED_REMOVALS: 'false'
           UPERA_IRANIAN_SERIES_PAGES_PER_RUN: '2'
@@ -33,6 +38,10 @@ jobs:
           def items(path):
               data=json.load(open(path)); rows=data if isinstance(data,list) else data['items']; return {str(x['id']):x for x in rows}
           a=items(os.environ['RUNNER_TEMP']+'/before.json'); b=items('catalog.json'); added=b.keys()-a.keys(); removed=a.keys()-b.keys(); changed=[k for k in a.keys()&b.keys() if a[k]!=b[k]]
-          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out: print(f'Sample only: added={len(added)}, changed={len(changed)}, removed={len(removed)}; no publication.',file=out)
+          msg=f'Sample only: added={len(added)}, changed={len(changed)}, removed={len(removed)}; no publication.'
+          print(msg)
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out: print(msg,file=out)
+          titles=[x for x in a.values() if x.get('imdbId')=='tt3749900' or str(x.get('name','')).strip().lower()=='gotham' or str(x.get('nameFa','')).strip()=='گاتهام']
+          print('Gotham matches in snapshot:',len(titles),'matching supplied media path:',any('3002867-0-480.mp4' in json.dumps(x) for x in titles))
           assert not removed
           PY
