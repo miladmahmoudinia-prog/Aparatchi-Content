@@ -1,3 +1,4 @@
+import { inspectMedia, appendMediaVersions, storedUrls, removalReady } from './existing-audit.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
@@ -960,8 +961,8 @@ if (effectiveSyncMode !== 'PEOPLE' && effectiveSyncMode !== 'ARTWORK' && operato
 
 if (effectiveSyncMode === 'ARCHIVE') {
   const archiveIdsBefore = new Set(items.map(item => String(item.id)));
-  await withAffiliateRequestScope('archive-movies', archiveMovieRequestQuota, syncMovieArchive);
-  if (!affiliateBudgetExhausted) await withAffiliateRequestScope('archive-series', archiveSeriesRequestQuota, syncSeriesArchive);
+  await withAffiliateRequestScope('archive-movies', archiveMovieRequestQuota, () => scanReverse('movie', fetchMoviePage, scanMovieArchive));
+  if (!affiliateBudgetExhausted) await withAffiliateRequestScope('archive-series', archiveSeriesRequestQuota, () => scanReverse('series', fetchSeriesPage, scanSeriesArchive));
   stats.archiveDiscovered = items.filter(item => !archiveIdsBefore.has(String(item.id))).map(({id, type, name}) => ({id, type, name}));
 } else if (effectiveSyncMode === 'ARTWORK') {
   // A dedicated bounded lane keeps expensive ffmpeg frame extraction away
@@ -1043,6 +1044,10 @@ if (effectiveSyncMode === 'ARCHIVE') {
       recentSeriesRequestQuota,
       syncRecentSeriesDiscovery,
     );
+  }
+
+  if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-existing-subtitles', 80000)) {
+    await withAffiliateRequestScope('existing-subtitles', 8, syncExistingSubtitles);
   }
 
   if (!affiliateBudgetExhausted && !runTimeBudgetReached('before-media-repair', 80000)) {
@@ -1150,6 +1155,38 @@ for (const [id, originalSeries] of originalSeriesById.entries()) {
 // mobile-operator/Filimo edition. They must remain two independent catalog
 // posts even when their name, year and IMDb id are identical.
 items = collapseInvalidatedOperatorDuplicates(splitOperatorCatalogVariants(items));
+
+// Only a reviewed provider removal may bypass the series-preservation guard.
+if (effectiveSyncMode === 'ARCHIVE') {
+  const reviews = await readJson(path.join(root, 'reviewed-upera-removals.json'), []);
+  for (const review of (Array.isArray(reviews) ? reviews : [])) {
+    if (runTimeBudgetReached('reviewed-removals', 55000)) break;
+    const item = items.find(i => i.id === review?.id && i.type === review.type && catalogVariant(i) === 'standard');
+    if (!item || review.providerTitleRemoved !== true || !removalReady(Date.parse(review.verifiedAt), Date.now())) continue;
+    const urls = storedUrls(item);
+    if (!Array.isArray(review.urls) || urls.length !== review.urls.length || !urls.every(u => review.urls.includes(u) && isDirectMediaUrl(u))) continue;
+    const endpoint = `${API_BASE}/ghost/get/${item.type}/${encodeURIComponent(baseCatalogId(item))}${item.type === 'series' ? '?affiliate=1' : ''}`;
+    try {
+      const detail = await fetch(endpoint, {redirect:'error', signal:AbortSignal.timeout(8000), headers:{Accept:'application/json'}});
+      if (![404,410].includes(detail.status) || !detail.headers.get('content-type')?.includes('application/json')) { await detail.body?.cancel(); continue; }
+      const error = await detail.json();
+      if (!/^(movie|series|title) (not found|removed)\.?$/i.test(String(error?.message || ''))) continue;
+      let dead = true;
+      for (const url of urls) {
+        if (runTimeBudgetReached('reviewed-url',55000)) { dead = false; break; }
+        const r = await fetch(url, {redirect:'error', signal:AbortSignal.timeout(8000), headers:{Range:'bytes=0-2047'}});
+        if (![404,410].includes(r.status)) { await r.body?.cancel(); dead = false; break; }
+        if (await inspectMedia(r) !== 'dead') { dead = false; break; }
+      }
+      if (dead) {
+        (stats.reviewedRemovalCandidates ??= []).push(item.id);
+        if (process.env.UPERA_APPLY_REVIEWED_REMOVALS === 'true') {
+          items = items.filter(i => i !== item); (stats.reviewedRemovals ??= []).push(item.id);
+        }
+      }
+    } catch { /* An ambiguous provider response never authorizes removal. */ }
+  }
+}
 
 items.sort((a, b) => {
   const aDate = String(
@@ -1379,19 +1416,45 @@ async function probeDirectMediaUrl(urlValue) {
       method: 'GET',
       redirect: 'follow',
       signal: controller.signal,
-      headers: /\.mp4(?:$|[?#])/i.test(url)
-        ? { Range: 'bytes=0-1', Accept: '*/*' }
-        : { Range: 'bytes=0-2047', Accept: '*/*' },
+      headers: { Range: 'bytes=0-2047', Accept: '*/*' },
     });
-    const status = Number(response.status || 0);
-    try { await response.body?.cancel(); } catch { /* no-op */ }
-    if (status === 200 || status === 206) return 'healthy';
-    if (status === 404 || status === 410) return 'dead';
-    return 'unknown';
+    try { return await inspectMedia(response); }
+    finally { await response.body?.cancel().catch(() => {}); }
   } catch {
     return 'unknown';
   } finally {
     clearTimeout(timeout);
+  }
+}
+
+// Rotate across stored provider IDs, including episodes of completed series.
+async function syncExistingSubtitles() {
+  for (const type of ['movie', 'series']) {
+    if (affiliateBudgetExhausted || affiliateScopeExhausted || runTimeBudgetReached('existing-subtitles', 70000)) break;
+    const candidates = items.filter(i => i?.type === type && catalogVariant(i) === 'standard' && baseCatalogId(i))
+      .flatMap(item => type === 'movie' ? [{item, group: null}] : (item.downloads || []).filter(g => g.sourceEpisodeId).map(group => ({item, group})))
+      .sort((a,b) => String(a.item.id).localeCompare(String(b.item.id)) || String(a.group?.sourceEpisodeId || '').localeCompare(String(b.group?.sourceEpisodeId || '')));
+    if (!candidates.length) continue;
+    const key = `existingSubtitleOffset_${type}`;
+    const index = nonNegativeInt(state[key], 0) % candidates.length;
+    const {item, group} = candidates[index];
+    try {
+      const response = await fetchAffiliateLinks(group?.sourceEpisodeId || baseCatalogId(item), group ? 'episode' : 'movie');
+      if (response.skipped) continue;
+      const media = parseMediaLinks(response.links, providerPrimaryMediaLanguage(item));
+      for (const section of media.downloads || []) {
+        const files = (section.files || []).filter(f => isDirectMediaUrl(f.url));
+        if (!files.length) continue;
+        item.downloads ||= [];
+        let dest = group || item.downloads.find(g => g.id === section.id);
+        if (!dest) item.downloads.push(dest = {...section, files: []});
+        appendMediaVersions(dest, files, group ? `${group.id}-` : '');
+      }
+    } catch (error) {
+      if (isRunTimeBudgetError(error)) throw error;
+      rememberError(`existing-subtitles-${type}-${item.id}`, error);
+    }
+    state[key] = (index + 1) % candidates.length;
   }
 }
 
@@ -1479,11 +1542,7 @@ async function syncMovieMediaHealthAudit() {
       }
     }
 
-    const spanMs = Date.now() - (Date.parse(failure.firstAt) || Date.now());
-    if (failure.count >= 3 && spanMs >= 20 * 60 * 60 * 1000) {
-      target.mediaAuditStatus = 'confirmed-unavailable';
-      stats.mediaRepairHiddenConfirmed += 1;
-    }
+    // A sampled URL cannot establish that the entire title is gone.
   }
 
   state.mediaHealthOffset = (start + Math.max(1, stats.mediaHealthChecked)) % Math.max(1, candidates.length);
@@ -2925,7 +2984,24 @@ async function syncOperatorMovieArchive() {
   }
 }
 
-async function syncMovieArchive() {
+async function scanReverse(kind, fetchPage, scan) {
+  const cursor = (state.reverseArchiveV1 ??= {})[kind] ??= {};
+  const pageKey = `${kind}Page`, offsetKey = `${kind}Offset`;
+  try {
+    if (!cursor.end || ((cursor[pageKey] || 1) === 1 && !cursor[offsetKey])) {
+      const head = await fetchPage(1);
+      cursor.end = positiveInt(head.lastPage, 1);
+    }
+    await scan(cursor, async step => {
+      const page = Math.max(1, cursor.end + 1 - step);
+      const result = await fetchPage(page);
+      return { ...result, items: [...result.items].reverse(), lastPage: cursor.end };
+    });
+  } catch (error) { rememberError(`archive-${kind}-pagination`, error); }
+}
+
+function syncMovieArchive() { return scanMovieArchive(state, fetchMoviePage); }
+async function scanMovieArchive(state, fetchMoviePage) {
   let completedPages = 0;
 
   while (
@@ -3012,7 +3088,8 @@ async function syncMovieArchive() {
   }
 }
 
-async function syncSeriesArchive() {
+function syncSeriesArchive() { return scanSeriesArchive(state, fetchSeriesPage); }
+async function scanSeriesArchive(state, fetchSeriesPage) {
   let completedPages = 0;
   let visitedTitles = 0;
 
@@ -4433,12 +4510,10 @@ async function fetchAffiliateLinks(
   // free stream/player, do not spend four companion public requests on the same
   // episode; preserve that budget for first/middle/latest probes in other titles.
   const panelAnsweredIranianEpisode = Boolean(
-    iranianEpisodeProbe && panelToken && panelLinks.length > 0
+    iranianEpisodeProbe && panelToken && panelLinks.length > 0 &&
+    parseMediaLinks(panelLinks).downloads.some(section => section.files?.length > 0)
   );
-  // show_links is the authenticated owner source and returns purchase plus free
-  // rows together (verified against a known free episode). A non-empty panel
-  // answer is therefore complete: direct media is accepted below and shop rows
-  // are rejected below. Use the public endpoint only when the panel has no row.
+  // A shop-only panel reply is not evidence that free affiliate media is absent.
   const variantsToFetch = panelAnsweredIranianEpisode ? [] : publicRequestVariants;
   for (let index = 0; index < variantsToFetch.length; index += 1) {
     if (index > 0) {

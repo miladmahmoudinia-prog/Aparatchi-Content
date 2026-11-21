@@ -1,349 +1,38 @@
-name: Sync Upera Catalog
-# Finish the remaining exhaustive eight-point Iranian episode probes.
-# bounded Iranian lane contract v7 - exclude unlabelled foreign original-language media
-
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/sync-upera.yml'
-  schedule:
-    - cron: '34 */2 * * *'
-  workflow_dispatch:
-    inputs:
-      movie_pages:
-        description: 'تعداد صفحات فیلم برای بررسی محتوای تازه'
-        required: false
-        default: '12'
-      series_pages:
-        description: 'تعداد صفحات سریال برای بررسی محتوای تازه'
-        required: false
-        default: '12'
-      new_hours:
-        description: 'بررسی تغییرات چند ساعت اخیر'
-        required: false
-        default: '24'
-
+name: Isolated catalog preview
+on: workflow_dispatch
 permissions:
-  contents: write
-
-concurrency:
-  # Every workflow that writes catalog files must share this lock. Keeping push
-  # runs in a separate group allowed TMDB enrichment and sync to rebase the
-  # same generated catalog simultaneously, producing hundreds of conflicts.
-  group: aparatchi-content-write-lock
-  cancel-in-progress: false
-
+  contents: read
 jobs:
-  sync:
+  preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 56
+    timeout-minutes: 25
     steps:
-      - name: Checkout content repository
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
-          ref: main
-          fetch-depth: 60
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+          persist-credentials: false
+      - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-
-      - name: Rebuild compact client catalog before regression tests
-        run: node scripts/rebuild-client-catalog.mjs
-
-      - name: Validate sync entrypoints
-        run: |
-          node --check scripts/sync-upera.mjs
-          node --check scripts/client-catalog.mjs
-          node --check scripts/rebuild-client-catalog.mjs
-
-      - name: Run sync regression tests (advisory)
-        if: github.event_name != 'push'
-        id: regression_tests
-        continue-on-error: true
-        run: node --test scripts/tests/*.test.mjs
-
-      - name: Report regression warning
-        if: steps.regression_tests.outcome == 'failure'
-        run: echo "::warning::Regression suite has failures; scheduled sync will continue. Syntax, rebuild and push failures are still fatal."
-
-      - name: Resolve sync settings
-        shell: bash
-        run: |
-          MOVIE_PAGES='${{ github.event.inputs.movie_pages }}'
-          SERIES_PAGES='${{ github.event.inputs.series_pages }}'
-          NEW_HOURS='${{ github.event.inputs.new_hours }}'
-          echo "MOVIE_PAGES_PER_RUN=${MOVIE_PAGES:-12}" >> "$GITHUB_ENV"
-          echo "SERIES_PAGES_PER_RUN=${SERIES_PAGES:-12}" >> "$GITHUB_ENV"
-          echo "NEW_TITLES_HOURS=${NEW_HOURS:-24}" >> "$GITHUB_ENV"
-
-      - name: Install ffmpeg for episode artwork
-        id: install_ffmpeg
-        continue-on-error: true
-        run: |
-          if ! command -v ffmpeg >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install -y ffmpeg
-          fi
-
-      - name: Discover new movies and series first
-        if: github.event_name != 'push'
-        id: normal_sync
-        continue-on-error: true
-        timeout-minutes: 15
+          node-version: 22
+      - run: node --test scripts/tests/existing-audit.test.mjs scripts/tests/existing-subtitles.test.mjs scripts/tests/reviewed-media.test.mjs
+      - name: Sample catalog in temporary checkout only
         env:
           UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
           UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
           UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
-          UPERA_SYNC_MODE: 'NORMAL'
-          UPERA_SEPARATE_ARCHIVE: 'true'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '12'
-          APARATCHI_CHECKPOINT_RESERVE_MS: '45000'
-          APARATCHI_REQUEST_TIMEOUT_MS: '12000'
-          APARATCHI_REQUEST_MAX_ATTEMPTS: '2'
-          UPERA_MAX_REQUESTS_PER_RUN: '300'
-          UPERA_REQUEST_DELAY_MS: '520'
-          UPERA_AIRING_SERIES_TITLES_PER_RUN: '120'
-          UPERA_SERIES_TITLES_PER_RUN: '80'
-          UPERA_INCREMENTAL_LIMIT: '160'
-          UPERA_RECENT_MOVIE_PAGES_PER_RUN: '12'
-          UPERA_RECENT_SERIES_PAGES_PER_RUN: '12'
-          UPERA_RECENT_MOVIE_TITLES_PER_RUN: '120'
-          UPERA_RECENT_SERIES_TITLES_PER_RUN: '6'
-          UPERA_RECENT_MOVIE_REQUEST_QUOTA: '110'
-          UPERA_RECENT_SERIES_REQUEST_QUOTA: '96'
-          UPERA_RECENT_SERIES_EPISODES_PER_TITLE: '36'
-          UPERA_INCREMENTAL_REQUEST_QUOTA: '40'
-          UPERA_MEDIA_REPAIR_REQUEST_QUOTA: '100'
-          UPERA_AIRING_REQUEST_QUOTA: '48'
-          UPERA_ARCHIVE_MOVIE_REQUEST_QUOTA: '32'
-          UPERA_ARCHIVE_SERIES_REQUEST_QUOTA: '12'
-          UPERA_IRANIAN_SERIES_REQUEST_QUOTA: '12'
-          UPERA_OPERATOR_MOVIE_REQUEST_QUOTA: '24'
-          UPERA_OPERATOR_SERIES_REQUEST_QUOTA: '12'
-          UPERA_IRANIAN_SERIES_PAGES_PER_RUN: '2'
-          UPERA_IRANIAN_SERIES_TITLES_PER_RUN: '1'
-          UPERA_OPERATOR_SERIES_PAGES_PER_RUN: '3'
-          UPERA_OPERATOR_SERIES_TITLES_PER_RUN: '3'
-          UPERA_OPERATOR_MOVIE_PAGES_PER_RUN: '3'
-          UPERA_OPERATOR_MOVIE_TITLES_PER_RUN: '40'
-          UPERA_PRIORITY_EPISODES_PER_SERIES: '24'
-          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
-        run: node scripts/sync-upera.mjs
-
-      - name: Commit new-content progress
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -f .git/index.lock
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No new-content changes."
-          else
-            git commit -m "chore: discover new movies and series"
-            PUSHED=0
-            for attempt in 1 2 3 4 5; do
-              if git pull --rebase origin main && git push origin HEAD:main; then
-                PUSHED=1
-                break
-              fi
-              git rebase --abort >/dev/null 2>&1 || true
-              rm -f .git/index.lock
-              sleep $((attempt * 2))
-            done
-            [ "$PUSHED" -eq 1 ] || { echo "::error::Could not push new-content progress."; exit 1; }
-          fi
-
-      - name: Purge broken Iranian queue residues
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -euo pipefail
-          node scripts/remove-broken-ahl-iran.mjs
-          node scripts/rebuild-client-catalog.mjs
-
-      - name: Complete one Iranian series sequentially
-        id: iranian_sync
-        timeout-minutes: 26
-        continue-on-error: true
-        env:
-          UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
-          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
-          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
-          UPERA_SYNC_MODE: 'IRANIAN'
+          UPERA_SYNC_MODE: IRANIAN
           UPERA_OPERATOR_DISCOVERY_ENABLED: 'false'
-          APARATCHI_RUN_TIME_LIMIT_MINUTES: '10'
-          APARATCHI_CHECKPOINT_RESERVE_MS: '45000'
-          # The Iranian archive contains many dead affiliate ids. A dead title
-          # must not starve every publishable title behind it in this run.
-          APARATCHI_REQUEST_TIMEOUT_MS: '6000'
-          APARATCHI_REQUEST_MAX_ATTEMPTS: '1'
-          UPERA_MAX_REQUESTS_PER_RUN: '300'
-          UPERA_REQUEST_DELAY_MS: '520'
-          UPERA_IRANIAN_SERIES_REQUEST_QUOTA: '240'
-          APARATCHI_IRANIAN_ARCHIVE_PASSES: ${{ github.event_name == 'push' && '1' || '24' }}
-          UPERA_IRANIAN_SERIES_PAGES_PER_RUN: ${{ github.event_name == 'push' && '50' || '5' }}
-          UPERA_IRANIAN_SERIES_TITLES_PER_RUN: '1'
-          # Probe a representative recent window first. Viable partial
-          # archives stay selected and continue next pass; dead titles are
-          # rejected quickly so the cursor can reach a publishable series.
-          UPERA_PRIORITY_EPISODES_PER_SERIES: ${{ github.event_name == 'push' && '8' || '8' }}
-          UPERA_MAX_EPISODE_PAGES: '80'
-          APARATCHI_SYNC_MAX_MIRRORED_IMAGES: '0'
-        shell: bash
+          UPERA_APPLY_REVIEWED_REMOVALS: 'false'
+          UPERA_IRANIAN_SERIES_PAGES_PER_RUN: '2'
+          UPERA_IRANIAN_SERIES_TITLES_PER_RUN: '2'
+          UPERA_MAX_REQUESTS_PER_RUN: '24'
         run: |
-          set -euo pipefail
-
-          count_published() {
-            node -e 'const fs=require("fs"); const c=JSON.parse(fs.readFileSync("catalog.json","utf8")); process.stdout.write(String((c.items||[]).filter(i=>i?.type==="series"&&i?.categoryKeys?.includes("iranian-series")&&i?.publicationStatus==="published").length));'
-          }
-
-          START_PUBLISHED="$(count_published)"
-          TARGET_PUBLISHED="$((START_PUBLISHED + 2))"
-          echo "Published Iranian series before: ${START_PUBLISHED}; target: ${TARGET_PUBLISHED}"
-
-          RUNTIME_SYNC="scripts/.sync-upera-iranian-runtime.mjs"
-          cp scripts/sync-upera.mjs "$RUNTIME_SYNC"
-          trap 'rm -f "$RUNTIME_SYNC"' EXIT
-
-          node - "$RUNTIME_SYNC" <<'NODE'
-          const fs = require('fs');
-          const file = process.argv[2];
-          let source = fs.readFileSync(file, 'utf8');
-
-          const recentNeedle = '      await syncRecentIranianSeriesDiscovery();';
-          const recentReplacement = "      if (process.env.APARATCHI_SKIP_IRANIAN_RECENT !== 'true') {\n        await syncRecentIranianSeriesDiscovery();\n      }";
-          if (!source.includes(recentNeedle)) throw new Error('Iranian recent-discovery hook not found');
-          source = source.replace(recentNeedle, recentReplacement);
-
-          const functionStart = source.indexOf('async function fetchIranianSeriesPage');
-          const variantsStart = source.indexOf('  const variants = [', functionStart);
-          const variantsEnd = source.indexOf('  ];', variantsStart);
-          if (functionStart < 0 || variantsStart < 0 || variantsEnd < 0) {
-            throw new Error('Iranian source filter block not found');
-          }
-          const replacement = "  const variants = [\n    { free: 1, persian: '', country: 'IR', traffic: 1, noFreeFallback: true },\n    { free: '', persian: '', country: 'IR', traffic: 1, noFreeFallback: true },\n  ];";
-          source = source.slice(0, variantsStart) + replacement + source.slice(variantsEnd + 4);
-          fs.writeFileSync(file, source);
-          NODE
-
-          node --check "$RUNTIME_SYNC"
-          export APARATCHI_SKIP_IRANIAN_RECENT='true'
-          export APARATCHI_RUN_DEADLINE_AT_MS="$(( $(date +%s) * 1000 + 24 * 60 * 1000 ))"
-
-          for pass in $(seq 1 "${APARATCHI_IRANIAN_ARCHIVE_PASSES:-24}"); do
-            if [ "$(( $(date +%s) * 1000 + 90000 ))" -ge "$APARATCHI_RUN_DEADLINE_AT_MS" ]; then
-              echo "Shared Iranian deadline reached; keep the saved cursor for the next run."
-              break
-            fi
-            echo "Iranian archive-only pass ${pass}/24"
-            node "$RUNTIME_SYNC"
-
-            CURRENT_PUBLISHED="$(count_published)"
-            echo "Published Iranian series now: ${CURRENT_PUBLISHED} (started ${START_PUBLISHED})"
-            if [ "$CURRENT_PUBLISHED" -ge "$TARGET_PUBLISHED" ]; then
-              echo "Published two Iranian archive series in this sync run."
-              break
-            fi
-
-            if [ ! -f sync-report-iranian.json ]; then
-              echo "Iranian report missing; stop safely."
-              break
-            fi
-
-            SHOULD_STOP="$(node -e 'const fs=require("fs"); const r=JSON.parse(fs.readFileSync("sync-report-iranian.json","utf8")); const d=Array.isArray(r.iranianSeriesDiagnostics)?r.iranianSeriesDiagnostics:[]; const last=d[d.length-1]||{}; process.stdout.write((last.retryLater && last.reason!=="request-budget" && !r.stoppedByTimeBudget)?"yes":"no");')"
-            if [ "$SHOULD_STOP" = "yes" ]; then
-              echo "Transient Iranian failure; preserve this title for the next run."
-              break
-            fi
-          done
-
-          rm -f "$RUNTIME_SYNC"
-          trap - EXIT
-          node scripts/rebuild-client-catalog.mjs
-          echo "Published Iranian series after: $(count_published)"
-
-      - name: Commit Iranian-series progress
-        id: commit_iranian
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          pkill -f 'scripts/.sync-upera-iranian-runtime.mjs' >/dev/null 2>&1 || true
-          sleep 1
-          rm -f .git/index.lock scripts/.sync-upera-iranian-runtime.mjs
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No Iranian-series changes."
-          else
-            git commit -m "chore: advance Iranian series sequentially"
-            PUSHED=0
-            for attempt in 1 2 3 4 5; do
-              pkill -f 'scripts/.sync-upera-iranian-runtime.mjs' >/dev/null 2>&1 || true
-              rm -f .git/index.lock scripts/.sync-upera-iranian-runtime.mjs
-              git add -A
-              if ! git diff --cached --quiet; then
-                git commit --amend --no-edit
-              fi
-              if git pull --rebase origin main && git push origin HEAD:main; then
-                PUSHED=1
-                break
-              fi
-              git rebase --abort >/dev/null 2>&1 || true
-              rm -f .git/index.lock
-              sleep $((attempt * 2))
-            done
-            [ "$PUSHED" -eq 1 ] || { echo "::error::Could not push Iranian-series progress."; exit 1; }
-          fi
-
-      - name: Report sync status
-        if: always()
-        continue-on-error: true
-        shell: bash
-        run: |
-          node - <<'NODE'
-          const fs = require('fs');
-          const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
-          const iranian = (catalog.items || []).filter((item) =>
-            item?.type === 'series' &&
-            item?.categoryKeys?.includes('iranian-series') &&
-            item?.publicationStatus === 'published'
-          );
-          const report = fs.existsSync('sync-report-iranian.json')
-            ? JSON.parse(fs.readFileSync('sync-report-iranian.json', 'utf8'))
-            : {};
-          const diagnostics = Array.isArray(report.iranianSeriesDiagnostics) ? report.iranianSeriesDiagnostics : [];
-          console.log(JSON.stringify({
-            publishedIranianSeries: iranian.length,
-            iranianRequests: Number(report?.affiliateRequestScopes?.['iranian-series']?.used || 0),
-            lastIranianDiagnostic: diagnostics.at(-1) || null,
-            normalSyncOutcome: '${{ steps.normal_sync.outcome }}',
-            iranianSyncOutcome: '${{ steps.iranian_sync.outcome }}',
-            regressionOutcome: '${{ steps.regression_tests.outcome }}',
-          }, null, 2));
-          NODE
-
-      - name: Report failed validation or sync
-        if: always()
-        env:
-          REGRESSION_OUTCOME: ${{ steps.regression_tests.outcome }}
-          NORMAL_OUTCOME: ${{ steps.normal_sync.outcome }}
-          IRANIAN_OUTCOME: ${{ steps.iranian_sync.outcome }}
-          FFMPEG_OUTCOME: ${{ steps.install_ffmpeg.outcome }}
-        run: |
-          if [ "$REGRESSION_OUTCOME" = failure ] || [ "$NORMAL_OUTCOME" = failure ] || [ "$IRANIAN_OUTCOME" = failure ] || [ "$FFMPEG_OUTCOME" = failure ]; then
-            echo "::error::A sync or regression step failed; inspect the job log and sync reports."
-            exit 1
-          fi
-
-# Revalidate series publication after episode identity and URL extraction fixes.
-
-# Rebuild bootstrap artifacts preserving source-provided media sizes.
+          cp catalog.json "$RUNNER_TEMP/before.json"
+          node scripts/sync-upera.mjs > "$RUNNER_TEMP/private-sync.log" 2>&1
+          python - <<'PY'
+          import os,json
+          def items(path):
+              data=json.load(open(path)); rows=data if isinstance(data,list) else data['items']; return {str(x['id']):x for x in rows}
+          a=items(os.environ['RUNNER_TEMP']+'/before.json'); b=items('catalog.json'); added=b.keys()-a.keys(); removed=a.keys()-b.keys(); changed=[k for k in a.keys()&b.keys() if a[k]!=b[k]]
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out: print(f'Sample only: added={len(added)}, changed={len(changed)}, removed={len(removed)}; no publication.',file=out)
+          assert not removed
+          PY
