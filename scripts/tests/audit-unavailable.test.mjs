@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {audit,confirmed} from '../audit-unavailable.mjs';
+const id='11111111-2222-3333-4444-555555555555', movie={id,type:'movie'},url='https://cdn.upera.tv/media/x';
+function reply(j,status=200){return Response.json(j,{status})}
+async function probe(item,fetcher){const save=global.fetch;global.fetch=fetcher;try{return await audit(item,Date.now()+10000)}finally{global.fetch=save}}
+test('one surviving episode protects series',async()=>{let calls=0;assert.equal(await probe({id,type:'series',downloads:[{files:[{url},{url:url+'2'}]}]},async()=>++calls===1?reply({},410):new Response('video')),false);assert.equal(calls,2)});
+test('provider explicitly removed title; ambiguous errors never authorize',async()=>{assert.equal(await probe(movie,()=>reply({message:'Movie not found'},404)),true);await assert.rejects(probe(movie,()=>reply({},503)));assert.equal(await probe({...movie,streamUrl:url},()=>reply({},403)),false)});
+test('all sources explicitly empty vs fresh replacement',async()=>{for(const k of ['UPERA_PANEL_TOKEN','UPERA_REF_ID','UPERA_TOKEN'])process.env[k]='test';for(const replacement of [false,true]){let variants=0;const result=await probe(movie,async u=>{u=String(u);if(u===url)return new Response('mp4');if(u.includes('/get/movie/'))return reply({data:{movie:{id}}});if(u.includes('getaffiliatelinks'))variants++;return reply({data:{links:replacement&&variants===4?[{url}]:[]}})});assert.equal(variants,4);assert.equal(result,!replacement)}});
+test('time and unchanged link signature both required',()=>{const p={key:'x',first:100};assert.equal(confirmed(p,'x',1000),false);assert.equal(confirmed(p,'y',86400100),false);assert.equal(confirmed(p,'x',86400100),true)});

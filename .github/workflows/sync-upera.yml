@@ -38,7 +38,7 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 56
+    timeout-minutes: 62
     steps:
       - name: Checkout content repository
         uses: actions/checkout@v6
@@ -302,6 +302,23 @@ jobs:
               sleep $((attempt * 2))
             done
             [ "$PUSHED" -eq 1 ] || { echo "::error::Could not push Iranian-series progress."; exit 1; }
+          fi
+
+      - name: Audit unavailable titles after other catalog writers finish
+        if: success() && github.event_name == 'schedule'
+        env:
+          UPERA_REF_ID: ${{ secrets.UPERA_REF_ID }}
+          UPERA_TOKEN: ${{ secrets.UPERA_TOKEN }}
+          UPERA_PANEL_TOKEN: ${{ secrets.UPERA_PANEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          node --test scripts/tests/audit-unavailable.test.mjs
+          node scripts/audit-unavailable.mjs
+          if ! git diff --quiet -- catalog.json; then node scripts/rebuild-client-catalog.mjs; fi
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore: checkpoint catalog availability audit'
+            git push origin HEAD:main
           fi
 
       - name: Report sync status
