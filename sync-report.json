@@ -1,15 +1,15 @@
 {
-  "startedAt": "2026-11-23T00:06:48.751Z",
-  "runTimeLimitMinutes": 10,
-  "runDeadlineAt": "2026-11-23T00:16:46.894Z",
+  "startedAt": "2026-11-23T01:56:34.249Z",
+  "runTimeLimitMinutes": 12,
+  "runDeadlineAt": "2026-11-23T02:08:32.542Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 583689,
+  "remainingRunMsAtFinish": 435298,
   "imageMirroringSkipped": true,
   "originalCount": 8604,
-  "finalCount": 8604,
-  "requestedSyncMode": "IRANIAN",
-  "effectiveSyncMode": "IRANIAN",
+  "finalCount": 8610,
+  "requestedSyncMode": "ARCHIVE",
+  "effectiveSyncMode": "ARCHIVE",
   "backfillQueueTotal": 264,
   "backfillBacklogRemaining": 264,
   "backfillBlockedTotal": 11,
@@ -41,30 +41,35 @@
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
   "affiliateRequestScopes": {
-    "iranian-series": {
-      "limit": 240,
-      "used": 1,
+    "archive-movies": {
+      "limit": 70,
+      "used": 70,
+      "exhausted": true
+    },
+    "archive-series": {
+      "limit": 90,
+      "used": 10,
       "exhausted": false
     }
   },
-  "skippedByScopedBudget": 0,
-  "moviePagesProcessed": 0,
-  "movieTitlesProcessed": 0,
+  "skippedByScopedBudget": 1,
+  "moviePagesProcessed": 2,
+  "movieTitlesProcessed": 70,
   "seriesPagesProcessed": 0,
-  "seriesTitlesProcessed": 0,
+  "seriesTitlesProcessed": 1,
   "airingSeriesCandidates": 0,
   "airingSeriesChecked": 0,
   "airingSeriesUpdated": 0,
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 1,
+  "seriesHiddenUntilComplete": 0,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 1,
-  "episodesProcessed": 1,
-  "iranianSeriesPagesProcessed": 5,
+  "iranianSeriesProcessed": 0,
+  "episodesProcessed": 10,
+  "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
@@ -80,101 +85,17 @@
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
-  "iranianSeriesDiagnostics": [
-    {
-      "id": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "title": "كله گنده ها",
-      "result": "no-progress-existing",
-      "reason": "added-or-updated",
-      "addedEpisodes": 0,
-      "remainingEpisodeCount": 4,
-      "retryLater": false,
-      "newlyPublished": false,
-      "discovery": "existing-incomplete-first"
-    }
-  ],
-  "iranianLinkProbeDiagnostics": [
-    {
-      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "seriesTitle": "كله گنده ها",
-      "episodeId": "b49ef880-74a5-11e9-822d-97cb65c65181",
-      "seasonNumber": 1,
-      "episodeNumber": 2,
-      "recordCount": 8,
-      "directCount": 5,
-      "portalCount": 0,
-      "hosts": [
-        "upera.shop",
-        "aparatchi.upera.tv",
-        "plus.upera.tv"
-      ],
-      "tiers": {
-        "paid": 1,
-        "free": 7
-      },
-      "typeCounts": {
-        "link": 1,
-        "traffic": 5,
-        "player": 1,
-        "vod": 1
-      },
-      "amounts": [
-        "2,000",
-        "0"
-      ],
-      "titleSamples": [
-        "همه کیفیت‌ها",
-        "کیفیت 480",
-        "کیفیت 720",
-        "کیفیت 1080",
-        "کیفیت HQ_1080",
-        "HLS",
-        "لینک پلیر (لینک پخش آنلاین و یا جهت IFRAME)",
-        "لینک آپرا پلاس (فروش اشتراکی)"
-      ],
-      "ussdKinds": [],
-      "recordKeys": [
-        "type",
-        "link",
-        "size",
-        "ussd_link",
-        "title",
-        "amount",
-        "_group_hint",
-        "_panel_verified",
-        "_traffic_oo"
-      ],
-      "mediaGroupCount": 1,
-      "mediaFileCount": 5,
-      "hasStreamUrl": true
-    }
-  ],
+  "iranianSeriesDiagnostics": [],
+  "iranianLinkProbeDiagnostics": [],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
-      "title": "كله گنده ها",
-      "source": "fast-backfill",
-      "discoveredEpisodeCount": 5,
-      "catalogEpisodeCount": 1,
-      "missing": [
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 1
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 3
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 4
-        },
-        {
-          "seasonNumber": 1,
-          "episodeNumber": 5
-        }
-      ],
+      "seriesId": "a67e6bc0-61cf-11ed-a32b-992d72e4910c",
+      "title": "تایتان‌های نوجوان",
+      "source": "backfill",
+      "discoveredEpisodeCount": 64,
+      "catalogEpisodeCount": 64,
+      "missing": [],
       "rejectedEpisodes": []
     }
   ],
@@ -1158,16 +1079,16 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 5,
+  "episodesDiscovered": 64,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
-  "moviesAddedOrUpdated": 0,
+  "moviesAddedOrUpdated": 70,
   "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 1,
+  "affiliateRequests": 80,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -1202,17 +1123,40 @@
   "mediaHealthUnknown": 0,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [
+  "errors": [],
+  "errorsTruncated": 0,
+  "apiRequests": 165,
+  "archiveDiscovered": [
     {
-      "scope": "iranian-panel-series-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/get/series/season/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?page=1"
+      "id": "9226def0-728e-11f0-9d50-8b24eecf6e19",
+      "type": "movie",
+      "name": "Sneaks"
     },
     {
-      "scope": "iranian-incomplete-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?affiliate=1"
+      "id": "aa3358d0-7289-11f0-8000-09e037b15f26",
+      "type": "movie",
+      "name": "How to Train Your Dragon"
+    },
+    {
+      "id": "967d6a60-7289-11f0-867f-05aebf0f4d88",
+      "type": "movie",
+      "name": "Lilo & Stitch"
+    },
+    {
+      "id": "2a0d35b0-5beb-11f0-a796-65b7ceacc70f",
+      "type": "movie",
+      "name": "M3GAN 2.0"
+    },
+    {
+      "id": "97d4ec10-6c4b-11f0-af8d-7b50e90f0e2c",
+      "type": "movie",
+      "name": "Mura"
+    },
+    {
+      "id": "94046680-f039-11ef-82d3-abc7e0fd8771",
+      "type": "movie",
+      "name": "Love Me"
     }
   ],
-  "errorsTruncated": 0,
-  "apiRequests": 14,
-  "finishedAt": "2026-11-23T00:07:03.205Z"
+  "finishedAt": "2026-11-23T02:01:17.244Z"
 }
