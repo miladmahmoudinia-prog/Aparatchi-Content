@@ -1,15 +1,15 @@
 {
-  "startedAt": "2026-11-23T13:34:24.205Z",
-  "runTimeLimitMinutes": 12,
-  "runDeadlineAt": "2026-11-23T13:46:22.593Z",
+  "startedAt": "2026-11-23T20:48:28.962Z",
+  "runTimeLimitMinutes": 10,
+  "runDeadlineAt": "2026-11-23T20:58:26.814Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 435690,
+  "remainingRunMsAtFinish": 584698,
   "imageMirroringSkipped": true,
   "originalCount": 8604,
-  "finalCount": 8606,
-  "requestedSyncMode": "ARCHIVE",
-  "effectiveSyncMode": "ARCHIVE",
+  "finalCount": 8604,
+  "requestedSyncMode": "IRANIAN",
+  "effectiveSyncMode": "IRANIAN",
   "backfillQueueTotal": 264,
   "backfillBacklogRemaining": 264,
   "backfillBlockedTotal": 11,
@@ -41,35 +41,30 @@
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
   "affiliateRequestScopes": {
-    "archive-movies": {
-      "limit": 70,
-      "used": 70,
-      "exhausted": true
-    },
-    "archive-series": {
-      "limit": 90,
-      "used": 10,
+    "iranian-series": {
+      "limit": 240,
+      "used": 1,
       "exhausted": false
     }
   },
-  "skippedByScopedBudget": 1,
-  "moviePagesProcessed": 2,
-  "movieTitlesProcessed": 70,
+  "skippedByScopedBudget": 0,
+  "moviePagesProcessed": 0,
+  "movieTitlesProcessed": 0,
   "seriesPagesProcessed": 0,
-  "seriesTitlesProcessed": 1,
+  "seriesTitlesProcessed": 0,
   "airingSeriesCandidates": 0,
   "airingSeriesChecked": 0,
   "airingSeriesUpdated": 0,
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 0,
+  "seriesHiddenUntilComplete": 1,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
-  "episodesProcessed": 10,
-  "iranianSeriesPagesProcessed": 0,
+  "iranianSeriesProcessed": 1,
+  "episodesProcessed": 1,
+  "iranianSeriesPagesProcessed": 5,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
@@ -85,17 +80,101 @@
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
   "duplicateCatalogItemsMerged": 0,
-  "iranianSeriesDiagnostics": [],
-  "iranianLinkProbeDiagnostics": [],
+  "iranianSeriesDiagnostics": [
+    {
+      "id": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
+      "title": "كله گنده ها",
+      "result": "no-progress-existing",
+      "reason": "added-or-updated",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 4,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "existing-incomplete-first"
+    }
+  ],
+  "iranianLinkProbeDiagnostics": [
+    {
+      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
+      "seriesTitle": "كله گنده ها",
+      "episodeId": "b49ef880-74a5-11e9-822d-97cb65c65181",
+      "seasonNumber": 1,
+      "episodeNumber": 2,
+      "recordCount": 8,
+      "directCount": 5,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop",
+        "aparatchi.upera.tv",
+        "plus.upera.tv"
+      ],
+      "tiers": {
+        "paid": 1,
+        "free": 7
+      },
+      "typeCounts": {
+        "link": 1,
+        "traffic": 5,
+        "player": 1,
+        "vod": 1
+      },
+      "amounts": [
+        "2,000",
+        "0"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها",
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "HLS",
+        "لینک پلیر (لینک پخش آنلاین و یا جهت IFRAME)",
+        "لینک آپرا پلاس (فروش اشتراکی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 1,
+      "mediaFileCount": 5,
+      "hasStreamUrl": true
+    }
+  ],
   "operatorDiagnostics": [],
   "seriesEpisodeDiagnostics": [
     {
-      "seriesId": "a67e6bc0-61cf-11ed-a32b-992d72e4910c",
-      "title": "تایتان‌های نوجوان",
-      "source": "backfill",
-      "discoveredEpisodeCount": 64,
-      "catalogEpisodeCount": 64,
-      "missing": [],
+      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
+      "title": "كله گنده ها",
+      "source": "fast-backfill",
+      "discoveredEpisodeCount": 5,
+      "catalogEpisodeCount": 1,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 5
+        }
+      ],
       "rejectedEpisodes": []
     }
   ],
@@ -1079,16 +1158,16 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 64,
+  "episodesDiscovered": 5,
   "episodeGroupsAdded": 0,
   "episodeArtworkCandidates": 0,
   "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
-  "moviesAddedOrUpdated": 70,
+  "moviesAddedOrUpdated": 0,
   "seriesAddedOrUpdated": 1,
-  "affiliateRequests": 80,
+  "affiliateRequests": 1,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -1123,20 +1202,17 @@
   "mediaHealthUnknown": 0,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [],
-  "errorsTruncated": 0,
-  "apiRequests": 165,
-  "archiveDiscovered": [
+  "errors": [
     {
-      "id": "20980620-2a7a-11f0-bde7-993863805606",
-      "type": "movie",
-      "name": "Warfare"
+      "scope": "iranian-panel-series-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/get/series/season/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?page=1"
     },
     {
-      "id": "6b4f8fc0-3bba-11f0-9f83-8f0b717a20a6",
-      "type": "movie",
-      "name": "Honor Student"
+      "scope": "iranian-incomplete-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?affiliate=1"
     }
   ],
-  "finishedAt": "2026-11-23T13:39:06.902Z"
+  "errorsTruncated": 0,
+  "apiRequests": 14,
+  "finishedAt": "2026-11-23T20:48:42.116Z"
 }
