@@ -1,15 +1,15 @@
 {
-  "startedAt": "2026-11-24T10:28:28.098Z",
-  "runTimeLimitMinutes": 30,
-  "runDeadlineAt": "2026-11-24T10:58:25.953Z",
+  "startedAt": "2026-11-24T11:34:02.260Z",
+  "runTimeLimitMinutes": 12,
+  "runDeadlineAt": "2026-11-24T11:46:00.859Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 1755283,
+  "remainingRunMsAtFinish": 415315,
   "imageMirroringSkipped": true,
   "originalCount": 8604,
-  "finalCount": 8604,
-  "requestedSyncMode": "ARTWORK",
-  "effectiveSyncMode": "ARTWORK",
+  "finalCount": 8608,
+  "requestedSyncMode": "ARCHIVE",
+  "effectiveSyncMode": "ARCHIVE",
   "backfillQueueTotal": 264,
   "backfillBacklogRemaining": 264,
   "backfillBlockedTotal": 11,
@@ -40,12 +40,23 @@
   "recentSeriesNewCandidates": 0,
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
-  "affiliateRequestScopes": {},
-  "skippedByScopedBudget": 0,
-  "moviePagesProcessed": 0,
-  "movieTitlesProcessed": 0,
+  "affiliateRequestScopes": {
+    "archive-movies": {
+      "limit": 70,
+      "used": 70,
+      "exhausted": true
+    },
+    "archive-series": {
+      "limit": 90,
+      "used": 16,
+      "exhausted": false
+    }
+  },
+  "skippedByScopedBudget": 1,
+  "moviePagesProcessed": 2,
+  "movieTitlesProcessed": 70,
   "seriesPagesProcessed": 0,
-  "seriesTitlesProcessed": 0,
+  "seriesTitlesProcessed": 2,
   "airingSeriesCandidates": 0,
   "airingSeriesChecked": 0,
   "airingSeriesUpdated": 0,
@@ -57,7 +68,7 @@
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
   "iranianSeriesProcessed": 0,
-  "episodesProcessed": 0,
+  "episodesProcessed": 16,
   "iranianSeriesPagesProcessed": 0,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
@@ -77,7 +88,26 @@
   "iranianSeriesDiagnostics": [],
   "iranianLinkProbeDiagnostics": [],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "a855c010-f9ea-11ec-a0ba-e98e6fbd748b",
+      "title": "شروود",
+      "source": "backfill",
+      "discoveredEpisodeCount": 6,
+      "catalogEpisodeCount": 6,
+      "missing": [],
+      "rejectedEpisodes": []
+    },
+    {
+      "seriesId": "a67e6bc0-61cf-11ed-a32b-992d72e4910c",
+      "title": "تایتان‌های نوجوان",
+      "source": "backfill",
+      "discoveredEpisodeCount": 64,
+      "catalogEpisodeCount": 64,
+      "missing": [],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
@@ -1058,16 +1088,16 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 0,
+  "episodesDiscovered": 70,
   "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 460,
-  "episodeArtworkSeriesChecked": 40,
+  "episodeArtworkCandidates": 0,
+  "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
-  "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
-  "affiliateRequests": 0,
+  "moviesAddedOrUpdated": 70,
+  "seriesAddedOrUpdated": 2,
+  "affiliateRequests": 86,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -1088,7 +1118,7 @@
   "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
   "peopleAdded": 0,
-  "tmdbRequests": 225,
+  "tmdbRequests": 0,
   "imdbRequests": 0,
   "mediaRepairCandidates": 0,
   "mediaRepairChecked": 0,
@@ -1102,57 +1132,30 @@
   "mediaHealthUnknown": 0,
   "mediaHealthRecovered": 0,
   "removedWithoutFreeLinks": 0,
-  "errors": [
+  "errors": [],
+  "errorsTruncated": 0,
+  "apiRequests": 179,
+  "archiveDiscovered": [
     {
-      "scope": "episode-artwork-c9a40e90-0100-11f1-8c2e-31c188042ee1",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/c9a40e90-0100-11f1-8c2e-31c188042ee1?affiliate=1"
+      "id": "4b2b9210-1f4a-11f0-9a72-df58246322db",
+      "type": "movie",
+      "name": "Night of the Zoopocalypse"
     },
     {
-      "scope": "episode-artwork-37313bf0-00fe-11f1-9bee-5b5b2a3389b5",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/37313bf0-00fe-11f1-9bee-5b5b2a3389b5?affiliate=1"
+      "id": "1b5adab0-12ed-11f0-97cc-6fb05622bf95",
+      "type": "movie",
+      "name": "Night of the Zoopocalypse"
     },
     {
-      "scope": "episode-artwork-cfb27d20-e77e-11ef-b8d9-2dd842bea893",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/cfb27d20-e77e-11ef-b8d9-2dd842bea893?affiliate=1"
+      "id": "4cc98da0-1aca-11f0-86ab-1f87768abb25",
+      "type": "movie",
+      "name": "One More Chance"
     },
     {
-      "scope": "episode-artwork-77fb5260-d647-11ef-9875-2d26004c5396",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/77fb5260-d647-11ef-9875-2d26004c5396?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-3ed00c40-00ff-11f1-928e-19b69b77f242",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/3ed00c40-00ff-11f1-928e-19b69b77f242?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-bb3ea580-0102-11f1-afce-0767768a0f4a",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/bb3ea580-0102-11f1-afce-0767768a0f4a?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-bc1c20c0-0102-11f1-8238-11a6ffb1b0bd",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/bc1c20c0-0102-11f1-8238-11a6ffb1b0bd?affiliate=1"
-    },
-    {
-      "scope": "tmdb-episode-still-41f10cf0-c0ac-11ed-89f6-67eb03123d9b-3-24",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/2660/season/3/episode/24?language=en-US"
-    },
-    {
-      "scope": "episode-artwork-6c71ffe0-3ef0-11e8-a14c-137f453c2a5d",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/6c71ffe0-3ef0-11e8-a14c-137f453c2a5d?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-1ed80b20-340e-11ed-94e4-396df7bf5a21",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/1ed80b20-340e-11ed-94e4-396df7bf5a21?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-6b1804a0-0103-11f1-b4a6-87870a86a892",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/6b1804a0-0103-11f1-b4a6-87870a86a892?affiliate=1"
-    },
-    {
-      "scope": "operator-classification-ccf41cc0-57dd-11ea-9664-5df180075e7f--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/266236?language=en-US"
+      "id": "750f64c0-1443-11f0-8791-ffbe5ab3f8a2",
+      "type": "movie",
+      "name": "Kingdom IV: Return of the Great General"
     }
   ],
-  "errorsTruncated": 0,
-  "apiRequests": 265,
-  "finishedAt": "2026-11-24T10:29:10.670Z"
+  "finishedAt": "2026-11-24T11:39:05.544Z"
 }
