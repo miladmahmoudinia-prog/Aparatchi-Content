@@ -1,15 +1,15 @@
 {
-  "startedAt": "2026-11-25T22:01:01.125Z",
-  "runTimeLimitMinutes": 30,
-  "runDeadlineAt": "2026-11-25T22:30:59.387Z",
+  "startedAt": "2026-11-26T00:51:52.719Z",
+  "runTimeLimitMinutes": 10,
+  "runDeadlineAt": "2026-11-26T01:01:51.359Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 1739025,
+  "remainingRunMsAtFinish": 586555,
   "imageMirroringSkipped": true,
   "originalCount": 8604,
   "finalCount": 8604,
-  "requestedSyncMode": "ARTWORK",
-  "effectiveSyncMode": "ARTWORK",
+  "requestedSyncMode": "IRANIAN",
+  "effectiveSyncMode": "IRANIAN",
   "backfillQueueTotal": 262,
   "backfillBacklogRemaining": 262,
   "backfillBlockedTotal": 11,
@@ -40,7 +40,13 @@
   "recentSeriesNewCandidates": 0,
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
-  "affiliateRequestScopes": {},
+  "affiliateRequestScopes": {
+    "iranian-series": {
+      "limit": 240,
+      "used": 1,
+      "exhausted": false
+    }
+  },
   "skippedByScopedBudget": 0,
   "moviePagesProcessed": 0,
   "movieTitlesProcessed": 0,
@@ -52,13 +58,13 @@
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 0,
+  "seriesHiddenUntilComplete": 1,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
-  "episodesProcessed": 0,
-  "iranianSeriesPagesProcessed": 0,
+  "iranianSeriesProcessed": 1,
+  "episodesProcessed": 1,
+  "iranianSeriesPagesProcessed": 5,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
@@ -73,11 +79,105 @@
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 4,
-  "iranianSeriesDiagnostics": [],
-  "iranianLinkProbeDiagnostics": [],
+  "duplicateCatalogItemsMerged": 0,
+  "iranianSeriesDiagnostics": [
+    {
+      "id": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
+      "title": "كله گنده ها",
+      "result": "no-progress-existing",
+      "reason": "added-or-updated",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 4,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "existing-incomplete-first"
+    }
+  ],
+  "iranianLinkProbeDiagnostics": [
+    {
+      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
+      "seriesTitle": "كله گنده ها",
+      "episodeId": "b49ef880-74a5-11e9-822d-97cb65c65181",
+      "seasonNumber": 1,
+      "episodeNumber": 2,
+      "recordCount": 8,
+      "directCount": 5,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop",
+        "aparatchi.upera.tv",
+        "plus.upera.tv"
+      ],
+      "tiers": {
+        "paid": 1,
+        "free": 7
+      },
+      "typeCounts": {
+        "link": 1,
+        "traffic": 5,
+        "player": 1,
+        "vod": 1
+      },
+      "amounts": [
+        "2,000",
+        "0"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها",
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "HLS",
+        "لینک پلیر (لینک پخش آنلاین و یا جهت IFRAME)",
+        "لینک آپرا پلاس (فروش اشتراکی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 1,
+      "mediaFileCount": 5,
+      "hasStreamUrl": true
+    }
+  ],
   "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
+      "title": "كله گنده ها",
+      "source": "fast-backfill",
+      "discoveredEpisodeCount": 5,
+      "catalogEpisodeCount": 1,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 5
+        }
+      ],
+      "rejectedEpisodes": []
+    }
+  ],
   "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
@@ -1058,16 +1158,16 @@
       "isAiring": false
     }
   ],
-  "episodesDiscovered": 0,
+  "episodesDiscovered": 5,
   "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 458,
-  "episodeArtworkSeriesChecked": 40,
+  "episodeArtworkCandidates": 0,
+  "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
-  "affiliateRequests": 0,
+  "seriesAddedOrUpdated": 1,
+  "affiliateRequests": 1,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -1088,7 +1188,7 @@
   "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
   "peopleAdded": 0,
-  "tmdbRequests": 225,
+  "tmdbRequests": 0,
   "imdbRequests": 0,
   "mediaRepairCandidates": 0,
   "mediaRepairChecked": 0,
@@ -1104,59 +1204,15 @@
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
-      "scope": "episode-artwork-b0034eb0-ff95-11f0-ba9a-75532fa03aae",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/b0034eb0-ff95-11f0-ba9a-75532fa03aae?affiliate=1"
+      "scope": "iranian-panel-series-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/get/series/season/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?page=1"
     },
     {
-      "scope": "episode-artwork-bcdb9bb0-0103-11f1-b48f-6ba68944c7da",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/bcdb9bb0-0103-11f1-b48f-6ba68944c7da?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d050f480-f474-11e8-9836-b77ecb64ceab",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d050f480-f474-11e8-9836-b77ecb64ceab?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-c9a40e90-0100-11f1-8c2e-31c188042ee1",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/c9a40e90-0100-11f1-8c2e-31c188042ee1?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-37313bf0-00fe-11f1-9bee-5b5b2a3389b5",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/37313bf0-00fe-11f1-9bee-5b5b2a3389b5?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-21d63bf0-51ec-11ed-9168-5516a18e8d07",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/21d63bf0-51ec-11ed-9168-5516a18e8d07?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-cfb27d20-e77e-11ef-b8d9-2dd842bea893",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/cfb27d20-e77e-11ef-b8d9-2dd842bea893?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-77fb5260-d647-11ef-9875-2d26004c5396",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/77fb5260-d647-11ef-9875-2d26004c5396?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-3ed00c40-00ff-11f1-928e-19b69b77f242",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/3ed00c40-00ff-11f1-928e-19b69b77f242?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-bb3ea580-0102-11f1-afce-0767768a0f4a",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/bb3ea580-0102-11f1-afce-0767768a0f4a?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-bc1c20c0-0102-11f1-8238-11a6ffb1b0bd",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/bc1c20c0-0102-11f1-8238-11a6ffb1b0bd?affiliate=1"
-    },
-    {
-      "scope": "tmdb-episode-still-41f10cf0-c0ac-11ed-89f6-67eb03123d9b-3-24",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/2660/season/3/episode/24?language=en-US"
-    },
-    {
-      "scope": "operator-classification-ccf41cc0-57dd-11ea-9664-5df180075e7f--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/266236?language=en-US"
+      "scope": "iranian-incomplete-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?affiliate=1"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 265,
-  "finishedAt": "2026-11-25T22:02:00.361Z"
+  "apiRequests": 14,
+  "finishedAt": "2026-11-26T00:52:04.804Z"
 }
