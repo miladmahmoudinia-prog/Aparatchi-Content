@@ -1,15 +1,15 @@
 {
-  "startedAt": "2026-11-27T21:41:02.638Z",
-  "runTimeLimitMinutes": 30,
-  "runDeadlineAt": "2026-11-27T22:11:01.331Z",
+  "startedAt": "2026-11-27T23:09:12.323Z",
+  "runTimeLimitMinutes": 10,
+  "runDeadlineAt": "2026-11-27T23:19:10.200Z",
   "stoppedByTimeBudget": false,
   "timeBudgetStopContext": "",
-  "remainingRunMsAtFinish": 1751037,
+  "remainingRunMsAtFinish": 584931,
   "imageMirroringSkipped": true,
   "originalCount": 8604,
   "finalCount": 8604,
-  "requestedSyncMode": "ARTWORK",
-  "effectiveSyncMode": "ARTWORK",
+  "requestedSyncMode": "IRANIAN",
+  "effectiveSyncMode": "IRANIAN",
   "backfillQueueTotal": 256,
   "backfillBacklogRemaining": 256,
   "backfillBlockedTotal": 11,
@@ -40,7 +40,13 @@
   "recentSeriesNewCandidates": 0,
   "recentSeriesProcessed": 0,
   "recentSeriesDeferredByArchiveQueue": 0,
-  "affiliateRequestScopes": {},
+  "affiliateRequestScopes": {
+    "iranian-series": {
+      "limit": 240,
+      "used": 1,
+      "exhausted": false
+    }
+  },
   "skippedByScopedBudget": 0,
   "moviePagesProcessed": 0,
   "movieTitlesProcessed": 0,
@@ -52,13 +58,13 @@
   "incompleteSeriesCandidates": 0,
   "incompleteSeriesRepaired": 0,
   "incompleteSeriesStillMissing": 0,
-  "seriesHiddenUntilComplete": 0,
+  "seriesHiddenUntilComplete": 1,
   "seriesPublishedAfterCompletion": 0,
   "airingSeriesKeptPublished": 0,
   "seriesAwaitingArchiveAudit": 0,
-  "iranianSeriesProcessed": 0,
-  "episodesProcessed": 0,
-  "iranianSeriesPagesProcessed": 0,
+  "iranianSeriesProcessed": 1,
+  "episodesProcessed": 1,
+  "iranianSeriesPagesProcessed": 5,
   "iranianSeriesCandidates": 0,
   "iranianSeriesAddedOrUpdated": 0,
   "iranianSeriesRejectedNotIranian": 0,
@@ -73,21 +79,106 @@
   "operatorMoviesRejectedNoOperatorLink": 0,
   "operatorLinksFound": 0,
   "operatorClassificationsRemoved": 0,
-  "duplicateCatalogItemsMerged": 1,
-  "iranianSeriesDiagnostics": [],
-  "iranianLinkProbeDiagnostics": [],
-  "operatorDiagnostics": [],
-  "seriesEpisodeDiagnostics": [],
-  "catalogEpisodeGapDiagnostics": [
+  "duplicateCatalogItemsMerged": 0,
+  "iranianSeriesDiagnostics": [
     {
-      "seriesId": "df4f05b0-d365-11f0-b861-776e138c4893",
-      "title": "لوک کوچولوی خوش شانس",
-      "missing": [],
-      "pendingEpisodeCount": 16,
-      "publicationStatus": "building-archive",
-      "archiveAuditStatus": "checked",
-      "isAiring": true
-    },
+      "id": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
+      "title": "كله گنده ها",
+      "result": "no-progress-existing",
+      "reason": "added-or-updated",
+      "addedEpisodes": 0,
+      "remainingEpisodeCount": 4,
+      "retryLater": false,
+      "newlyPublished": false,
+      "discovery": "existing-incomplete-first"
+    }
+  ],
+  "iranianLinkProbeDiagnostics": [
+    {
+      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
+      "seriesTitle": "كله گنده ها",
+      "episodeId": "b49ef880-74a5-11e9-822d-97cb65c65181",
+      "seasonNumber": 1,
+      "episodeNumber": 2,
+      "recordCount": 8,
+      "directCount": 5,
+      "portalCount": 0,
+      "hosts": [
+        "upera.shop",
+        "aparatchi.upera.tv",
+        "plus.upera.tv"
+      ],
+      "tiers": {
+        "paid": 1,
+        "free": 7
+      },
+      "typeCounts": {
+        "link": 1,
+        "traffic": 5,
+        "player": 1,
+        "vod": 1
+      },
+      "amounts": [
+        "2,000",
+        "0"
+      ],
+      "titleSamples": [
+        "همه کیفیت‌ها",
+        "کیفیت 480",
+        "کیفیت 720",
+        "کیفیت 1080",
+        "کیفیت HQ_1080",
+        "HLS",
+        "لینک پلیر (لینک پخش آنلاین و یا جهت IFRAME)",
+        "لینک آپرا پلاس (فروش اشتراکی)"
+      ],
+      "ussdKinds": [],
+      "recordKeys": [
+        "type",
+        "link",
+        "size",
+        "ussd_link",
+        "title",
+        "amount",
+        "_group_hint",
+        "_panel_verified",
+        "_traffic_oo"
+      ],
+      "mediaGroupCount": 1,
+      "mediaFileCount": 5,
+      "hasStreamUrl": true
+    }
+  ],
+  "operatorDiagnostics": [],
+  "seriesEpisodeDiagnostics": [
+    {
+      "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
+      "title": "كله گنده ها",
+      "source": "fast-backfill",
+      "discoveredEpisodeCount": 5,
+      "catalogEpisodeCount": 1,
+      "missing": [
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 1
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 3
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 4
+        },
+        {
+          "seasonNumber": 1,
+          "episodeNumber": 5
+        }
+      ],
+      "rejectedEpisodes": []
+    }
+  ],
+  "catalogEpisodeGapDiagnostics": [
     {
       "seriesId": "0c6fc160-7485-11e9-a3c7-31dacdcc84f3",
       "title": "كله گنده ها",
@@ -96,6 +187,15 @@
       "publicationStatus": "building-archive",
       "archiveAuditStatus": "checked",
       "isAiring": false
+    },
+    {
+      "seriesId": "df4f05b0-d365-11f0-b861-776e138c4893",
+      "title": "لوک کوچولوی خوش شانس",
+      "missing": [],
+      "pendingEpisodeCount": 16,
+      "publicationStatus": "building-archive",
+      "archiveAuditStatus": "checked",
+      "isAiring": true
     },
     {
       "seriesId": "a64668d0-40c9-11ee-9af2-21bf067ac764",
@@ -1058,16 +1158,16 @@
       "isAiring": true
     }
   ],
-  "episodesDiscovered": 0,
+  "episodesDiscovered": 5,
   "episodeGroupsAdded": 0,
-  "episodeArtworkCandidates": 458,
-  "episodeArtworkSeriesChecked": 40,
+  "episodeArtworkCandidates": 0,
+  "episodeArtworkSeriesChecked": 0,
   "episodeArtworkAdded": 0,
   "episodeArtworkMirrored": 0,
   "episodesRejectedNoLinks": 0,
   "moviesAddedOrUpdated": 0,
-  "seriesAddedOrUpdated": 0,
-  "affiliateRequests": 0,
+  "seriesAddedOrUpdated": 1,
+  "affiliateRequests": 1,
   "affiliateCacheHits": 0,
   "affiliateNotFound": 0,
   "rateLimitHits": 0,
@@ -1075,7 +1175,7 @@
   "skippedByBudget": 0,
   "imagesMirrored": 0,
   "imageMirrorErrors": 0,
-  "episodeFramesGenerated": 88,
+  "episodeFramesGenerated": 0,
   "episodeFrameErrors": 0,
   "seriesKeptVisibleDuringBackfill": 0,
   "seriesRestoredByMonotonicGuard": 3,
@@ -1088,7 +1188,7 @@
   "peopleEnrichmentFromTmdb": 0,
   "peopleEnrichmentFromImdb": 0,
   "peopleAdded": 0,
-  "tmdbRequests": 216,
+  "tmdbRequests": 0,
   "imdbRequests": 0,
   "mediaRepairCandidates": 0,
   "mediaRepairChecked": 0,
@@ -1104,175 +1204,15 @@
   "removedWithoutFreeLinks": 0,
   "errors": [
     {
-      "scope": "episode-artwork-96809160-e437-11ed-af52-8bf0a6ae3bf8",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/96809160-e437-11ed-af52-8bf0a6ae3bf8?affiliate=1"
+      "scope": "iranian-panel-series-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "message": "HTTP 404 برای https://panel-api.upera.tv/api/v1/owner/get/series/season/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?page=1"
     },
     {
-      "scope": "episode-artwork-abfcc9f0-3c61-11ef-913d-fd55e0299ed6",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/abfcc9f0-3c61-11ef-913d-fd55e0299ed6?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d01e7520-3f12-11ed-b472-5beda1527dd4",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d01e7520-3f12-11ed-b472-5beda1527dd4?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d1e1da80-2f45-11ed-92e1-27ebbb652687",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d1e1da80-2f45-11ed-92e1-27ebbb652687?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d28174f0-ddcb-11ec-b408-a9a177ac3531",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d28174f0-ddcb-11ec-b408-a9a177ac3531?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d27f84c0-1047-11ed-9e3f-bd4737c32438",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d27f84c0-1047-11ed-9e3f-bd4737c32438?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d2759420-5709-11ef-9673-b18fa170f09e",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d2759420-5709-11ef-9673-b18fa170f09e?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d28d2990-47b0-11ed-9a94-e5f9944f27a8",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d28d2990-47b0-11ed-9a94-e5f9944f27a8?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-a6384f20-b470-11ee-b3ff-bf818bb8fe23",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/a6384f20-b470-11ee-b3ff-bf818bb8fe23?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d2cdcb20-667a-11ed-8f9f-a565dec9b3ec",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d2cdcb20-667a-11ed-8f9f-a565dec9b3ec?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d36805b0-e8db-11ed-8961-1d12374b2ad4",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d36805b0-e8db-11ed-8961-1d12374b2ad4?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d38e9c40-4251-11ed-8b59-1d4071103ebd",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d38e9c40-4251-11ed-8b59-1d4071103ebd?affiliate=1"
-    },
-    {
-      "scope": "tmdb-episode-still-d38e9c40-4251-11ed-8b59-1d4071103ebd-1-20",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/99121/season/1/episode/20?language=en-US"
-    },
-    {
-      "scope": "tmdb-episode-still-d38e9c40-4251-11ed-8b59-1d4071103ebd-1-19",
-      "message": "HTTP 404 برای https://api.themoviedb.org/3/tv/99121/season/1/episode/19?language=en-US"
-    },
-    {
-      "scope": "episode-artwork-d4a32250-0a99-11ee-a66c-bbc9caf81ad0",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d4a32250-0a99-11ee-a66c-bbc9caf81ad0?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d5401e80-ce0c-11ed-9525-ff8b3e828699",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d5401e80-ce0c-11ed-9525-ff8b3e828699?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d52565c0-487e-11ed-b3d6-eb9e8eab6be9",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d52565c0-487e-11ed-b3d6-eb9e8eab6be9?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d5e528a0-37f6-11ed-8d6b-bb4831a6052f",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d5e528a0-37f6-11ed-8d6b-bb4831a6052f?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d6318c00-be32-11ec-8e1f-719b463f44f4",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d6318c00-be32-11ec-8e1f-719b463f44f4?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d6449800-4d6d-11ee-b8d9-e5c7ca989d32",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d6449800-4d6d-11ee-b8d9-e5c7ca989d32?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d63b9b90-7885-11ed-8dd0-2d8bd48ff48c",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d63b9b90-7885-11ed-8dd0-2d8bd48ff48c?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d6627000-4ecf-11ed-ab27-0595f7e85ac6",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d6627000-4ecf-11ed-ab27-0595f7e85ac6?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d9f96e60-ec8e-11ec-87a1-2ba3c2f811ba",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d9f96e60-ec8e-11ec-87a1-2ba3c2f811ba?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d7bfec50-2856-11ed-9beb-0781447fd809",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d7bfec50-2856-11ed-9beb-0781447fd809?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d8b13cb0-1f23-11ed-b9ee-399c86ece8db",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d8b13cb0-1f23-11ed-b9ee-399c86ece8db?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d8291d40-5545-11ee-b788-d7faf2fde4aa",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d8291d40-5545-11ee-b788-d7faf2fde4aa?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d9993800-3ec3-11ed-84e2-0b85c9f4d52d",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d9993800-3ec3-11ed-84e2-0b85c9f4d52d?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d908e760-68db-11ee-9040-938c74cbc207",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d908e760-68db-11ee-9040-938c74cbc207?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-d9e93690-29c0-11ed-8749-979281dce149",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/d9e93690-29c0-11ed-8749-979281dce149?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-da0366e0-807f-11ee-89bc-4fecee56c65d",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/da0366e0-807f-11ee-89bc-4fecee56c65d?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-da0a4640-1886-11ed-aead-2bed87fa69d9",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/da0a4640-1886-11ed-aead-2bed87fa69d9?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-da72c830-f182-11ed-b4b1-9d602d14a47b",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/da72c830-f182-11ed-b4b1-9d602d14a47b?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-dc861950-4c74-11ed-8ceb-536c10793a8c",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/dc861950-4c74-11ed-8ceb-536c10793a8c?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-dbfe4f40-2a96-11ef-a80d-172cb4ec39e8",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/dbfe4f40-2a96-11ef-a80d-172cb4ec39e8?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-dd4a1ee0-4875-11ed-a11d-2586a3e5af5c",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/dd4a1ee0-4875-11ed-a11d-2586a3e5af5c?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-e6a68180-477c-11ee-8ad5-65475042f7b2",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/e6a68180-477c-11ee-8ad5-65475042f7b2?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-e6b9c800-521a-11ed-8f22-7dae48bd828b",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/e6b9c800-521a-11ed-8f22-7dae48bd828b?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-e762bb60-b076-11ed-be99-4f6ea11f3f95",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/e762bb60-b076-11ed-be99-4f6ea11f3f95?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-fdd91fb0-c45a-11ed-8149-e9023faed841",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/fdd91fb0-c45a-11ed-8149-e9023faed841?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-ff5ef2e0-46f4-11ed-88aa-7f21307fba17",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/ff5ef2e0-46f4-11ed-88aa-7f21307fba17?affiliate=1"
-    },
-    {
-      "scope": "episode-artwork-f7aaad40-e993-11ed-891f-15212ec6472f",
-      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/f7aaad40-e993-11ed-891f-15212ec6472f?affiliate=1"
-    },
-    {
-      "scope": "operator-classification-ccf41cc0-57dd-11ea-9664-5df180075e7f--operator",
-      "message": "پاسخ ناموفق API برای https://api.themoviedb.org/3/movie/266236?language=fa-IR"
+      "scope": "iranian-incomplete-003d0bb0-2edb-11ee-96d0-7ffb24edcb32",
+      "message": "HTTP 400 برای https://seeko.film/api/v1/ghost/get/series/003d0bb0-2edb-11ee-96d0-7ffb24edcb32?affiliate=1"
     }
   ],
   "errorsTruncated": 0,
-  "apiRequests": 256,
-  "finishedAt": "2026-11-27T21:41:50.294Z"
+  "apiRequests": 14,
+  "finishedAt": "2026-11-27T23:09:25.269Z"
 }
